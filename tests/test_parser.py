@@ -433,5 +433,35 @@ class ParserTest(unittest.TestCase):
         text_node = paragraph['children'][0]
         self.assertEqual(text_node['text'], 'This is AsciiDocParser.')
 
+    def test_attribute_with_inline_formatting(self):
+        source = ":author: *Jane* _Smith_\nHello {author}!\n"
+        ast = parse_to_ast(source)
+        paragraph = ast['children'][1]
+        self.assertEqual(paragraph['type'], 'paragraph')
+        # Expected: Hello *Jane* _Smith_! -> Text, Strong, Text, Emphasis, Text
+        self.assertEqual(len(paragraph['children']), 5)
+        self.assertEqual(paragraph['children'][0]['text'], 'Hello ')
+        self.assertEqual(paragraph['children'][1]['type'], 'strong')
+        self.assertEqual(paragraph['children'][1]['children'][0]['text'], 'Jane')
+        self.assertEqual(paragraph['children'][2]['text'], ' ')
+        self.assertEqual(paragraph['children'][3]['type'], 'emphasis')
+        self.assertEqual(paragraph['children'][3]['children'][0]['text'], 'Smith')
+        self.assertEqual(paragraph['children'][4]['text'], '!')
+
+    def test_deeply_nested_attribute_substitution(self):
+        source = ":a: 1\n:b: {a}{a}\n:c: {b}{b}\nResult is {c}.\n"
+        ast = parse_to_ast(source)
+        paragraph = ast['children'][3]
+        self.assertEqual(paragraph['children'][0]['text'], 'Result is 1111.')
+
+    def test_recursive_attribute_substitution(self):
+        source = ":project_name: Cool Project\n:doc_title: {project_name} Docs\n== {doc_title}\n"
+        ast = parse_to_ast(source)
+        section = ast['children'][2]
+        title_node = section['title']
+        text_node = title_node['children'][0]
+        self.assertEqual(text_node['text'], 'Cool Project Docs')
+
+
 if __name__ == '__main__':
     unittest.main()
