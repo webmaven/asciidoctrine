@@ -130,6 +130,7 @@ class ParserTest(unittest.TestCase):
         self.assertEqual(literal['attributes'], {'style': 'source', 'language': 'python'})
         self.assertIn('def foo(): pass', literal['content'])
 
+    def test_section_parsing(self):
         source = "== Section 1\n\nThis is the first section.\n"
         ast = parse_to_ast(source)
         expected_ast = {

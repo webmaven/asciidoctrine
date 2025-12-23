@@ -52,7 +52,7 @@ sidebar_content: (admonition | example_block | basic_block)*
 text_content: inline_element+
 
 attribute_reference: LBRACE ATTR_NAME RBRACE
-?inline_element: bold | italic | monospace | attribute_reference | WORD | ATTR_NAME | LBRACE | RBRACE | WHITESPACE
+?inline_element: bold | italic | monospace | attribute_reference | WORD | WHITESPACE
 
 bold: "*" text_content "*"
 italic: "_" text_content "_"
