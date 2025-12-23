@@ -44,7 +44,8 @@ class Node:
             'section': 'section',
             'title': 'title',
             'listitem': 'list_item',
-            'literalblock': 'literal_block'
+            'literalblock': 'literal_block',
+            'sidebar': 'sidebar'
         }
         data['type'] = type_map.get(data['type'], data['type'])
         
@@ -147,6 +148,10 @@ class Admonition(BlockNode):
     def __init__(self, flavor: str, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.flavor = flavor
+
+class Sidebar(BlockNode):
+    """Represents a sidebar block."""
+    pass
 
 class Table(BlockNode):
     """Represents a table."""

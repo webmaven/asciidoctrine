@@ -304,5 +304,54 @@ class ParserTest(unittest.TestCase):
         self.assertGreaterEqual(len(admonitions), 1)
         self.assertEqual(admonitions[0]['flavor'], 'note')
 
+    def test_sidebar_basic(self):
+        source = "****\nThis is a sidebar.\n****\n"
+        ast = parse_to_ast(source)
+        sidebar = ast['children'][0]
+        self.assertEqual(sidebar['type'], 'sidebar')
+        self.assertEqual(len(sidebar['children']), 1)
+        self.assertEqual(sidebar['children'][0]['type'], 'paragraph')
+        self.assertEqual(sidebar['children'][0]['children'][0]['text'], 'This is a sidebar.')
+
+    def test_sidebar_nested_content(self):
+        source = "****\nSidebar paragraph.\n\n- List item\n\n----\ncode\n----\n****\n"
+        ast = parse_to_ast(source)
+        sidebar = ast['children'][0]
+        child_types = [c['type'] for c in sidebar['children']]
+        self.assertIn('paragraph', child_types)
+        self.assertIn('bullet_list', child_types)
+        self.assertIn('literal_block', child_types)
+
+    def test_sidebar_empty(self):
+        source = "****\n****\n"
+        ast = parse_to_ast(source)
+        sidebar = ast['children'][0]
+        # Should be empty or have blank lines, handle missing 'children' key safely
+        children = sidebar.get('children', [])
+        self.assertTrue(len(children) == 0 or all(c['type'] == 'blank_line' for c in children))
+
+    def test_sidebar_multiple(self):
+        source = "****\nContent 1\n****\n\n****\nContent 2\n****\n"
+        ast = parse_to_ast(source)
+        sidebars = [c for c in ast['children'] if c['type'] == 'sidebar']
+        self.assertEqual(len(sidebars), 2)
+
+    def test_sidebar_nested_admonition(self):
+        source = "****\n[NOTE]\n====\nNote inside sidebar\n====\n****\n"
+        ast = parse_to_ast(source)
+        sidebar = ast['children'][0]
+        self.assertEqual(sidebar['type'], 'sidebar')
+        admonition = sidebar['children'][0]
+        self.assertEqual(admonition['type'], 'admonition')
+        self.assertEqual(admonition['flavor'], 'note')
+
+    def test_admonition_nested_sidebar(self):
+        source = "[TIP]\n====\n****\nSidebar inside tip\n****\n====\n"
+        ast = parse_to_ast(source)
+        admonition = ast['children'][0]
+        self.assertEqual(admonition['type'], 'admonition')
+        sidebar = admonition['children'][0]
+        self.assertEqual(sidebar['type'], 'sidebar')
+
 if __name__ == '__main__':
     unittest.main()

@@ -3,7 +3,7 @@ import os
 from lark import Lark, Transformer, Discard, Token
 from .nodes import (
     Node, Document, Title, Section, Paragraph, Text, Strong, Emphasis, 
-    InlineCode, BulletList, OrderedList, ListItem, LiteralBlock, Admonition
+    InlineCode, BulletList, OrderedList, ListItem, LiteralBlock, Admonition, Sidebar
 )
 
 def _merge_consecutive_lists(blocks):
@@ -161,6 +161,21 @@ class AsciiDocTransformer(Transformer):
         # Merge consecutive lists inside the admonition if needed
         merged_inner = _merge_consecutive_lists(inner)
         return Admonition(flavor=flavor, children=merged_inner)
+
+    def sidebar_content(self, children):
+        # Return filtered children
+        return [c for c in children if c is not Discard]
+
+    def sidebar(self, children):
+        # children: [SIDEBAR_DELIM, _NEWLINE, sidebar_content, SIDEBAR_DELIM, _NEWLINE?]
+        # Find the sidebar_content
+        inner = []
+        for c in children:
+            if isinstance(c, list):
+                inner = c
+                break
+        merged_inner = _merge_consecutive_lists(inner)
+        return Sidebar(children=merged_inner)
 
     # --- Inlines ---
 

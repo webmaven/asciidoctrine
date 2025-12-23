@@ -1,0 +1,17 @@
+.Optional Title
+****
+This is a simple sidebar block.
+It is often used for side notes or additional context.
+****
+
+****
+A sidebar with complex content.
+
+* List item 1
+* List item 2
+
+----
+def sidebar_code():
+    pass
+----
+****

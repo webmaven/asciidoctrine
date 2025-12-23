@@ -1,8 +1,9 @@
+
 start: document
 
 document: block*
 
-block: section | paragraph | ulist | olist | literal_block | admonition | blank_line
+block: section | paragraph | ulist | olist | literal_block | blank_line | admonition | sidebar
 
 blank_line: _NEWLINE+
 
@@ -26,7 +27,12 @@ literal_block: LITERAL_BLOCK_DELIM _NEWLINE LITERAL_BLOCK_CONTENT LITERAL_BLOCK_
 // Admonitions
 admonition: ADMONITION_START _NEWLINE ADMONITION_DELIM _NEWLINE admonition_content ADMONITION_DELIM _NEWLINE?
 
-admonition_content: (literal_block | ulist | olist | paragraph | blank_line)*
+admonition_content: (sidebar | literal_block | ulist | olist | paragraph | blank_line)*
+
+// Sidebars
+sidebar: SIDEBAR_DELIM _NEWLINE sidebar_content SIDEBAR_DELIM _NEWLINE?
+
+sidebar_content: (admonition | literal_block | ulist | olist | paragraph | blank_line)*
 
 // --- Inline Elements ---
 // Using a recursive definition. Requires the Earley parser.
@@ -48,6 +54,7 @@ OLIST_MARKER: /([0-9]+\.|[\.]+)[ \t]+/
 LITERAL_BLOCK_DELIM.2: /----/
 ADMONITION_START: /\[ *(NOTE|TIP|IMPORTANT|WARNING|CAUTION) *\]/
 ADMONITION_DELIM: /====/
+SIDEBAR_DELIM: /\*\*\*\*/
 
 // Non-greedy content matching for literal blocks.
 LITERAL_BLOCK_CONTENT: /(.(?!----\n))*./s
