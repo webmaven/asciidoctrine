@@ -6,6 +6,7 @@ from .nodes import (
     InlineCode, BulletList, OrderedList, ListItem, LiteralBlock, Admonition, Sidebar, ExampleBlock,
     AttributeEntry
 )
+from .preprocessor import Preprocessor
 
 def _merge_consecutive_lists(blocks):
     if not blocks:
@@ -221,24 +222,27 @@ class AsciiDocTransformer(Transformer):
 
     def attribute_entry(self, children):
         name = ""
-        value = ""
+        value_nodes = []
         for c in children:
             if isinstance(c, Token) and c.type == 'ATTR_NAME':
                 name = c.value
             elif isinstance(c, list):
-                # Simple text concatenation for now
-                parts = []
-                for node in c:
-                    if hasattr(node, 'text'):
-                        parts.append(node.text)
-                    elif hasattr(node, 'children'):
-                         # Recursively get text if it's a nested node (like Bold)
-                         # This is a bit naive but works for basic attribute values
-                         parts.append("".join([child.text for child in node.children if hasattr(child, 'text')]))
-                value = "".join(parts).strip()
-        print(f"DEBUG: AttributeEntry name='{name}' value='{value}'")
-        self.attributes[name] = value
-        return AttributeEntry(name, value)
+                value_nodes = c
+
+        # Store the rich AST nodes for later substitution
+        self.attributes[name] = value_nodes
+
+        # For the AttributeEntry node itself, create a simple string value for now.
+        value_str = ""
+        parts = []
+        for node in value_nodes:
+            if hasattr(node, 'text'):
+                parts.append(node.text)
+            elif hasattr(node, 'children'):
+                 # This is a bit naive but works for basic attribute values
+                 parts.append("".join([child.text for child in node.children if hasattr(child, 'text')]))
+        value_str = "".join(parts).strip()
+        return AttributeEntry(name, value_str)
 
     # --- Inlines ---
 
@@ -248,14 +252,23 @@ class AsciiDocTransformer(Transformer):
             if isinstance(c, Token) and c.type == 'ATTR_NAME':
                 name = c.value
                 break
-        print(f"DEBUG: AttRef lookup '{name}' in {self.attributes.keys()}")
-        value = self.attributes.get(name, f"{{{name}}}")
-        return Text(value)
+
+        # Return the list of nodes, or a Text node with the unresolved reference
+        return self.attributes.get(name, Text(f"{{{name}}}"))
 
     def text_content(self, children):
         nodes = []
         text_buffer = ''
+
+        # Flatten the list of children, in case of attribute substitution returning a list of nodes
+        flat_children = []
         for child in children:
+            if isinstance(child, list):
+                flat_children.extend(child)
+            else:
+                flat_children.append(child)
+
+        for child in flat_children:
             if isinstance(child, Token):
                 text_buffer += str(child.value)
             elif isinstance(child, Text):
@@ -298,13 +311,17 @@ class AsciiDocTransformer(Transformer):
 
 DEFAULT_GRAMMAR = os.path.join(os.path.dirname(__file__), 'grammar.lark')
 
-def parse_to_ast(source, grammar_file=DEFAULT_GRAMMAR):
+def parse_to_ast(source, grammar_file=DEFAULT_GRAMMAR, base_dir=None):
+    # Preprocess the source to handle includes
+    preprocessor = Preprocessor(base_dir)
+    processed_source = preprocessor.process(source)
+
     with open(grammar_file, "r") as f:
         grammar = f.read()
     # Using LALR or Earley is common, but we are moving to PEG
     # For now, let's keep it compatible. PEG in Lark is experimental.
     parser = Lark(grammar, start='document', parser='earley')
-    tree = parser.parse(source)
+    tree = parser.parse(processed_source)
     ast_root = AsciiDocTransformer().transform(tree)
     # Return as dict for test compatibility
     return ast_root.to_dict() if hasattr(ast_root, 'to_dict') else ast_root

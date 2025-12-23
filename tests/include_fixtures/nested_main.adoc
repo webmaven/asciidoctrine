@@ -1,0 +1,3 @@
+This file includes another file, which in turn includes a third.
+
+include::nested_child.adoc[]

@@ -3,9 +3,23 @@ Tests for the AsciiDoc parser.
 """
 
 import unittest
+import os
+import shutil
 from asciidoc_parser.lark_parser import parse_to_ast
 
 class ParserTest(unittest.TestCase):
+
+    def setUp(self):
+        # Create a temporary directory for test fixtures
+        self.base_dir = os.path.join(os.path.dirname(__file__), 'temp_fixtures')
+        os.makedirs(self.base_dir, exist_ok=True)
+        with open(os.path.join(self.base_dir, 'included.adoc'), 'w') as f:
+            f.write("This is an *included* file.\n\n* With a list item.\n")
+
+    def tearDown(self):
+        # Clean up the temporary directory
+        if os.path.exists(self.base_dir):
+            shutil.rmtree(self.base_dir)
 
     def test_paragraph(self):
         source = "Hello, world.\n"
@@ -432,6 +446,66 @@ class ParserTest(unittest.TestCase):
         paragraph = ast['children'][2]
         text_node = paragraph['children'][0]
         self.assertEqual(text_node['text'], 'This is AsciiDocParser.')
+
+    def test_attribute_with_inline_formatting(self):
+        source = ":author: *Jane* _Smith_\nHello {author}!\n"
+        ast = parse_to_ast(source)
+        paragraph = ast['children'][1]
+        self.assertEqual(paragraph['type'], 'paragraph')
+        # Expected: Hello *Jane* _Smith_! -> Text, Strong, Text, Emphasis, Text
+        self.assertEqual(len(paragraph['children']), 5)
+        self.assertEqual(paragraph['children'][0]['text'], 'Hello ')
+        self.assertEqual(paragraph['children'][1]['type'], 'strong')
+        self.assertEqual(paragraph['children'][1]['children'][0]['text'], 'Jane')
+        self.assertEqual(paragraph['children'][2]['text'], ' ')
+        self.assertEqual(paragraph['children'][3]['type'], 'emphasis')
+        self.assertEqual(paragraph['children'][3]['children'][0]['text'], 'Smith')
+        self.assertEqual(paragraph['children'][4]['text'], '!')
+
+    def test_deeply_nested_attribute_substitution(self):
+        source = ":a: 1\n:b: {a}{a}\n:c: {b}{b}\nResult is {c}.\n"
+        ast = parse_to_ast(source)
+        paragraph = ast['children'][3]
+        self.assertEqual(paragraph['children'][0]['text'], 'Result is 1111.')
+
+    def test_recursive_attribute_substitution(self):
+        source = ":project_name: Cool Project\n:doc_title: {project_name} Docs\n== {doc_title}\n"
+        ast = parse_to_ast(source)
+        section = ast['children'][2]
+        title_node = section['title']
+        text_node = title_node['children'][0]
+        self.assertEqual(text_node['text'], 'Cool Project Docs')
+
+
+    def test_preprocessor_integration(self):
+        source = "include::included.adoc[]"
+        ast = parse_to_ast(source, base_dir=self.base_dir)
+        expected_ast = {
+            'type': 'document',
+            'children': [
+                {
+                    'type': 'paragraph',
+                    'children': [
+                        {'type': 'text', 'text': 'This is an '},
+                        {'type': 'strong', 'children': [{'type': 'text', 'text': 'included'}]},
+                        {'type': 'text', 'text': ' file.'}
+                    ]
+                },
+                {
+                    'type': 'bullet_list',
+                    'children': [
+                        {
+                            'type': 'list_item',
+                            'children': [
+                                {'type': 'text', 'text': 'With a list item.'}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+        self.assertEqual(ast, expected_ast)
+
 
 if __name__ == '__main__':
     unittest.main()
