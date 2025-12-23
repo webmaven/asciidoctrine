@@ -1,0 +1,25 @@
+== Sample Document
+
+This is a comprehensive sample document for testing the AsciiDoc parser.
+
+== Features
+
+The parser supports:
+
+* Sections and Titles
+* Paragraphs
+* Unordered Lists
+* Ordered Lists
+* Literal Blocks
+* Inline Formatting (*bold*, _italic_, `monospace`)
+
+== Literal Example
+
+----
+def hello():
+    print("Hello, world!")
+----
+
+1. One
+2. Two
+3. Three

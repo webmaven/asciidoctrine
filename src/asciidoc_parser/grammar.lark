@@ -1,0 +1,53 @@
+start: document
+
+document: block*
+
+block: section | paragraph | ulist | olist | literal_block | blank_line
+
+blank_line: _NEWLINE+
+
+// Sections and Titles
+section: section_title block*
+section_title: SECTION_TITLE_LEAD text_content _NEWLINE
+
+// Paragraphs
+paragraph: text_content _NEWLINE
+
+// Lists
+ulist: ulist_item+
+olist: olist_item+
+
+ulist_item: ULIST_MARKER text_content _NEWLINE
+olist_item: OLIST_MARKER text_content _NEWLINE
+
+// Literal Blocks (Simple)
+literal_block: LITERAL_BLOCK_DELIM _NEWLINE LITERAL_BLOCK_CONTENT LITERAL_BLOCK_DELIM
+
+// --- Inline Elements ---
+// Using a recursive definition. Requires the Earley parser.
+text_content: inline_element+
+
+?inline_element: bold | italic | monospace | WORD | WHITESPACE
+
+bold: "*" text_content "*"
+italic: "_" text_content "_"
+monospace: "`" text_content "`"
+
+
+// --- Terminals ---
+
+// Block Terminals
+SECTION_TITLE_LEAD: /==+[ \t]*/
+ULIST_MARKER: /(\*+|[-])[ \t]+/
+OLIST_MARKER: /([0-9]+\.|[\.]+)[ \t]+/
+LITERAL_BLOCK_DELIM: /----/
+// Non-greedy content matching for literal blocks.
+LITERAL_BLOCK_CONTENT: /(.(?!----\n))*./s
+
+// Inline Terminals
+_NEWLINE: /(\r\n|\n|\r)/
+WHITESPACE: /[ \t]+/
+WORD: /[^ \t\n*_`=\[\]]+/  // Word characters (not whitespace or markup)
+// TEXT: /[^\n]+/ // Removed in favor of text_content
+
+// %ignore WHITESPACE

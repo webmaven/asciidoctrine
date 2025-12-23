@@ -1,0 +1,166 @@
+= AsciiDoc Parser for Python
+Michael R. Bernstein <zopemaven@gmail.com>
+v0.1.0
+:toc: left
+:icons: font
+:idprefix:
+:idseparator: -
+:sectanchors:
+:sectlinks:
+:source-highlighter: highlight.js
+
+image:https://img.shields.io/badge/License-Apache_2.0-blue.svg[License, link=https://opensource.org/licenses/Apache-2.0]
+image:https://img.shields.io/badge/python-3.9+-blue.svg[Python Version]
+image:https://img.shields.io/badge/status-alpha-orange.svg[Development Status]
+
+A high-performance, pure-Python AsciiDoc parser built with Lark, designed for compatibility with the official AsciiDoc specification and the TCK.
+
+== 💡 Motivation
+
+The Python ecosystem has long lacked a modern, maintainable, and specification-compliant AsciiDoc parser. Existing tools are often port-based or rely on regex-heavy implementations that struggle with the complex, context-sensitive nature of AsciiDoc.
+
+This project is built from the ground up to provide:
+1. **Spec Alignment**: Strict adherence to the upcoming official AsciiDoc Language Specification.
+2. **First-Class AST**: A structured, type-safe Abstract Syntax Tree that makes building renderers and static analysis tools a breeze.
+3. **Performance**: Leveraging the Lark parsing engine for efficient processing of large documents.
+
+== 🏗 Architecture
+
+The parser operates in a multi-pass pipeline to handle the inherent complexity of AsciiDoc:
+
+[mermaid]
+....
+graph LR
+    A[Source] --> B(Lark Parser)
+    B --> C[Concrete Syntax Tree]
+    C --> D(Transformer)
+    D --> E[Structured AST]
+    E --> F(Semantic Passes)
+    F --> G[Resolved ASG]
+....
+
+* **AST (Abstract Syntax Tree)**: Represented in `nodes.py`, this is a structural tree of the document elements.
+* **ASG (Abstract Semantic Graph)**: The final resolved state where attributes, cross-references, and includes are fully processed.
+
+== � Technical Choices
+
+*   **Lark Parsing Engine**: We use Lark because it supports multiple parsing algorithms (Earley, LALR) and has an experimental PEG mode. This allow us to handle the context-sensitive nature of AsciiDoc without the maintenance nightmare of large regex collections.
+*   **Two-Pass Pipeline**: Handling attributes and includes requires knowing the state of the whole document. Our multi-pass approach ensures that we can resolve semantic details (like cross-references) correctly.
+*   **Pure Python**: Zero C-extensions means easy installation on all platforms including Pyodide and WebAssembly.
+
+== �🚀 Installation
+
+[source,bash]
+----
+pip install asciidoc-parser
+----
+
+> [!NOTE]
+> This package is currently in early alpha. It is being developed in tandem with the official TCK integration.
+
+== 📖 Quick Start
+
+[source,python]
+----
+from asciidoc_parser.lark_parser import parse_to_ast
+
+source = """
+== Section Title
+This is a *bold* word in a paragraph.
+"""
+
+# Returns a Document node from nodes.py
+doc = parse_to_ast(source)
+
+# Iterate through sections
+for section in doc.walk():
+    if section.type == 'section':
+        print(f"Found section: {section.title_node.children[0].text}")
+----
+
+=== AST Representation
+
+Parsing the source above yields a structured representation:
+
+[source,json]
+----
+{
+  "type": "document",
+  "children": [
+    {
+      "type": "section",
+      "level": 1,
+      "title": {
+        "type": "title",
+        "children": [
+          { "type": "text", "text": "Section Title" }
+        ]
+      },
+      "children": [
+        {
+          "type": "paragraph",
+          "children": [
+            { "type": "text", "text": "This is a " },
+            { "type": "strong", "children": [{ "type": "text", "text": "bold" }] },
+            { "type": "text", "text": " word in a paragraph." }
+          ]
+        }
+      ]
+    }
+  ]
+}
+----
+
+== 🗺 Roadmap to Parity
+
+The path to 1:1 parity with Asciidoctor is tracked through the following phases:
+
+[cols="1,3,1"]
+|===
+| Phase | Focus | Status
+
+| **0** | **Foundations**: PEG grammar, structured AST, and TCK harness. | ✅
+| **1** | **Advanced Blocks**: Admonitions, sidebars, and source blocks. | 🚧
+| **2** | **Document Infra**: Headers, attributes, and includes. | ⏳
+| **3** | **Tables**: Complex layouts, spanning, and formatting. | ⏳
+| **4** | **Extensions**: Links, images, macros, and cross-references. | ⏳
+| **5** | **Preprocessing**: Conditionals and TOC generation. | ⏳
+|===
+
+== 📁 Project Structure
+
+[source,text]
+----
+asciidoc_parser/
+├── src/
+│   └── asciidoc_parser/      # Core parser logic
+│       ├── grammar.lark      # EBNF Grammar
+│       ├── lark_parser.py    # Transformer and Parser entry point
+│       ├── nodes.py          # AST Node definitions
+│       └── __init__.py       # Public API
+├── examples/                 # Real-world usage samples
+├── tests/                    # Unit and integration tests
+├── pyproject.toml            # Build configuration
+└── README.adoc               # This file
+----
+
+== 🧪 Testing & Compliance
+
+We prioritize correctness by testing against three fronts:
+1. **Unit Tests**: Granular tests for individual grammar rules.
+2. **Integration Suite**: A library of real-world `.adoc` examples.
+3. **TCK (Technology Compatibility Kit)**: (In-Progress) Alignment with the official AsciiDoc TCK suite.
+
+Run tests locally with:
+[source,bash]
+----
+pytest
+----
+
+== 🤝 Contributing
+
+We welcome contributions! Please see link:CONTRIBUTING.adoc[CONTRIBUTING.adoc] for setup instructions and code style guidelines.
+
+== 📜 License
+
+Distributed under the **Apache License 2.0**. See link:LICENSE[LICENSE] for details.

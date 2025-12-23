@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "asciidoc-parser"
+version = "0.1.0"
+authors = [
+  { name = "Michael R. Bernstein", email = "zopemaven@gmail.com" },
+]
+description = "A high-performance, pure-Python AsciiDoc parser based on Lark."
+readme = "README.adoc"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Topic :: Text Processing :: Markup",
+]
+dependencies = [
+    "lark>=1.1.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/webmaven/asciidoc_parser"
+"Bug Tracker" = "https://github.com/webmaven/asciidoc_parser/issues"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

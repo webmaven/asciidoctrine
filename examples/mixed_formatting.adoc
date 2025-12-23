@@ -1,0 +1,3 @@
+This is a paragraph with *bold text*, _italic text_, and `monospace code`.
+It can also handle *bold and _italic_ combined* though the current parser treats them as siblings if they are adjacent.
+Let's see: _italic_ and *bold* and `monospace`.
