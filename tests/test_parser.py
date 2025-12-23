@@ -187,5 +187,122 @@ class ParserTest(unittest.TestCase):
         self.assertIn('strong', types)
         self.assertIn('emphasis', types)
 
+    def test_admonition_note(self):
+        source = "[NOTE]\n====\nThis is a note.\n====\n"
+        ast = parse_to_ast(source)
+        expected_ast = {
+            'type': 'document',
+            'children': [
+                {
+                    'type': 'admonition',
+                    'flavor': 'note',
+                    'children': [
+                        {
+                            'type': 'paragraph',
+                            'children': [
+                                {'type': 'text', 'text': 'This is a note.'}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+        self.assertEqual(ast, expected_ast)
+
+    def test_admonition_tip(self):
+        source = "[TIP]\n====\nHere's a helpful tip.\n====\n"
+        ast = parse_to_ast(source)
+        self.assertEqual(ast['children'][0]['type'], 'admonition')
+        self.assertEqual(ast['children'][0]['flavor'], 'tip')
+
+    def test_admonition_important(self):
+        source = "[IMPORTANT]\n====\nPay attention to this.\n====\n"
+        ast = parse_to_ast(source)
+        self.assertEqual(ast['children'][0]['type'], 'admonition')
+        self.assertEqual(ast['children'][0]['flavor'], 'important')
+
+    def test_admonition_warning(self):
+        source = "[WARNING]\n====\nBe careful here.\n====\n"
+        ast = parse_to_ast(source)
+        self.assertEqual(ast['children'][0]['type'], 'admonition')
+        self.assertEqual(ast['children'][0]['flavor'], 'warning')
+
+    def test_admonition_caution(self):
+        source = "[CAUTION]\n====\nProceed with caution.\n====\n"
+        ast = parse_to_ast(source)
+        self.assertEqual(ast['children'][0]['type'], 'admonition')
+        self.assertEqual(ast['children'][0]['flavor'], 'caution')
+
+    def test_admonition_with_list(self):
+        source = "[NOTE]\n====\nConsider these points:\n\n- First point\n- Second point\n====\n"
+        ast = parse_to_ast(source)
+        admonition = ast['children'][0]
+        self.assertEqual(admonition['type'], 'admonition')
+        self.assertEqual(admonition['flavor'], 'note')
+        # Should have paragraph and bullet list (may have blank lines between)
+        child_types = [c['type'] for c in admonition['children']]
+        self.assertIn('paragraph', child_types)
+        self.assertIn('bullet_list', child_types)
+
+    def test_admonition_with_formatting(self):
+        source = "[TIP]\n====\nUse *bold* and _italic_ formatting.\n====\n"
+        ast = parse_to_ast(source)
+        admonition = ast['children'][0]
+        paragraph = admonition['children'][0]
+        # Check that formatting is preserved
+        types = [n['type'] for n in paragraph['children']]
+        self.assertIn('strong', types)
+        self.assertIn('emphasis', types)
+
+    def test_admonition_empty(self):
+        source = "[NOTE]\n====\n====\n"
+        ast = parse_to_ast(source)
+        admonition = ast['children'][0]
+        self.assertEqual(admonition['type'], 'admonition')
+        self.assertEqual(admonition['flavor'], 'note')
+        # Empty admonition should have no children key or empty children
+        children = admonition.get('children', [])
+        self.assertTrue(len(children) == 0 or all(c['type'] == 'blank_line' for c in children))
+
+
+    def test_admonition_multiple_paragraphs(self):
+        source = "[NOTE]\n====\nFirst paragraph.\n\nSecond paragraph.\n====\n"
+        ast = parse_to_ast(source)
+        admonition = ast['children'][0]
+        paragraphs = [c for c in admonition['children'] if c['type'] == 'paragraph']
+        self.assertGreaterEqual(len(paragraphs), 2)
+
+    def test_admonition_with_literal_block(self):
+        source = "[TIP]\n====\nHere's some code:\n\n----\ndef hello():\n    print(\"world\")\n----\n====\n"
+        ast = parse_to_ast(source)
+        admonition = ast['children'][0]
+        child_types = [c['type'] for c in admonition['children']]
+        self.assertIn('paragraph', child_types)
+        self.assertIn('literal_block', child_types)
+
+    def test_admonition_whitespace_in_label(self):
+        source = "[  NOTE  ]\n====\nContent with whitespace in label.\n====\n"
+        ast = parse_to_ast(source)
+        admonition = ast['children'][0]
+        self.assertEqual(admonition['type'], 'admonition')
+        self.assertEqual(admonition['flavor'], 'note')
+
+    def test_multiple_admonitions(self):
+        source = "[NOTE]\n====\nFirst note.\n====\n\n[WARNING]\n====\nA warning.\n====\n"
+        ast = parse_to_ast(source)
+        admonitions = [c for c in ast['children'] if c['type'] == 'admonition']
+        self.assertEqual(len(admonitions), 2)
+        self.assertEqual(admonitions[0]['flavor'], 'note')
+        self.assertEqual(admonitions[1]['flavor'], 'warning')
+
+    def test_admonition_in_section(self):
+        source = "== Section Title\n\n[NOTE]\n====\nNote in a section.\n====\n"
+        ast = parse_to_ast(source)
+        section = ast['children'][0]
+        self.assertEqual(section['type'], 'section')
+        admonitions = [c for c in section['children'] if c['type'] == 'admonition']
+        self.assertGreaterEqual(len(admonitions), 1)
+        self.assertEqual(admonitions[0]['flavor'], 'note')
+
 if __name__ == '__main__':
     unittest.main()

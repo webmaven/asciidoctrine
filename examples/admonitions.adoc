@@ -1,0 +1,30 @@
+[NOTE]
+====
+This is a simple note admonition.
+====
+
+[TIP]
+====
+Here's a helpful tip with *bold* text.
+====
+
+[IMPORTANT]
+====
+This is important information with multiple paragraphs.
+
+Second paragraph here.
+====
+
+[WARNING]
+====
+Be careful with this operation.
+
+- First warning point
+- Second warning point
+- Third warning point
+====
+
+[CAUTION]
+====
+Proceed with caution when using this feature.
+====

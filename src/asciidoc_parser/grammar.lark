@@ -2,7 +2,7 @@ start: document
 
 document: block*
 
-block: section | paragraph | ulist | olist | literal_block | blank_line
+block: section | paragraph | ulist | olist | literal_block | admonition | blank_line
 
 blank_line: _NEWLINE+
 
@@ -23,6 +23,11 @@ olist_item: OLIST_MARKER text_content _NEWLINE
 // Literal Blocks (Simple)
 literal_block: LITERAL_BLOCK_DELIM _NEWLINE LITERAL_BLOCK_CONTENT LITERAL_BLOCK_DELIM
 
+// Admonitions
+admonition: ADMONITION_START _NEWLINE ADMONITION_DELIM _NEWLINE admonition_content ADMONITION_DELIM _NEWLINE?
+
+admonition_content: (literal_block | ulist | olist | paragraph | blank_line)*
+
 // --- Inline Elements ---
 // Using a recursive definition. Requires the Earley parser.
 text_content: inline_element+
@@ -40,7 +45,10 @@ monospace: "`" text_content "`"
 SECTION_TITLE_LEAD: /==+[ \t]*/
 ULIST_MARKER: /(\*+|[-])[ \t]+/
 OLIST_MARKER: /([0-9]+\.|[\.]+)[ \t]+/
-LITERAL_BLOCK_DELIM: /----/
+LITERAL_BLOCK_DELIM.2: /----/
+ADMONITION_START: /\[ *(NOTE|TIP|IMPORTANT|WARNING|CAUTION) *\]/
+ADMONITION_DELIM: /====/
+
 // Non-greedy content matching for literal blocks.
 LITERAL_BLOCK_CONTENT: /(.(?!----\n))*./s
 
@@ -48,6 +56,5 @@ LITERAL_BLOCK_CONTENT: /(.(?!----\n))*./s
 _NEWLINE: /(\r\n|\n|\r)/
 WHITESPACE: /[ \t]+/
 WORD: /[^ \t\n*_`=\[\]]+/  // Word characters (not whitespace or markup)
-// TEXT: /[^\n]+/ // Removed in favor of text_content
 
 // %ignore WHITESPACE

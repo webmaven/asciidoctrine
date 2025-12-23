@@ -23,6 +23,8 @@ class Node:
             data['alt'] = self.alt
         if hasattr(self, 'level'):
             data['level'] = self.level
+        if hasattr(self, 'flavor'):
+            data['flavor'] = self.flavor
         if hasattr(self, 'title_node') and self.title_node:
             data['title'] = self.title_node.to_dict()
         
@@ -142,8 +144,8 @@ class QuoteBlock(BlockNode):
 
 class Admonition(BlockNode):
     """Represents an admonition block (e.g., NOTE, TIP)."""
-    def __init__(self, flavor: str):
-        super().__init__()
+    def __init__(self, flavor: str, children: Optional[List['Node']] = None):
+        super().__init__(children)
         self.flavor = flavor
 
 class Table(BlockNode):

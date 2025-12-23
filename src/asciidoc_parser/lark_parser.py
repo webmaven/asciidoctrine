@@ -1,8 +1,9 @@
+
 import os
 from lark import Lark, Transformer, Discard, Token
 from .nodes import (
     Node, Document, Title, Section, Paragraph, Text, Strong, Emphasis, 
-    InlineCode, BulletList, OrderedList, ListItem, LiteralBlock
+    InlineCode, BulletList, OrderedList, ListItem, LiteralBlock, Admonition
 )
 
 def _merge_consecutive_lists(blocks):
@@ -133,9 +134,33 @@ class AsciiDocTransformer(Transformer):
         return {'level': level, 'item_type': 'enumerated', 'children': content}
 
     def literal_block(self, children):
-        # The content is now a single token thanks to the new grammar rule
-        content = children[0].value if children else ''
+        # children: [LITERAL_BLOCK_DELIM, _NEWLINE, LITERAL_BLOCK_CONTENT, LITERAL_BLOCK_DELIM]
+        # Find the content token
+        content = ''
+        for c in children:
+            if isinstance(c, Token) and c.type == 'LITERAL_BLOCK_CONTENT':
+                content = c.value
+                break
         return LiteralBlock(content)
+
+    def admonition_content(self, children):
+        # Just return filtered children - the admonition method will process them
+        return [c for c in children if c is not Discard]
+
+    def admonition(self, children):
+        # children: [ADMONITION_START, _NEWLINE, ADMONITION_DELIM, _NEWLINE, admonition_content, ADMONITION_DELIM]
+        # Extract flavor from start token (e.g., "[NOTE]")
+        start_token = children[0]
+        flavor = start_token.value.strip('[] ').lower()
+        # Find the admonition_content (which is a list of blocks)
+        inner = []
+        for c in children:
+            if isinstance(c, list):
+                inner = c
+                break
+        # Merge consecutive lists inside the admonition if needed
+        merged_inner = _merge_consecutive_lists(inner)
+        return Admonition(flavor=flavor, children=merged_inner)
 
     # --- Inlines ---
 
