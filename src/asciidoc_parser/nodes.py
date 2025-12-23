@@ -1,3 +1,4 @@
+
 """
 Custom Abstract Syntax Tree (AST) for AsciiDoc parsing.
 """
@@ -35,6 +36,8 @@ class Node:
             data['value'] = self.value
         if hasattr(self, 'title_node') and self.title_node:
             data['title'] = self.title_node.to_dict()
+        if hasattr(self, 'header') and self.header:
+            data['header'] = self.header.to_dict()
         
         # Special case for dictionary-based children in original tests
         if self.children:
@@ -79,12 +82,43 @@ class Document(BlockNode):
     """Root node of the document."""
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
-        self.title: Optional[str] = None
+        self.header: Optional[Header] = None
         self.attributes: dict[str, str] = {}
 
 class Title(Node):
     """Represents a section title."""
     pass
+
+class Author(Node):
+    """Represents the author line in the document header."""
+    pass
+
+class Revision(Node):
+    """Represents the revision line in the document header."""
+    pass
+
+class Header(Node):
+    """Represents the document header."""
+    def __init__(self, title: Optional[Title] = None, author: Optional[Author] = None, revision: Optional[Revision] = None, attributes: Optional[Dict[str, Any]] = None):
+        super().__init__()
+        self.title = title
+        self.author = author
+        self.revision = revision
+        self.attributes = attributes or {}
+
+    def to_dict(self) -> dict:
+        data = super().to_dict()
+        if self.title:
+            data['title'] = self.title.to_dict()
+        if self.author:
+            data['author'] = self.author.to_dict()
+        if self.revision:
+            data['revision'] = self.revision.to_dict()
+        if self.attributes:
+            data['attributes'] = {
+                k: [v_node.to_dict() for v_node in v] for k, v in self.attributes.items()
+            }
+        return data
 
 class Section(BlockNode):
     """Represents a section with a title and content."""

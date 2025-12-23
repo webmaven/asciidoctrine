@@ -1,10 +1,11 @@
 
 import os
+import re
 from lark import Lark, Transformer, Discard, Token
 from .nodes import (
-    Node, Document, Title, Section, Paragraph, Text, Strong, Emphasis, 
+    Node, Document, Title, Section, Paragraph, Text, Strong, Emphasis,
     InlineCode, BulletList, OrderedList, ListItem, LiteralBlock, Admonition, Sidebar, ExampleBlock,
-    AttributeEntry
+    AttributeEntry, Header, Author, Revision
 )
 from .preprocessor import Preprocessor
 
@@ -87,9 +88,56 @@ class AsciiDocTransformer(Transformer):
         self.attributes = {}
 
     def document(self, children):
-        filtered_children = [c for c in children if c is not Discard]
-        merged_children = _merge_consecutive_lists(filtered_children)
-        return Document(merged_children)
+        children = [c for c in children if c is not Discard and c is not None]
+        header = None
+        if children and isinstance(children[0], Header):
+            header = children.pop(0)
+
+        merged_children = _merge_consecutive_lists(children)
+
+        doc = Document(merged_children)
+        if header:
+            doc.header = header
+            self.attributes.update(header.attributes)
+        return doc
+
+    def document_header(self, children):
+        title = children[0]
+        author = None
+        revision = None
+
+        # Regex to match author lines (e.g., "John Doe <john.doe@example.com>")
+        author_regex = re.compile(r'[\w\s]+(<.*>)?')
+        # Regex to match revision lines (e.g., "v1.0, 2023-01-01")
+        revision_regex = re.compile(r'(v\d+\.\d+.*)|(\d{4}-\d{2}-\d{2})')
+
+        text_lines = [c for c in children[1:] if isinstance(c, list)]
+
+        if len(text_lines) > 0:
+            line1_text = "".join([node.text for node in text_lines[0] if hasattr(node, 'text')])
+            if author_regex.fullmatch(line1_text.strip()):
+                author = Author(text_lines[0])
+
+        if len(text_lines) > 1:
+            line2_text = "".join([node.text for node in text_lines[1] if hasattr(node, 'text')])
+            if revision_regex.fullmatch(line2_text.strip()):
+                revision = Revision(text_lines[1])
+
+        attributes = {}
+        for child in children:
+            if isinstance(child, AttributeEntry):
+                attributes[child.name] = self.attributes.get(child.name, [])
+
+        return Header(
+            title=title,
+            author=author,
+            revision=revision,
+            attributes=attributes
+        )
+
+    def document_title(self, children):
+        nodes = [c for c in children if isinstance(c, list)]
+        return Title(nodes[0] if nodes else [])
 
     def block(self, children):
         return children[0] if children else Discard
@@ -235,13 +283,19 @@ class AsciiDocTransformer(Transformer):
         # For the AttributeEntry node itself, create a simple string value for now.
         value_str = ""
         parts = []
-        for node in value_nodes:
+        # Ensure value_nodes is a list before iterating
+        if not isinstance(value_nodes, list):
+            value_nodes_list = [value_nodes]
+        else:
+            value_nodes_list = value_nodes
+        for node in value_nodes_list:
             if hasattr(node, 'text'):
                 parts.append(node.text)
             elif hasattr(node, 'children'):
                  # This is a bit naive but works for basic attribute values
                  parts.append("".join([child.text for child in node.children if hasattr(child, 'text')]))
         value_str = "".join(parts).strip()
+
         return AttributeEntry(name, value_str)
 
     # --- Inlines ---
@@ -253,14 +307,13 @@ class AsciiDocTransformer(Transformer):
                 name = c.value
                 break
 
-        # Return the list of nodes, or a Text node with the unresolved reference
-        return self.attributes.get(name, Text(f"{{{name}}}"))
+        # Return the list of nodes, or a list containing a Text node with the unresolved reference
+        return self.attributes.get(name, [Text(f"{{{name}}}")])
 
     def text_content(self, children):
         nodes = []
         text_buffer = ''
 
-        # Flatten the list of children, in case of attribute substitution returning a list of nodes
         flat_children = []
         for child in children:
             if isinstance(child, list):

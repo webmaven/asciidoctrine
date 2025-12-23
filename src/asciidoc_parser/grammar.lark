@@ -1,7 +1,10 @@
 
 start: document
 
-document: block*
+document: document_header? block*
+
+document_header: document_title (attribute_entry | text_content _NEWLINE)* blank_line
+document_title: DOC_TITLE_LEAD text_content _NEWLINE
 
 block: section | blank_line | attribute_entry | paragraph | ulist | olist | literal_block | admonition | sidebar | example_block
 
@@ -62,7 +65,8 @@ monospace: "`" text_content "`"
 // --- Terminals ---
 
 // Block Terminals
-SECTION_TITLE_LEAD: /==+[ \t]*/
+DOC_TITLE_LEAD: /= [ \t]*/
+SECTION_TITLE_LEAD: /==+ [ \t]*/
 ULIST_MARKER: /(\*+|[-])[ \t]+/
 OLIST_MARKER: /([0-9]+\.|[\.]+)[ \t]+/
 LITERAL_BLOCK_DELIM.2: /----/
