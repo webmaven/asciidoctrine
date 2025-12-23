@@ -13,54 +13,47 @@ class Node:
     def append(self, child: 'Node'):
         self.children.append(child)
 
+    _SERIALIZABLE_ATTRS = [
+        'text', 'content', 'url', 'alt', 'level',
+        'flavor', 'name', 'value'
+    ]
+    _NODE_ATTRS = ['title_node', 'header']
+
     def to_dict(self) -> dict:
         """Convert the node and its children to a dictionary (for testing)."""
-        data = {'type': self.__class__.__name__.lower()}
-        if hasattr(self, 'text'):
-            data['text'] = self.text
-        if hasattr(self, 'content'):
-            data['content'] = self.content
-        if hasattr(self, 'attributes') and self.attributes:
-            data['attributes'] = self.attributes
-        if hasattr(self, 'url'):
-            data['url'] = self.url
-        if hasattr(self, 'alt'):
-            data['alt'] = self.alt
-        if hasattr(self, 'level'):
-            data['level'] = self.level
-        if hasattr(self, 'flavor'):
-            data['flavor'] = self.flavor
-        if hasattr(self, 'name'):
-            data['name'] = self.name
-        if hasattr(self, 'value'):
-            data['value'] = self.value
-        if hasattr(self, 'title_node') and self.title_node:
-            data['title'] = self.title_node.to_dict()
-        if hasattr(self, 'header') and self.header:
-            data['header'] = self.header.to_dict()
-        
-        # Special case for dictionary-based children in original tests
-        if self.children:
-            data['children'] = [c.to_dict() for c in self.children]
+        node_type = self.__class__.__name__.lower()
         
         # Map class names to specific type strings used in old tests if they differ
         type_map = {
-            'strong': 'strong',
-            'emphasis': 'emphasis',
             'inlinecode': 'literal',
             'bulletlist': 'bullet_list',
             'orderedlist': 'enumerated_list',
-            'document': 'document',
-            'paragraph': 'paragraph',
-            'section': 'section',
-            'title': 'title',
             'listitem': 'list_item',
+            'attributeentry': 'attribute_entry',
             'literalblock': 'literal_block',
-            'sidebar': 'sidebar',
             'exampleblock': 'example_block',
-            'attributeentry': 'attribute_entry'
         }
-        data['type'] = type_map.get(data['type'], data['type'])
+        data = {'type': type_map.get(node_type, node_type)}
+
+        if hasattr(self, 'attributes') and self.attributes:
+            data['attributes'] = self.attributes
+
+        for attr in self._SERIALIZABLE_ATTRS:
+            if hasattr(self, attr):
+                value = getattr(self, attr)
+                if value is not None:
+                    data[attr] = value
+
+        for attr in self._NODE_ATTRS:
+            if hasattr(self, attr):
+                node = getattr(self, attr)
+                if node:
+                    # 'title_node' -> 'title'
+                    key = attr.replace('_node', '')
+                    data[key] = node.to_dict()
+
+        if self.children:
+            data['children'] = [c.to_dict() for c in self.children]
         
         return data
 

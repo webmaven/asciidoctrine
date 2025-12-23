@@ -376,5 +376,4 @@ def parse_to_ast(source, grammar_file=DEFAULT_GRAMMAR, base_dir=None):
     parser = Lark(grammar, start='document', parser='earley')
     tree = parser.parse(processed_source)
     ast_root = AsciiDocTransformer().transform(tree)
-    # Return as dict for test compatibility
-    return ast_root.to_dict() if hasattr(ast_root, 'to_dict') else ast_root
+    return ast_root

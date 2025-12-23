@@ -4,7 +4,7 @@ from asciidoc_parser import parse_to_ast
 
 def test_document_title():
     source = "= My Document Title\n\n"
-    ast = parse_to_ast(source)
+    ast = parse_to_ast(source).to_dict()
     assert ast['type'] == 'document'
     assert 'header' in ast
     assert ast['header']['type'] == 'header'
@@ -17,7 +17,7 @@ def test_document_title_with_author():
 John Doe
 
 """
-    ast = parse_to_ast(source)
+    ast = parse_to_ast(source).to_dict()
     assert ast['type'] == 'document'
     assert 'header' in ast
     header = ast['header']
@@ -32,7 +32,7 @@ John Doe
 v1.0, 2023-01-01
 
 """
-    ast = parse_to_ast(source)
+    ast = parse_to_ast(source).to_dict()
     assert ast['type'] == 'document'
     assert 'header' in ast
     header = ast['header']
@@ -49,7 +49,7 @@ def test_header_with_attributes():
 
 This is a paragraph.
 """
-    ast = parse_to_ast(source)
+    ast = parse_to_ast(source).to_dict()
     assert ast['type'] == 'document'
     assert 'header' in ast
     header = ast['header']
@@ -67,7 +67,7 @@ def test_header_only_attributes():
 
 This is a paragraph.
 """
-    ast = parse_to_ast(source)
+    ast = parse_to_ast(source).to_dict()
     assert ast['type'] == 'document'
     assert 'header' not in ast
     assert ast['children'][0]['type'] == 'attribute_entry'
@@ -75,7 +75,7 @@ This is a paragraph.
 
 def test_no_header():
     source = "Just a paragraph.\n"
-    ast = parse_to_ast(source)
+    ast = parse_to_ast(source).to_dict()
     assert ast['type'] == 'document'
     assert 'header' not in ast
     assert ast['children'][0]['type'] == 'paragraph'
@@ -85,7 +85,7 @@ def test_header_followed_by_section():
 
 == Section 1
 """
-    ast = parse_to_ast(source)
+    ast = parse_to_ast(source).to_dict()
     assert ast['type'] == 'document'
     assert 'header' in ast
     assert ast['header']['type'] == 'header'
