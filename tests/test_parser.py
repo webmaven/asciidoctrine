@@ -3,9 +3,23 @@ Tests for the AsciiDoc parser.
 """
 
 import unittest
+import os
+import shutil
 from asciidoc_parser.lark_parser import parse_to_ast
 
 class ParserTest(unittest.TestCase):
+
+    def setUp(self):
+        # Create a temporary directory for test fixtures
+        self.base_dir = os.path.join(os.path.dirname(__file__), 'temp_fixtures')
+        os.makedirs(self.base_dir, exist_ok=True)
+        with open(os.path.join(self.base_dir, 'included.adoc'), 'w') as f:
+            f.write("This is an *included* file.\n\n* With a list item.\n")
+
+    def tearDown(self):
+        # Clean up the temporary directory
+        if os.path.exists(self.base_dir):
+            shutil.rmtree(self.base_dir)
 
     def test_paragraph(self):
         source = "Hello, world.\n"
@@ -461,6 +475,36 @@ class ParserTest(unittest.TestCase):
         title_node = section['title']
         text_node = title_node['children'][0]
         self.assertEqual(text_node['text'], 'Cool Project Docs')
+
+
+    def test_preprocessor_integration(self):
+        source = "include::included.adoc[]"
+        ast = parse_to_ast(source, base_dir=self.base_dir)
+        expected_ast = {
+            'type': 'document',
+            'children': [
+                {
+                    'type': 'paragraph',
+                    'children': [
+                        {'type': 'text', 'text': 'This is an '},
+                        {'type': 'strong', 'children': [{'type': 'text', 'text': 'included'}]},
+                        {'type': 'text', 'text': ' file.'}
+                    ]
+                },
+                {
+                    'type': 'bullet_list',
+                    'children': [
+                        {
+                            'type': 'list_item',
+                            'children': [
+                                {'type': 'text', 'text': 'With a list item.'}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+        self.assertEqual(ast, expected_ast)
 
 
 if __name__ == '__main__':

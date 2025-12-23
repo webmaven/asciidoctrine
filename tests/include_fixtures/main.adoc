@@ -1,0 +1,9 @@
+= Main Document
+
+This document includes another file.
+
+== Included Content
+
+include::paragraph.adoc[]
+
+* A list item in the main file.

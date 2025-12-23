@@ -6,6 +6,7 @@ from .nodes import (
     InlineCode, BulletList, OrderedList, ListItem, LiteralBlock, Admonition, Sidebar, ExampleBlock,
     AttributeEntry
 )
+from .preprocessor import Preprocessor
 
 def _merge_consecutive_lists(blocks):
     if not blocks:
@@ -310,13 +311,17 @@ class AsciiDocTransformer(Transformer):
 
 DEFAULT_GRAMMAR = os.path.join(os.path.dirname(__file__), 'grammar.lark')
 
-def parse_to_ast(source, grammar_file=DEFAULT_GRAMMAR):
+def parse_to_ast(source, grammar_file=DEFAULT_GRAMMAR, base_dir=None):
+    # Preprocess the source to handle includes
+    preprocessor = Preprocessor(base_dir)
+    processed_source = preprocessor.process(source)
+
     with open(grammar_file, "r") as f:
         grammar = f.read()
     # Using LALR or Earley is common, but we are moving to PEG
     # For now, let's keep it compatible. PEG in Lark is experimental.
     parser = Lark(grammar, start='document', parser='earley')
-    tree = parser.parse(source)
+    tree = parser.parse(processed_source)
     ast_root = AsciiDocTransformer().transform(tree)
     # Return as dict for test compatibility
     return ast_root.to_dict() if hasattr(ast_root, 'to_dict') else ast_root
