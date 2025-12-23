@@ -42,13 +42,13 @@ graph LR
 * **AST (Abstract Syntax Tree)**: Represented in `nodes.py`, this is a structural tree of the document elements.
 * **ASG (Abstract Semantic Graph)**: The final resolved state where attributes, cross-references, and includes are fully processed.
 
-== � Technical Choices
+== 🛠️ Technical Choices
 
 *   **Lark Parsing Engine**: We use Lark because it supports multiple parsing algorithms (Earley, LALR) and has an experimental PEG mode. This allow us to handle the context-sensitive nature of AsciiDoc without the maintenance nightmare of large regex collections.
 *   **Two-Pass Pipeline**: Handling attributes and includes requires knowing the state of the whole document. Our multi-pass approach ensures that we can resolve semantic details (like cross-references) correctly.
 *   **Pure Python**: Zero C-extensions means easy installation on all platforms including Pyodide and WebAssembly.
 
-== �🚀 Installation
+== 🚀 Installation
 
 [source,bash]
 ----
