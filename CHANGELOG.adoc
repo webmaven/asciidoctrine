@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file.
 * **Modern Grammar**: Standardized bold and italic markers and refined word parsing.
 * **Example Suite**: Data-driven tests for `.adoc` examples.
 * **Packaging**: Added `pyproject.toml` and professional documentation.
+* **Admonition Blocks**: Full support for `[NOTE]`, `[TIP]`, `[IMPORTANT]`, `[WARNING]`, and `[CAUTION]`.
+* **Sidebar Blocks**: Implementation of `****` delimited sidebar blocks with full block nesting.
+* **Attribute Parsing**: Added generic `[...]` attribute list parsing for blocks.
+* **Source/Code Blocks**: Foundation for source blocks via `[source,lang]` attributes on literal blocks.
 
 === Fixed
 * Resolved `ast` module naming conflict.

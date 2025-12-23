@@ -2,7 +2,7 @@
 Custom Abstract Syntax Tree (AST) for AsciiDoc parsing.
 """
 
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Dict
 
 class Node:
     """Base class for all AST nodes."""
@@ -17,6 +17,10 @@ class Node:
         data = {'type': self.__class__.__name__.lower()}
         if hasattr(self, 'text'):
             data['text'] = self.text
+        if hasattr(self, 'content'):
+            data['content'] = self.content
+        if hasattr(self, 'attributes') and self.attributes:
+            data['attributes'] = self.attributes
         if hasattr(self, 'url'):
             data['url'] = self.url
         if hasattr(self, 'alt'):
@@ -133,11 +137,11 @@ class ListItem(BlockNode):
     pass
 
 class LiteralBlock(BlockNode):
-    """Represents a block of preformatted text."""
-    def __init__(self, text: str, language: Optional[str] = None):
+    """Represents a literal block (e.g., code block)."""
+    def __init__(self, content: str, attributes: Optional[Dict[str, Any]] = None):
         super().__init__()
-        self.text = text
-        self.language = language
+        self.content = content
+        self.attributes = attributes or {}
 
 class QuoteBlock(BlockNode):
     """Represents a block quote."""

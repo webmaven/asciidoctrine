@@ -133,42 +133,67 @@ class AsciiDocTransformer(Transformer):
         content = children[1]
         return {'level': level, 'item_type': 'enumerated', 'children': content}
 
-    def literal_block(self, children):
-        # children: [LITERAL_BLOCK_DELIM, _NEWLINE, LITERAL_BLOCK_CONTENT, LITERAL_BLOCK_DELIM]
-        # Find the content token
-        content = ''
-        for c in children:
-            if isinstance(c, Token) and c.type == 'LITERAL_BLOCK_CONTENT':
-                content = c.value
-                break
-        return LiteralBlock(content)
+    def basic_block(self, children):
+        return children[0] if children else Discard
 
     def admonition_content(self, children):
-        # Just return filtered children - the admonition method will process them
         return [c for c in children if c is not Discard]
 
+    def sidebar_content(self, children):
+        return [c for c in children if c is not Discard]
+
+    def attribute_content(self, children):
+        # returns the attribute string (e.g. "source,python")
+        return children[0].value
+
+    def attribute_list(self, children):
+        # find the actual attribute string among children
+        attr_str = ""
+        for c in children:
+            if isinstance(c, str) and c not in ('[', ']', '\n', '\r', '\r\n'):
+                attr_str = c
+                break
+        
+        # Basic parsing: split by comma
+        parts = [p.strip() for p in attr_str.split(',')]
+        attrs = {}
+        if parts:
+            attrs['style'] = parts[0]
+        if len(parts) > 1:
+            if parts[0] == 'source':
+                attrs['language'] = parts[1]
+        return attrs
+
+    def literal_block(self, children):
+        # children: attribute_list? LITERAL_BLOCK_DELIM _NEWLINE LITERAL_BLOCK_CONTENT LITERAL_BLOCK_DELIM
+        content = ''
+        attributes = {}
+        
+        for c in children:
+            if isinstance(c, dict): # We assume dict is from attribute_list
+                attributes = c
+            elif isinstance(c, Token) and c.type == 'LITERAL_BLOCK_CONTENT':
+                content = c.value
+                
+        return LiteralBlock(content, attributes)
+
     def admonition(self, children):
-        # children: [ADMONITION_START, _NEWLINE, ADMONITION_DELIM, _NEWLINE, admonition_content, ADMONITION_DELIM]
-        # Extract flavor from start token (e.g., "[NOTE]")
+        # children: [ADMONITION_START, _NEWLINE, ADMONITION_DELIM, _NEWLINE, block_content, ADMONITION_DELIM]
         start_token = children[0]
         flavor = start_token.value.strip('[] ').lower()
-        # Find the admonition_content (which is a list of blocks)
+        
+        # Find the block_content (list of blocks)
         inner = []
         for c in children:
             if isinstance(c, list):
                 inner = c
                 break
-        # Merge consecutive lists inside the admonition if needed
+        
         merged_inner = _merge_consecutive_lists(inner)
         return Admonition(flavor=flavor, children=merged_inner)
 
-    def sidebar_content(self, children):
-        # Return filtered children
-        return [c for c in children if c is not Discard]
-
     def sidebar(self, children):
-        # children: [SIDEBAR_DELIM, _NEWLINE, sidebar_content, SIDEBAR_DELIM, _NEWLINE?]
-        # Find the sidebar_content
+        # children: [SIDEBAR_DELIM, _NEWLINE, block_content, SIDEBAR_DELIM]
         inner = []
         for c in children:
             if isinstance(c, list):

@@ -120,7 +120,7 @@ The path to 1:1 parity with Asciidoctor is tracked through the following phases:
 | Phase | Focus | Status
 
 | **0** | **Foundations**: PEG grammar, structured AST, and TCK harness. | ✅
-| **1** | **Advanced Blocks**: Admonitions, sidebars, and source blocks. | 🚧
+| **1** | **Advanced Blocks**: Admonitions ✅, Sidebars ✅, and Source blocks ✅. | ✅
 | **2** | **Document Infra**: Headers, attributes, and includes. | ⏳
 | **3** | **Tables**: Complex layouts, spanning, and formatting. | ⏳
 | **4** | **Extensions**: Links, images, macros, and cross-references. | ⏳
