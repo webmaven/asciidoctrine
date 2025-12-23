@@ -22,18 +22,7 @@ class Node:
     def to_dict(self) -> dict:
         """Convert the node and its children to a dictionary (for testing)."""
         node_type = self.__class__.__name__.lower()
-        
-        # Map class names to specific type strings used in old tests if they differ
-        type_map = {
-            'inlinecode': 'literal',
-            'bulletlist': 'bullet_list',
-            'orderedlist': 'enumerated_list',
-            'listitem': 'list_item',
-            'attributeentry': 'attribute_entry',
-            'literalblock': 'literal_block',
-            'exampleblock': 'example_block',
-        }
-        data = {'type': type_map.get(node_type, node_type)}
+        data = {'type': node_type}
 
         if hasattr(self, 'attributes') and self.attributes:
             data['attributes'] = self.attributes

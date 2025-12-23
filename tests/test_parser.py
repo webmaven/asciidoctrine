@@ -83,7 +83,7 @@ class ParserTest(unittest.TestCase):
                     'type': 'paragraph',
                     'children': [
                         {'type': 'text', 'text': 'This is '},
-                        {'type': 'literal', 'children': [{'type': 'text', 'text': 'monospace'}]},
+                        {'type': 'inlinecode', 'children': [{'type': 'text', 'text': 'monospace'}]},
                         {'type': 'text', 'text': ' text.'}
                     ]
                 }
@@ -98,11 +98,11 @@ class ParserTest(unittest.TestCase):
             'type': 'document',
             'children': [
                 {
-                    'type': 'bullet_list',
+                    'type': 'bulletlist',
                     'children': [
-                        {'type': 'list_item', 'children': [{'type': 'text', 'text': 'one'}]},
-                        {'type': 'list_item', 'children': [{'type': 'text', 'text': 'two'}]},
-                        {'type': 'list_item', 'children': [{'type': 'text', 'text': 'three'}]}
+                        {'type': 'listitem', 'children': [{'type': 'text', 'text': 'one'}]},
+                        {'type': 'listitem', 'children': [{'type': 'text', 'text': 'two'}]},
+                        {'type': 'listitem', 'children': [{'type': 'text', 'text': 'three'}]}
                     ]
                 }
             ]
@@ -116,11 +116,11 @@ class ParserTest(unittest.TestCase):
             'type': 'document',
             'children': [
                 {
-                    'type': 'enumerated_list',
+                    'type': 'orderedlist',
                     'children': [
-                        {'type': 'list_item', 'children': [{'type': 'text', 'text': 'one'}]},
-                        {'type': 'list_item', 'children': [{'type': 'text', 'text': 'two'}]},
-                        {'type': 'list_item', 'children': [{'type': 'text', 'text': 'three'}]}
+                        {'type': 'listitem', 'children': [{'type': 'text', 'text': 'one'}]},
+                        {'type': 'listitem', 'children': [{'type': 'text', 'text': 'two'}]},
+                        {'type': 'listitem', 'children': [{'type': 'text', 'text': 'three'}]}
                     ]
                 }
             ]
@@ -131,7 +131,7 @@ class ParserTest(unittest.TestCase):
         source = "----\nThis is a literal block.\n----\n"
         ast = parse_to_ast(source).to_dict()
         literal = ast['children'][0]
-        self.assertEqual(literal['type'], 'literal_block')
+        self.assertEqual(literal['type'], 'literalblock')
         # Content regex might capture newlines
         self.assertIn('This is a literal block.', literal['content'])
         self.assertEqual(literal.get('attributes', {}), {})
@@ -140,7 +140,7 @@ class ParserTest(unittest.TestCase):
         source = "[source,python]\n----\ndef foo(): pass\n----\n"
         ast = parse_to_ast(source).to_dict()
         literal = ast['children'][0]
-        self.assertEqual(literal['type'], 'literal_block')
+        self.assertEqual(literal['type'], 'literalblock')
         self.assertEqual(literal['attributes'], {'style': 'source', 'language': 'python'})
         self.assertIn('def foo(): pass', literal['content'])
 
@@ -189,14 +189,14 @@ class ParserTest(unittest.TestCase):
         ast = parse_to_ast(source).to_dict()
         # Verify structure via dict conversion
         self.assertEqual(ast['type'], 'document')
-        self.assertEqual(ast['children'][0]['type'], 'bullet_list')
+        self.assertEqual(ast['children'][0]['type'], 'bulletlist')
 
     def test_list_item_with_formatting(self):
         source = "* basic item\n* item with *bold* and _italic_\n"
         ast = parse_to_ast(source).to_dict()
         # Verify that the second item has children including bold and italic
         second_item = ast['children'][0]['children'][1]
-        self.assertEqual(second_item['type'], 'list_item')
+        self.assertEqual(second_item['type'], 'listitem')
         content_nodes = second_item['children']
         
         # Types: 'item with ', 'strong', ' and ', 'emphasis'
@@ -259,7 +259,7 @@ class ParserTest(unittest.TestCase):
         # Should have paragraph and bullet list (may have blank lines between)
         child_types = [c['type'] for c in admonition['children']]
         self.assertIn('paragraph', child_types)
-        self.assertIn('bullet_list', child_types)
+        self.assertIn('bulletlist', child_types)
 
     def test_admonition_with_formatting(self):
         source = "[TIP]\n====\nUse *bold* and _italic_ formatting.\n====\n"
@@ -295,7 +295,7 @@ class ParserTest(unittest.TestCase):
         admonition = ast['children'][0]
         child_types = [c['type'] for c in admonition['children']]
         self.assertIn('paragraph', child_types)
-        self.assertIn('literal_block', child_types)
+        self.assertIn('literalblock', child_types)
 
     def test_admonition_whitespace_in_label(self):
         source = "[  NOTE  ]\n====\nContent with whitespace in label.\n====\n"
@@ -336,8 +336,8 @@ class ParserTest(unittest.TestCase):
         sidebar = ast['children'][0]
         child_types = [c['type'] for c in sidebar['children']]
         self.assertIn('paragraph', child_types)
-        self.assertIn('bullet_list', child_types)
-        self.assertIn('literal_block', child_types)
+        self.assertIn('bulletlist', child_types)
+        self.assertIn('literalblock', child_types)
 
     def test_sidebar_empty(self):
         source = "****\n****\n"
@@ -374,7 +374,7 @@ class ParserTest(unittest.TestCase):
         source = "====\nThis is an example block.\n====\n"
         ast = parse_to_ast(source).to_dict()
         example = ast['children'][0]
-        self.assertEqual(example['type'], 'example_block')
+        self.assertEqual(example['type'], 'exampleblock')
         self.assertEqual(len(example['children']), 1)
         self.assertEqual(example['children'][0]['type'], 'paragraph')
 
@@ -382,7 +382,7 @@ class ParserTest(unittest.TestCase):
         source = "====\n****\nSidebar in example\n****\n====\n"
         ast = parse_to_ast(source).to_dict()
         example = ast['children'][0]
-        self.assertEqual(example['type'], 'example_block')
+        self.assertEqual(example['type'], 'exampleblock')
         sidebar = example['children'][0]
         self.assertEqual(sidebar['type'], 'sidebar')
 
@@ -395,13 +395,13 @@ class ParserTest(unittest.TestCase):
         # ==== alone -> Example
         source_ex = "====\nExample content\n====\n"
         ast_ex = parse_to_ast(source_ex).to_dict()
-        self.assertEqual(ast_ex['children'][0]['type'], 'example_block')
+        self.assertEqual(ast_ex['children'][0]['type'], 'exampleblock')
 
     def test_attribute_entry(self):
         source = ":author: Michael Bernstein\n"
         ast = parse_to_ast(source).to_dict()
         attr = ast['children'][0]
-        self.assertEqual(attr['type'], 'attribute_entry')
+        self.assertEqual(attr['type'], 'attributeentry')
         self.assertEqual(attr['name'], 'author')
         self.assertEqual(attr['value'], 'Michael Bernstein')
 
@@ -409,7 +409,7 @@ class ParserTest(unittest.TestCase):
         source = ":myattr:\n"
         ast = parse_to_ast(source).to_dict()
         attr = ast['children'][0]
-        self.assertEqual(attr['type'], 'attribute_entry')
+        self.assertEqual(attr['type'], 'attributeentry')
         self.assertEqual(attr['name'], 'myattr')
         self.assertEqual(attr['value'], '')
 
@@ -492,10 +492,10 @@ class ParserTest(unittest.TestCase):
                     ]
                 },
                 {
-                    'type': 'bullet_list',
+                    'type': 'bulletlist',
                     'children': [
                         {
-                            'type': 'list_item',
+                            'type': 'listitem',
                             'children': [
                                 {'type': 'text', 'text': 'With a list item.'}
                             ]
