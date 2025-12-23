@@ -3,7 +3,8 @@ import os
 from lark import Lark, Transformer, Discard, Token
 from .nodes import (
     Node, Document, Title, Section, Paragraph, Text, Strong, Emphasis, 
-    InlineCode, BulletList, OrderedList, ListItem, LiteralBlock, Admonition, Sidebar
+    InlineCode, BulletList, OrderedList, ListItem, LiteralBlock, Admonition, Sidebar, ExampleBlock,
+    AttributeEntry
 )
 
 def _merge_consecutive_lists(blocks):
@@ -80,6 +81,10 @@ def _nest_list_items(items):
     return all_root_children
 
 class AsciiDocTransformer(Transformer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.attributes = {}
+
     def document(self, children):
         filtered_children = [c for c in children if c is not Discard]
         merged_children = _merge_consecutive_lists(filtered_children)
@@ -142,6 +147,18 @@ class AsciiDocTransformer(Transformer):
     def sidebar_content(self, children):
         return [c for c in children if c is not Discard]
 
+    def example_content(self, children):
+        return [c for c in children if c is not Discard]
+
+    def example_block(self, children):
+        inner = []
+        for c in children:
+            if isinstance(c, list):
+                inner = c
+                break
+        merged_inner = _merge_consecutive_lists(inner)
+        return ExampleBlock(children=merged_inner)
+
     def attribute_content(self, children):
         # returns the attribute string (e.g. "source,python")
         return children[0].value
@@ -202,7 +219,38 @@ class AsciiDocTransformer(Transformer):
         merged_inner = _merge_consecutive_lists(inner)
         return Sidebar(children=merged_inner)
 
+    def attribute_entry(self, children):
+        name = ""
+        value = ""
+        for c in children:
+            if isinstance(c, Token) and c.type == 'ATTR_NAME':
+                name = c.value
+            elif isinstance(c, list):
+                # Simple text concatenation for now
+                parts = []
+                for node in c:
+                    if hasattr(node, 'text'):
+                        parts.append(node.text)
+                    elif hasattr(node, 'children'):
+                         # Recursively get text if it's a nested node (like Bold)
+                         # This is a bit naive but works for basic attribute values
+                         parts.append("".join([child.text for child in node.children if hasattr(child, 'text')]))
+                value = "".join(parts).strip()
+        print(f"DEBUG: AttributeEntry name='{name}' value='{value}'")
+        self.attributes[name] = value
+        return AttributeEntry(name, value)
+
     # --- Inlines ---
+
+    def attribute_reference(self, children):
+        name = ""
+        for c in children:
+            if isinstance(c, Token) and c.type == 'ATTR_NAME':
+                name = c.value
+                break
+        print(f"DEBUG: AttRef lookup '{name}' in {self.attributes.keys()}")
+        value = self.attributes.get(name, f"{{{name}}}")
+        return Text(value)
 
     def text_content(self, children):
         nodes = []
@@ -210,7 +258,9 @@ class AsciiDocTransformer(Transformer):
         for child in children:
             if isinstance(child, Token):
                 text_buffer += str(child.value)
-            elif isinstance(child, (Node, dict)): # Handle both while migrating
+            elif isinstance(child, Text):
+                text_buffer += child.text
+            elif isinstance(child, Node):
                 if text_buffer:
                     nodes.append(Text(text_buffer))
                     text_buffer = ''

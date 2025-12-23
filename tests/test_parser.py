@@ -355,5 +355,82 @@ class ParserTest(unittest.TestCase):
         sidebar = admonition['children'][0]
         self.assertEqual(sidebar['type'], 'sidebar')
 
+    def test_example_block_basic(self):
+        source = "====\nThis is an example block.\n====\n"
+        ast = parse_to_ast(source)
+        example = ast['children'][0]
+        self.assertEqual(example['type'], 'example_block')
+        self.assertEqual(len(example['children']), 1)
+        self.assertEqual(example['children'][0]['type'], 'paragraph')
+
+    def test_example_block_nesting(self):
+        source = "====\n****\nSidebar in example\n****\n====\n"
+        ast = parse_to_ast(source)
+        example = ast['children'][0]
+        self.assertEqual(example['type'], 'example_block')
+        sidebar = example['children'][0]
+        self.assertEqual(sidebar['type'], 'sidebar')
+
+    def test_admonition_vs_example(self):
+        # NOTE + ==== -> Admonition
+        source_adm = "[NOTE]\n====\nNote content\n====\n"
+        ast_adm = parse_to_ast(source_adm)
+        self.assertEqual(ast_adm['children'][0]['type'], 'admonition')
+        
+        # ==== alone -> Example
+        source_ex = "====\nExample content\n====\n"
+        ast_ex = parse_to_ast(source_ex)
+        self.assertEqual(ast_ex['children'][0]['type'], 'example_block')
+
+    def test_attribute_entry(self):
+        source = ":author: Michael Bernstein\n"
+        ast = parse_to_ast(source)
+        attr = ast['children'][0]
+        self.assertEqual(attr['type'], 'attribute_entry')
+        self.assertEqual(attr['name'], 'author')
+        self.assertEqual(attr['value'], 'Michael Bernstein')
+
+    def test_attribute_entry_empty(self):
+        source = ":myattr:\n"
+        ast = parse_to_ast(source)
+        attr = ast['children'][0]
+        self.assertEqual(attr['type'], 'attribute_entry')
+        self.assertEqual(attr['name'], 'myattr')
+        self.assertEqual(attr['value'], '')
+
+    def test_attribute_substitution(self):
+        source = ":author: Michael\nHello {author}!\n"
+        ast = parse_to_ast(source)
+        # children: [AttributeEntry, Paragraph]
+        paragraph = ast['children'][1]
+        self.assertEqual(paragraph['type'], 'paragraph')
+        text_node = paragraph['children'][0]
+        self.assertEqual(text_node['text'], 'Hello Michael!')
+
+    def test_attribute_substitution_not_found(self):
+        source = "Hello {unknown}!\n"
+        ast = parse_to_ast(source)
+        paragraph = ast['children'][0]
+        text_node = paragraph['children'][0]
+        self.assertEqual(text_node['text'], 'Hello {unknown}!')
+
+    def test_attribute_substitution_in_title(self):
+        source = ":project: AsciiDocParser\n== {project} Documentation\n"
+        ast = parse_to_ast(source)
+        # children: [AttributeEntry, Section]
+        section = ast['children'][1]
+        self.assertEqual(section['type'], 'section')
+        title_node = section['title']
+        text_node = title_node['children'][0]
+        self.assertEqual(text_node['text'], 'AsciiDocParser Documentation')
+
+    def test_attribute_substitution_nested(self):
+        source = ":project: AsciiDoc\n:tool: {project}Parser\nThis is {tool}.\n"
+        ast = parse_to_ast(source)
+        # children: [Attr, Attr, Paragraph]
+        paragraph = ast['children'][2]
+        text_node = paragraph['children'][0]
+        self.assertEqual(text_node['text'], 'This is AsciiDocParser.')
+
 if __name__ == '__main__':
     unittest.main()

@@ -29,6 +29,10 @@ class Node:
             data['level'] = self.level
         if hasattr(self, 'flavor'):
             data['flavor'] = self.flavor
+        if hasattr(self, 'name'):
+            data['name'] = self.name
+        if hasattr(self, 'value'):
+            data['value'] = self.value
         if hasattr(self, 'title_node') and self.title_node:
             data['title'] = self.title_node.to_dict()
         
@@ -49,7 +53,9 @@ class Node:
             'title': 'title',
             'listitem': 'list_item',
             'literalblock': 'literal_block',
-            'sidebar': 'sidebar'
+            'sidebar': 'sidebar',
+            'exampleblock': 'example_block',
+            'attributeentry': 'attribute_entry'
         }
         data['type'] = type_map.get(data['type'], data['type'])
         
@@ -142,6 +148,10 @@ class LiteralBlock(BlockNode):
         super().__init__()
         self.content = content
         self.attributes = attributes or {}
+
+class ExampleBlock(BlockNode):
+    """Represents an example block."""
+    pass
 
 class QuoteBlock(BlockNode):
     """Represents a block quote."""

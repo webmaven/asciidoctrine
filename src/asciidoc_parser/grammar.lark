@@ -3,7 +3,7 @@ start: document
 
 document: block*
 
-block: section | paragraph | ulist | olist | literal_block | blank_line | admonition | sidebar
+block: section | blank_line | attribute_entry | paragraph | ulist | olist | literal_block | admonition | sidebar | example_block
 
 blank_line: _NEWLINE+
 
@@ -21,6 +21,9 @@ olist: olist_item+
 ulist_item: ULIST_MARKER text_content _NEWLINE
 olist_item: OLIST_MARKER text_content _NEWLINE
 
+// Attributes
+attribute_entry: ":" ATTR_NAME ":" [WHITESPACE] [text_content] _NEWLINE
+
 // Attribute List (e.g., [source,python])
 attribute_list: "[" attribute_content "]" _NEWLINE
 attribute_content: /[^\]]+/
@@ -34,17 +37,22 @@ basic_block: literal_block | ulist | olist | paragraph | blank_line
 
 // Admonitions allow sidebars but not (implicitly) other admonitions to avoid ambiguity without delimiter size checks
 admonition: ADMONITION_START _NEWLINE ADMONITION_DELIM _NEWLINE admonition_content ADMONITION_DELIM _NEWLINE?
-admonition_content: (sidebar | basic_block)*
+admonition_content: (sidebar | example_block | basic_block)*
+
+// Example Blocks
+example_block: ADMONITION_DELIM _NEWLINE example_content ADMONITION_DELIM _NEWLINE?
+example_content: (admonition | sidebar | basic_block)*
 
 // Sidebars allow admonitions but not other sidebars
 sidebar: SIDEBAR_DELIM _NEWLINE sidebar_content SIDEBAR_DELIM _NEWLINE?
-sidebar_content: (admonition | basic_block)*
+sidebar_content: (admonition | example_block | basic_block)*
 
 // --- Inline Elements ---
 // Using a recursive definition. Requires the Earley parser.
 text_content: inline_element+
 
-?inline_element: bold | italic | monospace | WORD | WHITESPACE
+attribute_reference: LBRACE ATTR_NAME RBRACE
+?inline_element: bold | italic | monospace | attribute_reference | WORD | ATTR_NAME | LBRACE | RBRACE | WHITESPACE
 
 bold: "*" text_content "*"
 italic: "_" text_content "_"
@@ -65,9 +73,11 @@ SIDEBAR_DELIM: /\*\*\*\*/
 // Non-greedy content matching for literal blocks.
 LITERAL_BLOCK_CONTENT: /(.(?!----\n))*./s
 
-// Inline Terminals
 _NEWLINE: /(\r\n|\n|\r)/
 WHITESPACE: /[ \t]+/
-WORD: /[^ \t\n*_`=\[\]]+/  // Word characters (not whitespace or markup)
+ATTR_NAME: /[a-zA-Z0-9_\-]+/
+WORD: /[^ \t\n*_`=\[\]{}]+/  // Word characters (not whitespace or markup)
+LBRACE: "{"
+RBRACE: "}"
 
 // %ignore WHITESPACE

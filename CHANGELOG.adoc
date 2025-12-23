@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 * **Sidebar Blocks**: Implementation of `****` delimited sidebar blocks with full block nesting.
 * **Attribute Parsing**: Added generic `[...]` attribute list parsing for blocks.
 * **Source/Code Blocks**: Foundation for source blocks via `[source,lang]` attributes on literal blocks.
+* **Example Blocks**: Support for `====` delimited example blocks.
 
 === Fixed
 * Resolved `ast` module naming conflict.
