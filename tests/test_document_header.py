@@ -70,7 +70,7 @@ This is a paragraph.
     ast = parse_to_ast(source).to_dict()
     assert ast['type'] == 'document'
     assert 'header' not in ast
-    assert ast['children'][0]['type'] == 'attributeentry'
+    assert ast['children'][0]['type'] == 'attribute_entry'
     assert ast['children'][1]['type'] == 'paragraph'
 
 def test_no_header():
