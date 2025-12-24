@@ -1,10 +1,13 @@
 
 import os
+import re
 from lark import Lark, Transformer, Discard, Token
 from .nodes import (
-    Node, Document, Title, Section, Paragraph, Text, Strong, Emphasis, 
-    InlineCode, BulletList, OrderedList, ListItem, LiteralBlock, Admonition, Sidebar
+    Node, Document, Title, Section, Paragraph, Text, Strong, Emphasis,
+    InlineCode, BulletList, OrderedList, ListItem, LiteralBlock, Admonition, Sidebar, ExampleBlock,
+    AttributeEntry, Header, Author, Revision
 )
+from .preprocessor import Preprocessor
 
 def _merge_consecutive_lists(blocks):
     if not blocks:
@@ -80,10 +83,61 @@ def _nest_list_items(items):
     return all_root_children
 
 class AsciiDocTransformer(Transformer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.attributes = {}
+
     def document(self, children):
-        filtered_children = [c for c in children if c is not Discard]
-        merged_children = _merge_consecutive_lists(filtered_children)
-        return Document(merged_children)
+        children = [c for c in children if c is not Discard and c is not None]
+        header = None
+        if children and isinstance(children[0], Header):
+            header = children.pop(0)
+
+        merged_children = _merge_consecutive_lists(children)
+
+        doc = Document(merged_children)
+        if header:
+            doc.header = header
+            self.attributes.update(header.attributes)
+        return doc
+
+    def document_header(self, children):
+        title = children[0]
+        author = None
+        revision = None
+
+        # Regex to match author lines (e.g., "John Doe <john.doe@example.com>")
+        author_regex = re.compile(r'[\w\s]+(<.*>)?')
+        # Regex to match revision lines (e.g., "v1.0, 2023-01-01")
+        revision_regex = re.compile(r'(v\d+\.\d+.*)|(\d{4}-\d{2}-\d{2})')
+
+        text_lines = [c for c in children[1:] if isinstance(c, list)]
+
+        if len(text_lines) > 0:
+            line1_text = "".join([node.text for node in text_lines[0] if hasattr(node, 'text')])
+            if author_regex.fullmatch(line1_text.strip()):
+                author = Author(text_lines[0])
+
+        if len(text_lines) > 1:
+            line2_text = "".join([node.text for node in text_lines[1] if hasattr(node, 'text')])
+            if revision_regex.fullmatch(line2_text.strip()):
+                revision = Revision(text_lines[1])
+
+        attributes = {}
+        for child in children:
+            if isinstance(child, AttributeEntry):
+                attributes[child.name] = self.attributes.get(child.name, [])
+
+        return Header(
+            title=title,
+            author=author,
+            revision=revision,
+            attributes=attributes
+        )
+
+    def document_title(self, children):
+        nodes = [c for c in children if isinstance(c, list)]
+        return Title(nodes[0] if nodes else [])
 
     def block(self, children):
         return children[0] if children else Discard
@@ -141,6 +195,18 @@ class AsciiDocTransformer(Transformer):
 
     def sidebar_content(self, children):
         return [c for c in children if c is not Discard]
+
+    def example_content(self, children):
+        return [c for c in children if c is not Discard]
+
+    def example_block(self, children):
+        inner = []
+        for c in children:
+            if isinstance(c, list):
+                inner = c
+                break
+        merged_inner = _merge_consecutive_lists(inner)
+        return ExampleBlock(children=merged_inner)
 
     def attribute_content(self, children):
         # returns the attribute string (e.g. "source,python")
@@ -202,15 +268,65 @@ class AsciiDocTransformer(Transformer):
         merged_inner = _merge_consecutive_lists(inner)
         return Sidebar(children=merged_inner)
 
+    def attribute_entry(self, children):
+        name = ""
+        value_nodes = []
+        for c in children:
+            if isinstance(c, Token) and c.type == 'ATTR_NAME':
+                name = c.value
+            elif isinstance(c, list):
+                value_nodes = c
+
+        # Store the rich AST nodes for later substitution
+        self.attributes[name] = value_nodes
+
+        # For the AttributeEntry node itself, create a simple string value for now.
+        value_str = ""
+        parts = []
+        # Ensure value_nodes is a list before iterating
+        if not isinstance(value_nodes, list):
+            value_nodes_list = [value_nodes]
+        else:
+            value_nodes_list = value_nodes
+        for node in value_nodes_list:
+            if hasattr(node, 'text'):
+                parts.append(node.text)
+            elif hasattr(node, 'children'):
+                 # This is a bit naive but works for basic attribute values
+                 parts.append("".join([child.text for child in node.children if hasattr(child, 'text')]))
+        value_str = "".join(parts).strip()
+
+        return AttributeEntry(name, value_str)
+
     # --- Inlines ---
+
+    def attribute_reference(self, children):
+        name = ""
+        for c in children:
+            if isinstance(c, Token) and c.type == 'ATTR_NAME':
+                name = c.value
+                break
+
+        # Return the list of nodes, or a list containing a Text node with the unresolved reference
+        return self.attributes.get(name, [Text(f"{{{name}}}")])
 
     def text_content(self, children):
         nodes = []
         text_buffer = ''
+
+        flat_children = []
         for child in children:
+            if isinstance(child, list):
+                flat_children.extend(child)
+            else:
+                flat_children.append(child)
+
+        for child in flat_children:
             if isinstance(child, Token):
                 text_buffer += str(child.value)
-            elif isinstance(child, (Node, dict)): # Handle both while migrating
+            elif isinstance(child, Text):
+                text_buffer += child.text
+            elif isinstance(child, Node):
                 if text_buffer:
                     nodes.append(Text(text_buffer))
                     text_buffer = ''
@@ -248,13 +364,16 @@ class AsciiDocTransformer(Transformer):
 
 DEFAULT_GRAMMAR = os.path.join(os.path.dirname(__file__), 'grammar.lark')
 
-def parse_to_ast(source, grammar_file=DEFAULT_GRAMMAR):
+def parse_to_ast(source, grammar_file=DEFAULT_GRAMMAR, base_dir=None):
+    # Preprocess the source to handle includes
+    preprocessor = Preprocessor(base_dir)
+    processed_source = preprocessor.process(source)
+
     with open(grammar_file, "r") as f:
         grammar = f.read()
     # Using LALR or Earley is common, but we are moving to PEG
     # For now, let's keep it compatible. PEG in Lark is experimental.
     parser = Lark(grammar, start='document', parser='earley')
-    tree = parser.parse(source)
+    tree = parser.parse(processed_source)
     ast_root = AsciiDocTransformer().transform(tree)
-    # Return as dict for test compatibility
-    return ast_root.to_dict() if hasattr(ast_root, 'to_dict') else ast_root
+    return ast_root
