@@ -6,6 +6,8 @@ from typing import List, Optional, Any, Dict
 
 class Node:
     """Base class for all AST nodes."""
+    _SERIALIZED_ATTRS = ()
+
     def __init__(self, children: Optional[List['Node']] = None):
         self.children: List[Node] = children or []
 
@@ -14,44 +16,33 @@ class Node:
 
     def to_dict(self) -> dict:
         """Convert the node and its children to a dictionary (for testing)."""
-        data = {'type': self.__class__.__name__.lower()}
-        if hasattr(self, 'text'):
-            data['text'] = self.text
-        if hasattr(self, 'content'):
-            data['content'] = self.content
-        if hasattr(self, 'attributes') and self.attributes:
-            data['attributes'] = self.attributes
-        if hasattr(self, 'url'):
-            data['url'] = self.url
-        if hasattr(self, 'alt'):
-            data['alt'] = self.alt
-        if hasattr(self, 'level'):
-            data['level'] = self.level
-        if hasattr(self, 'flavor'):
-            data['flavor'] = self.flavor
-        if hasattr(self, 'title_node') and self.title_node:
-            data['title'] = self.title_node.to_dict()
-        
-        # Special case for dictionary-based children in original tests
-        if self.children:
-            data['children'] = [c.to_dict() for c in self.children]
-        
-        # Map class names to specific type strings used in old tests if they differ
-        type_map = {
-            'strong': 'strong',
-            'emphasis': 'emphasis',
-            'inlinecode': 'literal',
-            'bulletlist': 'bullet_list',
-            'orderedlist': 'enumerated_list',
-            'document': 'document',
-            'paragraph': 'paragraph',
-            'section': 'section',
-            'title': 'title',
-            'listitem': 'list_item',
-            'literalblock': 'literal_block',
-            'sidebar': 'sidebar'
-        }
-        data['type'] = type_map.get(data['type'], data['type'])
+        # Determine the type string, preferring a custom one if it exists.
+        type_name = getattr(self, '_type_name', self.__class__.__name__.lower())
+        data = {'type': type_name}
+
+        # Serialize attributes based on the class's declaration.
+        attrs_to_serialize = getattr(self, '_SERIALIZED_ATTRS', ())
+
+        for attr_name in attrs_to_serialize:
+            if hasattr(self, attr_name):
+                value = getattr(self, attr_name)
+
+                if value is None:
+                    continue
+
+                # Special handling for attributes that should not be included if empty.
+                if attr_name == 'attributes' and not value:
+                    continue
+
+                # Handle recursive cases
+                if attr_name == 'children':
+                    if value: # only add if not empty
+                        data['children'] = [c.to_dict() for c in value]
+                elif attr_name == 'title_node':
+                    if value: # only add if not empty
+                        data['title'] = value.to_dict()
+                else:
+                    data[attr_name] = value
         
         return data
 
@@ -71,6 +62,7 @@ class BlockNode(Node):
 
 class Document(BlockNode):
     """Root node of the document."""
+    _SERIALIZED_ATTRS = ('children',)
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.title: Optional[str] = None
@@ -78,10 +70,11 @@ class Document(BlockNode):
 
 class Title(Node):
     """Represents a section title."""
-    pass
+    _SERIALIZED_ATTRS = ('children',)
 
 class Section(BlockNode):
     """Represents a section with a title and content."""
+    _SERIALIZED_ATTRS = ('level', 'title_node', 'children')
     def __init__(self, level: int, title_node: Node):
         super().__init__()
         self.level = level
@@ -89,29 +82,33 @@ class Section(BlockNode):
 
 class Paragraph(BlockNode):
     """Represents a paragraph of text."""
-    pass
+    _SERIALIZED_ATTRS = ('children',)
 
 class Text(InlineNode):
     """Represents a plain text segment."""
+    _SERIALIZED_ATTRS = ('text',)
     def __init__(self, text: str):
         super().__init__()
         self.text = text
 
 class Strong(InlineNode):
     """Represents bold text."""
-    pass
+    _SERIALIZED_ATTRS = ('children',)
 
 class Emphasis(InlineNode):
     """Represents italicized text."""
-    pass
+    _SERIALIZED_ATTRS = ('children',)
 
 class InlineCode(InlineNode):
     """Represents inline code."""
+    _type_name = 'literal'
+    _SERIALIZED_ATTRS = ('children',)
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
 
 class Link(InlineNode):
     """Represents a hyperlink."""
+    _SERIALIZED_ATTRS = ('url', 'text')
     def __init__(self, url: str, text: Optional[str] = None):
         super().__init__()
         self.url = url
@@ -119,6 +116,7 @@ class Link(InlineNode):
 
 class Image(InlineNode):
     """Represents an image."""
+    _SERIALIZED_ATTRS = ('url', 'alt')
     def __init__(self, url: str, alt: str = ""):
         super().__init__()
         self.url = url
@@ -126,18 +124,23 @@ class Image(InlineNode):
 
 class BulletList(BlockNode):
     """Represents an unordered list."""
-    pass
+    _type_name = 'bullet_list'
+    _SERIALIZED_ATTRS = ('children',)
 
 class OrderedList(BlockNode):
     """Represents an ordered list."""
-    pass
+    _type_name = 'enumerated_list'
+    _SERIALIZED_ATTRS = ('children',)
 
 class ListItem(BlockNode):
     """Represents an item in a list."""
-    pass
+    _type_name = 'list_item'
+    _SERIALIZED_ATTRS = ('children',)
 
 class LiteralBlock(BlockNode):
     """Represents a literal block (e.g., code block)."""
+    _type_name = 'literal_block'
+    _SERIALIZED_ATTRS = ('content', 'attributes')
     def __init__(self, content: str, attributes: Optional[Dict[str, Any]] = None):
         super().__init__()
         self.content = content
@@ -145,20 +148,23 @@ class LiteralBlock(BlockNode):
 
 class QuoteBlock(BlockNode):
     """Represents a block quote."""
-    pass
+    _SERIALIZED_ATTRS = ('children',)
 
 class Admonition(BlockNode):
     """Represents an admonition block (e.g., NOTE, TIP)."""
+    _SERIALIZED_ATTRS = ('flavor', 'children')
     def __init__(self, flavor: str, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.flavor = flavor
 
 class Sidebar(BlockNode):
     """Represents a sidebar block."""
-    pass
+    _type_name = 'sidebar'
+    _SERIALIZED_ATTRS = ('children',)
 
 class Table(BlockNode):
     """Represents a table."""
+    _SERIALIZED_ATTRS = ('children',)
     def __init__(self):
         super().__init__()
         self.header_rows: List[TableRow] = []
