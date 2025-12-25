@@ -7,6 +7,7 @@ from typing import List, Optional, Any, Dict
 from enum import Enum
 
 class NodeType(str, Enum):
+    """An enumeration of all possible node types in the AST."""
     DOCUMENT = 'document'
     TITLE = 'title'
     AUTHOR = 'author'
@@ -50,7 +51,18 @@ class Node:
     _NODE_ATTRS = ['title_node', 'header']
 
     def to_dict(self) -> dict:
-        """Convert the node and its children to a dictionary (for testing)."""
+        """
+        Recursively converts the node and its subtree into a dictionary.
+
+        This method is primarily used for debugging and testing to allow for
+        easy comparison of the parsed AST structure with an expected output.
+        It serializes the node's type, its serializable attributes (like
+        `text` or `level`), any nested node attributes (like `title_node`),
+        and its children.
+
+        Returns:
+            A dictionary representation of the node.
+        """
         data = {'type': self.node_type.value}
 
         if hasattr(self, 'attributes') and self.attributes:
@@ -82,15 +94,15 @@ class Node:
             yield from child.walk()
 
 class InlineNode(Node):
-    """Base class for inline content nodes."""
+    """A base class for nodes that represent inline content, such as text formatting."""
     pass
 
 class BlockNode(Node):
-    """Base class for block-level content nodes."""
+    """A base class for nodes that represent block-level content, such as paragraphs or lists."""
     pass
 
 class Document(BlockNode):
-    """Root node of the document."""
+    """The root node of the entire AsciiDoc document AST."""
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.node_type = NodeType.DOCUMENT
@@ -98,25 +110,25 @@ class Document(BlockNode):
         self.attributes: dict[str, str] = {}
 
 class Title(Node):
-    """Represents a section title."""
+    """Represents the title of a document or a section."""
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.node_type = NodeType.TITLE
 
 class Author(Node):
-    """Represents the author line in the document header."""
+    """Represents an author entry in the document header."""
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.node_type = NodeType.AUTHOR
 
 class Revision(Node):
-    """Represents the revision line in the document header."""
+    """Represents a revision entry in the document header."""
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.node_type = NodeType.REVISION
 
 class Header(Node):
-    """Represents the document header."""
+    """A container for the document's header metadata."""
     def __init__(self, title: Optional[Title] = None, author: Optional[Author] = None, revision: Optional[Revision] = None, attributes: Optional[Dict[str, Any]] = None):
         super().__init__()
         self.node_type = NodeType.HEADER
@@ -140,7 +152,7 @@ class Header(Node):
         return data
 
 class Section(BlockNode):
-    """Represents a section with a title and content."""
+    """Represents a structural section of the document."""
     def __init__(self, level: int, title_node: Node):
         super().__init__()
         self.node_type = NodeType.SECTION
@@ -148,38 +160,38 @@ class Section(BlockNode):
         self.title_node = title_node
 
 class Paragraph(BlockNode):
-    """Represents a paragraph of text."""
+    """A block-level node representing a paragraph of text."""
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.node_type = NodeType.PARAGRAPH
 
 class Text(InlineNode):
-    """Represents a plain text segment."""
+    """A leaf node representing a segment of plain text."""
     def __init__(self, text: str):
         super().__init__()
         self.node_type = NodeType.TEXT
         self.text = text
 
 class Strong(InlineNode):
-    """Represents bold text."""
+    """An inline node for bold text (`*text*`)."""
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.node_type = NodeType.STRONG
 
 class Emphasis(InlineNode):
-    """Represents italicized text."""
+    """An inline node for italicized text (`_text_`)."""
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.node_type = NodeType.EMPHASIS
 
 class InlineCode(InlineNode):
-    """Represents inline code."""
+    """An inline node for monospaced/code text (`+text+`)."""
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.node_type = NodeType.INLINE_CODE
 
 class Link(InlineNode):
-    """Represents a hyperlink."""
+    """An inline node for a hyperlink."""
     def __init__(self, url: str, text: Optional[str] = None):
         super().__init__()
         self.node_type = NodeType.LINK
@@ -187,7 +199,7 @@ class Link(InlineNode):
         self.text = text or url
 
 class Image(InlineNode):
-    """Represents an image."""
+    """A block or inline node for an image directive."""
     def __init__(self, url: str, alt: str = ""):
         super().__init__()
         self.node_type = NodeType.IMAGE
@@ -195,25 +207,25 @@ class Image(InlineNode):
         self.alt = alt
 
 class BulletList(BlockNode):
-    """Represents an unordered list."""
+    """A block node representing an unordered (bulleted) list."""
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.node_type = NodeType.BULLET_LIST
 
 class OrderedList(BlockNode):
-    """Represents an ordered list."""
+    """A block node representing an ordered (numbered or lettered) list."""
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.node_type = NodeType.ORDERED_LIST
 
 class ListItem(BlockNode):
-    """Represents an item in a list."""
+    """A node representing a single item within a list. It can contain blocks."""
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.node_type = NodeType.LIST_ITEM
 
 class LiteralBlock(BlockNode):
-    """Represents a literal block (e.g., code block)."""
+    """A block for preformatted text, typically used for code listings."""
     def __init__(self, content: str, attributes: Optional[Dict[str, Any]] = None):
         super().__init__()
         self.node_type = NodeType.LITERAL_BLOCK
@@ -221,32 +233,32 @@ class LiteralBlock(BlockNode):
         self.attributes = attributes or {}
 
 class ExampleBlock(BlockNode):
-    """Represents an example block."""
+    """A block for content that should be rendered as an example."""
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.node_type = NodeType.EXAMPLE_BLOCK
 
 class QuoteBlock(BlockNode):
-    """Represents a block quote."""
+    """A block representing a quotation."""
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.node_type = NodeType.QUOTE_BLOCK
 
 class Admonition(BlockNode):
-    """Represents an admonition block (e.g., NOTE, TIP)."""
+    """A block for admonitions like NOTE, TIP, IMPORTANT, etc."""
     def __init__(self, flavor: str, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.node_type = NodeType.ADMONITION
         self.flavor = flavor
 
 class Sidebar(BlockNode):
-    """Represents a sidebar block."""
+    """A block for content that is separate from the main flow of text."""
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.node_type = NodeType.SIDEBAR
 
 class Table(BlockNode):
-    """Represents a table."""
+    """A node representing a table."""
     def __init__(self):
         super().__init__()
         self.node_type = NodeType.TABLE
@@ -254,20 +266,20 @@ class Table(BlockNode):
         self.rows: List[TableRow] = []
 
 class TableRow(Node):
-    """Represents a row in a table."""
+    """A node representing a single row in a table."""
     def __init__(self):
         super().__init__()
         self.node_type = NodeType.TABLE_ROW
         self.cells: List[TableCell] = []
 
 class TableCell(Node):
-    """Represents a cell in a table."""
+    """A node representing a single cell in a table row."""
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.node_type = NodeType.TABLE_CELL
 
 class AttributeEntry(Node):
-    """Represents a document attribute."""
+    """A node representing an attribute declaration in the document header."""
     def __init__(self, name: str, value: str):
         super().__init__()
         self.node_type = NodeType.ATTRIBUTE_ENTRY
@@ -275,13 +287,13 @@ class AttributeEntry(Node):
         self.value = value
 
 class Include(Node):
-    """Represents an include directive."""
+    """A node representing an `include::` directive."""
     def __init__(self, filename: str):
         super().__init__()
         self.node_type = NodeType.INCLUDE
 
 class NodeVisitor:
-    """Base class for visiting AST nodes."""
+    """A base class for implementing the visitor pattern to traverse the AST."""
     def visit(self, node: Node, **kwargs: Any) -> Any:
         method_name = f'visit_{node.__class__.__name__.lower()}'
         visitor = getattr(self, method_name, self.generic_visit)
