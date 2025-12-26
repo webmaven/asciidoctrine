@@ -8,7 +8,7 @@ We welcome contributions! Whether you are fixing a bug, adding a feature, or imp
 1. **Fork the Repository**: Create your own copy of the project.
 2. **Create a Branch**: Work on a descriptive branch name (e.g., `feature/tables`).
 3. **Write Tests**: Ensure your changes are covered by unit tests in `tests/`.
-4. **Follow the Roadmap**: Check `README.adoc` and `parity_implementation_plan.md` for current priorities.
+4. **Follow the Roadmap**: Check `README.adoc` for current priorities.
 5. **Submit a Pull Request**: Provide a clear description of your changes.
 
 == Development Setup

@@ -17,7 +17,7 @@ def run_examples():
             
             try:
                 ast = parse_to_ast(source)
-                print(json.dumps(ast, indent=2))
+                print(json.dumps(ast.to_dict(), indent=2))
             except Exception as e:
                 print(f"Error parsing {filename}: {e}")
             print("\n")
