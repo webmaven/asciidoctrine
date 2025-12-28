@@ -9,7 +9,7 @@ authors = [
   { name = "Michael R. Bernstein", email = "zopemaven@gmail.com" },
 ]
 description = "A high-performance, pure-Python AsciiDoc parser based on Lark."
-readme = "README.adoc"
+readme = { file = "README.adoc", content-type = "text/plain" }
 requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",

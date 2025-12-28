@@ -10,12 +10,13 @@ class CombinedFeaturesTest(unittest.TestCase):
 
 Another paragraph.
 """
-        ast = parse_to_ast(source)
+        ast = parse_to_ast(source).to_dict()
         expected_ast = {
             'type': 'document',
             'children': [
                 {
                     'type': 'section',
+                    'level': 1,
                     'title': {'type': 'title', 'children': [{'type': 'text', 'text': 'Section Title'}]},
                     'children': [
                         {

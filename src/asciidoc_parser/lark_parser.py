@@ -396,7 +396,11 @@ class AsciiDocTransformer(Transformer):
 
     def bold(self, children):
         content = [c for c in children if isinstance(c, list)]
-        return Strong(content[0] if content else [])
+        nodes = content[0] if content else []
+        # If the only child is a Strong node, flatten it.
+        if len(nodes) == 1 and isinstance(nodes[0], Strong):
+            return Strong(nodes[0].children)
+        return Strong(nodes)
 
     def italic(self, children):
         content = [c for c in children if isinstance(c, list)]
