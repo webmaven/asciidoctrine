@@ -61,9 +61,7 @@ def _get_list_level(marker_token):
     marker = marker_token.value.strip()
     if marker.startswith('-'):
         return 1
-    if marker.startswith('*'):
-        return len(marker)
-    if marker.startswith('.'):
+    if marker.startswith('*') or marker.startswith('.'):
         return len(marker)
     return 1 # for 1., 2., etc.
 
