@@ -19,21 +19,14 @@ class NodeType(str, Enum):
     STRONG = 'strong'
     EMPHASIS = 'emphasis'
     INLINE_CODE = 'literal'
-    LINK = 'link'
-    IMAGE = 'image'
     BULLET_LIST = 'bullet_list'
     ORDERED_LIST = 'enumerated_list'
     LIST_ITEM = 'list_item'
     LITERAL_BLOCK = 'literal_block'
     EXAMPLE_BLOCK = 'example_block'
-    QUOTE_BLOCK = 'quote_block'
     ADMONITION = 'admonition'
     SIDEBAR = 'sidebar'
-    TABLE = 'table'
-    TABLE_ROW = 'table_row'
-    TABLE_CELL = 'table_cell'
     ATTRIBUTE_ENTRY = 'attribute_entry'
-    INCLUDE = 'include'
 
 class Node:
     """Base class for all AST nodes."""
@@ -45,7 +38,7 @@ class Node:
         self.children.append(child)
 
     _SERIALIZABLE_ATTRS = [
-        'text', 'content', 'url', 'alt', 'level',
+        'text', 'content', 'level',
         'flavor', 'name', 'value'
     ]
     _NODE_ATTRS = ['title_node', 'header']
@@ -190,22 +183,6 @@ class InlineCode(InlineNode):
         super().__init__(children)
         self.node_type = NodeType.INLINE_CODE
 
-class Link(InlineNode):
-    """An inline node for a hyperlink."""
-    def __init__(self, url: str, text: Optional[str] = None):
-        super().__init__()
-        self.node_type = NodeType.LINK
-        self.url = url
-        self.text = text or url
-
-class Image(InlineNode):
-    """A block or inline node for an image directive."""
-    def __init__(self, url: str, alt: str = ""):
-        super().__init__()
-        self.node_type = NodeType.IMAGE
-        self.url = url
-        self.alt = alt
-
 class BulletList(BlockNode):
     """A block node representing an unordered (bulleted) list."""
     def __init__(self, children: Optional[List['Node']] = None):
@@ -238,12 +215,6 @@ class ExampleBlock(BlockNode):
         super().__init__(children)
         self.node_type = NodeType.EXAMPLE_BLOCK
 
-class QuoteBlock(BlockNode):
-    """A block representing a quotation."""
-    def __init__(self, children: Optional[List['Node']] = None):
-        super().__init__(children)
-        self.node_type = NodeType.QUOTE_BLOCK
-
 class Admonition(BlockNode):
     """A block for admonitions like NOTE, TIP, IMPORTANT, etc."""
     def __init__(self, flavor: str, children: Optional[List['Node']] = None):
@@ -257,27 +228,6 @@ class Sidebar(BlockNode):
         super().__init__(children)
         self.node_type = NodeType.SIDEBAR
 
-class Table(BlockNode):
-    """A node representing a table."""
-    def __init__(self):
-        super().__init__()
-        self.node_type = NodeType.TABLE
-        self.header_rows: List[TableRow] = []
-        self.rows: List[TableRow] = []
-
-class TableRow(Node):
-    """A node representing a single row in a table."""
-    def __init__(self):
-        super().__init__()
-        self.node_type = NodeType.TABLE_ROW
-        self.cells: List[TableCell] = []
-
-class TableCell(Node):
-    """A node representing a single cell in a table row."""
-    def __init__(self, children: Optional[List['Node']] = None):
-        super().__init__(children)
-        self.node_type = NodeType.TABLE_CELL
-
 class AttributeEntry(Node):
     """A node representing an attribute declaration in the document header."""
     def __init__(self, name: str, value: str):
@@ -285,20 +235,3 @@ class AttributeEntry(Node):
         self.node_type = NodeType.ATTRIBUTE_ENTRY
         self.name = name
         self.value = value
-
-class Include(Node):
-    """A node representing an `include::` directive."""
-    def __init__(self, filename: str):
-        super().__init__()
-        self.node_type = NodeType.INCLUDE
-
-class NodeVisitor:
-    """A base class for implementing the visitor pattern to traverse the AST."""
-    def visit(self, node: Node, **kwargs: Any) -> Any:
-        method_name = f'visit_{node.__class__.__name__.lower()}'
-        visitor = getattr(self, method_name, self.generic_visit)
-        return visitor(node, **kwargs)
-
-    def generic_visit(self, node: Node, **kwargs: Any) -> Any:
-        for child in node.children:
-            self.visit(child, **kwargs)
