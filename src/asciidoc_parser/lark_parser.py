@@ -44,26 +44,6 @@ def _merge_consecutive_lists(blocks):
             merged_blocks.append(current_block)
     return merged_blocks
 
-def _get_list_level(marker_token):
-    """
-    Determines the nesting level of a list item from its marker token.
-
-    - `-` is always level 1
-    - `*` or `.` level is determined by the number of characters (e.g., `**` is level 2)
-    - `1.` style markers are always level 1.
-
-    Args:
-        marker_token: The Lark Token for the list marker.
-
-    Returns:
-        The integer nesting level.
-    """
-    marker = marker_token.value.strip()
-    if marker.startswith('-'):
-        return 1
-    if marker.startswith('*') or marker.startswith('.'):
-        return len(marker)
-    return 1 # for 1., 2., etc.
 
 def _nest_list_items(items):
     """
@@ -140,6 +120,28 @@ class AsciiDocTransformer(Transformer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.attributes = {}
+
+    @staticmethod
+    def _get_list_level(marker_token):
+        """
+        Determines the nesting level of a list item from its marker token.
+
+        - `-` is always level 1
+        - `*` or `.` level is determined by the number of characters (e.g., `**` is level 2)
+        - `1.` style markers are always level 1.
+
+        Args:
+            marker_token: The Lark Token for the list marker.
+
+        Returns:
+            The integer nesting level.
+        """
+        marker = marker_token.value.strip()
+        if marker.startswith('-'):
+            return 1
+        if marker.startswith('*') or marker.startswith('.'):
+            return len(marker)
+        return 1  # for 1., 2., etc.
 
     def document(self, children):
         children = [c for c in children if c is not Discard and c is not None]
@@ -225,14 +227,14 @@ class AsciiDocTransformer(Transformer):
     def ulist_item(self, children):
         # Children are: [ULIST_MARKER, text_content]
         marker_token = children[0]
-        level = _get_list_level(marker_token)
+        level = self._get_list_level(marker_token)
         content = children[1]
         return {'level': level, 'item_type': 'bullet', 'children': content}
 
     def olist_item(self, children):
         # Children are: [OLIST_MARKER, text_content]
         marker_token = children[0]
-        level = _get_list_level(marker_token)
+        level = self._get_list_level(marker_token)
         content = children[1]
         return {'level': level, 'item_type': 'enumerated', 'children': content}
 
