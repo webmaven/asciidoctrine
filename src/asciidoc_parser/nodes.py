@@ -145,9 +145,12 @@ class Header(Node):
             data['author'] = self.author.to_dict()
         if self.revision:
             data['revision'] = self.revision.to_dict()
-        if self.attributes:
+        # The 'attributes' field is already handled by the base class, but we need
+        # to ensure the values are dictionaries.
+        if 'attributes' in data:
             data['attributes'] = {
-                k: [v_node.to_dict() for v_node in v] for k, v in self.attributes.items()
+                k: [v_node.to_dict() for v_node in v]
+                for k, v in self.attributes.items()
             }
         return data
 

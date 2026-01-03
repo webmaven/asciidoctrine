@@ -21,7 +21,8 @@ def _merge_consecutive_lists(blocks):
 
     For example, two `BulletList` nodes that appear sequentially will be
     merged into one. This is necessary because the parser may generate them
-    as separate entities.
+    as separate entities. This can happen, for example, when a blank line
+    separates two list items that should belong to the same list.
 
     Args:
         blocks: A list of block-level nodes.
@@ -48,6 +49,10 @@ def _get_list_level(marker_token):
     """
     Determines the nesting level of a list item from its marker token.
 
+    AsciiDoc list nesting is determined by the length of the marker.
+    For example, `*` is level 1, `**` is level 2, etc. This function
+    calculates the level based on the marker token.
+
     - `-` is always level 1
     - `*` or `.` level is determined by the number of characters (e.g., `**` is level 2)
     - `1.` style markers are always level 1.
@@ -64,6 +69,13 @@ def _get_list_level(marker_token):
     if marker.startswith('*') or marker.startswith('.'):
         return len(marker)
     return 1 # for 1., 2., etc.
+
+def _create_list_node(item_type):
+    """Creates a BulletList or OrderedList based on the item_type."""
+    if item_type == 'bullet':
+        return BulletList()
+    return OrderedList()
+
 
 def _nest_list_items(items):
     """
@@ -84,49 +96,48 @@ def _nest_list_items(items):
         return []
 
     root_lists = []
-    stack = [] # (level, list_node)
+    # The stack stores tuples of (level, list_node) to keep track of the
+    # current nesting of lists.
+    stack = []
 
     for item_data in items:
         level = item_data['level']
         item_type = item_data['item_type']
-        list_type = 'bullet_list' if item_type == 'bullet' else 'enumerated_list'
 
-        # Pop from the stack until the parent list of the correct level is found.
-        # This handles moving to a shallower nesting level.
+        # Pop from the stack until we find the correct parent for the current item.
+        # This handles outdenting.
         while stack and level < stack[-1][0]:
             stack.pop()
 
         if not stack:
             # This is a new root-level list.
-            list_node = BulletList() if item_type == 'bullet' else OrderedList()
+            list_node = _create_list_node(item_type)
             root_lists.append(list_node)
             stack.append((level, list_node))
         elif level > stack[-1][0]:
             # This is a new sublist, nested inside the previous item.
             parent_list = stack[-1][1]
-            if parent_list.children:
+            if not parent_list.children:
+                # This case should ideally not be reached with well-formed AsciiDoc.
+                # It implies a list marker at a deeper level without a preceding
+                # list item at the parent level. We'll attach to the parent list.
+                list_node = parent_list
+            else:
                 last_item = parent_list.children[-1]
-                list_node = BulletList() if item_type == 'bullet' else OrderedList()
+                list_node = _create_list_node(item_type)
                 last_item.append(list_node)
                 stack.append((level, list_node))
-            else:
-                # Fallback: if the parent list is somehow empty, attach to it directly.
-                # This case is not expected in well-formed AsciiDoc.
-                list_node = stack[-1][1]
-        else:
+        else:  # level == stack[-1][0]
             # This item is at the same level as the previous one.
-            # We continue adding to the current list. In AsciiDoc, changing
-            # marker types at the same level would start a new list, but our
-            # grammar currently groups them, so we just append.
             list_node = stack[-1][1]
 
-        # Add the item to its parent list.
+        # Add the current item to its parent list.
         list_node.append(ListItem(item_data['children']))
 
     # The result should be a list of `ListItem` nodes, not the list containers.
     all_root_children = []
-    for rl in root_lists:
-        all_root_children.extend(rl.children)
+    for root_list in root_lists:
+        all_root_children.extend(root_list.children)
     return all_root_children
 
 class AsciiDocTransformer(Transformer):
@@ -142,6 +153,9 @@ class AsciiDocTransformer(Transformer):
         self.attributes = {}
 
     def document(self, children):
+        """
+        Processes the parsed document, separating the header from the main content.
+        """
         children = [c for c in children if c is not Discard and c is not None]
         header = None
         if children and isinstance(children[0], Header):
