@@ -9,126 +9,6 @@ from .nodes import (
 )
 from .preprocessor import Preprocessor
 
-# Regex to match author lines (e.g., "John Doe <john.doe@example.com>")
-AUTHOR_REGEX = re.compile(r'[\w\s]+(<.*>)?')
-# Regex to match revision lines (e.g., "v1.0, 2023-01-01")
-REVISION_REGEX = re.compile(r'(v\d+\.\d+.*)|(\d{4}-\d{2}-\d{2})')
-
-
-def _merge_consecutive_lists(blocks):
-    """
-    Merges consecutive list blocks of the same type into a single block.
-
-    For example, two `BulletList` nodes that appear sequentially will be
-    merged into one. This is necessary because the parser may generate them
-    as separate entities.
-
-    Args:
-        blocks: A list of block-level nodes.
-
-    Returns:
-        A new list of block-level nodes with consecutive lists merged.
-    """
-    if not blocks:
-        return []
-
-    merged_blocks = [blocks[0]]
-    for current_block in blocks[1:]:
-        prev_block = merged_blocks[-1]
-        
-        # Merge consecutive lists of the same type
-        if (isinstance(current_block, (BulletList, OrderedList)) and
-                type(current_block) is type(prev_block)):
-            prev_block.children.extend(current_block.children)
-        else:
-            merged_blocks.append(current_block)
-    return merged_blocks
-
-def _get_list_level(marker_token):
-    """
-    Determines the nesting level of a list item from its marker token.
-
-    - `-` is always level 1
-    - `*` or `.` level is determined by the number of characters (e.g., `**` is level 2)
-    - `1.` style markers are always level 1.
-
-    Args:
-        marker_token: The Lark Token for the list marker.
-
-    Returns:
-        The integer nesting level.
-    """
-    marker = marker_token.value.strip()
-    if marker.startswith('-'):
-        return 1
-    if marker.startswith('*') or marker.startswith('.'):
-        return len(marker)
-    return 1 # for 1., 2., etc.
-
-def _nest_list_items(items):
-    """
-    Organizes a flat list of items into a nested list structure.
-
-    The parser produces a flat list of all list items with their levels.
-    This function reconstructs the correct hierarchy of lists and sublists
-    based on those levels.
-
-    Args:
-        items: A list of dictionaries, where each dictionary represents a
-               list item with 'level', 'item_type', and 'children'.
-
-    Returns:
-        A list of root-level `ListItem` nodes.
-    """
-    if not items:
-        return []
-
-    root_lists = []
-    stack = [] # (level, list_node)
-
-    for item_data in items:
-        level = item_data['level']
-        item_type = item_data['item_type']
-        list_type = 'bullet_list' if item_type == 'bullet' else 'enumerated_list'
-
-        # Pop from the stack until the parent list of the correct level is found.
-        # This handles moving to a shallower nesting level.
-        while stack and level < stack[-1][0]:
-            stack.pop()
-
-        if not stack:
-            # This is a new root-level list.
-            list_node = BulletList() if item_type == 'bullet' else OrderedList()
-            root_lists.append(list_node)
-            stack.append((level, list_node))
-        elif level > stack[-1][0]:
-            # This is a new sublist, nested inside the previous item.
-            parent_list = stack[-1][1]
-            if parent_list.children:
-                last_item = parent_list.children[-1]
-                list_node = BulletList() if item_type == 'bullet' else OrderedList()
-                last_item.append(list_node)
-                stack.append((level, list_node))
-            else:
-                # Fallback: if the parent list is somehow empty, attach to it directly.
-                # This case is not expected in well-formed AsciiDoc.
-                list_node = stack[-1][1]
-        else:
-            # This item is at the same level as the previous one.
-            # We continue adding to the current list. In AsciiDoc, changing
-            # marker types at the same level would start a new list, but our
-            # grammar currently groups them, so we just append.
-            list_node = stack[-1][1]
-
-        # Add the item to its parent list.
-        list_node.append(ListItem(item_data['children']))
-
-    # The result should be a list of `ListItem` nodes, not the list containers.
-    all_root_children = []
-    for rl in root_lists:
-        all_root_children.extend(rl.children)
-    return all_root_children
-
 class AsciiDocTransformer(Transformer):
     """
     Transforms the Lark parse tree (CST) into a structured AST.
@@ -137,6 +17,128 @@ class AsciiDocTransformer(Transformer):
     The method receives the children of the rule as arguments and should return
     an AST node from `nodes.py`.
     """
+    # Regex to match author lines (e.g., "John Doe <john.doe@example.com>")
+    AUTHOR_REGEX = re.compile(r'[\w\s]+(<.*>)?')
+    # Regex to match revision lines (e.g., "v1.0, 2023-01-01")
+    REVISION_REGEX = re.compile(r'(v\d+\.\d+.*)|(\d{4}-\d{2}-\d{2})')
+
+    @staticmethod
+    def _merge_consecutive_lists(blocks):
+        """
+        Merges consecutive list blocks of the same type into a single block.
+
+        For example, two `BulletList` nodes that appear sequentially will be
+        merged into one. This is necessary because the parser may generate them
+        as separate entities.
+
+        Args:
+            blocks: A list of block-level nodes.
+
+        Returns:
+            A new list of block-level nodes with consecutive lists merged.
+        """
+        if not blocks:
+            return []
+
+        merged_blocks = [blocks[0]]
+        for current_block in blocks[1:]:
+            prev_block = merged_blocks[-1]
+
+            # Merge consecutive lists of the same type
+            if (isinstance(current_block, (BulletList, OrderedList)) and
+                    type(current_block) is type(prev_block)):
+                prev_block.children.extend(current_block.children)
+            else:
+                merged_blocks.append(current_block)
+        return merged_blocks
+
+    @staticmethod
+    def _get_list_level(marker_token):
+        """
+        Determines the nesting level of a list item from its marker token.
+
+        - `-` is always level 1
+        - `*` or `.` level is determined by the number of characters (e.g., `**` is level 2)
+        - `1.` style markers are always level 1.
+
+        Args:
+            marker_token: The Lark Token for the list marker.
+
+        Returns:
+            The integer nesting level.
+        """
+        marker = marker_token.value.strip()
+        if marker.startswith('-'):
+            return 1
+        if marker.startswith('*') or marker.startswith('.'):
+            return len(marker)
+        return 1 # for 1., 2., etc.
+
+    @staticmethod
+    def _nest_list_items(items):
+        """
+        Organizes a flat list of items into a nested list structure.
+
+        The parser produces a flat list of all list items with their levels.
+        This function reconstructs the correct hierarchy of lists and sublists
+        based on those levels.
+
+        Args:
+            items: A list of dictionaries, where each dictionary represents a
+                   list item with 'level', 'item_type', and 'children'.
+
+        Returns:
+            A list of root-level `ListItem` nodes.
+        """
+        if not items:
+            return []
+
+        root_lists = []
+        stack = [] # (level, list_node)
+
+        for item_data in items:
+            level = item_data['level']
+            item_type = item_data['item_type']
+            list_type = 'bullet_list' if item_type == 'bullet' else 'enumerated_list'
+
+            # Pop from the stack until the parent list of the correct level is found.
+            # This handles moving to a shallower nesting level.
+            while stack and level < stack[-1][0]:
+                stack.pop()
+
+            if not stack:
+                # This is a new root-level list.
+                list_node = BulletList() if item_type == 'bullet' else OrderedList()
+                root_lists.append(list_node)
+                stack.append((level, list_node))
+            elif level > stack[-1][0]:
+                # This is a new sublist, nested inside the previous item.
+                parent_list = stack[-1][1]
+                if parent_list.children:
+                    last_item = parent_list.children[-1]
+                    list_node = BulletList() if item_type == 'bullet' else OrderedList()
+                    last_item.append(list_node)
+                    stack.append((level, list_node))
+                else:
+                    # Fallback: if the parent list is somehow empty, attach to it directly.
+                    # This case is not expected in well-formed AsciiDoc.
+                    list_node = stack[-1][1]
+            else:
+                # This item is at the same level as the previous one.
+                # We continue adding to the current list. In AsciiDoc, changing
+                # marker types at the same level would start a new list, but our
+                # grammar currently groups them, so we just append.
+                list_node = stack[-1][1]
+
+            # Add the item to its parent list.
+            list_node.append(ListItem(item_data['children']))
+
+        # The result should be a list of `ListItem` nodes, not the list containers.
+        all_root_children = []
+        for rl in root_lists:
+            all_root_children.extend(rl.children)
+        return all_root_children
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.attributes = {}
@@ -147,7 +149,7 @@ class AsciiDocTransformer(Transformer):
         if children and isinstance(children[0], Header):
             header = children.pop(0)
 
-        merged_children = _merge_consecutive_lists(children)
+        merged_children = self._merge_consecutive_lists(children)
 
         doc = Document(merged_children)
         if header:
@@ -164,12 +166,12 @@ class AsciiDocTransformer(Transformer):
 
         if len(text_lines) > 0:
             line1_text = "".join([node.text for node in text_lines[0] if hasattr(node, 'text')])
-            if AUTHOR_REGEX.fullmatch(line1_text.strip()):
+            if self.AUTHOR_REGEX.fullmatch(line1_text.strip()):
                 author = Author(text_lines[0])
 
         if len(text_lines) > 1:
             line2_text = "".join([node.text for node in text_lines[1] if hasattr(node, 'text')])
-            if REVISION_REGEX.fullmatch(line2_text.strip()):
+            if self.REVISION_REGEX.fullmatch(line2_text.strip()):
                 revision = Revision(text_lines[1])
 
         attributes = {}
@@ -200,7 +202,7 @@ class AsciiDocTransformer(Transformer):
         children = [c for c in children if c is not Discard]
         title_node, *blocks = children
         section_node = Section(level=1, title_node=title_node)
-        section_node.children = _merge_consecutive_lists(blocks)
+        section_node.children = self._merge_consecutive_lists(blocks)
         return section_node
 
     def section_title(self, children):
@@ -217,22 +219,22 @@ class AsciiDocTransformer(Transformer):
         return Paragraph(children[0])
 
     def ulist(self, children):
-        return BulletList(_nest_list_items(children))
+        return BulletList(self._nest_list_items(children))
 
     def olist(self, children):
-        return OrderedList(_nest_list_items(children))
+        return OrderedList(self._nest_list_items(children))
 
     def ulist_item(self, children):
         # Children are: [ULIST_MARKER, text_content]
         marker_token = children[0]
-        level = _get_list_level(marker_token)
+        level = self._get_list_level(marker_token)
         content = children[1]
         return {'level': level, 'item_type': 'bullet', 'children': content}
 
     def olist_item(self, children):
         # Children are: [OLIST_MARKER, text_content]
         marker_token = children[0]
-        level = _get_list_level(marker_token)
+        level = self._get_list_level(marker_token)
         content = children[1]
         return {'level': level, 'item_type': 'enumerated', 'children': content}
 
@@ -254,7 +256,7 @@ class AsciiDocTransformer(Transformer):
             if isinstance(c, list):
                 inner = c
                 break
-        merged_inner = _merge_consecutive_lists(inner)
+        merged_inner = self._merge_consecutive_lists(inner)
         return ExampleBlock(children=merged_inner)
 
     def attribute_content(self, children):
@@ -304,7 +306,7 @@ class AsciiDocTransformer(Transformer):
                 inner = c
                 break
         
-        merged_inner = _merge_consecutive_lists(inner)
+        merged_inner = self._merge_consecutive_lists(inner)
         return Admonition(flavor=flavor, children=merged_inner)
 
     def sidebar(self, children):
@@ -314,7 +316,7 @@ class AsciiDocTransformer(Transformer):
             if isinstance(c, list):
                 inner = c
                 break
-        merged_inner = _merge_consecutive_lists(inner)
+        merged_inner = self._merge_consecutive_lists(inner)
         return Sidebar(children=merged_inner)
 
     def attribute_entry(self, children):
