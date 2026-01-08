@@ -1,4 +1,3 @@
-
 """
 Custom Abstract Syntax Tree (AST) for AsciiDoc parsing.
 """
@@ -44,12 +43,6 @@ class Node:
     def append(self, child: 'Node'):
         self.children.append(child)
 
-    _SERIALIZABLE_ATTRS = [
-        'text', 'content', 'url', 'alt', 'level',
-        'flavor', 'name', 'value'
-    ]
-    _NODE_ATTRS = ['title_node', 'header']
-
     def to_dict(self) -> dict:
         """
         Recursively converts the node and its subtree into a dictionary.
@@ -68,13 +61,17 @@ class Node:
         if hasattr(self, 'attributes') and self.attributes:
             data['attributes'] = self.attributes
 
-        for attr in self._SERIALIZABLE_ATTRS:
+        # Dynamically read serializable attributes from the instance
+        serializable_attrs = getattr(self, '_SERIALIZABLE_ATTRS', [])
+        for attr in serializable_attrs:
             if hasattr(self, attr):
                 value = getattr(self, attr)
                 if value is not None:
                     data[attr] = value
 
-        for attr in self._NODE_ATTRS:
+        # Dynamically read node attributes from the instance
+        node_attrs = getattr(self, '_NODE_ATTRS', [])
+        for attr in node_attrs:
             if hasattr(self, attr):
                 node = getattr(self, attr)
                 if node:
@@ -103,6 +100,8 @@ class BlockNode(Node):
 
 class Document(BlockNode):
     """The root node of the entire AsciiDoc document AST."""
+    _NODE_ATTRS = ['header']
+
     def __init__(self, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.node_type = NodeType.DOCUMENT
@@ -153,6 +152,9 @@ class Header(Node):
 
 class Section(BlockNode):
     """Represents a structural section of the document."""
+    _SERIALIZABLE_ATTRS = ['level']
+    _NODE_ATTRS = ['title_node']
+
     def __init__(self, level: int, title_node: Node):
         super().__init__()
         self.node_type = NodeType.SECTION
@@ -167,6 +169,8 @@ class Paragraph(BlockNode):
 
 class Text(InlineNode):
     """A leaf node representing a segment of plain text."""
+    _SERIALIZABLE_ATTRS = ['text']
+
     def __init__(self, text: str):
         super().__init__()
         self.node_type = NodeType.TEXT
@@ -192,6 +196,8 @@ class InlineCode(InlineNode):
 
 class Link(InlineNode):
     """An inline node for a hyperlink."""
+    _SERIALIZABLE_ATTRS = ['url', 'text']
+
     def __init__(self, url: str, text: Optional[str] = None):
         super().__init__()
         self.node_type = NodeType.LINK
@@ -200,6 +206,8 @@ class Link(InlineNode):
 
 class Image(InlineNode):
     """A block or inline node for an image directive."""
+    _SERIALIZABLE_ATTRS = ['url', 'alt']
+
     def __init__(self, url: str, alt: str = ""):
         super().__init__()
         self.node_type = NodeType.IMAGE
@@ -226,6 +234,8 @@ class ListItem(BlockNode):
 
 class LiteralBlock(BlockNode):
     """A block for preformatted text, typically used for code listings."""
+    _SERIALIZABLE_ATTRS = ['content']
+
     def __init__(self, content: str, attributes: Optional[Dict[str, Any]] = None):
         super().__init__()
         self.node_type = NodeType.LITERAL_BLOCK
@@ -246,6 +256,8 @@ class QuoteBlock(BlockNode):
 
 class Admonition(BlockNode):
     """A block for admonitions like NOTE, TIP, IMPORTANT, etc."""
+    _SERIALIZABLE_ATTRS = ['flavor']
+
     def __init__(self, flavor: str, children: Optional[List['Node']] = None):
         super().__init__(children)
         self.node_type = NodeType.ADMONITION
@@ -280,6 +292,8 @@ class TableCell(Node):
 
 class AttributeEntry(Node):
     """A node representing an attribute declaration in the document header."""
+    _SERIALIZABLE_ATTRS = ['name', 'value']
+
     def __init__(self, name: str, value: str):
         super().__init__()
         self.node_type = NodeType.ATTRIBUTE_ENTRY
@@ -288,9 +302,12 @@ class AttributeEntry(Node):
 
 class Include(Node):
     """A node representing an `include::` directive."""
-    def __init__(self, filename: str):
+    _SERIALIZABLE_ATTRS = ['filename']
+
+    def __init__(self, filename: Optional[str] = None):
         super().__init__()
         self.node_type = NodeType.INCLUDE
+        self.filename = filename
 
 class NodeVisitor:
     """A base class for implementing the visitor pattern to traverse the AST."""
