@@ -1,7 +1,7 @@
 
 import os
 import re
-from lark import Lark, Transformer, Discard, Token
+from lark import Lark, Transformer, Discard, Token  # type: ignore
 from .nodes import (
     Node, Document, Title, Section, Paragraph, Text, Strong, Emphasis,
     InlineCode, BulletList, OrderedList, ListItem, LiteralBlock, Admonition, Sidebar, ExampleBlock,

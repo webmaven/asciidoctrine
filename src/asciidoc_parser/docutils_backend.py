@@ -2,11 +2,13 @@
 Converts the AsciiDoc AST to a Docutils document tree.
 """
 
-from docutils import nodes
-from docutils.frontend import OptionParser
-from docutils.utils import new_document
+from docutils import nodes  # type: ignore
+from docutils.frontend import OptionParser  # type: ignore
+from typing import Any, Dict
 
-def translate_ast_to_docutils(ast_node, parent_node):
+from docutils.utils import new_document  # type: ignore
+
+def translate_ast_to_docutils(ast_node: Dict[str, Any], parent_node: nodes.Element) -> None:
     node_type = ast_node.get('type')
 
     if node_type == 'document':
@@ -28,12 +30,12 @@ def translate_ast_to_docutils(ast_node, parent_node):
     elif node_type == 'text':
         parent_node += nodes.Text(ast_node.get('text', ''))
 
-def asciidoc_to_docutils(source: str):
+def asciidoc_to_docutils(source: str) -> nodes.document:
     """
     Convert AsciiDoc source string to a Docutils document.
     """
     from .lark_parser import parse_to_ast
-    ast = parse_to_ast(source)
+    ast = parse_to_ast(source).to_dict()
 
     settings = OptionParser(components=(None,)).get_default_values()
     document = new_document('<string>', settings=settings)
