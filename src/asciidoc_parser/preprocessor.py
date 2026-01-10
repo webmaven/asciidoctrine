@@ -3,6 +3,7 @@ Preprocessor for AsciiDoc source, handling directives like include::.
 """
 import os
 import re
+from typing import Set
 
 class PreprocessorError(Exception):
     """Custom exception for preprocessor errors."""
@@ -12,7 +13,7 @@ class Preprocessor:
     """
     Processes AsciiDoc source to handle `include::` directives.
     """
-    def __init__(self, base_dir=None):
+    def __init__(self, base_dir: str | None = None) -> None:
         """
         Initializes the preprocessor.
         Args:
@@ -22,7 +23,7 @@ class Preprocessor:
         self.base_dir = os.path.abspath(base_dir) if base_dir else os.getcwd()
         self.include_regex = re.compile(r'^include::([^\[]+)\[\]\s*$')
 
-    def process(self, source):
+    def process(self, source: str) -> str:
         """
         Main entry point for processing the source text.
         Args:
@@ -32,7 +33,9 @@ class Preprocessor:
         """
         return self._process_source(source, self.base_dir, set())
 
-    def _process_source(self, source, current_dir, included_files):
+    def _process_source(
+        self, source: str, current_dir: str, included_files: Set[str]
+    ) -> str:
         """
         Recursively processes source text, handling includes.
         Args:
