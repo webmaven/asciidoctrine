@@ -1,19 +1,24 @@
 """
 Preprocessor for AsciiDoc source, handling directives like include::.
 """
+
 import os
 import re
-from typing import Set
+from typing import Optional, Set
+
 
 class PreprocessorError(Exception):
     """Custom exception for preprocessor errors."""
+
     pass
+
 
 class Preprocessor:
     """
     Processes AsciiDoc source to handle `include::` directives.
     """
-    def __init__(self, base_dir: str | None = None) -> None:
+
+    def __init__(self, base_dir: Optional[str] = None) -> None:
         """
         Initializes the preprocessor.
         Args:
@@ -21,7 +26,7 @@ class Preprocessor:
                                       Defaults to the current working directory.
         """
         self.base_dir = os.path.abspath(base_dir) if base_dir else os.getcwd()
-        self.include_regex = re.compile(r'^include::([^\[]+)\[\]\s*$')
+        self.include_regex = re.compile(r"^include::([^\[]+)\[\]\s*$")
 
     def process(self, source: str) -> str:
         """
@@ -53,17 +58,24 @@ class Preprocessor:
             if match:
                 include_path = match.group(1).strip()
 
-                target_file_path = os.path.abspath(os.path.join(current_dir, include_path))
+                target_file_path = os.path.abspath(
+                    os.path.join(current_dir, include_path)
+                )
 
                 # Security check: ensure the target is within the base directory
-                if os.path.commonprefix([target_file_path, self.base_dir]) != self.base_dir:
+                if (
+                    os.path.commonprefix([target_file_path, self.base_dir])
+                    != self.base_dir
+                ):
                     raise PreprocessorError(
                         f"Security error: include path '{include_path}' "
                         "attempts to access files outside the base directory."
                     )
 
                 if not os.path.isfile(target_file_path):
-                    raise PreprocessorError(f"Include file not found: {target_file_path}")
+                    raise PreprocessorError(
+                        f"Include file not found: {target_file_path}"
+                    )
 
                 if target_file_path in included_files:
                     raise PreprocessorError(
@@ -71,7 +83,7 @@ class Preprocessor:
                         "is already being included."
                     )
 
-                with open(target_file_path, 'r', encoding='utf-8') as f:
+                with open(target_file_path, "r", encoding="utf-8") as f:
                     content_to_include = f.read()
 
                 included_files.add(target_file_path)
