@@ -42,14 +42,11 @@ class Node:
         self.children: List[Node] = list(children) if children else []
         self.node_type: Optional[NodeType] = None
 
+    _SERIALIZABLE_ATTRS: List[str] = []
+    _NODE_ATTRS: List[str] = []
+
     def append(self, child: Node):
         self.children.append(child)
-
-    _SERIALIZABLE_ATTRS = [
-        'text', 'content', 'url', 'alt', 'level',
-        'flavor', 'name', 'value'
-    ]
-    _NODE_ATTRS = ['title_node', 'header']
 
     def to_dict(self) -> dict:
         """
@@ -69,7 +66,9 @@ class Node:
             data['type'] = self.node_type.value
 
         if hasattr(self, 'attributes') and self.attributes:
-            data['attributes'] = self.attributes
+            # Header node has a custom implementation for serializing attributes
+            if not isinstance(self, Header):
+                data['attributes'] = self.attributes
 
         for attr in self._SERIALIZABLE_ATTRS:
             if hasattr(self, attr):
@@ -87,7 +86,7 @@ class Node:
 
         if self.children:
             data['children'] = [c.to_dict() for c in self.children]
-        
+
         return data
 
     def walk(self) -> Iterator[Node]:
@@ -106,6 +105,8 @@ class BlockNode(Node):
 
 class Document(BlockNode):
     """The root node of the entire AsciiDoc document AST."""
+    _NODE_ATTRS = ['header']
+
     def __init__(self, children: Optional[Sequence[Node]] = None):
         super().__init__(children)
         self.node_type = NodeType.DOCUMENT
@@ -156,6 +157,9 @@ class Header(Node):
 
 class Section(BlockNode):
     """Represents a structural section of the document."""
+    _SERIALIZABLE_ATTRS = ['level']
+    _NODE_ATTRS = ['title_node']
+
     def __init__(self, level: int, title_node: Node):
         super().__init__()
         self.node_type = NodeType.SECTION
@@ -170,6 +174,8 @@ class Paragraph(BlockNode):
 
 class Text(InlineNode):
     """A leaf node representing a segment of plain text."""
+    _SERIALIZABLE_ATTRS = ['text']
+
     def __init__(self, text: str):
         super().__init__()
         self.node_type = NodeType.TEXT
@@ -195,6 +201,8 @@ class InlineCode(InlineNode):
 
 class Link(InlineNode):
     """An inline node for a hyperlink."""
+    _SERIALIZABLE_ATTRS = ['url', 'text']
+
     def __init__(self, url: str, text: Optional[str] = None):
         super().__init__()
         self.node_type = NodeType.LINK
@@ -203,6 +211,8 @@ class Link(InlineNode):
 
 class Image(InlineNode):
     """A block or inline node for an image directive."""
+    _SERIALIZABLE_ATTRS = ['url', 'alt']
+
     def __init__(self, url: str, alt: str = ""):
         super().__init__()
         self.node_type = NodeType.IMAGE
@@ -229,6 +239,8 @@ class ListItem(BlockNode):
 
 class LiteralBlock(BlockNode):
     """A block for preformatted text, typically used for code listings."""
+    _SERIALIZABLE_ATTRS = ['content']
+
     def __init__(self, content: str, attributes: Optional[Dict[str, Any]] = None):
         super().__init__()
         self.node_type = NodeType.LITERAL_BLOCK
@@ -249,6 +261,8 @@ class QuoteBlock(BlockNode):
 
 class Admonition(BlockNode):
     """A block for admonitions like NOTE, TIP, IMPORTANT, etc."""
+    _SERIALIZABLE_ATTRS = ['flavor']
+
     def __init__(self, flavor: str, children: Optional[Sequence[Node]] = None):
         super().__init__(children)
         self.node_type = NodeType.ADMONITION
@@ -283,6 +297,8 @@ class TableCell(Node):
 
 class AttributeEntry(Node):
     """A node representing an attribute declaration in the document header."""
+    _SERIALIZABLE_ATTRS = ['name', 'value']
+
     def __init__(self, name: str, value: str):
         super().__init__()
         self.node_type = NodeType.ATTRIBUTE_ENTRY
@@ -291,9 +307,12 @@ class AttributeEntry(Node):
 
 class Include(Node):
     """A node representing an `include::` directive."""
+    _SERIALIZABLE_ATTRS = ['filename']
+
     def __init__(self, filename: str):
         super().__init__()
         self.node_type = NodeType.INCLUDE
+        self.filename = filename
 
 class NodeVisitor:
     """A base class for implementing the visitor pattern to traverse the AST."""
