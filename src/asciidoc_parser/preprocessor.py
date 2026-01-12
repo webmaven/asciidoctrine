@@ -4,7 +4,8 @@ Preprocessor for AsciiDoc source, handling directives like include::.
 
 import os
 import re
-from typing import Set
+from typing import Optional, Set
+
 
 
 class PreprocessorError(Exception):
@@ -18,7 +19,7 @@ class Preprocessor:
     Processes AsciiDoc source to handle `include::` directives.
     """
 
-    def __init__(self, base_dir: str | None = None) -> None:
+    def __init__(self, base_dir: Optional[str] = None) -> None:
         """
         Initializes the preprocessor.
         Args:
