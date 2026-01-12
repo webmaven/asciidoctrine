@@ -1,0 +1,49 @@
+= TCK Integration Requirements
+:toc: left
+:icons: font
+
+== 1. Overview
+
+This document outlines the high-level requirements for integrating the official AsciiDoc Technology Compatibility Kit (TCK) into this project. The primary goal is to establish a robust, automated test harness that validates our parser against the AsciiDoc specification, using the TCK as the source of truth.
+
+== 2. Core Requirements
+
+[cols="1,2"]
+|===
+| ID | Requirement
+
+| REQ-01
+| The project MUST implement a test harness capable of executing the full suite of tests provided by the AsciiDoc TCK.
+
+| REQ-02
+| The test harness MUST be able to run against a local checkout of the TCK repository, allowing for updates to the TCK to be easily incorporated.
+
+| REQ-03
+| The project MUST produce a command-line adapter that conforms to the interface specified by the TCK, accepting test cases via `stdin` and returning results via `stdout`.
+
+| REQ-04
+| The adapter MUST transform the project's internal Abstract Syntax Tree (AST) into the Abstract Semantic Graph (ASG) format required by the TCK. The output MUST be a JSON document that is compliant with the TCK's JSON schema.
+
+| REQ-05
+| The project's test suite MUST include a mechanism to run the TCK tests and report on compliance, including the number of passing and failing tests.
+
+| REQ-06
+| A clear, documented process MUST be established for analyzing TCK test failures, identifying parser bugs or missing features, and creating actionable tasks to address them.
+
+| REQ-07
+| The project MUST define a clear policy for what constitutes an acceptable level of TCK compliance for a release. While 100% compliance is the ultimate goal, interim releases may have a lower target.
+|===
+
+== 3. Stakeholders
+
+*   **Developers**: Need a reliable way to verify that their changes are compliant with the AsciiDoc specification and do not introduce regressions.
+*   **Users**: Benefit from a parser that is verifiably compliant, ensuring that their documents will be parsed correctly and consistently with other AsciiDoc tools.
+*   **AsciiDoc Community**: A compliant parser strengthens the AsciiDoc ecosystem by providing another high-quality, compatible implementation.
+
+== 4. Success Criteria
+
+The TCK integration will be considered successful when:
+1.  All TCK tests can be executed automatically as part of the project's CI/CD pipeline.
+2.  The TCK test results are used to generate a compliance report that is clear and easy to understand.
+3.  The development workflow incorporates a feedback loop where TCK failures are systematically addressed, leading to a measurable increase in compliance over time.
+4.  The project can confidently claim a specific level of compliance with the AsciiDoc specification, backed by the evidence of the TCK test results.

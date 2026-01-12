@@ -1,0 +1,109 @@
+= TCK Integration Tasks
+:toc: left
+:icons: font
+
+== 1. Overview
+
+This document breaks down the work required to complete the TCK integration into a set of actionable, hierarchical tasks. These tasks are derived from the goals in `TCK-REQUIREMENTS.adoc` and the technical plan in `TCK-SPEC.adoc`.
+
+Each high-level task is suitable for a feature branch and pull request. Sub-tasks represent individual, committable units of work.
+
+== 2. Task Breakdown
+
+=== TASK-1: Set up TCK Test Environment
+
+*Description*: Establish the necessary local environment to run the TCK test harness against a placeholder implementation. This ensures the runner and our code can communicate before any logic is implemented.
+*Parent Task*: None
+*Dependencies*: None
+
+==== TASK-1.1: Create `bin` Directory
+*Description*: Create a `bin/` directory in the project root to house the TCK adapter script and other executable helpers.
+
+==== TASK-1.2: Add TCK as a Project Dependency
+*Description*: Add the official AsciiDoc TCK repository as a Git submodule in a `vendor/` directory. This allows us to version-lock the TCK and easily update it.
+
+==== TASK-1.3: Create Placeholder TCK Adapter
+*Description*: Create an empty executable script at `bin/tck-adapter.py`. Initially, it can simply exit with a status code of 0.
+
+==== TASK-1.4: Create TCK Runner Script
+*Description*: Create a shell script (`run-tck.sh`) that invokes the Node.js-based TCK runner, pointing it at our placeholder adapter. This validates the basic setup.
+
+=== TASK-2: Implement TCK Adapter
+
+*Description*: Implement the command-line script that will serve as the bridge between the TCK runner and the parser.
+*Parent Task*: None
+*Dependencies*: TASK-1
+
+==== TASK-2.1: Implement `stdin` Parsing
+*Description*: Add logic to `bin/tck-adapter.py` to read from `stdin` and parse the incoming JSON payload from the TCK runner.
+*Ref*: `TCK-SPEC.adoc`, Section 3.2
+
+==== TASK-2.2: Invoke the Parser
+*Description*: In the adapter, call the main `parse_to_ast` function with the AsciiDoc source from the parsed `stdin` payload.
+
+==== TASK-2.3: Implement Basic Error Handling
+*Description*: Wrap the parser invocation in a `try...except` block. On any exception, print the error to `stderr` and exit with a non-zero status code.
+*Ref*: `TCK-SPEC.adoc`, Section 3.4
+
+==== TASK-2.4: Implement `stdout` Writing
+*Description*: Add logic to serialize a dictionary to a JSON string and print it to `stdout`. Initially, this can be a hardcoded "Hello, World" dictionary.
+*Ref*: `TCK-SPEC.adoc`, Section 3.3
+
+=== TASK-3: Implement AST to ASG Transformer
+
+*Description*: Create the logic to transform the parser's internal AST into the TCK-compliant ASG.
+*Parent Task*: None
+*Dependencies*: TASK-2
+
+==== TASK-3.1: Create `ASGVisitor` Class
+*Description*: Create a new file `src/asciidoc_parser/asg_visitor.py` and define an `ASGVisitor` class that inherits from `NodeVisitor`.
+*Ref*: `TCK-SPEC.adoc`, Section 4.1
+
+==== TASK-3.2: Implement Visitor for Simple Nodes
+*Description*: Implement `visit` methods in `ASGVisitor` for a small subset of core nodes (e.g., `Document`, `Paragraph`, `Text`) to produce a dictionary structure.
+
+==== TASK-3.3: Integrate Visitor into Adapter
+*Description*: Update `bin/tck-adapter.py` to instantiate `ASGVisitor` and use it to traverse the AST returned by the parser.
+
+==== TASK-3.4: Serialize ASG to `stdout`
+*Description*: Replace the hardcoded dictionary from TASK-2.4 with the dictionary produced by the `ASGVisitor`.
+
+==== TASK-3.5: Implement Visitor for All Nodes
+*Description*: Incrementally add `visit` methods for all remaining nodes defined in `nodes.py`. Each implementation will require consulting the TCK's expected ASG schema to ensure the output is compliant. This is an ongoing task that will be parallel to fixing TCK failures.
+
+=== TASK-4: Integrate TCK into Project Test Suite
+
+*Description*: Automate the execution of the TCK harness within the project's `pytest` suite.
+*Parent Task*: None
+*Dependencies*: TASK-1, TASK-2, TASK-3
+
+==== TASK-4.1: Create `pytest` TCK Test File
+*Description*: Create a new test file, `tests/test_tck.py`.
+
+==== TASK-4.2: Create TCK Runner Fixture
+*Description*: In `tests/test_tck.py`, create a `pytest` fixture that uses the `subprocess` module to execute the `run-tck.sh` script and capture its output.
+
+==== TASK-4.3: Add Initial TCK Test
+*Description*: Write a test function that uses the fixture to run the TCK. The test should parse the runner's output and assert that the number of failing tests is below a certain threshold.
+
+==== TASK-4.4: Implement `xfail` for Known Failures
+*Description*: Create a mechanism to mark known TCK failures as `pytest.xfail`. This allows the test suite to pass while we work towards full compliance. The list of known failures should be easy to update.
+
+=== TASK-5: Iteratively Achieve Full TCK Compliance
+
+*Description*: The ongoing process of using the TCK harness to find and fix compliance issues.
+*Parent Task*: None
+*Dependencies*: TASK-4
+
+==== TASK-5.1: Establish TCK Failure Analysis Process
+*Description*: Document the process for analyzing a TCK failure reported by the `pytest` suite, from identifying the root cause to creating a bug-fix branch.
+*Ref*: `TCK-REQUIREMENTS.adoc`, REQ-06
+
+==== TASK-5.2: Create GitHub Issues for Failures
+*Description*: For each unique TCK failure, create a new GitHub Issue. The issue should include the input AsciiDoc, the expected ASG, the actual ASG, and a link to the relevant part of the AsciiDoc specification.
+
+==== TASK-5.3: Prioritize and Fix Failures
+*Description*: Triage the created issues and address them according to project priorities. This will involve fixing bugs in the grammar (`grammar.lark`), the CST-to-AST transformer (`lark_parser.py`), or the AST-to-ASG visitor (`asg_visitor.py`).
+
+==== TASK-5.4: Update `xfail` List
+*Description*: As bugs are fixed and TCK tests pass, remove them from the list of known failures in `tests/test_tck.py`. The goal is to eventually make this list empty.
