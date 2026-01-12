@@ -1,13 +1,32 @@
-
 import os
 import re
-from lark import Lark, Transformer, Discard, Token  # type: ignore
+
+from lark import Discard, Lark, Token, Transformer  # type: ignore
+
 from .nodes import (
-    Node, Document, Title, Section, Paragraph, Text, Strong, Emphasis,
-    InlineCode, BulletList, OrderedList, ListItem, LiteralBlock, Admonition, Sidebar, ExampleBlock,
-    AttributeEntry, Header, Author, Revision
+    Admonition,
+    AttributeEntry,
+    Author,
+    BulletList,
+    Document,
+    Emphasis,
+    ExampleBlock,
+    Header,
+    InlineCode,
+    ListItem,
+    LiteralBlock,
+    Node,
+    OrderedList,
+    Paragraph,
+    Revision,
+    Section,
+    Sidebar,
+    Strong,
+    Text,
+    Title,
 )
 from .preprocessor import Preprocessor
+
 
 class AsciiDocTransformer(Transformer):
     """
@@ -17,10 +36,11 @@ class AsciiDocTransformer(Transformer):
     The method receives the children of the rule as arguments and should return
     an AST node from `nodes.py`.
     """
+
     # Regex to match author lines (e.g., "John Doe <john.doe@example.com>")
-    AUTHOR_REGEX = re.compile(r'[\w\s]+(<.*>)?')
+    AUTHOR_REGEX = re.compile(r"[\w\s]+(<.*>)?")
     # Regex to match revision lines (e.g., "v1.0, 2023-01-01")
-    REVISION_REGEX = re.compile(r'(v\d+\.\d+.*)|(\d{4}-\d{2}-\d{2})')
+    REVISION_REGEX = re.compile(r"(v\d+\.\d+.*)|(\d{4}-\d{2}-\d{2})")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -49,8 +69,9 @@ class AsciiDocTransformer(Transformer):
             prev_block = merged_blocks[-1]
 
             # Merge consecutive lists of the same type
-            if (isinstance(current_block, (BulletList, OrderedList)) and
-                    type(current_block) is type(prev_block)):
+            if isinstance(current_block, (BulletList, OrderedList)) and type(
+                current_block
+            ) is type(prev_block):
                 prev_block.children.extend(current_block.children)
             else:
                 merged_blocks.append(current_block)
@@ -62,7 +83,8 @@ class AsciiDocTransformer(Transformer):
         Determines the nesting level of a list item from its marker token.
 
         - `-` is always level 1
-        - `*` or `.` level is determined by the number of characters (e.g., `**` is level 2)
+        - `*` or `.` level is determined by the number of characters
+          (e.g., `**` is level 2)
         - `1.` style markers are always level 1.
 
         Args:
@@ -72,11 +94,11 @@ class AsciiDocTransformer(Transformer):
             The integer nesting level.
         """
         marker = marker_token.value.strip()
-        if marker.startswith('-'):
+        if marker.startswith("-"):
             return 1
-        if marker.startswith('*'):
+        if marker.startswith("*"):
             return len(marker)
-        if marker.startswith('.'):
+        if marker.startswith("."):
             return len(marker)
         return 1  # for 1., 2., etc.
 
@@ -103,8 +125,8 @@ class AsciiDocTransformer(Transformer):
         stack = []  # (level, list_node)
 
         for item_data in items:
-            level = item_data['level']
-            item_type = item_data['item_type']
+            level = item_data["level"]
+            item_type = item_data["item_type"]
 
             # Pop from the stack until the parent list of the correct level is found.
             # This handles moving to a shallower nesting level.
@@ -113,7 +135,7 @@ class AsciiDocTransformer(Transformer):
 
             if not stack:
                 # This is a new root-level list.
-                list_node = BulletList() if item_type == 'bullet' else OrderedList()
+                list_node = BulletList() if item_type == "bullet" else OrderedList()
                 root_lists.append(list_node)
                 stack.append((level, list_node))
             elif level > stack[-1][0]:
@@ -121,12 +143,12 @@ class AsciiDocTransformer(Transformer):
                 parent_list = stack[-1][1]
                 if parent_list.children:
                     last_item = parent_list.children[-1]
-                    list_node = BulletList() if item_type == 'bullet' else OrderedList()
+                    list_node = BulletList() if item_type == "bullet" else OrderedList()
                     last_item.append(list_node)
                     stack.append((level, list_node))
                 else:
-                    # Fallback: if the parent list is somehow empty, attach to it directly.
-                    # This case is not expected in well-formed AsciiDoc.
+                    # Fallback: if the parent list is somehow empty, attach to it
+                    # directly. This case is not expected in well-formed AsciiDoc.
                     list_node = stack[-1][1]
             else:
                 # This item is at the same level as the previous one.
@@ -136,7 +158,7 @@ class AsciiDocTransformer(Transformer):
                 list_node = stack[-1][1]
 
             # Add the item to its parent list.
-            list_node.append(ListItem(item_data['children']))
+            list_node.append(ListItem(item_data["children"]))
 
         # The result should be a list of `ListItem` nodes, not the list containers.
         all_root_children = []
@@ -166,12 +188,16 @@ class AsciiDocTransformer(Transformer):
         text_lines = [c for c in children[1:] if isinstance(c, list)]
 
         if len(text_lines) > 0:
-            line1_text = "".join([node.text for node in text_lines[0] if hasattr(node, 'text')])
+            line1_text = "".join(
+                [node.text for node in text_lines[0] if hasattr(node, "text")]
+            )
             if self.AUTHOR_REGEX.fullmatch(line1_text.strip()):
                 author = Author(text_lines[0])
 
         if len(text_lines) > 1:
-            line2_text = "".join([node.text for node in text_lines[1] if hasattr(node, 'text')])
+            line2_text = "".join(
+                [node.text for node in text_lines[1] if hasattr(node, "text")]
+            )
             if self.REVISION_REGEX.fullmatch(line2_text.strip()):
                 revision = Revision(text_lines[1])
 
@@ -181,10 +207,7 @@ class AsciiDocTransformer(Transformer):
                 attributes[child.name] = self.attributes.get(child.name, [])
 
         return Header(
-            title=title,
-            author=author,
-            revision=revision,
-            attributes=attributes
+            title=title, author=author, revision=revision, attributes=attributes
         )
 
     def document_title(self, children):
@@ -230,14 +253,14 @@ class AsciiDocTransformer(Transformer):
         marker_token = children[0]
         level = AsciiDocTransformer._get_list_level(marker_token)
         content = children[1]
-        return {'level': level, 'item_type': 'bullet', 'children': content}
+        return {"level": level, "item_type": "bullet", "children": content}
 
     def olist_item(self, children):
         # Children are: [OLIST_MARKER, text_content]
         marker_token = children[0]
         level = AsciiDocTransformer._get_list_level(marker_token)
         content = children[1]
-        return {'level': level, 'item_type': 'enumerated', 'children': content}
+        return {"level": level, "item_type": "enumerated", "children": content}
 
     def basic_block(self, children):
         return children[0] if children else Discard
@@ -268,45 +291,47 @@ class AsciiDocTransformer(Transformer):
         # find the actual attribute string among children
         attr_str = ""
         for c in children:
-            if isinstance(c, str) and c not in ('[', ']', '\n', '\r', '\r\n'):
+            if isinstance(c, str) and c not in ("[", "]", "\n", "\r", "\r\n"):
                 attr_str = c
                 break
-        
+
         # Basic parsing: split by comma
-        parts = [p.strip() for p in attr_str.split(',')]
+        parts = [p.strip() for p in attr_str.split(",")]
         attrs = {}
         if parts:
-            attrs['style'] = parts[0]
+            attrs["style"] = parts[0]
         if len(parts) > 1:
-            if parts[0] == 'source':
-                attrs['language'] = parts[1]
+            if parts[0] == "source":
+                attrs["language"] = parts[1]
         return attrs
 
     def literal_block(self, children):
-        # children: attribute_list? LITERAL_BLOCK_DELIM _NEWLINE LITERAL_BLOCK_CONTENT LITERAL_BLOCK_DELIM
-        content = ''
+        # children: attribute_list? LITERAL_BLOCK_DELIM _NEWLINE
+        # LITERAL_BLOCK_CONTENT LITERAL_BLOCK_DELIM
+        content = ""
         attributes = {}
-        
+
         for c in children:
-            if isinstance(c, dict): # We assume dict is from attribute_list
+            if isinstance(c, dict):  # We assume dict is from attribute_list
                 attributes = c
-            elif isinstance(c, Token) and c.type == 'LITERAL_BLOCK_CONTENT':
+            elif isinstance(c, Token) and c.type == "LITERAL_BLOCK_CONTENT":
                 content = c.value
-                
+
         return LiteralBlock(content, attributes)
 
     def admonition(self, children):
-        # children: [ADMONITION_START, _NEWLINE, ADMONITION_DELIM, _NEWLINE, block_content, ADMONITION_DELIM]
+        # children: [ADMONITION_START, _NEWLINE, ADMONITION_DELIM, _NEWLINE,
+        # block_content, ADMONITION_DELIM]
         start_token = children[0]
-        flavor = start_token.value.strip('[] ').lower()
-        
+        flavor = start_token.value.strip("[] ").lower()
+
         # Find the block_content (list of blocks)
         inner = []
         for c in children:
             if isinstance(c, list):
                 inner = c
                 break
-        
+
         merged_inner = self._merge_consecutive_lists(inner)
         return Admonition(flavor=flavor, children=merged_inner)
 
@@ -328,7 +353,7 @@ class AsciiDocTransformer(Transformer):
         name = ""
         value_nodes = []
         for c in children:
-            if isinstance(c, Token) and c.type == 'ATTR_NAME':
+            if isinstance(c, Token) and c.type == "ATTR_NAME":
                 name = c.value
             elif isinstance(c, list):
                 value_nodes = c
@@ -349,11 +374,19 @@ class AsciiDocTransformer(Transformer):
             value_nodes_list = value_nodes
 
         for node in value_nodes_list:
-            if hasattr(node, 'text'):
+            if hasattr(node, "text"):
                 parts.append(node.text)
-            elif hasattr(node, 'children'):
-                 # This is a naive flatten but works for simple inline formatting.
-                 parts.append("".join([child.text for child in node.children if hasattr(child, 'text')]))
+            elif hasattr(node, "children"):
+                # This is a naive flatten but works for simple inline formatting.
+                parts.append(
+                    "".join(
+                        [
+                            child.text
+                            for child in node.children
+                            if hasattr(child, "text")
+                        ]
+                    )
+                )
         value_str = "".join(parts).strip()
 
         return AttributeEntry(name, value_str)
@@ -363,16 +396,17 @@ class AsciiDocTransformer(Transformer):
     def attribute_reference(self, children):
         name = ""
         for c in children:
-            if isinstance(c, Token) and c.type == 'ATTR_NAME':
+            if isinstance(c, Token) and c.type == "ATTR_NAME":
                 name = c.value
                 break
 
-        # Return the list of nodes, or a list containing a Text node with the unresolved reference
+        # Return the list of nodes, or a list containing a Text node with the
+        # unresolved reference
         return self.attributes.get(name, [Text(f"{{{name}}}")])
 
     def text_content(self, children):
         nodes = []
-        text_buffer = ''
+        text_buffer = ""
 
         flat_children = []
         for child in children:
@@ -389,7 +423,7 @@ class AsciiDocTransformer(Transformer):
             elif isinstance(child, Node):
                 if text_buffer:
                     nodes.append(Text(text_buffer))
-                    text_buffer = ''
+                    text_buffer = ""
                 nodes.append(child)
         if text_buffer:
             nodes.append(Text(text_buffer))
@@ -418,15 +452,21 @@ class AsciiDocTransformer(Transformer):
 
     def WHITESPACE(self, token):
         # Consolidate whitespace into a single space
-        return Token('WORD', ' ')
+        return Token("WORD", " ")
 
     # Discard unneeded tokens
-    def SECTION_TITLE_LEAD(self, token): return Discard
-    def LITERAL_BLOCK_DELIM(self, token): return Discard
-    def _NEWLINE(self, token): return Discard
+    def SECTION_TITLE_LEAD(self, token):
+        return Discard
+
+    def LITERAL_BLOCK_DELIM(self, token):
+        return Discard
+
+    def _NEWLINE(self, token):
+        return Discard
 
 
-DEFAULT_GRAMMAR = os.path.join(os.path.dirname(__file__), 'grammar.lark')
+DEFAULT_GRAMMAR = os.path.join(os.path.dirname(__file__), "grammar.lark")
+
 
 def parse_to_ast(source, grammar_file=DEFAULT_GRAMMAR, base_dir=None):
     """
@@ -454,7 +494,7 @@ def parse_to_ast(source, grammar_file=DEFAULT_GRAMMAR, base_dir=None):
         grammar = f.read()
     # Using LALR or Earley is common, but we are moving to PEG
     # For now, let's keep it compatible. PEG in Lark is experimental.
-    parser = Lark(grammar, start='document', parser='earley')
+    parser = Lark(grammar, start="document", parser="earley")
     tree = parser.parse(processed_source)
     ast_root = AsciiDocTransformer().transform(tree)
     return ast_root
