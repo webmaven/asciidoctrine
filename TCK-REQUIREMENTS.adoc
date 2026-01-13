@@ -43,6 +43,7 @@ This document outlines the high-level requirements for integrating the official 
 == 4. Success Criteria
 
 The TCK integration will be considered successful when:
+
 1.  All TCK tests can be executed automatically as part of the project's CI/CD pipeline.
 2.  The TCK test results are used to generate a compliance report that is clear and easy to understand.
 3.  The development workflow incorporates a feedback loop where TCK failures are systematically addressed, leading to a measurable increase in compliance over time.
