@@ -13,7 +13,7 @@ This specification is based on the requirements outlined in `TCK-REQUIREMENTS.ad
 
 The TCK integration will consist of three main components: the TCK Runner, the TCK Adapter, and the core Parser library. The data will flow between these components as illustrated below.
 
-[mermaid]
+[source,mermaid]
 ....
 graph TD
     subgraph TCK Harness
@@ -95,6 +95,7 @@ We will implement a new visitor class, `ASGVisitor`, that inherits from `NodeVis
 === 4.2. Semantic Resolution
 
 The transformation step is responsible for creating the *semantic* graph. This includes, but is not limited to:
+
 *   Resolving attribute references (e.g., replacing `{author}` with the author's name).
 *   Processing `include::` directives.
 *   Resolving cross-references.
@@ -105,7 +106,7 @@ The following table provides a hypothetical mapping of a few key AST nodes to th
 
 *NOTE: This is a preliminary mapping. The definitive ASG structure is determined by the TCK's JSON schema, which will be consulted during implementation.*
 
-[cols="1,2"]
+[cols="1,2a"]
 |===
 | AST Node (from `nodes.py`) | ASG Representation (JSON)
 
@@ -161,14 +162,18 @@ Each decision record in `ARCHITECTURE.adoc` MUST follow this structure:
 *Related Issues*: #[Issue Number]
 
 ==== Context
+
 _A brief description of the problem or technical challenge that needs to be addressed._
 
 ==== Decision
+
 _A clear statement of the chosen solution._
 
 ==== Rationale
+
 _A detailed explanation of why the chosen solution was selected. This should include a summary of the pros and cons of the alternatives that were considered._
 
 ==== Consequences
+
 _Any consequences of the decision, such as new dependencies, required refactoring, or known trade-offs._
 ----
