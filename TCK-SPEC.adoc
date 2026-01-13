@@ -1,0 +1,179 @@
+= TCK Integration Specification
+:toc: left
+:icons: font
+:source-highlighter: highlight.js
+
+== 1. Overview
+
+This document provides the technical specification for integrating the AsciiDoc Technology Compatibility Kit (TCK). It details the architecture of the test harness, the contract for the TCK adapter, the strategy for producing the required Abstract Semantic Graph (ASG), and the process for making and recording architectural decisions.
+
+This specification is based on the requirements outlined in `TCK-REQUIREMENTS.adoc`.
+
+== 2. Architecture
+
+The TCK integration will consist of three main components: the TCK Runner, the TCK Adapter, and the core Parser library. The data will flow between these components as illustrated below.
+
+[source,mermaid]
+....
+graph TD
+    subgraph TCK Harness
+        A[TCK Runner]
+    end
+
+    subgraph Project Implementation
+        B(TCK Adapter Script)
+        C(Parser Library)
+        D(AST)
+        E(AST to ASG Transformer)
+        F(ASG)
+    end
+
+    A -- JSON via stdin --> B
+    B -- Calls --> C
+    C -- Returns --> D
+    B -- Invokes --> E
+    E -- Processes --> D
+    E -- Produces --> F
+    B -- JSON via stdout --> A
+....
+
+. **TCK Runner**: The official Node.js-based test runner provided by the AsciiDoc TCK project. It is responsible for reading test files and invoking our adapter.
+. **TCK Adapter Script**: A new command-line script (`bin/tck-adapter.py`) that acts as the bridge between the TCK Runner and our parser.
+. **Parser Library**: The existing `asciidoc_parser` library that parses AsciiDoc source into an Abstract Syntax Tree (AST).
+. **AST to ASG Transformer**: A new component responsible for converting the internal AST into the TCK-compliant ASG.
+
+== 3. TCK Adapter Specification
+
+The TCK Adapter is a command-line script that adheres to the interface expected by the TCK Runner.
+
+=== 3.1. Invocation
+
+The adapter will be invoked by the TCK Runner as a shell command:
+
+[source,bash]
+----
+python bin/tck-adapter.py
+----
+
+=== 3.2. Input Contract (`stdin`)
+
+The adapter MUST read a single JSON object from standard input. The structure of this object is defined by the TCK.
+
+[source,json]
+----
+{
+  "contents": "<AsciiDoc source content>",
+  "path": "/path/to/the/virtual/test/file.adoc",
+  "type": "block"
+}
+----
+
+*   `contents`: The AsciiDoc source to be parsed.
+*   `path`: A virtual path for the source file, which may be needed to resolve relative includes.
+*   `type`: The context of the parse ("block" for a document fragment or "inline" for an inline phrase). Our initial implementation will focus on the "block" type.
+
+=== 3.3. Output Contract (`stdout`)
+
+On successful parsing, the adapter MUST print a JSON representation of the resulting Abstract Semantic Graph (ASG) to standard output and exit with a code of `0`.
+
+The exact structure of the ASG is defined by the TCK's JSON schema. The adapter will be responsible for producing compliant JSON.
+
+=== 3.4. Error Handling
+
+If any error occurs during parsing or transformation, the adapter MUST:
+1.  Write a descriptive error message to standard error (`stderr`).
+2.  Exit with a non-zero status code.
+
+== 4. AST to ASG Transformation Strategy
+
+The core challenge of this integration is the transformation of the parser's internal AST (defined in `src/asciidoc_parser/nodes.py`) into the TCK-compliant ASG.
+
+=== 4.1. Approach
+
+We will implement a new visitor class, `ASGVisitor`, that inherits from `NodeVisitor`. This visitor will traverse the AST produced by the parser and construct a dictionary representation of the ASG. This approach keeps the transformation logic separate from the core parsing logic.
+
+=== 4.2. Semantic Resolution
+
+The transformation step is responsible for creating the *semantic* graph. This includes, but is not limited to:
+
+*   Resolving attribute references (e.g., replacing `{author}` with the author's name).
+*   Processing `include::` directives.
+*   Resolving cross-references.
+
+=== 4.3. Preliminary Node Mapping
+
+The following table provides a hypothetical mapping of a few key AST nodes to their potential ASG representation.
+
+*NOTE: This is a preliminary mapping. The definitive ASG structure is determined by the TCK's JSON schema, which will be consulted during implementation.*
+
+[cols="1,2a"]
+|===
+| AST Node (from `nodes.py`) | ASG Representation (JSON)
+
+| `Paragraph` with `Strong` child
+|
+[source,json]
+----
+{
+  "type": "paragraph",
+  "children": [
+    { "type": "text", "content": "This is " },
+    {
+      "type": "strong",
+      "children": [{ "type": "text", "content": "bold" }]
+    }
+  ]
+}
+----
+
+| `Section`
+|
+[source,json]
+----
+{
+  "type": "section",
+  "level": 1,
+  "title": "Section Title",
+  "children": [ ... ]
+}
+----
+|===
+
+== 5. Architectural Decision-Making Process
+
+To ensure transparency and maintain a clear history of key technical choices, a formal process for architectural decisions is required. These decisions will be recorded in a new `ARCHITECTURE.adoc` file.
+
+=== 5.1. Process
+
+1.  **Identify a Decision**: When a technical choice with significant, long-term impact on the project is identified (e.g., choosing a new dependency, changing a core data structure), a GitHub Issue should be created with the label `architecture`.
+2.  **Propose & Discuss**: The issue must document the problem, propose at least two viable solutions, and list the pros and cons of each. The team will then discuss the options in the issue comments.
+3.  **Decide & Record**: Once a consensus is reached, the decision, the rationale behind it, and the rejected alternatives are to be documented in `ARCHITECTURE.adoc` in a new entry. The original issue should then be closed with a link to the record.
+
+=== 5.2. `ARCHITECTURE.adoc` Entry Structure
+
+Each decision record in `ARCHITECTURE.adoc` MUST follow this structure:
+
+[source,asciidoc]
+----
+=== [Title of Decision]
+
+*Date*: YYYY-MM-DD
+*Status*: {Proposed | Accepted | Deprecated}
+*Related Issues*: #[Issue Number]
+
+==== Context
+
+_A brief description of the problem or technical challenge that needs to be addressed._
+
+==== Decision
+
+_A clear statement of the chosen solution._
+
+==== Rationale
+
+_A detailed explanation of why the chosen solution was selected. This should include a summary of the pros and cons of the alternatives that were considered._
+
+==== Consequences
+
+_Any consequences of the decision, such as new dependencies, required refactoring, or known trade-offs._
+----
