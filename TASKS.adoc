@@ -29,6 +29,12 @@ Each high-level task is suitable for a feature branch and pull request. Sub-task
 *Constraints*:
 - The TCK repository must be added as a Git submodule, not just cloned.
 - The submodule must be placed in a `vendor/asciidoc-tck` directory.
+*Implementation Note*:
+The following command should be used:
+[source,bash]
+----
+git submodule add https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck.git vendor/asciidoc-tck
+----
 *Acceptance Criteria*:
 - A `.gitmodules` file is created or updated.
 - The `vendor/asciidoc-tck` directory contains the TCK source code.
@@ -46,7 +52,9 @@ Each high-level task is suitable for a feature branch and pull request. Sub-task
 *Description*: Create a shell script (`run-tck.sh`) that invokes the Node.js-based TCK runner, pointing it at our placeholder adapter. This validates the basic setup.
 *Constraints*:
 - The script must be executable.
-- Requires `node` >= 20 to be installed on the system.
+- Requires `node` (>= 20) and `npm` to be installed on the system.
+*Implementation Note*:
+The TCK's dependencies must be installed first by running `npm ci` inside the `vendor/asciidoc-tck` directory.
 *Acceptance Criteria*:
 - A `run-tck.sh` script exists in the project root.
 - Running the script executes the TCK harness, which in turn invokes our placeholder adapter.
@@ -100,24 +108,33 @@ Each high-level task is suitable for a feature branch and pull request. Sub-task
 *Parent Task*: None
 *Dependencies*: TASK-2
 
-==== TASK-3.1: Create `ASGVisitor` Class
+==== TASK-3.1: Analyze TCK's ASG JSON Schema
+*Description*: Locate the ASG JSON schema within the TCK repository, analyze its structure, and document the findings. This is a critical prerequisite for a compliant transformation.
+*Constraints*:
+- The schema is likely a `.json` file within the `vendor/asciidoc-tck` directory.
+*Acceptance Criteria*:
+- The path to the ASG JSON schema file is identified.
+- A summary of the schema's top-level structure and key node types is added to the `ARCHITECTURE.adoc` file for future reference.
+
+==== TASK-3.2: Create `ASGVisitor` Class
 *Description*: Create a new file `src/asciidoc_parser/asg_visitor.py` and define an `ASGVisitor` class that inherits from `NodeVisitor`.
 *Ref*: `TCK-SPEC.adoc`, Section 4.1
+*Dependencies*: TASK-3.1
 *Constraints*:
 - The new file must be correctly placed within the `src/asciidoc_parser` module.
 *Acceptance Criteria*:
 - The file `src/asciidoc_parser/asg_visitor.py` exists.
 - It contains a class `ASGVisitor` that inherits from `NodeVisitor`.
 
-==== TASK-3.2: Implement Visitor for Simple Nodes
+==== TASK-3.3: Implement Visitor for Simple Nodes
 *Description*: Implement `visit` methods in `ASGVisitor` for a small subset of core nodes (e.g., `Document`, `Paragraph`, `Text`) to produce a dictionary structure.
 *Constraints*:
-- The output dictionary structure must be a preliminary, reasonable guess at the ASG format.
+- The output dictionary structure must conform to the ASG schema identified in TASK-3.1.
 *Acceptance Criteria*:
 - The `ASGVisitor` has methods like `visit_document`, `visit_paragraph`, and `visit_text`.
-- Visiting a simple AST returns a nested dictionary.
+- Visiting a simple AST returns a nested dictionary that is valid against the ASG schema.
 
-==== TASK-3.3: Integrate Visitor into Adapter
+==== TASK-3.4: Integrate Visitor into Adapter
 *Description*: Update `bin/tck-adapter.py` to instantiate `ASGVisitor` and use it to traverse the AST returned by the parser.
 *Constraints*:
 - Must correctly import the `ASGVisitor`.
@@ -125,15 +142,15 @@ Each high-level task is suitable for a feature branch and pull request. Sub-task
 - The adapter script creates an instance of `ASGVisitor`.
 - The visitor's `visit` method is called with the root of the AST.
 
-==== TASK-3.4: Serialize ASG to `stdout`
+==== TASK-3.5: Serialize ASG to `stdout`
 *Description*: Replace the hardcoded dictionary from TASK-2.4 with the dictionary produced by the `ASGVisitor`.
 *Constraints*:
 - The output must be valid JSON.
 *Acceptance Criteria*:
 - The adapter now outputs a JSON representation of the transformed AST.
 
-==== TASK-3.5: Implement Visitor for All Nodes
-*Description*: Incrementally add `visit` methods for all remaining nodes defined in `nodes.py`. Each implementation will require consulting the TCK's expected ASG schema to ensure the output is compliant. This is an ongoing task that will be parallel to fixing TCK failures.
+==== TASK-3.6: Implement Visitor for All Nodes
+*Description*: Incrementally add `visit` methods for all remaining nodes defined in `nodes.py`. This is an ongoing task that will be parallel to fixing TCK failures.
 *Constraints*:
 - Each new visitor method must produce output that conforms to the TCK's JSON schema for that node type.
 *Acceptance Criteria*:
@@ -194,6 +211,44 @@ Each high-level task is suitable for a feature branch and pull request. Sub-task
 *Description*: For each unique TCK failure, create a new GitHub Issue. The issue should include the input AsciiDoc, the expected ASG, the actual ASG, and a link to the relevant part of the AsciiDoc specification.
 *Constraints*:
 - Issues should be tagged with a `tck-failure` label.
+*Implementation Note*:
+Use the following template for the issue body:
+[source,markdown]
+----
+### TCK Failure Report
+
+**Test Case:** `[Name of the failing test case]`
+
+**Specification Reference:** `[Link to the relevant section of the AsciiDoc spec, if known]`
+
+---
+
+**Input AsciiDoc:**
+```asciidoc
+[Input that caused the failure]
+```
+
+---
+
+**Expected ASG (Diff):**
+```diff
+- [Relevant part of the expected ASG]
++ [Relevant part of the expected ASG]
+```
+
+---
+
+**Actual ASG (Diff):**
+```diff
+- [Relevant part of the actual ASG]
++ [Relevant part of the actual ASG]
+```
+
+---
+
+**Analysis:**
+[Brief analysis of the root cause, if known. e.g., "The parser is incorrectly creating a `Strong` node instead of an `Emphasis` node."]
+----
 *Acceptance Criteria*:
 - A clear, consistent format for TCK failure issues is adopted.
 
