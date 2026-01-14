@@ -20,6 +20,7 @@ A high-performance, pure-Python AsciiDoc parser built with Lark, designed for co
 The Python ecosystem has long lacked a modern, maintainable, and specification-compliant AsciiDoc parser. Existing tools are often port-based or rely on regex-heavy implementations that struggle with the complex, context-sensitive nature of AsciiDoc.
 
 This project is built from the ground up to provide:
+
 1. **Spec Alignment**: Strict adherence to the upcoming official AsciiDoc Language Specification.
 2. **First-Class AST**: A structured, type-safe Abstract Syntax Tree that makes building renderers and static analysis tools a breeze.
 3. **Performance**: Leveraging the Lark parsing engine for efficient processing of large documents.
