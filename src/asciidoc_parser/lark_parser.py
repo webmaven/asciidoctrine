@@ -1,12 +1,14 @@
 import os
 import re
+from typing import Any, Dict, List, Literal, Optional, Sequence, Tuple, Union, cast
 
-from lark import Discard, Lark, Token, Transformer  # type: ignore
+from lark import Discard, Lark, Token, Transformer
 
 from .nodes import (
     Admonition,
     AttributeEntry,
     Author,
+    BlockNode,
     BulletList,
     Document,
     Emphasis,
@@ -27,8 +29,11 @@ from .nodes import (
 )
 from .preprocessor import Preprocessor
 
+Children = List[Any]
+Transformed = Union[Node, Literal[Discard], Dict[str, Any], List[Any], str]
 
-class AsciiDocTransformer(Transformer):
+
+class AsciiDocTransformer(Transformer[Token, Transformed]):
     """
     Transforms the Lark parse tree (CST) into a structured AST.
 
@@ -42,12 +47,12 @@ class AsciiDocTransformer(Transformer):
     # Regex to match revision lines (e.g., "v1.0, 2023-01-01")
     REVISION_REGEX = re.compile(r"(v\d+\.\d+.*)|(\d{4}-\d{2}-\d{2})")
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        self.attributes = {}
+        self.attributes: Dict[str, List[Node]] = {}
 
     @staticmethod
-    def _merge_consecutive_lists(blocks):
+    def _merge_consecutive_lists(blocks: Sequence[BlockNode]) -> List[BlockNode]:
         """
         Merges consecutive list blocks of the same type into a single block.
 
@@ -57,14 +62,13 @@ class AsciiDocTransformer(Transformer):
 
         Args:
             blocks: A list of block-level nodes.
-
         Returns:
             A new list of block-level nodes with consecutive lists merged.
         """
         if not blocks:
             return []
 
-        merged_blocks = [blocks[0]]
+        merged_blocks: List[BlockNode] = [blocks[0]]
         for current_block in blocks[1:]:
             prev_block = merged_blocks[-1]
 
@@ -78,7 +82,7 @@ class AsciiDocTransformer(Transformer):
         return merged_blocks
 
     @staticmethod
-    def _get_list_level(marker_token):
+    def _get_list_level(marker_token: Token) -> int:
         """
         Determines the nesting level of a list item from its marker token.
 
@@ -103,7 +107,7 @@ class AsciiDocTransformer(Transformer):
         return 1  # for 1., 2., etc.
 
     @staticmethod
-    def _nest_list_items(items):
+    def _nest_list_items(items: List[Dict[str, Any]]) -> List[ListItem]:
         """
         Organizes a flat list of items into a nested list structure.
 
@@ -121,8 +125,8 @@ class AsciiDocTransformer(Transformer):
         if not items:
             return []
 
-        root_lists = []
-        stack = []  # (level, list_node)
+        root_lists: List[Union[BulletList, OrderedList]] = []
+        stack: List[Tuple[int, Union[BulletList, OrderedList]]] = []  # (level, list_node)
 
         for item_data in items:
             level = item_data["level"]
@@ -133,6 +137,7 @@ class AsciiDocTransformer(Transformer):
             while stack and level < stack[-1][0]:
                 stack.pop()
 
+            list_node: Union[BulletList, OrderedList]
             if not stack:
                 # This is a new root-level list.
                 list_node = BulletList() if item_type == "bullet" else OrderedList()
@@ -143,7 +148,9 @@ class AsciiDocTransformer(Transformer):
                 parent_list = stack[-1][1]
                 if parent_list.children:
                     last_item = parent_list.children[-1]
-                    list_node = BulletList() if item_type == "bullet" else OrderedList()
+                    list_node = (
+                        BulletList() if item_type == "bullet" else OrderedList()
+                    )
                     last_item.append(list_node)
                     stack.append((level, list_node))
                 else:
@@ -161,12 +168,12 @@ class AsciiDocTransformer(Transformer):
             list_node.append(ListItem(item_data["children"]))
 
         # The result should be a list of `ListItem` nodes, not the list containers.
-        all_root_children = []
+        all_root_children: List[Node] = []
         for rl in root_lists:
             all_root_children.extend(rl.children)
-        return all_root_children
+        return all_root_children  # type: ignore
 
-    def document(self, children):
+    def document(self, children: Children) -> Document:
         children = [c for c in children if c is not Discard and c is not None]
         header = None
         if children and isinstance(children[0], Header):
@@ -180,7 +187,7 @@ class AsciiDocTransformer(Transformer):
             self.attributes.update(header.attributes)
         return doc
 
-    def document_header(self, children):
+    def document_header(self, children: Children) -> Header:
         title = children[0]
         author = None
         revision = None
@@ -201,7 +208,7 @@ class AsciiDocTransformer(Transformer):
             if self.REVISION_REGEX.fullmatch(line2_text.strip()):
                 revision = Revision(text_lines[1])
 
-        attributes = {}
+        attributes: Dict[str, Any] = {}
         for child in children:
             if isinstance(child, AttributeEntry):
                 attributes[child.name] = self.attributes.get(child.name, [])
@@ -210,26 +217,26 @@ class AsciiDocTransformer(Transformer):
             title=title, author=author, revision=revision, attributes=attributes
         )
 
-    def document_title(self, children):
+    def document_title(self, children: Children) -> Title:
         nodes = [c for c in children if isinstance(c, list)]
         return Title(nodes[0] if nodes else [])
 
-    def block(self, children):
+    def block(self, children: Children) -> Transformed:
         return children[0] if children else Discard
 
-    def blank_line(self, children):
+    def blank_line(self, children: Children) -> Literal[Discard]:
         return Discard
 
     # --- Blocks ---
 
-    def section(self, children):
+    def section(self, children: Children) -> Section:
         children = [c for c in children if c is not Discard]
         title_node, *blocks = children
         section_node = Section(level=1, title_node=title_node)
         section_node.children = self._merge_consecutive_lists(blocks)
         return section_node
 
-    def section_title(self, children):
+    def section_title(self, children: Children) -> Title:
         # We want the result of text_content, which is a list of nodes.
         nodes = [c for c in children if isinstance(c, list)]
         if not nodes:
@@ -238,44 +245,44 @@ class AsciiDocTransformer(Transformer):
             return Title(content if isinstance(content, list) else [content])
         return Title(nodes[0])
 
-    def paragraph(self, children):
+    def paragraph(self, children: Children) -> Paragraph:
         children = [c for c in children if c is not Discard]
         return Paragraph(children[0])
 
-    def ulist(self, children):
+    def ulist(self, children: Children) -> BulletList:
         return BulletList(AsciiDocTransformer._nest_list_items(children))
 
-    def olist(self, children):
+    def olist(self, children: Children) -> OrderedList:
         return OrderedList(AsciiDocTransformer._nest_list_items(children))
 
-    def ulist_item(self, children):
+    def ulist_item(self, children: Children) -> Dict[str, Any]:
         # Children are: [ULIST_MARKER, text_content]
         marker_token = children[0]
         level = AsciiDocTransformer._get_list_level(marker_token)
         content = children[1]
         return {"level": level, "item_type": "bullet", "children": content}
 
-    def olist_item(self, children):
+    def olist_item(self, children: Children) -> Dict[str, Any]:
         # Children are: [OLIST_MARKER, text_content]
         marker_token = children[0]
         level = AsciiDocTransformer._get_list_level(marker_token)
         content = children[1]
         return {"level": level, "item_type": "enumerated", "children": content}
 
-    def basic_block(self, children):
+    def basic_block(self, children: Children) -> Transformed:
         return children[0] if children else Discard
 
-    def admonition_content(self, children):
+    def admonition_content(self, children: Children) -> List[Any]:
         return [c for c in children if c is not Discard]
 
-    def sidebar_content(self, children):
+    def sidebar_content(self, children: Children) -> List[Any]:
         return [c for c in children if c is not Discard]
 
-    def example_content(self, children):
+    def example_content(self, children: Children) -> List[Any]:
         return [c for c in children if c is not Discard]
 
-    def example_block(self, children):
-        inner = []
+    def example_block(self, children: Children) -> ExampleBlock:
+        inner: List[Any] = []
         for c in children:
             if isinstance(c, list):
                 inner = c
@@ -283,11 +290,11 @@ class AsciiDocTransformer(Transformer):
         merged_inner = self._merge_consecutive_lists(inner)
         return ExampleBlock(children=merged_inner)
 
-    def attribute_content(self, children):
+    def attribute_content(self, children: Children) -> str:
         # returns the attribute string (e.g. "source,python")
-        return children[0].value
+        return cast(str, children[0].value)
 
-    def attribute_list(self, children):
+    def attribute_list(self, children: Children) -> Dict[str, str]:
         # find the actual attribute string among children
         attr_str = ""
         for c in children:
@@ -297,7 +304,7 @@ class AsciiDocTransformer(Transformer):
 
         # Basic parsing: split by comma
         parts = [p.strip() for p in attr_str.split(",")]
-        attrs = {}
+        attrs: Dict[str, str] = {}
         if parts:
             attrs["style"] = parts[0]
         if len(parts) > 1:
@@ -305,11 +312,11 @@ class AsciiDocTransformer(Transformer):
                 attrs["language"] = parts[1]
         return attrs
 
-    def literal_block(self, children):
+    def literal_block(self, children: Children) -> LiteralBlock:
         # children: attribute_list? LITERAL_BLOCK_DELIM _NEWLINE
         # LITERAL_BLOCK_CONTENT LITERAL_BLOCK_DELIM
         content = ""
-        attributes = {}
+        attributes: Dict[str, Any] = {}
 
         for c in children:
             if isinstance(c, dict):  # We assume dict is from attribute_list
@@ -319,14 +326,14 @@ class AsciiDocTransformer(Transformer):
 
         return LiteralBlock(content, attributes)
 
-    def admonition(self, children):
+    def admonition(self, children: Children) -> Admonition:
         # children: [ADMONITION_START, _NEWLINE, ADMONITION_DELIM, _NEWLINE,
         # block_content, ADMONITION_DELIM]
         start_token = children[0]
         flavor = start_token.value.strip("[] ").lower()
 
         # Find the block_content (list of blocks)
-        inner = []
+        inner: List[Any] = []
         for c in children:
             if isinstance(c, list):
                 inner = c
@@ -335,9 +342,9 @@ class AsciiDocTransformer(Transformer):
         merged_inner = self._merge_consecutive_lists(inner)
         return Admonition(flavor=flavor, children=merged_inner)
 
-    def sidebar(self, children):
+    def sidebar(self, children: Children) -> Sidebar:
         # children: [SIDEBAR_DELIM, _NEWLINE, block_content, SIDEBAR_DELIM]
-        inner = []
+        inner: List[Any] = []
         for c in children:
             if isinstance(c, list):
                 inner = c
@@ -345,13 +352,13 @@ class AsciiDocTransformer(Transformer):
         merged_inner = self._merge_consecutive_lists(inner)
         return Sidebar(children=merged_inner)
 
-    def attribute_entry(self, children):
+    def attribute_entry(self, children: Children) -> AttributeEntry:
         """
         Processes an attribute entry, storing it in the document-wide
         attribute registry and returning an `AttributeEntry` node.
         """
         name = ""
-        value_nodes = []
+        value_nodes: List[Node] = []
         for c in children:
             if isinstance(c, Token) and c.type == "ATTR_NAME":
                 name = c.value
@@ -365,23 +372,24 @@ class AsciiDocTransformer(Transformer):
         # This is used for display or simple cases, while the rich value_nodes
         # are preserved for substitutions.
         value_str = ""
-        parts = []
+        parts: List[str] = []
 
         # Ensure value_nodes is a list before iterating for safety.
+        value_nodes_list: List[Node]
         if not isinstance(value_nodes, list):
-            value_nodes_list = [value_nodes]
+            value_nodes_list = [value_nodes]  # type: ignore
         else:
             value_nodes_list = value_nodes
 
         for node in value_nodes_list:
             if hasattr(node, "text"):
-                parts.append(node.text)
+                parts.append(getattr(node, "text"))
             elif hasattr(node, "children"):
                 # This is a naive flatten but works for simple inline formatting.
                 parts.append(
                     "".join(
                         [
-                            child.text
+                            getattr(child, "text")
                             for child in node.children
                             if hasattr(child, "text")
                         ]
@@ -393,7 +401,7 @@ class AsciiDocTransformer(Transformer):
 
     # --- Inlines ---
 
-    def attribute_reference(self, children):
+    def attribute_reference(self, children: Children) -> List[Node]:
         name = ""
         for c in children:
             if isinstance(c, Token) and c.type == "ATTR_NAME":
@@ -404,11 +412,11 @@ class AsciiDocTransformer(Transformer):
         # unresolved reference
         return self.attributes.get(name, [Text(f"{{{name}}}")])
 
-    def text_content(self, children):
-        nodes = []
+    def text_content(self, children: Children) -> List[Node]:
+        nodes: List[Node] = []
         text_buffer = ""
 
-        flat_children = []
+        flat_children: List[Any] = []
         for child in children:
             if isinstance(child, list):
                 flat_children.extend(child)
@@ -429,7 +437,7 @@ class AsciiDocTransformer(Transformer):
             nodes.append(Text(text_buffer))
         return nodes
 
-    def bold(self, children):
+    def bold(self, children: Children) -> Strong:
         content = [c for c in children if isinstance(c, list)]
         nodes = content[0] if content else []
         # If the only child is a Strong node, flatten it.
@@ -437,11 +445,11 @@ class AsciiDocTransformer(Transformer):
             return Strong(nodes[0].children)
         return Strong(nodes)
 
-    def italic(self, children):
+    def italic(self, children: Children) -> Emphasis:
         content = [c for c in children if isinstance(c, list)]
         return Emphasis(content[0] if content else [])
 
-    def monospace(self, children):
+    def monospace(self, children: Children) -> InlineCode:
         content = [c for c in children if isinstance(c, list)]
         # For monospace, we flatten to raw text as per older tests if needed,
         # but here we follow the 'children' requirement.
@@ -450,39 +458,41 @@ class AsciiDocTransformer(Transformer):
 
     # --- Terminals ---
 
-    def WHITESPACE(self, token):
+    def WHITESPACE(self, token: Token) -> Token:
         # Consolidate whitespace into a single space
         return Token("WORD", " ")
 
     # Discard unneeded tokens
-    def SECTION_TITLE_LEAD(self, token):
+    def SECTION_TITLE_LEAD(self, token: Token) -> Literal[Discard]:
         return Discard
 
-    def LITERAL_BLOCK_DELIM(self, token):
+    def LITERAL_BLOCK_DELIM(self, token: Token) -> Literal[Discard]:
         return Discard
 
-    def _NEWLINE(self, token):
+    def _NEWLINE(self, token: Token) -> Literal[Discard]:
         return Discard
 
 
 DEFAULT_GRAMMAR = os.path.join(os.path.dirname(__file__), "grammar.lark")
 
 
-def parse_to_ast(source, grammar_file=DEFAULT_GRAMMAR, base_dir=None):
+def parse_to_ast(
+    source: str,
+    grammar_file: str = DEFAULT_GRAMMAR,
+    base_dir: Optional[str] = None,
+) -> Document:
     """
     Parses an AsciiDoc source string into an Abstract Syntax Tree (AST).
 
     This is the main entry point for the parser. It handles preprocessing
     (e.g., includes), parsing the grammar, and transforming the result into
     a structured AST.
-
     Args:
         source: The AsciiDoc source code as a string.
         grammar_file: Path to the Lark grammar file to use. Defaults to the
                       one packaged with the library.
         base_dir: The base directory for resolving `include::` directives.
                   Defaults to the current working directory.
-
     Returns:
         A `Document` node representing the root of the AST.
     """
@@ -497,4 +507,6 @@ def parse_to_ast(source, grammar_file=DEFAULT_GRAMMAR, base_dir=None):
     parser = Lark(grammar, start="document", parser="earley")
     tree = parser.parse(processed_source)
     ast_root = AsciiDocTransformer().transform(tree)
+    if not isinstance(ast_root, Document):
+        raise TypeError("Parsing did not return a Document node.")
     return ast_root

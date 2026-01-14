@@ -49,10 +49,10 @@ class Node:
     _SERIALIZABLE_ATTRS: List[str] = []
     _NODE_ATTRS: List[str] = []
 
-    def append(self, child: Node):
+    def append(self, child: Node) -> None:
         self.children.append(child)
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> Dict[str, Any]:
         """
         Recursively converts the node and its subtree into a dictionary.
 
@@ -166,7 +166,7 @@ class Header(Node):
         self.revision = revision
         self.attributes = attributes or {}
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> Dict[str, Any]:
         data = super().to_dict()
         if self.title:
             data["title"] = self.title.to_dict()
@@ -336,7 +336,7 @@ class Sidebar(BlockNode):
 class Table(BlockNode):
     """A node representing a table."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.node_type = NodeType.TABLE
         self.header_rows: List[TableRow] = []
@@ -346,7 +346,7 @@ class Table(BlockNode):
 class TableRow(Node):
     """A node representing a single row in a table."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.node_type = NodeType.TABLE_ROW
         self.cells: List[TableCell] = []

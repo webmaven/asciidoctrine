@@ -4,9 +4,9 @@ Converts the AsciiDoc AST to a Docutils document tree.
 
 from typing import Any, Dict
 
-from docutils import nodes  # type: ignore
-from docutils.frontend import OptionParser  # type: ignore
-from docutils.utils import new_document  # type: ignore
+from docutils import nodes
+from docutils.frontend import OptionParser
+from docutils.utils import new_document
 
 
 def translate_ast_to_docutils(
@@ -42,7 +42,7 @@ def asciidoc_to_docutils(source: str) -> nodes.document:
 
     ast = parse_to_ast(source).to_dict()
 
-    settings = OptionParser(components=(None,)).get_default_values()
+    settings = OptionParser(components=()).get_default_values()
     document = new_document("<string>", settings=settings)
 
     translate_ast_to_docutils(ast, document)
