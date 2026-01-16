@@ -26,7 +26,7 @@ dependencies = [
 "Bug Tracker" = "https://github.com/webmaven/asciidoc_parser/issues"
 
 [project.optional-dependencies]
-test = ["pytest", "ruff"]
+test = ["pytest", "ruff", "mypy", "docutils", "types-docutils"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -41,3 +41,9 @@ select = ["E", "F", "I"]
 
 [tool.ruff.format]
 quote-style = "double"
+
+[tool.mypy]
+python_version = "3.9"
+strict = true
+packages = ["asciidoc_parser"]
+ignore_missing_imports = true
