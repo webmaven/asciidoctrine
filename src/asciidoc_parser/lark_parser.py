@@ -1,6 +1,6 @@
 import os
 import re
-from typing import Any, Dict, List, Literal, Optional, Sequence, Tuple, Union, cast
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union, cast
 
 from lark import Discard, Lark, Token, Transformer
 
@@ -30,7 +30,7 @@ from .nodes import (
 from .preprocessor import Preprocessor
 
 Children = List[Any]
-Transformed = Union[Node, Literal[Discard], Dict[str, Any], List[Any], str]
+Transformed = Union[Node, Any, Dict[str, Any], List[Any], str]
 
 
 class AsciiDocTransformer(Transformer[Token, Transformed]):
@@ -52,7 +52,7 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
         self.attributes: Dict[str, List[Node]] = {}
 
     @staticmethod
-    def _merge_consecutive_lists(blocks: Sequence[BlockNode]) -> List[BlockNode]:
+    def _merge_consecutive_lists(blocks: Sequence[BlockNode]) -> List[Node]:
         """
         Merges consecutive list blocks of the same type into a single block.
 
@@ -68,7 +68,7 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
         if not blocks:
             return []
 
-        merged_blocks: List[BlockNode] = [blocks[0]]
+        merged_blocks: List[Node] = [blocks[0]]
         for current_block in blocks[1:]:
             prev_block = merged_blocks[-1]
 
@@ -126,7 +126,8 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
             return []
 
         root_lists: List[Union[BulletList, OrderedList]] = []
-        stack: List[Tuple[int, Union[BulletList, OrderedList]]] = []  # (level, list_node)
+        # (level, list_node)
+        stack: List[Tuple[int, Union[BulletList, OrderedList]]] = []
 
         for item_data in items:
             level = item_data["level"]
@@ -224,7 +225,7 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
     def block(self, children: Children) -> Transformed:
         return children[0] if children else Discard
 
-    def blank_line(self, children: Children) -> Literal[Discard]:
+    def blank_line(self, children: Children) -> Any:
         return Discard
 
     # --- Blocks ---
@@ -374,14 +375,7 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
         value_str = ""
         parts: List[str] = []
 
-        # Ensure value_nodes is a list before iterating for safety.
-        value_nodes_list: List[Node]
-        if not isinstance(value_nodes, list):
-            value_nodes_list = [value_nodes]  # type: ignore
-        else:
-            value_nodes_list = value_nodes
-
-        for node in value_nodes_list:
+        for node in value_nodes:
             if hasattr(node, "text"):
                 parts.append(getattr(node, "text"))
             elif hasattr(node, "children"):
@@ -463,13 +457,13 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
         return Token("WORD", " ")
 
     # Discard unneeded tokens
-    def SECTION_TITLE_LEAD(self, token: Token) -> Literal[Discard]:
+    def SECTION_TITLE_LEAD(self, token: Token) -> Any:
         return Discard
 
-    def LITERAL_BLOCK_DELIM(self, token: Token) -> Literal[Discard]:
+    def LITERAL_BLOCK_DELIM(self, token: Token) -> Any:
         return Discard
 
-    def _NEWLINE(self, token: Token) -> Literal[Discard]:
+    def _NEWLINE(self, token: Token) -> Any:
         return Discard
 
 
