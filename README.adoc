@@ -28,7 +28,7 @@ This project is built from the ground up to provide:
 
 The parser operates in a multi-pass pipeline to handle the inherent complexity of AsciiDoc:
 
-[mermaid]
+[source,mermaid]
 ....
 graph LR
     A[Source] --> B(Lark Parser)
