@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+"""
+TCK Adapter for AsciiDoc Parser.
+Converts AsciiDoc source to TCK-compliant ASG JSON.
+"""
 import sys
 import json
 from asciidoc_parser import parse_to_ast
