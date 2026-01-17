@@ -1,0 +1,63 @@
+= Architecture Decisions
+
+== TCK ASG Structure Mapping
+
+*Date*: 2025-05-22
+*Status*: Accepted
+*Related Issues*: #42
+
+=== Context
+
+The project needs to produce a TCK-compliant Resolved Abstract Semantic Graph (ASG). This requires a mapping from the internal AST nodes to a specific JSON structure defined by the official ASG schema.
+
+=== Decision
+
+We will implement an `ASGVisitor` to transform the AST into the ASG. The mapping follows the official AsciiDoc ASG schema (https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/asg/schema.json):
+
+[cols="1,2"]
+|===
+| AST Node | ASG Structure
+
+| `Document`
+| `{"name": "document", "type": "block", "blocks": [], "attributes": {}, "header": {}}`
+
+| `Paragraph`
+| `{"name": "paragraph", "type": "block", "form": "paragraph", "inlines": []}`
+
+| `Text`
+| `{"name": "text", "type": "string", "value": "text content"}`
+
+| `Strong`
+| `{"name": "span", "type": "inline", "variant": "strong", "form": "constrained", "inlines": []}`
+
+| `Emphasis`
+| `{"name": "span", "type": "inline", "variant": "emphasis", "form": "constrained", "inlines": []}`
+
+| `InlineCode`
+| `{"name": "span", "type": "inline", "variant": "code", "form": "constrained", "inlines": []}`
+
+| `Section`
+| `{"name": "section", "type": "block", "level": 1, "title": [], "blocks": []}`
+
+| `BulletList`
+| `{"name": "list", "type": "block", "variant": "unordered", "marker": "*", "items": []}`
+
+| `ListItem`
+| `{"name": "listItem", "type": "block", "principal": [], "blocks": []}`
+
+| `LiteralBlock`
+| `{"name": "listing", "type": "block", "form": "delimited", "delimiter": "----", "inlines": []}`
+
+| `Link`
+| `{"name": "ref", "type": "inline", "variant": "link", "target": "url", "inlines": []}`
+|===
+
+=== Rationale
+
+The official ASG schema is the authoritative source for the structure of the Resolved Abstract Semantic Graph. Aligning our visitor with this schema ensures compatibility with the TCK and other tools in the AsciiDoc ecosystem.
+
+=== Consequences
+
+- The `ASGVisitor` must be kept in sync with any updates to the official ASG schema.
+- The visitor handles the transformation of complex nodes like lists and tables by mapping their internal structure to the schema's requirements (e.g., `principal` vs `blocks` in list items).
+- Some fields (like `form` and `delimiter`) are currently hardcoded based on the parser's standard behavior but should ideally be derived from the AST if the parser is updated to capture them.
