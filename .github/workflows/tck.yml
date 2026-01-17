@@ -31,4 +31,4 @@ jobs:
 
     - name: Run TCK
       run: |
-        ./run-tck.sh
+        python -m pytest tests/test_tck.py
