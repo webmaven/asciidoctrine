@@ -2,39 +2,43 @@
 import sys
 import json
 from asciidoc_parser import parse_to_ast
+from asciidoc_parser.asg_visitor import ASGVisitor
 
 def main():
     try:
-        # Read from stdin (TASK-2.1 / Issue #37)
+        # Read from stdin
         input_data = sys.stdin.read()
         if not input_data:
             return
 
         payload = json.loads(input_data)
         contents = payload.get("contents", "")
+        parse_type = payload.get("type", "block")
 
         # Ensure trailing newline to satisfy parser requirements
         if contents and not contents.endswith("\n"):
             contents += "\n"
 
-        # Invoke the parser (TASK-2.2 / Issue #38)
-        # The returned AST is stored in the 'ast' variable.
+        # Invoke the parser
         ast = parse_to_ast(contents)
 
-        # For now, we return a hardcoded ASG-like dictionary as per TASK-2.4 / Issue #40.
-        # Once TASK-3 (ASGVisitor) is implemented, this will be replaced with
-        # the result of the ASGVisitor.
-        asg = {
-            "type": "document",
-            "children": []
-        }
+        # Transform AST to ASG
+        visitor = ASGVisitor()
+        asg = visitor.visit(ast)
 
-        # Implement stdout Writing (TASK-2.4 / Issue #40)
-        print(json.dumps(asg))
+        if parse_type == "inline":
+            # For inline type, TCK expects a list of inlines.
+            if asg.get("blocks") and asg["blocks"][0].get("name") == "paragraph":
+                print(json.dumps(asg["blocks"][0]["inlines"]))
+            else:
+                print(json.dumps([]))
+        else:
+            # Block type
+            print(json.dumps(asg))
+
         sys.exit(0)
 
     except Exception as e:
-        # Implement Basic Error Handling (TASK-2.3 / Issue #39)
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
