@@ -1,0 +1,421 @@
+= Implementation Plan: AST/ASG Convergence & Comprehensive Testing
+:toc: left
+:toclevels: 3
+:icons: font
+:source-highlighter: highlight.js
+
+== Executive Summary
+
+This document outlines a two-part implementation plan to advance the AsciiDoc parser toward full TCK compliance:
+
+1. **AST/ASG Convergence**: Refactor the AST node structure to match the ASG schema directly, so that resolution only performs semantic changes.
+2. **Comprehensive Test Suite**: Expand test coverage beyond the 13-test TCK using multiple test sources.
+
+Starting Point: `main` branch (`4637c1c`)
+
+== Part 1: AST/ASG Convergence Refactor
+
+=== Problem Statement
+
+The current implementation has divergent structures:
+
+* **AST** uses internal terminology (`Strong`, `BulletList`, `children`)
+* **ASG** uses schema terminology (`span`, `list`, `inlines`)
+
+This requires a complex transformation layer (`asg_visitor.py` or dual-mode `to_dict()`) that:
+
+* Doubles maintenance burden
+* Creates two different output formats to test
+* Hides bugs in the transformation layer
+
+=== Goal
+
+Converge the AST structure to match the ASG schema so that:
+
+* `to_dict()` produces ASG-compatible output directly
+* Resolution pass only performs semantic changes (attribute substitution, cross-reference resolution)
+* Single source of truth for document structure
+
+=== Phase 1.1: Rename Node Classes
+
+[cols="1,1,1,1"]
+|===
+| Current Class | New Class | ASG `name` | ASG `variant`
+
+| `Strong` | `Span` | `"span"` | `"strong"`
+| `Emphasis` | `Span` | `"span"` | `"emphasis"`
+| `InlineCode` | `Span` | `"span"` | `"code"`
+| `BulletList` | `List` | `"list"` | `"unordered"`
+| `OrderedList` | `List` | `"list"` | `"ordered"`
+| `LiteralBlock` | `Listing` | `"listing"` | —
+| `ExampleBlock` | `Example` | `"example"` | —
+| `QuoteBlock` | `Quote` | `"quote"` | —
+|===
+
+=== Phase 1.2: Restructure Node Fields
+
+Replace generic `children` with ASG-specific field names:
+
+[cols="1,1,2"]
+|===
+| Current Field | ASG Field | Used By
+
+| `children` | `blocks` | Document, Section, Admonition, Sidebar, Example
+| `children` | `inlines` | Paragraph, Span, Title
+| `children` | `items` | List
+| `node_type.value` | `name` | All nodes
+| — | `type` | All nodes (`"block"`, `"inline"`, `"string"`)
+|===
+
+==== Example: Span Node (Before/After)
+
+[source,python]
+----
+# BEFORE (current)
+class Strong(InlineNode):
+    def __init__(self, children):
+        self.node_type = NodeType.STRONG
+        self.children = children
+
+# AFTER (converged)
+class Span(InlineNode):
+    def __init__(self, variant: str, inlines: List[Node], form: str = "constrained"):
+        self.name = "span"
+        self.type = "inline"
+        self.variant = variant  # "strong", "emphasis", "code"
+        self.form = form
+        self.inlines = inlines
+----
+
+=== Phase 1.3: Update Serialization
+
+Single `to_dict()` method that produces ASG-compatible output:
+
+[source,python]
+----
+class Node:
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize to ASG-compatible dictionary."""
+        data = {"name": self.name, "type": self.type}
+        
+        if hasattr(self, 'variant') and self.variant:
+            data["variant"] = self.variant
+        if hasattr(self, 'form') and self.form:
+            data["form"] = self.form
+        if hasattr(self, 'inlines') and self.inlines:
+            data["inlines"] = [n.to_dict() for n in self.inlines]
+        if hasattr(self, 'blocks') and self.blocks:
+            data["blocks"] = [n.to_dict() for n in self.blocks]
+        if hasattr(self, 'items') and self.items:
+            data["items"] = [n.to_dict() for n in self.items]
+        if self.attributes:
+            data["attributes"] = self.attributes
+            
+        return data
+----
+
+=== Phase 1.4: Create Semantic Resolver
+
+The resolver performs only semantic changes on the already-structured ASG:
+
+[source,python]
+----
+# src/asciidoc_parser/resolver.py
+
+class ASGResolver:
+    """Resolves semantic elements in the ASG."""
+    
+    def __init__(self, document: Document):
+        self.attributes = document.attributes
+    
+    def resolve(self, node: Node) -> Dict[str, Any]:
+        """Convert AST to fully-resolved ASG."""
+        asg = node.to_dict()
+        return self._resolve_recursive(asg)
+    
+    def _resolve_recursive(self, asg: Dict) -> Dict:
+        """Recursively resolve attribute references."""
+        if asg.get("name") == "text":
+            asg["value"] = self._substitute_attributes(asg["value"])
+        
+        for key in ["inlines", "blocks", "items", "principal"]:
+            if key in asg:
+                asg[key] = [self._resolve_recursive(child) for child in asg[key]]
+        
+        return asg
+    
+    def _substitute_attributes(self, text: str) -> str:
+        """Replace {name} with attribute values."""
+        import re
+        def replace(match):
+            name = match.group(1)
+            return self.attributes.get(name, match.group(0))
+        return re.sub(r'\{([a-zA-Z0-9_-]+)\}', replace, text)
+----
+
+=== Phase 1.5: Update Transformer
+
+[source,python]
+----
+# In lark_parser.py
+
+def bold(self, children: Children) -> Span:
+    return Span(variant="strong", inlines=self._flatten_inlines(children))
+
+def italic(self, children: Children) -> Span:
+    return Span(variant="emphasis", inlines=self._flatten_inlines(children))
+
+def monospace(self, children: Children) -> Span:
+    return Span(variant="code", inlines=self._flatten_inlines(children))
+
+def ulist(self, children: Children) -> List:
+    items = self._nest_list_items(children)
+    return List(variant="unordered", marker="*", items=items)
+
+def olist(self, children: Children) -> List:
+    items = self._nest_list_items(children)
+    return List(variant="ordered", marker=".", items=items)
+----
+
+=== Phase 1.6: File Changes Summary
+
+[cols="1,3"]
+|===
+| File | Change
+
+| `nodes.py` | Rename classes, add `name`/`type`/`variant`, rename `children` → `inlines`/`blocks`/`items`
+| `lark_parser.py` | Update transformer methods for new node constructors
+| `asg_visitor.py` | **Delete** — no longer needed
+| `resolver.py` | **New** — semantic resolution only
+| `tests/*.py` | Update expected output dictionaries to ASG format
+|===
+
+=== Phase 1 Effort Estimate
+
+[cols="1,1"]
+|===
+| Task | Hours
+
+| Rename classes | 2
+| Restructure node fields | 4
+| Update `to_dict()` | 2
+| Create resolver | 2
+| Update transformer | 3
+| Update tests | 4-6
+| *Total* | *17-19*
+|===
+
+== Part 2: Comprehensive Test Suite
+
+=== Problem Statement
+
+The official AsciiDoc TCK currently contains only *13 tests*, covering a small fraction of AsciiDoc's feature set. While authoritative for specification compliance, it leaves significant coverage gaps during development.
+
+=== Strategy: 4-Tier Approach
+
+[source,mermaid]
+----
+graph TD
+    A[Test Suite Strategy] --> B[Tier 1: Official TCK]
+    A --> C[Tier 2: Adapted DocTest]
+    A --> D[Tier 3: Specification-Driven]
+    A --> E[Tier 4: Fuzz Testing]
+    
+    B --> B1[13+ tests, authoritative]
+    C --> C1[~200 input examples]
+    D --> D1[Feature matrix coverage]
+    E --> E1[Property-based testing]
+----
+
+=== Tier 1: Official TCK (Authority)
+
+*Current Status*: 10/13 tests passing
+
+*Actions*:
+
+1. Complete remaining 3 TCK failures
+2. Monitor TCK repository for updates
+3. Consider contributing upstream tests
+
+*Priority*: High
+
+=== Tier 2: Adapt asciidoctor-doctest (Volume)
+
+The https://github.com/asciidoctor-contrib/asciidoctor-doctest[asciidoctor-doctest] project contains ~40+ example groups covering virtually every AsciiDoc element.
+
+==== Example Groups Available
+
+[cols="1,1"]
+|===
+| Block Elements | Inline Elements
+
+| admonition, audio, colist, dlist | inline_anchor, inline_break
+| example, floating_title, image | inline_button, inline_callout
+| listing, literal, olist, open | inline_footnote, inline_image
+| outline, page_break, paragraph | inline_kbd, inline_menu
+| pass, preamble, quote, section | inline_quoted (formatting)
+| sidebar, stem, table | 
+| thematic_break, toc, ulist |
+| verse, video |
+|===
+
+==== Implementation
+
+[source,bash]
+----
+# Add as submodule
+git submodule add https://github.com/asciidoctor-contrib/asciidoctor-doctest.git vendor/asciidoctor-doctest
+----
+
+[source,python]
+----
+# tests/test_doctest_parsing.py
+
+import pytest
+from asciidoc_parser import parse_to_ast
+from conftest import get_all_doctest_examples
+
+KNOWN_UNSUPPORTED = {"stem:*", "video:*", "audio:*", "table:*"}
+
+@pytest.mark.parametrize("example_id,content", get_all_doctest_examples())
+def test_doctest_example_parses(example_id: str, content: str):
+    """Verify each doctest example parses without errors."""
+    if any(example_id.startswith(p.rstrip('*')) for p in KNOWN_UNSUPPORTED):
+        pytest.skip(f"Not yet implemented: {example_id}")
+    
+    ast = parse_to_ast(content)
+    assert ast is not None
+    assert ast.name == "document"
+----
+
+*Priority*: High — provides ~200 test inputs with low effort
+
+=== Tier 3: Specification-Driven Matrix (Completeness)
+
+Create a systematic test matrix based on the AsciiDoc Language Specification:
+
+[source,markdown]
+----
+# tests/FEATURE_MATRIX.md
+
+| Feature | Category | Spec Section | Test File | Status |
+|---------|----------|--------------|-----------|--------|
+| Paragraph (single line) | Block | 3.1 | test_parser.py | ✅ |
+| Paragraph (multi-line) | Block | 3.1.1 | - | ❌ TCK fail |
+| Admonition NOTE | Block | 5.1 | test_parser.py | ✅ |
+| Table (simple) | Block | 4.5 | - | ⏳ Phase 3 |
+| Cross-reference | Inline | 6.2 | - | ⏳ Phase 4 |
+----
+
+*Priority*: Medium — important for long-term completeness
+
+=== Tier 4: Property-Based Testing (Robustness)
+
+Use Hypothesis for fuzz testing:
+
+[source,python]
+----
+# tests/test_fuzzing.py
+
+from hypothesis import given, strategies as st, settings
+from asciidoc_parser import parse_to_ast
+
+asciidoc_chars = st.sampled_from(
+    list("abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ\n*_`=[]{}:;.,!?-")
+)
+
+@given(st.text(alphabet=asciidoc_chars, min_size=0, max_size=500))
+@settings(max_examples=1000)
+def test_parser_never_crashes(content: str):
+    """Parser should handle any input without unhandled exceptions."""
+    try:
+        parse_to_ast(content)
+    except Exception as e:
+        # Known parse errors are acceptable
+        if "Unexpected" not in str(e) and "Expected" not in str(e):
+            raise
+----
+
+*Priority*: Low — nice for robustness, not critical
+
+=== Test Suite Effort Estimate
+
+[cols="1,1,1,1"]
+|===
+| Tier | Tests Added | Effort | Priority
+
+| 1: TCK | +3 | Low | High
+| 2: DocTest | +200 | Medium | High
+| 3: Spec Matrix | +100 | High | Medium
+| 4: Fuzzing | +∞ | Medium | Low
+|===
+
+== Implementation Roadmap
+
+=== Week 1-2: Foundation
+
+* [ ] Create branch `ast-asg-convergence` from `main`
+* [ ] Phase 1.1: Rename node classes
+* [ ] Phase 1.2: Restructure node fields
+* [ ] Add asciidoctor-doctest submodule
+
+=== Week 3-4: Core Refactor
+
+* [ ] Phase 1.3: Update serialization
+* [ ] Phase 1.4: Create resolver
+* [ ] Phase 1.5: Update transformer
+* [ ] Implement Tier 2 parse-only tests
+
+=== Week 5-6: Test Migration
+
+* [ ] Phase 1.6: Update all existing tests
+* [ ] Generate ASG snapshots for doctest examples
+* [ ] Complete Tier 1 TCK failures
+
+=== Week 7-8: Polish
+
+* [ ] Create FEATURE_MATRIX.md
+* [ ] Add Hypothesis fuzz tests
+* [ ] Update documentation
+* [ ] Merge to main
+
+== File Structure After Implementation
+
+[source,text]
+----
+asciidoc_parser/
+├── src/asciidoc_parser/
+│   ├── __init__.py
+│   ├── grammar.lark
+│   ├── lark_parser.py      # Updated transformer
+│   ├── nodes.py            # Converged AST/ASG nodes
+│   ├── resolver.py         # NEW: Semantic resolution
+│   └── preprocessor.py
+├── vendor/
+│   ├── asciidoc-tck/       # Official TCK
+│   └── asciidoctor-doctest/# NEW: DocTest examples
+├── tests/
+│   ├── conftest.py         # Shared fixtures
+│   ├── test_parser.py      # Updated for ASG format
+│   ├── test_tck.py
+│   ├── test_doctest_parsing.py  # NEW
+│   ├── test_fuzzing.py          # NEW
+│   ├── snapshots/               # NEW: ASG snapshots
+│   ├── tck_failures.txt
+│   └── FEATURE_MATRIX.md        # NEW
+└── IMPLEMENTATION-PLAN.adoc     # This file
+----
+
+== Success Criteria
+
+1. All existing tests pass with ASG-format expectations
+2. TCK compliance: 13/13 tests passing
+3. DocTest parsing: 150+ examples parse successfully
+4. Single `to_dict()` output format (no dual-mode)
+5. `asg_visitor.py` deleted
+
+== References
+
+* https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck[AsciiDoc TCK Repository]
+* https://github.com/asciidoctor-contrib/asciidoctor-doctest[asciidoctor-doctest]
+* https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/asg/schema.json[ASG JSON Schema]
