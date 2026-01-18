@@ -3,16 +3,28 @@ start: document
 
 document: document_header_with_body | body_only
 
-document_header_with_body: document_header (blank_line block*)?
+document_header_with_body: (comment | blank_line)* document_header (blank_line block*)?
 body_only: block*
 
 document_header: document_title (attribute_entry | author_rev_line)*
-author_rev_line: WORD (inline_element)* _NEWLINE
+author_rev_line: WORD (WORD | WHITESPACE | COLON | AUTHOR_SPECIAL_CHARS)* _NEWLINE
 document_title: DOC_TITLE_LEAD text_content _NEWLINE
 
-block: section | blank_line | attribute_entry | ulist | olist | literal_block | admonition | sidebar | example_block | paragraph
+AUTHOR_SPECIAL_CHARS: /[<>;,.@\-_]/
+
+block: attributed_block | blank_line | attribute_entry | comment | image_block
 
 blank_line: _NEWLINE+
+
+comment: "//" [COMMENT_CONTENT] _NEWLINE
+COMMENT_CONTENT: /[^\n]+/
+
+attributed_block: (block_metadata)* (section | ulist | olist | literal_block | admonition | sidebar | example_block | paragraph)
+
+attributed_simple_block: (block_metadata)* (ulist | olist | literal_block | paragraph)
+
+block_metadata: block_title | attribute_list | anchor
+block_title: "." text_content _NEWLINE
 
 // Sections and Titles
 section: section_title block*
@@ -25,30 +37,35 @@ paragraph: (text_content _NEWLINE)+
 ulist: ulist_item+
 olist: olist_item+
 
-ulist_item: ULIST_MARKER text_content _NEWLINE
+ulist_item: ULIST_MARKER [CHECKBOX] text_content _NEWLINE
 olist_item: OLIST_MARKER text_content _NEWLINE
+
+CHECKBOX: /\[[ x*X]\][ \t]+/
 
 // Attributes
 attribute_entry.2: COLON ATTR_NAME COLON [WHITESPACE] [text_content] _NEWLINE
 
 // Attribute List (e.g., [source,python])
-attribute_list: "[" attribute_content "]" _NEWLINE
-attribute_content: /[^\]]+/
+attribute_list: "[" [ATTR_LIST_CONTENT] "]" _NEWLINE
+ATTR_LIST_CONTENT: /[^\]]+/
+
+inline_attribute_list: "[" [ATTR_LIST_CONTENT] "]"
+
+anchor: "[[" WORD "]]" _NEWLINE
 
 // Literal Blocks
-// Can optionally be preceded by an attribute list
-literal_block: attribute_list? LITERAL_BLOCK_DELIM _NEWLINE LITERAL_BLOCK_CONTENT _NEWLINE LITERAL_BLOCK_DELIM
+literal_block: LITERAL_BLOCK_DELIM _NEWLINE LITERAL_BLOCK_CONTENT _NEWLINE LITERAL_BLOCK_DELIM
 
 // Basic content (no containers)
-basic_block: literal_block | ulist | olist | paragraph | blank_line
+basic_block: attributed_simple_block | blank_line
 
 // Admonitions allow sidebars but not (implicitly) other admonitions to avoid ambiguity without delimiter size checks
 admonition: ADMONITION_START _NEWLINE ADMONITION_DELIM _NEWLINE admonition_content ADMONITION_DELIM _NEWLINE?
-admonition_content: (sidebar | example_block | basic_block)*
+admonition_content: (sidebar | basic_block)*
 
 // Example Blocks
 example_block: ADMONITION_DELIM _NEWLINE example_content ADMONITION_DELIM _NEWLINE?
-example_content: (admonition | sidebar | basic_block)*
+example_content: (sidebar | basic_block)*
 
 // Sidebars allow admonitions but not other sidebars
 sidebar: SIDEBAR_DELIM _NEWLINE sidebar_content SIDEBAR_DELIM _NEWLINE?
@@ -59,11 +76,29 @@ sidebar_content: (admonition | example_block | basic_block)*
 text_content: inline_element+
 
 attribute_reference: LBRACE ATTR_NAME RBRACE
-?inline_element: bold | italic | monospace | attribute_reference | WORD | WHITESPACE | COLON
+?inline_element: bold | italic | monospace | attribute_reference | WORD | WHITESPACE | COLON | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref
+
+image_block: "image::" TARGET "[" [ATTR_LIST_CONTENT] "]" _NEWLINE
+inline_image: "image:" TARGET "[" [ATTR_LIST_CONTENT] "]"
+icon_inline: "icon:" TARGET "[" [ATTR_LIST_CONTENT] "]"
+
+inline_anchor: "[[" text_content "]]"
+inline_xref: "<<" text_content ">>"
+inline_bibref: "[[[" text_content "]]]"
+
+TARGET: /[^\[\n ]+/
+
+footnote: "footnote:" "[" text_content "]"
+footnoteref: "footnoteref:" "[" [WORD] ["," text_content] "]"
 
 bold: "*" text_content "*"
 italic: "_" text_content "_"
 monospace: "`" text_content "`"
+marked: "#" text_content "#"
+superscript: "^" text_content "^"
+subscript: "~" text_content "~"
+double_quoted: "\"`" text_content "`\""
+single_quoted: "'`" text_content "`'"
 
 
 // --- Terminals ---

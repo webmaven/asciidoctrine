@@ -13,11 +13,13 @@ from .nodes import (
     Document,
     Example,
     Header,
+    Image,
     Listing,
     ListItem,
     Node,
     Paragraph,
     Quote,
+    Ref,
     Revision,
     Section,
     Sidebar,
@@ -170,7 +172,11 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
 
             # Add the item to its parent list.
             list_node.items.append(
-                ListItem(marker=marker, principal=item_data["children"])
+                ListItem(
+                    marker=marker,
+                    principal=item_data["children"],
+                    checked=item_data.get("checked"),
+                )
             )
 
         # The result should be a list of `ListItem` nodes, not the list containers.
@@ -180,16 +186,25 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
         return all_root_children
 
     def document(self, children: Children) -> Document:
-        return children[0]
+        return cast(Document, children[0])
 
     def document_header_with_body(self, children: Children) -> Document:
-        header = children[0]
-        blocks = children[1:]
+        header = None
+        blocks = []
+
+        # Find the Header node and take everything after it as body blocks
+        for i, child in enumerate(children):
+            if isinstance(child, Header):
+                header = child
+                blocks = [c for c in children[i + 1 :] if isinstance(c, BlockNode)]
+                break
+
         merged_blocks = self._merge_consecutive_lists(blocks)
         doc = Document(merged_blocks)
-        doc.header = header
-        doc.attributes.update(header.attributes)
-        self.attributes.update(header.attributes)
+        if header:
+            doc.header = header
+            doc.attributes.update(header.attributes)
+            self.attributes.update(header.attributes)
         return doc
 
     def body_only(self, children: Children) -> Document:
@@ -198,17 +213,41 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
 
     def document_header(self, children: Children) -> Header:
         title = children[0]
-        author = None
+        authors = []
         revision = None
 
         text_lines = [c for c in children[1:] if isinstance(c, list)]
 
         if len(text_lines) > 0:
-            line1_text = "".join(
-                [node.value for node in text_lines[0] if hasattr(node, "value")]
-            )
-            if self.AUTHOR_REGEX.fullmatch(line1_text.strip()):
-                author = Author(text_lines[0])
+            line1_nodes = text_lines[0]
+            # split by semicolon token/text
+            author_groups = []
+            current_group = []
+            for node in line1_nodes:
+                if isinstance(node, Text) and not node.attributes and ";" in node.value:
+                    parts = node.value.split(";")
+                    for i, part in enumerate(parts):
+                        if part:
+                            current_group.append(Text(part))
+                        if i < len(parts) - 1:
+                            if current_group:
+                                author_groups.append(current_group)
+                            current_group = []
+                else:
+                    current_group.append(node)
+            if current_group:
+                author_groups.append(current_group)
+
+            valid_authors = []
+            for group in author_groups:
+                txt = "".join(
+                    [getattr(n, "value", "") for n in group if hasattr(n, "value")]
+                ).strip()
+                if self.AUTHOR_REGEX.fullmatch(txt):
+                    valid_authors.append(Author(group))
+
+            if valid_authors:
+                authors = valid_authors
 
         if len(text_lines) > 1:
             line2_text = "".join(
@@ -225,11 +264,14 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
                 )
 
         return Header(
-            title=title, author=author, revision=revision, attributes=attributes
+            title=title, authors=authors, revision=revision, attributes=attributes
         )
 
     def author_rev_line(self, children: Children) -> PyList[Node]:
         return self.text_content(children)
+
+    def AUTHOR_SPECIAL_CHARS(self, token: Token) -> Token:
+        return Token("WORD", token.value)
 
     def document_title(self, children: Children) -> Title:
         nodes = [c for c in children if isinstance(c, list)]
@@ -240,6 +282,56 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
 
     def blank_line(self, children: Children) -> Any:
         return Discard
+
+    def comment(self, children: Children) -> Any:
+        return Discard
+
+    def attributed_block(self, children: Children) -> BlockNode:
+        # children are (block_metadata)* followed by the actual block
+        metadata = [c for c in children[:-1] if c is not Discard]
+        block = cast(BlockNode, children[-1])
+
+        for item in metadata:
+            if isinstance(item, Title):
+                block.title = item
+            elif isinstance(item, dict):
+                # Merge attributes
+                for k, v in item.items():
+                    if k == "role":
+                        existing = block.attributes.get("role")
+                        if existing:
+                            block.attributes["role"] = f"{existing} {v}"
+                        else:
+                            block.attributes["role"] = v
+                    elif k == "style":
+                        variant = v.lower()
+                        if variant in [
+                            "note",
+                            "tip",
+                            "important",
+                            "warning",
+                            "caution",
+                        ]:
+                            if isinstance(block, Example):
+                                # Convert Example to Admonition
+                                block = Admonition(variant=variant, blocks=block.blocks)
+                            else:
+                                block.attributes["style"] = v
+                        else:
+                            block.attributes["style"] = v
+                    else:
+                        block.attributes[k] = v
+        return block
+
+    def block_metadata(self, children: Children) -> Any:
+        return children[0]
+
+    def block_title(self, children: Children) -> Title:
+        # children[0] is the result of text_content, which is a list of nodes.
+        return Title(children[0])
+
+    def attributed_simple_block(self, children: Children) -> BlockNode:
+        return self.attributed_block(children)
 
     # --- Blocks ---
 
@@ -291,16 +383,29 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
         return ASTList(variant="ordered", marker=marker, items=items)
 
     def ulist_item(self, children: Children) -> Dict[str, Any]:
-        # Children are: [ULIST_MARKER, text_content]
+        # Children are: [ULIST_MARKER, CHECKBOX?, text_content]
         marker_token = children[0]
         level = AsciiDocTransformer._get_list_level(marker_token)
-        content = children[1]
-        return {
+
+        checkbox = None
+        content = None
+        if len(children) == 3:
+            checkbox = children[1]
+            content = children[2]
+        else:
+            content = children[1]
+
+        item_data = {
             "level": level,
             "item_type": "bullet",
             "marker": marker_token.value.strip(),
             "children": content,
         }
+        if checkbox:
+            val = checkbox.value.strip("[] ")
+            item_data["checked"] = val.lower() in ["x", "*"]
+
+        return item_data
 
     def olist_item(self, children: Children) -> Dict[str, Any]:
         # Children are: [OLIST_MARKER, text_content]
@@ -343,19 +448,77 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
         # find the actual attribute string among children
         attr_str = ""
         for c in children:
-            if isinstance(c, str) and c not in ("[", "]", "\n", "\r", "\r\n"):
+            if isinstance(c, Token) and c.type == "attribute_content":
+                attr_str = c.value
+                break
+            elif isinstance(c, str) and c not in ("[", "]", "\n", "\r", "\r\n"):
                 attr_str = c
                 break
 
+        if not attr_str:
+            return {}
+
+        attrs: Dict[str, str] = {}
+
+        # Handle shorthand [#id.role] or [.role#id]
+        if attr_str.startswith("#") or attr_str.startswith("."):
+            curr = attr_str
+            while curr:
+                if curr.startswith("#"):
+                    match = re.search(r"^#([^.# \[\]]+)", curr)
+                    if match:
+                        attrs["id"] = match.group(1)
+                        curr = curr[match.end() :]
+                    else:
+                        break
+                elif curr.startswith("."):
+                    match = re.search(r"^\.([^.# \[\]]+)", curr)
+                    if match:
+                        role = match.group(1)
+                        if "role" in attrs:
+                            attrs["role"] += f" {role}"
+                        else:
+                            attrs["role"] = role
+                        curr = curr[match.end() :]
+                    else:
+                        break
+                else:
+                    break
+            return attrs
+
         # Basic parsing: split by comma
         parts = [p.strip() for p in attr_str.split(",")]
-        attrs: Dict[str, str] = {}
-        if parts:
+
+        if parts and "=" not in parts[0] and not parts[0].startswith(("#", ".")):
+            # Positional (usually style)
             attrs["style"] = parts[0]
-        if len(parts) > 1:
-            if parts[0] == "source":
-                attrs["language"] = parts[1]
+
+        for part in parts:
+            if "=" in part:
+                k, v = part.split("=", 1)
+                attrs[k.strip()] = v.strip().strip('"').strip("'")
+            elif part.startswith("#"):
+                attrs["id"] = part[1:]
+            elif part.startswith("."):
+                role = part[1:]
+                if "role" in attrs:
+                    attrs["role"] += f" {role}"
+                else:
+                    attrs["role"] = role
+            elif part.startswith("%"):
+                option = part[1:]
+                if "options" in attrs:
+                    attrs["options"] += f",{option}"
+                else:
+                    attrs["options"] = option
+
+        if attrs.get("style") == "source" and len(parts) > 1 and "=" not in parts[1]:
+            attrs["language"] = parts[1]
+
         return attrs
+
+    def ATTR_LIST_CONTENT(self, token: Token) -> Token:
+        return Token("attribute_content", token.value)
 
     def literal_block(self, children: Children) -> Listing:
         # children: attribute_list? LITERAL_BLOCK_DELIM _NEWLINE
@@ -463,27 +626,54 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
 
     def text_content(self, children: Children) -> PyList[Node]:
         nodes: PyList[Node] = []
-        text_buffer = ""
+        pending_attrs: Optional[Dict[str, str]] = None
 
         flat_children: PyList[Any] = []
         for child in children:
-            if isinstance(child, list):
+            if isinstance(child, list) and not isinstance(child, Node):
                 flat_children.extend(child)
             else:
                 flat_children.append(child)
 
         for child in flat_children:
+            if isinstance(child, dict):
+                pending_attrs = child
+                continue
+
+            node: Optional[Node] = None
             if isinstance(child, Token):
-                text_buffer += str(child.value)
-            elif isinstance(child, Text):
-                text_buffer += child.value
+                node = Text(str(child.value))
             elif isinstance(child, Node):
-                if text_buffer:
-                    nodes.append(Text(text_buffer))
-                    text_buffer = ""
-                nodes.append(child)
-        if text_buffer:
-            nodes.append(Text(text_buffer))
+                node = child
+
+            if node:
+                if pending_attrs:
+                    for k, v in pending_attrs.items():
+                        if k == "role":
+                            existing = node.attributes.get("role")
+                            node.attributes["role"] = (
+                                f"{existing} {v}" if existing else v
+                            )
+                        else:
+                            node.attributes[k] = v
+                    pending_attrs = None
+
+                # Merge consecutive text nodes if they have same attributes
+                if (
+                    nodes
+                    and isinstance(nodes[-1], Text)
+                    and isinstance(node, Text)
+                    and nodes[-1].attributes == node.attributes
+                ):
+                    nodes[-1].value += node.value
+                else:
+                    nodes.append(node)
+
+        # Handle trailing attribute list if any (unlikely to be valid but for safety)
+        if pending_attrs:
+            attr_str = ",".join([f"{k}={v}" for k, v in pending_attrs.items()])
+            nodes.append(Text(f"[{attr_str}]"))
+
         return nodes
 
     def bold(self, children: Children) -> Span:
@@ -506,6 +696,106 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
         content = [c for c in children if isinstance(c, list)]
         nodes = content[0] if content else []
         return Span(variant="code", inlines=nodes)
+
+    def marked(self, children: Children) -> Span:
+        return Span(variant="mark", inlines=children[0] if children else [])
+
+    def superscript(self, children: Children) -> Span:
+        return Span(variant="superscript", inlines=children[0] if children else [])
+
+    def subscript(self, children: Children) -> Span:
+        return Span(variant="subscript", inlines=children[0] if children else [])
+
+    def footnote(self, children: Children) -> Ref:
+        return Ref(variant="footnote", target="", inlines=children[0])
+
+    def footnoteref(self, children: Children) -> Ref:
+        target = ""
+        inlines = []
+        # children are [WORD?, text_content?]
+        for c in children:
+            if isinstance(c, Token) and c.type == "WORD":
+                target = str(c.value)
+            elif isinstance(c, list):
+                inlines = c
+        return Ref(variant="footnote", target=target, inlines=inlines)
+
+    def double_quoted(self, children: Children) -> Span:
+        return Span(variant="double", inlines=children[0] if children else [])
+
+    def single_quoted(self, children: Children) -> Span:
+        return Span(variant="single", inlines=children[0] if children else [])
+
+    def image_block(self, children: Children) -> Image:
+        target = str(children[0].value)
+        attrs = (
+            children[1] if len(children) > 1 and isinstance(children[1], dict) else {}
+        )
+        alt = attrs.get("style", "")
+        img = Image(target=target, alt=alt, form="macro", type="block")
+        img.attributes.update(attrs)
+        if "style" in img.attributes:
+            img.attributes["alt"] = img.attributes.pop("style")
+        return img
+
+    def inline_image(self, children: Children) -> Image:
+        target = str(children[0].value)
+        attrs = (
+            children[1] if len(children) > 1 and isinstance(children[1], dict) else {}
+        )
+        alt = attrs.get("style", "")
+        img = Image(target=target, alt=alt, form="macro", type="inline")
+        img.attributes.update(attrs)
+        if "style" in img.attributes:
+            img.attributes["alt"] = img.attributes.pop("style")
+        return img
+
+    def icon_inline(self, children: Children) -> Image:
+        target = str(children[0].value)
+        attrs = (
+            children[1] if len(children) > 1 and isinstance(children[1], dict) else {}
+        )
+        img = Image(target=target, alt="", form="macro", type="inline")
+        img.name = "icon"
+        img.attributes.update(attrs)
+        return img
+
+    def inline_anchor(self, children: Children) -> Ref:
+        # children[0] is text_content (list of nodes)
+        nodes = children[0]
+        # target is typically the first part before comma
+        # for now, just use the string value of the whole thing as a simplification
+        # TCK might want something specific
+        target = "".join(
+            [getattr(n, "value", "") for n in nodes if hasattr(n, "value")]
+        )
+        if "," in target:
+            target, _ = target.split(",", 1)
+        return Ref(variant="anchor", target=target.strip(), inlines=nodes)
+
+    def inline_xref(self, children: Children) -> Ref:
+        nodes = children[0]
+        target = "".join(
+            [getattr(n, "value", "") for n in nodes if hasattr(n, "value")]
+        )
+        if "," in target:
+            target, _ = target.split(",", 1)
+        return Ref(variant="xref", target=target.strip(), inlines=nodes)
+
+    def inline_bibref(self, children: Children) -> Ref:
+        nodes = children[0]
+        target = "".join(
+            [getattr(n, "value", "") for n in nodes if hasattr(n, "value")]
+        )
+        if "," in target:
+            target, _ = target.split(",", 1)
+        return Ref(variant="bibref", target=target.strip(), inlines=nodes)
+
+    def anchor(self, children: Children) -> Dict[str, str]:
+        return {"id": str(children[0].value)}
+
+    def inline_attribute_list(self, children: Children) -> Dict[str, str]:
+        return self.attribute_list(children)
 
     # --- Terminals ---
 

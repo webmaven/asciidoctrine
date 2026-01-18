@@ -369,7 +369,7 @@ def test_parser_never_crashes(content: str):
 === Week 5-6: Test Migration
 
 * [x] Phase 1.6: Update all existing tests
-* [ ] Generate ASG snapshots for doctest examples
+* [x] Generate ASG snapshots for doctest examples (In progress: 134 passing)
 * [x] Complete Tier 1 TCK failures
 
 === Week 7-8: Polish
@@ -410,7 +410,7 @@ asciidoc_parser/
 
 1. ✅ All existing tests pass with ASG-format expectations
 2. ✅ TCK compliance: 13/13 tests passing
-3. ⏳ DocTest parsing: 150+ examples parse successfully (Currently 59 passing, 185 skipped)
+3. ⏳ DocTest parsing: 150+ examples parse successfully (Currently 134 passing, 110 skipped)
 4. ✅ Single `to_dict()` output format (no dual-mode)
 5. ✅ `asg_visitor.py` deleted
 

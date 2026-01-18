@@ -16,6 +16,7 @@ class Node:
         self.name: str = "unknown"
         self.type: str = "block"
         self.attributes: Dict[str, Any] = {}
+        self.title: Optional[Title] = None
 
     def append(self, child: Node) -> None:
         if hasattr(self, "blocks"):
@@ -33,15 +34,18 @@ class Node:
             header_data: Dict[str, Any] = {}
             if self.title:
                 header_data["title"] = [n.to_dict() for n in self.title.inlines]
-            if self.author:
-                fullname = "".join(
-                    [
-                        getattr(n, "value", "")
-                        for n in self.author.inlines
-                        if hasattr(n, "value")
-                    ]
-                )
-                header_data["authors"] = [{"fullname": fullname}]
+            if self.authors:
+                authors_list = []
+                for author in self.authors:
+                    fullname = "".join(
+                        [
+                            getattr(n, "value", "")
+                            for n in author.inlines
+                            if hasattr(n, "value")
+                        ]
+                    )
+                    authors_list.append({"fullname": fullname})
+                header_data["authors"] = authors_list
             if self.revision:
                 value = "".join(
                     [
@@ -66,6 +70,7 @@ class Node:
             "delimiter",
             "level",
             "marker",
+            "checked",
             "target",
             "value",
             "attribute_name",
@@ -104,8 +109,15 @@ class Node:
             if self.header:
                 data["header"] = self.header.to_dict()
 
-        if isinstance(self, Section) and hasattr(self, "title"):
-            data["title"] = [n.to_dict() for n in self.title.inlines]
+        if (
+            hasattr(self, "title")
+            and self.title
+            and not isinstance(self, (Header, Document))
+        ):
+            if isinstance(self.title, Title):
+                data["title"] = [n.to_dict() for n in self.title.inlines]
+            elif isinstance(self.title, list):
+                data["title"] = [n.to_dict() for n in self.title]
 
         if isinstance(self, Table):
             data["rows"] = [r.to_dict() for r in self.rows]
@@ -198,7 +210,7 @@ class Header(Node):
     def __init__(
         self,
         title: Optional[Title] = None,
-        author: Optional[Author] = None,
+        authors: Optional[PyList[Author]] = None,
         revision: Optional[Revision] = None,
         attributes: Optional[Dict[str, Any]] = None,
     ):
@@ -206,7 +218,7 @@ class Header(Node):
         self.name = "header"
         self.type = "block"
         self.title = title
-        self.author = author
+        self.authors = authors or []
         self.revision = revision
         self.attributes = attributes or {}
 
@@ -215,7 +227,7 @@ class Section(BlockNode):
     """Represents a structural section of the document."""
 
     def __init__(
-        self, level: int, title: Node, blocks: Optional[Sequence[Node]] = None
+        self, level: int, title: Title, blocks: Optional[Sequence[Node]] = None
     ):
         super().__init__()
         self.name = "section"
@@ -279,10 +291,12 @@ class Ref(InlineNode):
 class Image(BlockNode):
     """A block or inline node for an image directive."""
 
-    def __init__(self, target: str, alt: str = "", form: str = "macro"):
+    def __init__(
+        self, target: str, alt: str = "", form: str = "macro", type: str = "block"
+    ):
         super().__init__()
         self.name = "image"
-        self.type = "block"
+        self.type = type
         self.target = target
         self.form = form
         self.attributes = {"alt": alt}
@@ -313,6 +327,7 @@ class ListItem(BlockNode):
         marker: str,
         principal: Optional[Sequence[Node]] = None,
         blocks: Optional[Sequence[Node]] = None,
+        checked: Optional[bool] = None,
     ):
         super().__init__()
         self.name = "listItem"
@@ -320,6 +335,7 @@ class ListItem(BlockNode):
         self.marker = marker
         self.principal: PyList[Node] = list(principal) if principal else []
         self.blocks: PyList[Node] = list(blocks) if blocks else []
+        self.checked = checked
 
 
 class Listing(BlockNode):

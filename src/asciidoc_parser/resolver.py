@@ -49,8 +49,8 @@ class ASGResolver:
     def _substitute_attributes(self, text: str) -> str:
         """Replace {name} with attribute values."""
 
-        def replace(match: re.Match) -> str:
+        def replace(match: re.Match[str]) -> str:
             name = match.group(1)
-            return self.resolved_attributes.get(name, match.group(0))
+            return str(self.resolved_attributes.get(name, match.group(0)))
 
         return re.sub(r"\{([a-zA-Z0-9_-]+)\}", replace, text)
