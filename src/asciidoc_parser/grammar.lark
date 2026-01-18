@@ -1,12 +1,16 @@
 
 start: document
 
-document: document_header? block*
+document: document_header_with_body | body_only
 
-document_header: document_title (attribute_entry | text_content _NEWLINE)* blank_line
+document_header_with_body: document_header (blank_line block*)?
+body_only: block*
+
+document_header: document_title (attribute_entry | author_rev_line)*
+author_rev_line: WORD (inline_element)* _NEWLINE
 document_title: DOC_TITLE_LEAD text_content _NEWLINE
 
-block: section | blank_line | attribute_entry | paragraph | ulist | olist | literal_block | admonition | sidebar | example_block
+block: section | blank_line | attribute_entry | ulist | olist | literal_block | admonition | sidebar | example_block | paragraph
 
 blank_line: _NEWLINE+
 
@@ -15,7 +19,7 @@ section: section_title block*
 section_title: SECTION_TITLE_LEAD text_content _NEWLINE
 
 // Paragraphs
-paragraph: text_content _NEWLINE
+paragraph: (text_content _NEWLINE)+
 
 // Lists
 ulist: ulist_item+
@@ -25,7 +29,7 @@ ulist_item: ULIST_MARKER text_content _NEWLINE
 olist_item: OLIST_MARKER text_content _NEWLINE
 
 // Attributes
-attribute_entry: ":" ATTR_NAME ":" [WHITESPACE] [text_content] _NEWLINE
+attribute_entry.2: COLON ATTR_NAME COLON [WHITESPACE] [text_content] _NEWLINE
 
 // Attribute List (e.g., [source,python])
 attribute_list: "[" attribute_content "]" _NEWLINE
@@ -33,7 +37,7 @@ attribute_content: /[^\]]+/
 
 // Literal Blocks
 // Can optionally be preceded by an attribute list
-literal_block: attribute_list? LITERAL_BLOCK_DELIM _NEWLINE LITERAL_BLOCK_CONTENT LITERAL_BLOCK_DELIM
+literal_block: attribute_list? LITERAL_BLOCK_DELIM _NEWLINE LITERAL_BLOCK_CONTENT _NEWLINE LITERAL_BLOCK_DELIM
 
 // Basic content (no containers)
 basic_block: literal_block | ulist | olist | paragraph | blank_line
@@ -55,7 +59,7 @@ sidebar_content: (admonition | example_block | basic_block)*
 text_content: inline_element+
 
 attribute_reference: LBRACE ATTR_NAME RBRACE
-?inline_element: bold | italic | monospace | attribute_reference | WORD | WHITESPACE
+?inline_element: bold | italic | monospace | attribute_reference | WORD | WHITESPACE | COLON
 
 bold: "*" text_content "*"
 italic: "_" text_content "_"
@@ -75,13 +79,14 @@ ADMONITION_DELIM: /====/
 SIDEBAR_DELIM: /\*\*\*\*/
 
 // Non-greedy content matching for literal blocks.
-LITERAL_BLOCK_CONTENT: /(.(?!----\n))*./s
+LITERAL_BLOCK_CONTENT: /(.+?)(?=\n----)/s
 
 _NEWLINE: /(\r\n|\n|\r)/
 WHITESPACE: /[ \t]+/
 ATTR_NAME: /[a-zA-Z0-9_\-]+/
-WORD: /[^ \t\n*_`=\[\]{}]+/  // Word characters (not whitespace or markup)
+WORD: /[^ \t\n*_`=\[\]{}:]+/  // Word characters (not whitespace or markup)
 LBRACE: "{"
 RBRACE: "}"
+COLON: ":"
 
 // %ignore WHITESPACE

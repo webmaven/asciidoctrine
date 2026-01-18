@@ -1,6 +1,7 @@
 import os
 import re
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union, cast
+from typing import Any, Dict, Optional, Sequence, Tuple, Union, cast
+from typing import List as PyList
 
 from lark import Discard, Lark, Token, Transformer
 
@@ -9,28 +10,31 @@ from .nodes import (
     AttributeEntry,
     Author,
     BlockNode,
-    BulletList,
     Document,
-    Emphasis,
-    ExampleBlock,
+    Example,
     Header,
-    InlineCode,
+    Listing,
     ListItem,
-    LiteralBlock,
     Node,
-    OrderedList,
     Paragraph,
+    Quote,
     Revision,
     Section,
     Sidebar,
-    Strong,
+    Span,
+    Table,
+    TableCell,
+    TableRow,
     Text,
     Title,
 )
+from .nodes import (
+    List as ASTList,
+)
 from .preprocessor import Preprocessor
 
-Children = List[Any]
-Transformed = Union[Node, Any, Dict[str, Any], List[Any], str]
+Children = PyList[Any]
+Transformed = Union[Node, Any, Dict[str, Any], PyList[Any], str]
 
 
 class AsciiDocTransformer(Transformer[Token, Transformed]):
@@ -49,14 +53,14 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        self.attributes: Dict[str, List[Node]] = {}
+        self.attributes: Dict[str, PyList[Node]] = {}
 
     @staticmethod
-    def _merge_consecutive_lists(blocks: Sequence[BlockNode]) -> List[Node]:
+    def _merge_consecutive_lists(blocks: Sequence[BlockNode]) -> PyList[Node]:
         """
         Merges consecutive list blocks of the same type into a single block.
 
-        For example, two `BulletList` nodes that appear sequentially will be
+        For example, two `List` nodes of same variant that appear sequentially will be
         merged into one. This is necessary because the parser may generate them
         as separate entities.
 
@@ -68,15 +72,17 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
         if not blocks:
             return []
 
-        merged_blocks: List[Node] = [blocks[0]]
+        merged_blocks: PyList[Node] = [blocks[0]]
         for current_block in blocks[1:]:
             prev_block = merged_blocks[-1]
 
-            # Merge consecutive lists of the same type
-            if isinstance(current_block, (BulletList, OrderedList)) and type(
-                current_block
-            ) is type(prev_block):
-                prev_block.children.extend(current_block.children)
+            # Merge consecutive lists of the same type and variant
+            if (
+                isinstance(current_block, ASTList)
+                and isinstance(prev_block, ASTList)
+                and current_block.variant == prev_block.variant
+            ):
+                prev_block.items.extend(current_block.items)
             else:
                 merged_blocks.append(current_block)
         return merged_blocks
@@ -107,7 +113,7 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
         return 1  # for 1., 2., etc.
 
     @staticmethod
-    def _nest_list_items(items: List[Dict[str, Any]]) -> List[ListItem]:
+    def _nest_list_items(items: PyList[Dict[str, Any]]) -> PyList[ListItem]:
         """
         Organizes a flat list of items into a nested list structure.
 
@@ -117,7 +123,7 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
 
         Args:
             items: A list of dictionaries, where each dictionary represents a
-                   list item with 'level', 'item_type', and 'children'.
+                   list item with 'level', 'item_type', 'marker', and 'children'.
 
         Returns:
             A list of root-level `ListItem` nodes.
@@ -125,68 +131,70 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
         if not items:
             return []
 
-        root_lists: List[Union[BulletList, OrderedList]] = []
+        root_lists: PyList[ASTList] = []
         # (level, list_node)
-        stack: List[Tuple[int, Union[BulletList, OrderedList]]] = []
+        stack: PyList[Tuple[int, ASTList]] = []
 
         for item_data in items:
             level = item_data["level"]
             item_type = item_data["item_type"]
+            marker = item_data["marker"]
 
             # Pop from the stack until the parent list of the correct level is found.
             # This handles moving to a shallower nesting level.
             while stack and level < stack[-1][0]:
                 stack.pop()
 
-            list_node: Union[BulletList, OrderedList]
+            list_node: ASTList
             if not stack:
                 # This is a new root-level list.
-                list_node = BulletList() if item_type == "bullet" else OrderedList()
+                variant = "unordered" if item_type == "bullet" else "ordered"
+                list_node = ASTList(variant=variant, marker=marker)
                 root_lists.append(list_node)
                 stack.append((level, list_node))
             elif level > stack[-1][0]:
                 # This is a new sublist, nested inside the previous item.
                 parent_list = stack[-1][1]
-                if parent_list.children:
-                    last_item = parent_list.children[-1]
-                    list_node = (
-                        BulletList() if item_type == "bullet" else OrderedList()
-                    )
-                    last_item.append(list_node)
+                if parent_list.items:
+                    last_item = parent_list.items[-1]
+                    variant = "unordered" if item_type == "bullet" else "ordered"
+                    list_node = ASTList(variant=variant, marker=marker)
+                    last_item.blocks.append(list_node)
                     stack.append((level, list_node))
                 else:
-                    # Fallback: if the parent list is somehow empty, attach to it
-                    # directly. This case is not expected in well-formed AsciiDoc.
+                    # Fallback
                     list_node = stack[-1][1]
             else:
-                # This item is at the same level as the previous one.
-                # We continue adding to the current list. In AsciiDoc, changing
-                # marker types at the same level would start a new list, but our
-                # grammar currently groups them, so we just append.
+                # Same level
                 list_node = stack[-1][1]
 
             # Add the item to its parent list.
-            list_node.append(ListItem(item_data["children"]))
+            list_node.items.append(
+                ListItem(marker=marker, principal=item_data["children"])
+            )
 
         # The result should be a list of `ListItem` nodes, not the list containers.
-        all_root_children: List[Node] = []
+        all_root_children: PyList[ListItem] = []
         for rl in root_lists:
-            all_root_children.extend(rl.children)
-        return all_root_children  # type: ignore
+            all_root_children.extend(rl.items)
+        return all_root_children
 
     def document(self, children: Children) -> Document:
-        children = [c for c in children if c is not Discard and c is not None]
-        header = None
-        if children and isinstance(children[0], Header):
-            header = children.pop(0)
+        return children[0]
 
-        merged_children = self._merge_consecutive_lists(children)
-
-        doc = Document(merged_children)
-        if header:
-            doc.header = header
-            self.attributes.update(header.attributes)
+    def document_header_with_body(self, children: Children) -> Document:
+        header = children[0]
+        blocks = children[1:]
+        merged_blocks = self._merge_consecutive_lists(blocks)
+        doc = Document(merged_blocks)
+        doc.header = header
+        doc.attributes.update(header.attributes)
+        self.attributes.update(header.attributes)
         return doc
+
+    def body_only(self, children: Children) -> Document:
+        merged_blocks = self._merge_consecutive_lists(children)
+        return Document(merged_blocks)
 
     def document_header(self, children: Children) -> Header:
         title = children[0]
@@ -197,14 +205,14 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
 
         if len(text_lines) > 0:
             line1_text = "".join(
-                [node.text for node in text_lines[0] if hasattr(node, "text")]
+                [node.value for node in text_lines[0] if hasattr(node, "value")]
             )
             if self.AUTHOR_REGEX.fullmatch(line1_text.strip()):
                 author = Author(text_lines[0])
 
         if len(text_lines) > 1:
             line2_text = "".join(
-                [node.text for node in text_lines[1] if hasattr(node, "text")]
+                [node.value for node in text_lines[1] if hasattr(node, "value")]
             )
             if self.REVISION_REGEX.fullmatch(line2_text.strip()):
                 revision = Revision(text_lines[1])
@@ -212,11 +220,16 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
         attributes: Dict[str, Any] = {}
         for child in children:
             if isinstance(child, AttributeEntry):
-                attributes[child.name] = self.attributes.get(child.name, [])
+                attributes[child.attribute_name] = self.attributes.get(
+                    child.attribute_name, []
+                )
 
         return Header(
             title=title, author=author, revision=revision, attributes=attributes
         )
+
+    def author_rev_line(self, children: Children) -> PyList[Node]:
+        return self.text_content(children)
 
     def document_title(self, children: Children) -> Title:
         nodes = [c for c in children if isinstance(c, list)]
@@ -232,10 +245,9 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
 
     def section(self, children: Children) -> Section:
         children = [c for c in children if c is not Discard]
-        title_node, *blocks = children
-        section_node = Section(level=1, title_node=title_node)
-        section_node.children = self._merge_consecutive_lists(blocks)
-        return section_node
+        title, *blocks = children
+        merged_blocks = self._merge_consecutive_lists(blocks)
+        return Section(level=1, title=title, blocks=merged_blocks)
 
     def section_title(self, children: Children) -> Title:
         # We want the result of text_content, which is a list of nodes.
@@ -248,48 +260,80 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
 
     def paragraph(self, children: Children) -> Paragraph:
         children = [c for c in children if c is not Discard]
-        return Paragraph(children[0])
+        # TCK expects multiple lines in a paragraph to be joined by \n
+        all_inlines: PyList[Node] = []
+        for i, line in enumerate(children):
+            if i > 0:
+                all_inlines.append(Text("\n"))
+            all_inlines.extend(line)
 
-    def ulist(self, children: Children) -> BulletList:
-        return BulletList(AsciiDocTransformer._nest_list_items(children))
+        consolidated: PyList[Node] = []
+        for node in all_inlines:
+            if (
+                consolidated
+                and isinstance(consolidated[-1], Text)
+                and isinstance(node, Text)
+            ):
+                consolidated[-1].value += node.value
+            else:
+                consolidated.append(node)
 
-    def olist(self, children: Children) -> OrderedList:
-        return OrderedList(AsciiDocTransformer._nest_list_items(children))
+        return Paragraph(inlines=consolidated)
+
+    def ulist(self, children: Children) -> ASTList:
+        items = AsciiDocTransformer._nest_list_items(children)
+        marker = children[0]["marker"] if children else "*"
+        return ASTList(variant="unordered", marker=marker, items=items)
+
+    def olist(self, children: Children) -> ASTList:
+        items = AsciiDocTransformer._nest_list_items(children)
+        marker = children[0]["marker"] if children else "."
+        return ASTList(variant="ordered", marker=marker, items=items)
 
     def ulist_item(self, children: Children) -> Dict[str, Any]:
         # Children are: [ULIST_MARKER, text_content]
         marker_token = children[0]
         level = AsciiDocTransformer._get_list_level(marker_token)
         content = children[1]
-        return {"level": level, "item_type": "bullet", "children": content}
+        return {
+            "level": level,
+            "item_type": "bullet",
+            "marker": marker_token.value.strip(),
+            "children": content,
+        }
 
     def olist_item(self, children: Children) -> Dict[str, Any]:
         # Children are: [OLIST_MARKER, text_content]
         marker_token = children[0]
         level = AsciiDocTransformer._get_list_level(marker_token)
         content = children[1]
-        return {"level": level, "item_type": "enumerated", "children": content}
+        return {
+            "level": level,
+            "item_type": "enumerated",
+            "marker": marker_token.value.strip(),
+            "children": content,
+        }
 
     def basic_block(self, children: Children) -> Transformed:
         return children[0] if children else Discard
 
-    def admonition_content(self, children: Children) -> List[Any]:
+    def admonition_content(self, children: Children) -> PyList[Any]:
         return [c for c in children if c is not Discard]
 
-    def sidebar_content(self, children: Children) -> List[Any]:
+    def sidebar_content(self, children: Children) -> PyList[Any]:
         return [c for c in children if c is not Discard]
 
-    def example_content(self, children: Children) -> List[Any]:
+    def example_content(self, children: Children) -> PyList[Any]:
         return [c for c in children if c is not Discard]
 
-    def example_block(self, children: Children) -> ExampleBlock:
-        inner: List[Any] = []
+    def example_block(self, children: Children) -> Example:
+        inner: PyList[Any] = []
         for c in children:
             if isinstance(c, list):
                 inner = c
                 break
         merged_inner = self._merge_consecutive_lists(inner)
-        return ExampleBlock(children=merged_inner)
+        return Example(blocks=merged_inner)
 
     def attribute_content(self, children: Children) -> str:
         # returns the attribute string (e.g. "source,python")
@@ -313,7 +357,7 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
                 attrs["language"] = parts[1]
         return attrs
 
-    def literal_block(self, children: Children) -> LiteralBlock:
+    def literal_block(self, children: Children) -> Listing:
         # children: attribute_list? LITERAL_BLOCK_DELIM _NEWLINE
         # LITERAL_BLOCK_CONTENT LITERAL_BLOCK_DELIM
         content = ""
@@ -325,33 +369,33 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
             elif isinstance(c, Token) and c.type == "LITERAL_BLOCK_CONTENT":
                 content = c.value
 
-        return LiteralBlock(content, attributes)
+        return Listing(inlines=[Text(content)], attributes=attributes)
 
     def admonition(self, children: Children) -> Admonition:
         # children: [ADMONITION_START, _NEWLINE, ADMONITION_DELIM, _NEWLINE,
         # block_content, ADMONITION_DELIM]
         start_token = children[0]
-        flavor = start_token.value.strip("[] ").lower()
+        variant = start_token.value.strip("[] ").lower()
 
         # Find the block_content (list of blocks)
-        inner: List[Any] = []
+        inner: PyList[Any] = []
         for c in children:
             if isinstance(c, list):
                 inner = c
                 break
 
         merged_inner = self._merge_consecutive_lists(inner)
-        return Admonition(flavor=flavor, children=merged_inner)
+        return Admonition(variant=variant, blocks=merged_inner)
 
     def sidebar(self, children: Children) -> Sidebar:
         # children: [SIDEBAR_DELIM, _NEWLINE, block_content, SIDEBAR_DELIM]
-        inner: List[Any] = []
+        inner: PyList[Any] = []
         for c in children:
             if isinstance(c, list):
                 inner = c
                 break
         merged_inner = self._merge_consecutive_lists(inner)
-        return Sidebar(children=merged_inner)
+        return Sidebar(blocks=merged_inner)
 
     def attribute_entry(self, children: Children) -> AttributeEntry:
         """
@@ -359,10 +403,11 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
         attribute registry and returning an `AttributeEntry` node.
         """
         name = ""
-        value_nodes: List[Node] = []
+        value_nodes: PyList[Node] = []
         for c in children:
-            if isinstance(c, Token) and c.type == "ATTR_NAME":
-                name = c.value
+            if isinstance(c, Token) and (c.type == "ATTR_NAME" or c.type == "COLON"):
+                if c.type == "ATTR_NAME":
+                    name = c.value
             elif isinstance(c, list):
                 value_nodes = c
 
@@ -370,22 +415,32 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
         self.attributes[name] = value_nodes
 
         # For the AttributeEntry node itself, create a simple string value.
-        # This is used for display or simple cases, while the rich value_nodes
-        # are preserved for substitutions.
         value_str = ""
-        parts: List[str] = []
+        parts: PyList[str] = []
 
         for node in value_nodes:
-            if hasattr(node, "text"):
-                parts.append(getattr(node, "text"))
-            elif hasattr(node, "children"):
-                # This is a naive flatten but works for simple inline formatting.
+            if hasattr(node, "value") and not isinstance(
+                node,
+                (
+                    ListItem,
+                    Listing,
+                    Admonition,
+                    Sidebar,
+                    Example,
+                    Quote,
+                    Table,
+                    TableRow,
+                    TableCell,
+                ),
+            ):
+                parts.append(getattr(node, "value"))
+            elif hasattr(node, "inlines"):
                 parts.append(
                     "".join(
                         [
-                            getattr(child, "text")
-                            for child in node.children
-                            if hasattr(child, "text")
+                            getattr(child, "value")
+                            for child in getattr(node, "inlines")
+                            if hasattr(child, "value")
                         ]
                     )
                 )
@@ -395,7 +450,7 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
 
     # --- Inlines ---
 
-    def attribute_reference(self, children: Children) -> List[Node]:
+    def attribute_reference(self, children: Children) -> PyList[Node]:
         name = ""
         for c in children:
             if isinstance(c, Token) and c.type == "ATTR_NAME":
@@ -406,11 +461,11 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
         # unresolved reference
         return self.attributes.get(name, [Text(f"{{{name}}}")])
 
-    def text_content(self, children: Children) -> List[Node]:
-        nodes: List[Node] = []
+    def text_content(self, children: Children) -> PyList[Node]:
+        nodes: PyList[Node] = []
         text_buffer = ""
 
-        flat_children: List[Any] = []
+        flat_children: PyList[Any] = []
         for child in children:
             if isinstance(child, list):
                 flat_children.extend(child)
@@ -421,7 +476,7 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
             if isinstance(child, Token):
                 text_buffer += str(child.value)
             elif isinstance(child, Text):
-                text_buffer += child.text
+                text_buffer += child.value
             elif isinstance(child, Node):
                 if text_buffer:
                     nodes.append(Text(text_buffer))
@@ -431,24 +486,26 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
             nodes.append(Text(text_buffer))
         return nodes
 
-    def bold(self, children: Children) -> Strong:
+    def bold(self, children: Children) -> Span:
         content = [c for c in children if isinstance(c, list)]
         nodes = content[0] if content else []
-        # If the only child is a Strong node, flatten it.
-        if len(nodes) == 1 and isinstance(nodes[0], Strong):
-            return Strong(nodes[0].children)
-        return Strong(nodes)
+        # If the only child is a Span node of same variant, flatten it.
+        if (
+            len(nodes) == 1
+            and isinstance(nodes[0], Span)
+            and nodes[0].variant == "strong"
+        ):
+            return Span(variant="strong", inlines=nodes[0].inlines)
+        return Span(variant="strong", inlines=nodes)
 
-    def italic(self, children: Children) -> Emphasis:
+    def italic(self, children: Children) -> Span:
         content = [c for c in children if isinstance(c, list)]
-        return Emphasis(content[0] if content else [])
+        return Span(variant="emphasis", inlines=content[0] if content else [])
 
-    def monospace(self, children: Children) -> InlineCode:
+    def monospace(self, children: Children) -> Span:
         content = [c for c in children if isinstance(c, list)]
-        # For monospace, we flatten to raw text as per older tests if needed,
-        # but here we follow the 'children' requirement.
         nodes = content[0] if content else []
-        return InlineCode(nodes)
+        return Span(variant="code", inlines=nodes)
 
     # --- Terminals ---
 

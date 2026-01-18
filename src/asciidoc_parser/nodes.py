@@ -1,102 +1,139 @@
 from __future__ import annotations
 
-from enum import Enum
-from typing import Any, Dict, Iterator, List, Optional, Sequence
+from typing import Any, Dict, Iterator, Optional, Sequence
+from typing import List as PyList
 
 """
 Custom Abstract Syntax Tree (AST) for AsciiDoc parsing.
 """
 
 
-class NodeType(str, Enum):
-    """An enumeration of all possible node types in the AST."""
-
-    DOCUMENT = "document"
-    TITLE = "title"
-    AUTHOR = "author"
-    REVISION = "revision"
-    HEADER = "header"
-    SECTION = "section"
-    PARAGRAPH = "paragraph"
-    TEXT = "text"
-    STRONG = "strong"
-    EMPHASIS = "emphasis"
-    INLINE_CODE = "literal"
-    LINK = "link"
-    IMAGE = "image"
-    BULLET_LIST = "bullet_list"
-    ORDERED_LIST = "enumerated_list"
-    LIST_ITEM = "list_item"
-    LITERAL_BLOCK = "literal_block"
-    EXAMPLE_BLOCK = "example_block"
-    QUOTE_BLOCK = "quote_block"
-    ADMONITION = "admonition"
-    SIDEBAR = "sidebar"
-    TABLE = "table"
-    TABLE_ROW = "table_row"
-    TABLE_CELL = "table_cell"
-    ATTRIBUTE_ENTRY = "attribute_entry"
-    INCLUDE = "include"
-
-
 class Node:
     """Base class for all AST nodes."""
 
     def __init__(self, children: Optional[Sequence[Node]] = None):
-        self.children: List[Node] = list(children) if children else []
-        self.node_type: Optional[NodeType] = None
-
-    _SERIALIZABLE_ATTRS: List[str] = []
-    _NODE_ATTRS: List[str] = []
+        self.children: PyList[Node] = list(children) if children else []
+        self.name: str = "unknown"
+        self.type: str = "block"
+        self.attributes: Dict[str, Any] = {}
 
     def append(self, child: Node) -> None:
-        self.children.append(child)
+        if hasattr(self, "blocks"):
+            getattr(self, "blocks").append(child)
+        elif hasattr(self, "inlines"):
+            getattr(self, "inlines").append(child)
+        elif hasattr(self, "items"):
+            getattr(self, "items").append(child)
+        else:
+            self.children.append(child)
 
     def to_dict(self) -> Dict[str, Any]:
-        """
-        Recursively converts the node and its subtree into a dictionary.
+        """Serialize to ASG-compatible dictionary."""
+        if isinstance(self, Header):
+            header_data: Dict[str, Any] = {}
+            if self.title:
+                header_data["title"] = [n.to_dict() for n in self.title.inlines]
+            if self.author:
+                fullname = "".join(
+                    [
+                        getattr(n, "value", "")
+                        for n in self.author.inlines
+                        if hasattr(n, "value")
+                    ]
+                )
+                header_data["authors"] = [{"fullname": fullname}]
+            if self.revision:
+                value = "".join(
+                    [
+                        getattr(n, "value", "")
+                        for n in self.revision.inlines
+                        if hasattr(n, "value")
+                    ]
+                )
+                header_data["revision"] = {
+                    "name": "revision",
+                    "type": "block",
+                    "value": value,
+                }
+            return header_data
 
-        This method is primarily used for debugging and testing to allow for
-        easy comparison of the parsed AST structure with an expected output.
-        It serializes the node's type, its serializable attributes (like
-        `text` or `level`), any nested node attributes (like `title_node`),
-        and its children.
+        data: Dict[str, Any] = {"name": self.name, "type": self.type}
 
-        Returns:
-            A dictionary representation of the node.
-        """
-        data: Dict[str, Any] = {"type": None}
-        if self.node_type:
-            data["type"] = self.node_type.value
-
-        if hasattr(self, "attributes") and self.attributes:
-            # Header node has a custom implementation for serializing attributes
-            if not isinstance(self, Header):
-                data["attributes"] = self.attributes
-
-        for attr in self._SERIALIZABLE_ATTRS:
+        # Handle simple attributes
+        for attr in [
+            "variant",
+            "form",
+            "delimiter",
+            "level",
+            "marker",
+            "target",
+            "value",
+            "attribute_name",
+        ]:
             if hasattr(self, attr):
-                value = getattr(self, attr)
-                if value is not None:
-                    data[attr] = value
+                val = getattr(self, attr)
+                if val is not None:
+                    data[attr] = val
 
-        for attr in self._NODE_ATTRS:
-            if hasattr(self, attr):
-                node = getattr(self, attr)
-                if node:
-                    # 'title_node' -> 'title'
-                    key = attr.replace("_node", "")
-                    data[key] = node.to_dict()
+        # Handle child nodes
+        if hasattr(self, "inlines"):
+            data["inlines"] = [n.to_dict() for n in getattr(self, "inlines")]
+        if hasattr(self, "blocks"):
+            data["blocks"] = [n.to_dict() for n in getattr(self, "blocks")]
+        if hasattr(self, "items"):
+            data["items"] = [n.to_dict() for n in getattr(self, "items")]
+        if hasattr(self, "principal"):
+            data["principal"] = [n.to_dict() for n in getattr(self, "principal")]
 
-        if self.children:
-            data["children"] = [c.to_dict() for c in self.children]
+        # Handle specific node structures
+        if isinstance(self, Document):
+            if self.attributes or self.header:
+                resolved_attrs = {}
+                for k, v in self.attributes.items():
+                    if isinstance(v, list):
+                        resolved_attrs[k] = "".join(
+                            [
+                                getattr(n, "value", "") if hasattr(n, "value") else ""
+                                for n in v
+                            ]
+                        )
+                    else:
+                        resolved_attrs[k] = str(v)
+                data["attributes"] = resolved_attrs
+
+            if self.header:
+                data["header"] = self.header.to_dict()
+
+        if isinstance(self, Section) and hasattr(self, "title"):
+            data["title"] = [n.to_dict() for n in self.title.inlines]
+
+        if isinstance(self, Table):
+            data["rows"] = [r.to_dict() for r in self.rows]
+
+        if isinstance(self, TableRow):
+            data["cells"] = [c.to_dict() for c in self.cells]
+
+        if self.attributes and not isinstance(self, (Document, Header, Image)):
+            data["attributes"] = self.attributes
 
         return data
 
     def walk(self) -> Iterator[Node]:
         """Walk the AST, yielding each node."""
         yield self
-        for child in self.children:
+        children = []
+        if hasattr(self, "blocks"):
+            children = getattr(self, "blocks")
+        elif hasattr(self, "inlines"):
+            children = getattr(self, "inlines")
+        elif hasattr(self, "items"):
+            children = getattr(self, "items")
+        elif hasattr(self, "principal"):
+            children = getattr(self, "principal")
+        else:
+            children = self.children
+
+        for child in children:
             yield from child.walk()
 
 
@@ -116,37 +153,43 @@ class BlockNode(Node):
 class Document(BlockNode):
     """The root node of the entire AsciiDoc document AST."""
 
-    _NODE_ATTRS = ["header"]
-
-    def __init__(self, children: Optional[Sequence[Node]] = None):
-        super().__init__(children)
-        self.node_type = NodeType.DOCUMENT
+    def __init__(self, blocks: Optional[Sequence[Node]] = None):
+        super().__init__()
+        self.name = "document"
+        self.type = "block"
+        self.blocks: PyList[Node] = list(blocks) if blocks else []
         self.header: Optional[Header] = None
-        self.attributes: dict[str, str] = {}
 
 
 class Title(Node):
     """Represents the title of a document or a section."""
 
-    def __init__(self, children: Optional[Sequence[Node]] = None):
-        super().__init__(children)
-        self.node_type = NodeType.TITLE
+    def __init__(self, inlines: Optional[Sequence[Node]] = None):
+        super().__init__()
+        self.name = "title"
+        self.type = "inline"
+        self.inlines: PyList[Node] = list(inlines) if inlines else []
 
 
 class Author(Node):
     """Represents an author entry in the document header."""
 
-    def __init__(self, children: Optional[Sequence[Node]] = None):
-        super().__init__(children)
-        self.node_type = NodeType.AUTHOR
+    def __init__(self, inlines: Optional[Sequence[Node]] = None):
+        super().__init__()
+        self.name = "author"
+        self.type = "inline"
+        self.inlines: PyList[Node] = list(inlines) if inlines else []
 
 
 class Revision(Node):
     """Represents a revision entry in the document header."""
 
-    def __init__(self, children: Optional[Sequence[Node]] = None):
-        super().__init__(children)
-        self.node_type = NodeType.REVISION
+    def __init__(self, inlines: Optional[Sequence[Node]] = None):
+        super().__init__()
+        self.name = "revision"
+        self.type = "block"
+        self.value: str = ""
+        self.inlines: PyList[Node] = list(inlines) if inlines else []
 
 
 class Header(Node):
@@ -160,226 +203,239 @@ class Header(Node):
         attributes: Optional[Dict[str, Any]] = None,
     ):
         super().__init__()
-        self.node_type = NodeType.HEADER
+        self.name = "header"
+        self.type = "block"
         self.title = title
         self.author = author
         self.revision = revision
         self.attributes = attributes or {}
 
-    def to_dict(self) -> Dict[str, Any]:
-        data = super().to_dict()
-        if self.title:
-            data["title"] = self.title.to_dict()
-        if self.author:
-            data["author"] = self.author.to_dict()
-        if self.revision:
-            data["revision"] = self.revision.to_dict()
-        if self.attributes:
-            data["attributes"] = {
-                k: [v_node.to_dict() for v_node in v]
-                for k, v in self.attributes.items()
-            }
-        return data
-
 
 class Section(BlockNode):
     """Represents a structural section of the document."""
 
-    _SERIALIZABLE_ATTRS = ["level"]
-    _NODE_ATTRS = ["title_node"]
-
-    def __init__(self, level: int, title_node: Node):
+    def __init__(
+        self, level: int, title: Node, blocks: Optional[Sequence[Node]] = None
+    ):
         super().__init__()
-        self.node_type = NodeType.SECTION
+        self.name = "section"
+        self.type = "block"
         self.level = level
-        self.title_node = title_node
+        self.title = title
+        self.blocks: PyList[Node] = list(blocks) if blocks else []
 
 
 class Paragraph(BlockNode):
     """A block-level node representing a paragraph of text."""
 
-    def __init__(self, children: Optional[Sequence[Node]] = None):
-        super().__init__(children)
-        self.node_type = NodeType.PARAGRAPH
+    def __init__(self, inlines: Optional[Sequence[Node]] = None):
+        super().__init__()
+        self.name = "paragraph"
+        self.type = "block"
+        self.inlines: PyList[Node] = list(inlines) if inlines else []
 
 
 class Text(InlineNode):
     """A leaf node representing a segment of plain text."""
 
-    _SERIALIZABLE_ATTRS = ["text"]
-
-    def __init__(self, text: str):
+    def __init__(self, value: str):
         super().__init__()
-        self.node_type = NodeType.TEXT
-        self.text = text
+        self.name = "text"
+        self.type = "string"
+        self.value = value
 
 
-class Strong(InlineNode):
-    """An inline node for bold text (`*text*`)."""
+class Span(InlineNode):
+    """An inline node for formatted text (bold, italic, code)."""
 
-    def __init__(self, children: Optional[Sequence[Node]] = None):
-        super().__init__(children)
-        self.node_type = NodeType.STRONG
-
-
-class Emphasis(InlineNode):
-    """An inline node for italicized text (`_text_`)."""
-
-    def __init__(self, children: Optional[Sequence[Node]] = None):
-        super().__init__(children)
-        self.node_type = NodeType.EMPHASIS
-
-
-class InlineCode(InlineNode):
-    """An inline node for monospaced/code text (`+text+`)."""
-
-    def __init__(self, children: Optional[Sequence[Node]] = None):
-        super().__init__(children)
-        self.node_type = NodeType.INLINE_CODE
-
-
-class Link(InlineNode):
-    """An inline node for a hyperlink."""
-
-    _SERIALIZABLE_ATTRS = ["url", "text"]
-
-    def __init__(self, url: str, text: Optional[str] = None):
+    def __init__(
+        self,
+        variant: str,
+        inlines: Optional[Sequence[Node]] = None,
+        form: str = "constrained",
+    ):
         super().__init__()
-        self.node_type = NodeType.LINK
-        self.url = url
-        self.text = text or url
+        self.name = "span"
+        self.type = "inline"
+        self.variant = variant
+        self.form = form
+        self.inlines: PyList[Node] = list(inlines) if inlines else []
 
 
-class Image(InlineNode):
+class Ref(InlineNode):
+    """An inline node for a hyperlink or cross-reference."""
+
+    def __init__(
+        self, variant: str, target: str, inlines: Optional[PyList[Node]] = None
+    ):
+        super().__init__()
+        self.name = "ref"
+        self.type = "inline"
+        self.variant = variant
+        self.target = target
+        self.inlines: PyList[Node] = list(inlines) if inlines else []
+
+
+class Image(BlockNode):
     """A block or inline node for an image directive."""
 
-    _SERIALIZABLE_ATTRS = ["url", "alt"]
-
-    def __init__(self, url: str, alt: str = ""):
+    def __init__(self, target: str, alt: str = "", form: str = "macro"):
         super().__init__()
-        self.node_type = NodeType.IMAGE
-        self.url = url
-        self.alt = alt
+        self.name = "image"
+        self.type = "block"
+        self.target = target
+        self.form = form
+        self.attributes = {"alt": alt}
 
 
-class BulletList(BlockNode):
-    """A block node representing an unordered (bulleted) list."""
+class List(BlockNode):
+    """A block node representing a list (ordered or unordered)."""
 
-    def __init__(self, children: Optional[Sequence[Node]] = None):
-        super().__init__(children)
-        self.node_type = NodeType.BULLET_LIST
-
-
-class OrderedList(BlockNode):
-    """A block node representing an ordered (numbered or lettered) list."""
-
-    def __init__(self, children: Optional[Sequence[Node]] = None):
-        super().__init__(children)
-        self.node_type = NodeType.ORDERED_LIST
+    def __init__(
+        self,
+        variant: str,
+        marker: str,
+        items: Optional[Sequence[ListItem]] = None,
+    ):
+        super().__init__()
+        self.name = "list"
+        self.type = "block"
+        self.variant = variant
+        self.marker = marker
+        self.items: PyList[ListItem] = list(items) if items else []
 
 
 class ListItem(BlockNode):
     """A node representing a single item within a list. It can contain blocks."""
 
-    def __init__(self, children: Optional[Sequence[Node]] = None):
-        super().__init__(children)
-        self.node_type = NodeType.LIST_ITEM
+    def __init__(
+        self,
+        marker: str,
+        principal: Optional[Sequence[Node]] = None,
+        blocks: Optional[Sequence[Node]] = None,
+    ):
+        super().__init__()
+        self.name = "listItem"
+        self.type = "block"
+        self.marker = marker
+        self.principal: PyList[Node] = list(principal) if principal else []
+        self.blocks: PyList[Node] = list(blocks) if blocks else []
 
 
-class LiteralBlock(BlockNode):
+class Listing(BlockNode):
     """A block for preformatted text, typically used for code listings."""
 
-    _SERIALIZABLE_ATTRS = ["content"]
-
-    def __init__(self, content: str, attributes: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self,
+        inlines: Optional[Sequence[Node]] = None,
+        attributes: Optional[Dict[str, Any]] = None,
+    ):
         super().__init__()
-        self.node_type = NodeType.LITERAL_BLOCK
-        self.content = content
+        self.name = "listing"
+        self.type = "block"
+        self.form = "delimited"
+        self.delimiter = "----"
+        self.inlines: PyList[Node] = list(inlines) if inlines else []
         self.attributes = attributes or {}
 
 
-class ExampleBlock(BlockNode):
+class Example(BlockNode):
     """A block for content that should be rendered as an example."""
 
-    def __init__(self, children: Optional[Sequence[Node]] = None):
-        super().__init__(children)
-        self.node_type = NodeType.EXAMPLE_BLOCK
+    def __init__(self, blocks: Optional[Sequence[Node]] = None):
+        super().__init__()
+        self.name = "example"
+        self.type = "block"
+        self.form = "delimited"
+        self.delimiter = "===="
+        self.blocks: PyList[Node] = list(blocks) if blocks else []
 
 
-class QuoteBlock(BlockNode):
+class Quote(BlockNode):
     """A block representing a quotation."""
 
-    def __init__(self, children: Optional[Sequence[Node]] = None):
-        super().__init__(children)
-        self.node_type = NodeType.QUOTE_BLOCK
+    def __init__(self, blocks: Optional[Sequence[Node]] = None):
+        super().__init__()
+        self.name = "quote"
+        self.type = "block"
+        self.form = "delimited"
+        self.delimiter = "____"
+        self.blocks: PyList[Node] = list(blocks) if blocks else []
 
 
 class Admonition(BlockNode):
     """A block for admonitions like NOTE, TIP, IMPORTANT, etc."""
 
-    _SERIALIZABLE_ATTRS = ["flavor"]
-
-    def __init__(self, flavor: str, children: Optional[Sequence[Node]] = None):
-        super().__init__(children)
-        self.node_type = NodeType.ADMONITION
-        self.flavor = flavor
+    def __init__(self, variant: str, blocks: Optional[Sequence[Node]] = None):
+        super().__init__()
+        self.name = "admonition"
+        self.type = "block"
+        self.variant = variant
+        self.form = "delimited"
+        self.delimiter = "===="
+        self.blocks: PyList[Node] = list(blocks) if blocks else []
 
 
 class Sidebar(BlockNode):
     """A block for content that is separate from the main flow of text."""
 
-    def __init__(self, children: Optional[Sequence[Node]] = None):
-        super().__init__(children)
-        self.node_type = NodeType.SIDEBAR
+    def __init__(self, blocks: Optional[Sequence[Node]] = None):
+        super().__init__()
+        self.name = "sidebar"
+        self.type = "block"
+        self.form = "delimited"
+        self.delimiter = "****"
+        self.blocks: PyList[Node] = list(blocks) if blocks else []
 
 
 class Table(BlockNode):
     """A node representing a table."""
 
-    def __init__(self) -> None:
+    def __init__(self, rows: Optional[Sequence[TableRow]] = None) -> None:
         super().__init__()
-        self.node_type = NodeType.TABLE
-        self.header_rows: List[TableRow] = []
-        self.rows: List[TableRow] = []
+        self.name = "table"
+        self.type = "block"
+        self.rows: PyList[TableRow] = list(rows) if rows else []
 
 
 class TableRow(Node):
     """A node representing a single row in a table."""
 
-    def __init__(self) -> None:
+    def __init__(self, cells: Optional[Sequence[TableCell]] = None) -> None:
         super().__init__()
-        self.node_type = NodeType.TABLE_ROW
-        self.cells: List[TableCell] = []
+        self.name = "row"
+        self.type = "block"
+        self.cells: PyList[TableCell] = list(cells) if cells else []
 
 
 class TableCell(Node):
     """A node representing a single cell in a table row."""
 
-    def __init__(self, children: Optional[Sequence[Node]] = None):
-        super().__init__(children)
-        self.node_type = NodeType.TABLE_CELL
+    def __init__(self, blocks: Optional[Sequence[Node]] = None):
+        super().__init__()
+        self.name = "cell"
+        self.type = "block"
+        self.blocks: PyList[Node] = list(blocks) if blocks else []
 
 
 class AttributeEntry(Node):
     """A node representing an attribute declaration in the document header."""
 
-    _SERIALIZABLE_ATTRS = ["name", "value"]
-
     def __init__(self, name: str, value: str):
         super().__init__()
-        self.node_type = NodeType.ATTRIBUTE_ENTRY
-        self.name = name
+        self.name = "attribute_entry"
+        self.type = "block"
+        self.attribute_name = name
         self.value = value
 
 
 class Include(Node):
     """A node representing an `include::` directive."""
 
-    _SERIALIZABLE_ATTRS = ["filename"]
-
     def __init__(self, filename: str):
         super().__init__()
-        self.node_type = NodeType.INCLUDE
+        self.name = "include"
+        self.type = "block"
         self.filename = filename
 
 
@@ -387,10 +443,23 @@ class NodeVisitor:
     """A base class for implementing the visitor pattern to traverse the AST."""
 
     def visit(self, node: Node, **kwargs: Any) -> Any:
-        method_name = f"visit_{node.__class__.__name__.lower()}"
+        method_name = f"visit_{node.name.lower()}"
         visitor = getattr(self, method_name, self.generic_visit)
         return visitor(node, **kwargs)
 
     def generic_visit(self, node: Node, **kwargs: Any) -> Any:
-        for child in node.children:
+        # Fallback to children if blocks/inlines not present
+        children = []
+        if hasattr(node, "blocks"):
+            children = getattr(node, "blocks")
+        elif hasattr(node, "inlines"):
+            children = getattr(node, "inlines")
+        elif hasattr(node, "items"):
+            children = getattr(node, "items")
+        elif hasattr(node, "principal"):
+            children = getattr(node, "principal")
+        else:
+            children = node.children
+
+        for child in children:
             self.visit(child, **kwargs)

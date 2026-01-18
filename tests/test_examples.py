@@ -26,5 +26,5 @@ def test_example_file_parses(filepath):
     # We just want to ensure it doesn't raise an exception
     ast = parse_to_ast(source).to_dict()
     assert ast is not None
-    assert "type" in ast
-    assert ast["type"] == "document"
+    assert "name" in ast
+    assert ast["name"] == "document"
