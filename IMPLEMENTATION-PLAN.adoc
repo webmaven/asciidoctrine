@@ -413,6 +413,7 @@ asciidoc_parser/
 3. ⏳ DocTest parsing: 150+ examples parse successfully (Currently 134 passing, 110 skipped)
 4. ✅ Single `to_dict()` output format (no dual-mode)
 5. ✅ `asg_visitor.py` deleted
+6. ✅ Comprehensive CI setup via GitHub Actions
 
 == References
 
