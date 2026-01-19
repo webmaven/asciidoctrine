@@ -1,10 +1,12 @@
 import unittest
-from asciidoc_parser.nodes import Text, Span, Paragraph
+
 from asciidoc_parser.attributes import (
-    substitute_attributes,
-    resolve_node_to_string,
     resolve_attribute_map,
+    resolve_node_to_string,
+    substitute_attributes,
 )
+from asciidoc_parser.nodes import Span, Text
+
 
 class TestAttributes(unittest.TestCase):
     def test_substitute_attributes(self):
@@ -35,6 +37,7 @@ class TestAttributes(unittest.TestCase):
         }
         expected = {"author": "John Doe", "simple": "string"}
         self.assertEqual(resolve_attribute_map(rich_attrs), expected)
+
 
 if __name__ == "__main__":
     unittest.main()

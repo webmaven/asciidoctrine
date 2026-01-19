@@ -481,7 +481,6 @@ class Table(BlockNode):
             super().append(child)
 
 
-
 class TableRow(Node):
     """A node representing a single row in a table."""
 
@@ -499,7 +498,6 @@ class TableRow(Node):
             self.cells.append(child)
         else:
             super().append(child)
-
 
 
 class TableCell(BlockNode):

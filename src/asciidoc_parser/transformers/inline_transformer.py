@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Dict, Optional, cast
 from typing import List as PyList
 
 from lark import Token
@@ -11,10 +11,12 @@ from ..nodes import (
     Text,
 )
 
+
 class InlineTransformer:
     """
     Mixin class for inline-level AsciiDoc transformations.
     """
+
     # attributes: Dict[str, PyList[Node]]  # Will be provided by main transformer
 
     def attribute_reference(self, children: PyList[Any]) -> PyList[Node]:
@@ -25,7 +27,8 @@ class InlineTransformer:
                 break
 
         # Access attributes from the instance (AsciiDocTransformer)
-        return getattr(self, "attributes").get(name, [Text(f"{{{name}}}")])
+        attrs = cast(Dict[str, PyList[Node]], getattr(self, "attributes"))
+        return attrs.get(name, [Text(f"{{{name}}}")])
 
     def text_content(self, children: PyList[Any]) -> PyList[Node]:
         nodes: PyList[Node] = []

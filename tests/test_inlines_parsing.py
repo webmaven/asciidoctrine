@@ -29,7 +29,9 @@ class TestInlines(unittest.TestCase):
     def test_symbols_in_word(self):
         source = "Hello, world! (tested)\n"
         ast = parse_to_ast(source).to_dict()
-        self.assertEqual(ast["blocks"][0]["inlines"][0]["value"], "Hello, world! (tested)")
+        self.assertEqual(
+            ast["blocks"][0]["inlines"][0]["value"], "Hello, world! (tested)"
+        )
 
     def test_list_item_with_formatting(self):
         source = "* basic item\n* item with *bold* and _italic_\n"
@@ -92,6 +94,7 @@ class TestInlines(unittest.TestCase):
         title_node = section["title"]
         text_node = title_node[0]
         self.assertEqual(text_node["value"], "Cool Project Docs")
+
 
 if __name__ == "__main__":
     unittest.main()

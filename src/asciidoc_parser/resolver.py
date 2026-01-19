@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
-from .nodes import Document, Node
 from .attributes import resolve_attribute_map, substitute_attributes
+from .nodes import Document, Node
 
 
 class ASGResolver:
