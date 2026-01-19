@@ -378,12 +378,13 @@ class Listing(BlockNode):
         self,
         inlines: Optional[Sequence[Node]] = None,
         attributes: Optional[Dict[str, Any]] = None,
+        delimiter: str = "----",
     ):
         super().__init__()
         self.name = "listing"
         self.type = "block"
         self.form = "delimited"
-        self.delimiter = "----"
+        self.delimiter = delimiter
         self.inlines: PyList[Node] = list(inlines) if inlines else []
         self.attributes = attributes or {}
 
@@ -397,12 +398,14 @@ class Example(BlockNode):
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
         return {"blocks": self.blocks}
 
-    def __init__(self, blocks: Optional[Sequence[Node]] = None):
+    def __init__(
+        self, blocks: Optional[Sequence[Node]] = None, delimiter: str = "===="
+    ):
         super().__init__()
         self.name = "example"
         self.type = "block"
         self.form = "delimited"
-        self.delimiter = "===="
+        self.delimiter = delimiter
         self.blocks: PyList[Node] = list(blocks) if blocks else []
 
 
@@ -427,13 +430,18 @@ class Admonition(BlockNode):
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
         return {"blocks": self.blocks}
 
-    def __init__(self, variant: str, blocks: Optional[Sequence[Node]] = None):
+    def __init__(
+        self,
+        variant: str,
+        blocks: Optional[Sequence[Node]] = None,
+        delimiter: str = "====",
+    ):
         super().__init__()
         self.name = "admonition"
         self.type = "block"
         self.variant = variant
         self.form = "delimited"
-        self.delimiter = "===="
+        self.delimiter = delimiter
         self.blocks: PyList[Node] = list(blocks) if blocks else []
 
 
@@ -443,12 +451,14 @@ class Sidebar(BlockNode):
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
         return {"blocks": self.blocks}
 
-    def __init__(self, blocks: Optional[Sequence[Node]] = None):
+    def __init__(
+        self, blocks: Optional[Sequence[Node]] = None, delimiter: str = "****"
+    ):
         super().__init__()
         self.name = "sidebar"
         self.type = "block"
         self.form = "delimited"
-        self.delimiter = "****"
+        self.delimiter = delimiter
         self.blocks: PyList[Node] = list(blocks) if blocks else []
 
 

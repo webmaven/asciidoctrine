@@ -1,0 +1,97 @@
+"""
+Tests for inline-level parsing in AsciiDoc.
+"""
+
+import unittest
+
+from asciidoc_parser.lark_parser import parse_to_ast
+
+
+class TestInlines(unittest.TestCase):
+    def test_bold(self):
+        source = "This is *bold* text.\n"
+        ast = parse_to_ast(source).to_dict()
+        paragraph = ast["blocks"][0]
+        self.assertEqual(paragraph["inlines"][1]["variant"], "strong")
+
+    def test_italic(self):
+        source = "This is _italic_ text.\n"
+        ast = parse_to_ast(source).to_dict()
+        paragraph = ast["blocks"][0]
+        self.assertEqual(paragraph["inlines"][1]["variant"], "emphasis")
+
+    def test_monospace(self):
+        source = "This is `monospace` text.\n"
+        ast = parse_to_ast(source).to_dict()
+        paragraph = ast["blocks"][0]
+        self.assertEqual(paragraph["inlines"][1]["variant"], "code")
+
+    def test_symbols_in_word(self):
+        source = "Hello, world! (tested)\n"
+        ast = parse_to_ast(source).to_dict()
+        self.assertEqual(ast["blocks"][0]["inlines"][0]["value"], "Hello, world! (tested)")
+
+    def test_list_item_with_formatting(self):
+        source = "* basic item\n* item with *bold* and _italic_\n"
+        ast = parse_to_ast(source).to_dict()
+        second_item = ast["blocks"][0]["items"][1]
+        content_nodes = second_item["principal"]
+        names = [n["name"] for n in content_nodes]
+        self.assertEqual(names.count("span"), 2)
+
+    def test_attribute_substitution(self):
+        source = ":author: Michael\n\nHello {author}!\n"
+        ast = parse_to_ast(source).to_dict()
+        paragraph = ast["blocks"][1]
+        text_node = paragraph["inlines"][0]
+        self.assertEqual(text_node["value"], "Hello Michael!")
+
+    def test_attribute_substitution_not_found(self):
+        source = "Hello {unknown}!\n"
+        ast = parse_to_ast(source).to_dict()
+        paragraph = ast["blocks"][0]
+        text_node = paragraph["inlines"][0]
+        self.assertEqual(text_node["value"], "Hello {unknown}!")
+
+    def test_attribute_substitution_in_title(self):
+        source = ":project: AsciiDocParser\n\n== {project} Documentation\n"
+        ast = parse_to_ast(source).to_dict()
+        section = ast["blocks"][1]
+        title_node = section["title"]
+        text_node = title_node[0]
+        self.assertEqual(text_node["value"], "AsciiDocParser Documentation")
+
+    def test_attribute_substitution_nested(self):
+        source = ":project: AsciiDoc\n:tool: {project}Parser\n\nThis is {tool}.\n"
+        ast = parse_to_ast(source).to_dict()
+        paragraph = ast["blocks"][2]
+        text_node = paragraph["inlines"][0]
+        self.assertEqual(text_node["value"], "This is AsciiDocParser.")
+
+    def test_attribute_with_inline_formatting(self):
+        source = ":author: *Jane* _Smith_\n\nHello {author}!\n"
+        ast = parse_to_ast(source).to_dict()
+        paragraph = ast["blocks"][1]
+        self.assertEqual(paragraph["inlines"][1]["name"], "span")
+        self.assertEqual(paragraph["inlines"][1]["inlines"][0]["value"], "Jane")
+
+    def test_deeply_nested_attribute_substitution(self):
+        source = ":a: 1\n:b: {a}{a}\n:c: {b}{b}\n\nResult is {c}.\n"
+        ast = parse_to_ast(source).to_dict()
+        paragraph = ast["blocks"][3]
+        self.assertEqual(paragraph["inlines"][0]["value"], "Result is 1111.")
+
+    def test_recursive_attribute_substitution(self):
+        source = (
+            ":project_name: Cool Project\n"
+            ":doc_title: {project_name} Docs\n\n"
+            "== {doc_title}\n"
+        )
+        ast = parse_to_ast(source).to_dict()
+        section = ast["blocks"][2]
+        title_node = section["title"]
+        text_node = title_node[0]
+        self.assertEqual(text_node["value"], "Cool Project Docs")
+
+if __name__ == "__main__":
+    unittest.main()

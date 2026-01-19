@@ -59,17 +59,22 @@ literal_block: LITERAL_BLOCK_DELIM _NEWLINE LITERAL_BLOCK_CONTENT _NEWLINE LITER
 // Basic content (no containers)
 basic_block: attributed_simple_block | blank_line
 
-// Admonitions allow sidebars but not (implicitly) other admonitions to avoid ambiguity without delimiter size checks
-admonition: ADMONITION_START _NEWLINE ADMONITION_DELIM _NEWLINE admonition_content ADMONITION_DELIM _NEWLINE?
-admonition_content: (sidebar | basic_block)*
+// Delimited Blocks with Nesting Support
+admonition: admonition_4 | admonition_5 | admonition_6
+example_block: example_4 | example_5 | example_6
+sidebar: sidebar_4 | sidebar_5 | sidebar_6
 
-// Example Blocks
-example_block: ADMONITION_DELIM _NEWLINE example_content ADMONITION_DELIM _NEWLINE?
-example_content: (sidebar | basic_block)*
+admonition_4: ADMONITION_START _NEWLINE ADMONITION_DELIM_4 _NEWLINE (sidebar | example_5 | example_6 | admonition_5 | admonition_6 | basic_block)* ADMONITION_DELIM_4 _NEWLINE?
+admonition_5: ADMONITION_START _NEWLINE ADMONITION_DELIM_5 _NEWLINE (sidebar | example_4 | example_6 | admonition_4 | admonition_6 | basic_block)* ADMONITION_DELIM_5 _NEWLINE?
+admonition_6: ADMONITION_START _NEWLINE ADMONITION_DELIM_6 _NEWLINE (sidebar | example_4 | example_5 | admonition_4 | admonition_5 | basic_block)* ADMONITION_DELIM_6 _NEWLINE?
 
-// Sidebars allow admonitions but not other sidebars
-sidebar: SIDEBAR_DELIM _NEWLINE sidebar_content SIDEBAR_DELIM _NEWLINE?
-sidebar_content: (admonition | example_block | basic_block)*
+example_4: ADMONITION_DELIM_4 _NEWLINE (sidebar | example_5 | example_6 | admonition_5 | admonition_6 | basic_block)* ADMONITION_DELIM_4 _NEWLINE?
+example_5: ADMONITION_DELIM_5 _NEWLINE (sidebar | example_4 | example_6 | admonition_4 | admonition_6 | basic_block)* ADMONITION_DELIM_5 _NEWLINE?
+example_6: ADMONITION_DELIM_6 _NEWLINE (sidebar | example_4 | example_5 | admonition_4 | admonition_5 | basic_block)* ADMONITION_DELIM_6 _NEWLINE?
+
+sidebar_4: SIDEBAR_DELIM_4 _NEWLINE (example_block | admonition | sidebar_5 | sidebar_6 | basic_block)* SIDEBAR_DELIM_4 _NEWLINE?
+sidebar_5: SIDEBAR_DELIM_5 _NEWLINE (example_block | admonition | sidebar_4 | sidebar_6 | basic_block)* SIDEBAR_DELIM_5 _NEWLINE?
+sidebar_6: SIDEBAR_DELIM_6 _NEWLINE (example_block | admonition | sidebar_4 | sidebar_5 | basic_block)* SIDEBAR_DELIM_6 _NEWLINE?
 
 thematic_break: THEMATIC_BREAK_MARKER _NEWLINE
 page_break: "<<<" _NEWLINE
@@ -111,15 +116,23 @@ DOC_TITLE_LEAD: /= [ \t]*/
 SECTION_TITLE_LEAD: /==+ [ \t]*/
 ULIST_MARKER: /(\*+|[-])[ \t]+/
 OLIST_MARKER: /([0-9]+\.|[\.]+)[ \t]+/
-LITERAL_BLOCK_DELIM.2: /----/
+LITERAL_BLOCK_DELIM.2: /-{4,}/
 ADMONITION_START: /\[ *(NOTE|TIP|IMPORTANT|WARNING|CAUTION) *\]/
-ADMONITION_DELIM: /====/
-SIDEBAR_DELIM: /\*\*\*\*/
+
+ADMONITION_DELIM_4: "===="
+ADMONITION_DELIM_5: "====="
+ADMONITION_DELIM_6: "======"
+ADMONITION_DELIM_LONG: /={7,}/
+
+SIDEBAR_DELIM_4: "****"
+SIDEBAR_DELIM_5: "*****"
+SIDEBAR_DELIM_6: "******"
+SIDEBAR_DELIM_LONG: /\*{7,}/
 
 THEMATIC_BREAK_MARKER: /'''+|\*\*\*+|---+|(_ _ _)+|(\* \* \*)+|(- - -)+/
 
 // Non-greedy content matching for literal blocks.
-LITERAL_BLOCK_CONTENT: /(.+?)(?=\n----)/s
+LITERAL_BLOCK_CONTENT: /(.+?)(?=\n-{4,})/s
 
 _NEWLINE: /(\r\n|\n|\r)/
 WHITESPACE: /[ \t]+/
