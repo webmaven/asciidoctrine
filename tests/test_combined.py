@@ -14,54 +14,96 @@ Another paragraph.
 """
         ast = parse_to_ast(source).to_dict()
         expected_ast = {
-            "type": "document",
-            "children": [
+            "name": "document",
+            "type": "block",
+            "blocks": [
                 {
-                    "type": "section",
+                    "name": "section",
+                    "type": "block",
                     "level": 1,
-                    "title": {
-                        "type": "title",
-                        "children": [{"type": "text", "text": "Section Title"}],
-                    },
-                    "children": [
+                    "title": [
+                        {"name": "text", "type": "string", "value": "Section Title"}
+                    ],
+                    "blocks": [
                         {
-                            "type": "bullet_list",
-                            "children": [
+                            "name": "list",
+                            "type": "block",
+                            "variant": "unordered",
+                            "marker": "*",
+                            "items": [
                                 {
-                                    "type": "list_item",
-                                    "children": [
+                                    "name": "listItem",
+                                    "type": "block",
+                                    "marker": "*",
+                                    "principal": [
                                         {
-                                            "type": "text",
-                                            "text": "This is a list item with ",
+                                            "name": "text",
+                                            "type": "string",
+                                            "value": "This is a list item with ",
                                         },
                                         {
-                                            "type": "strong",
-                                            "children": [
-                                                {"type": "text", "text": "bold"}
+                                            "name": "span",
+                                            "type": "inline",
+                                            "variant": "strong",
+                                            "form": "constrained",
+                                            "inlines": [
+                                                {
+                                                    "name": "text",
+                                                    "type": "string",
+                                                    "value": "bold",
+                                                }
                                             ],
                                         },
-                                        {"type": "text", "text": " text."},
+                                        {
+                                            "name": "text",
+                                            "type": "string",
+                                            "value": " text.",
+                                        },
                                     ],
+                                    "blocks": [],
                                 },
                                 {
-                                    "type": "list_item",
-                                    "children": [
-                                        {"type": "text", "text": "And this one has "},
+                                    "name": "listItem",
+                                    "type": "block",
+                                    "marker": "*",
+                                    "principal": [
                                         {
-                                            "type": "literal",
-                                            "children": [
-                                                {"type": "text", "text": "monospace"}
+                                            "name": "text",
+                                            "type": "string",
+                                            "value": "And this one has ",
+                                        },
+                                        {
+                                            "name": "span",
+                                            "type": "inline",
+                                            "variant": "code",
+                                            "form": "constrained",
+                                            "inlines": [
+                                                {
+                                                    "name": "text",
+                                                    "type": "string",
+                                                    "value": "monospace",
+                                                }
                                             ],
                                         },
-                                        {"type": "text", "text": "."},
+                                        {
+                                            "name": "text",
+                                            "type": "string",
+                                            "value": ".",
+                                        },
                                     ],
+                                    "blocks": [],
                                 },
                             ],
                         },
                         {
-                            "type": "paragraph",
-                            "children": [
-                                {"type": "text", "text": "Another paragraph."}
+                            "name": "paragraph",
+                            "type": "block",
+                            "inlines": [
+                                {
+                                    "name": "text",
+                                    "type": "string",
+                                    "value": "Another paragraph.",
+                                }
                             ],
                         },
                     ],

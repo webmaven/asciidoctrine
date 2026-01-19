@@ -3,10 +3,13 @@
 TCK Adapter for AsciiDoc Parser.
 Converts AsciiDoc source to TCK-compliant ASG JSON.
 """
-import sys
+
 import json
+import sys
+
 from asciidoc_parser import parse_to_ast
-from asciidoc_parser.asg_visitor import ASGVisitor
+from asciidoc_parser.resolver import ASGResolver
+
 
 def main():
     try:
@@ -27,8 +30,8 @@ def main():
         ast = parse_to_ast(contents)
 
         # Transform AST to ASG
-        visitor = ASGVisitor()
-        asg = visitor.visit(ast)
+        resolver = ASGResolver(ast)
+        asg = resolver.resolve(ast)
 
         if parse_type == "inline":
             # For inline type, TCK expects a list of inlines.
@@ -45,6 +48,7 @@ def main():
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

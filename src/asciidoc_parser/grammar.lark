@@ -1,65 +1,112 @@
 
 start: document
 
-document: document_header? block*
+document: document_header_with_body | body_only
 
-document_header: document_title (attribute_entry | text_content _NEWLINE)* blank_line
+document_header_with_body: (comment | blank_line)* document_header (blank_line block*)?
+body_only: block*
+
+document_header: document_title (attribute_entry | author_rev_line)*
+author_rev_line: WORD (WORD | WHITESPACE | COLON | AUTHOR_SPECIAL_CHARS)* _NEWLINE
 document_title: DOC_TITLE_LEAD text_content _NEWLINE
 
-block: section | blank_line | attribute_entry | paragraph | ulist | olist | literal_block | admonition | sidebar | example_block
+AUTHOR_SPECIAL_CHARS: /[<>;,.@\-_]/
+
+block: attributed_block | blank_line | attribute_entry | comment | image_block | thematic_break | page_break
 
 blank_line: _NEWLINE+
+
+comment: "//" [COMMENT_CONTENT] _NEWLINE
+COMMENT_CONTENT: /[^\n]+/
+
+attributed_block: (block_metadata)* (section | ulist | olist | literal_block | admonition | sidebar | example_block | paragraph)
+
+attributed_simple_block: (block_metadata)* (ulist | olist | literal_block | paragraph)
+
+block_metadata: block_title | attribute_list | anchor
+block_title: "." text_content _NEWLINE
 
 // Sections and Titles
 section: section_title block*
 section_title: SECTION_TITLE_LEAD text_content _NEWLINE
 
 // Paragraphs
-paragraph: text_content _NEWLINE
+paragraph: (text_content _NEWLINE)+
 
 // Lists
 ulist: ulist_item+
 olist: olist_item+
 
-ulist_item: ULIST_MARKER text_content _NEWLINE
+ulist_item: ULIST_MARKER [CHECKBOX] text_content _NEWLINE
 olist_item: OLIST_MARKER text_content _NEWLINE
 
+CHECKBOX: /\[[ x*X]\][ \t]+/
+
 // Attributes
-attribute_entry: ":" ATTR_NAME ":" [WHITESPACE] [text_content] _NEWLINE
+attribute_entry.2: COLON ATTR_NAME COLON [WHITESPACE] [text_content] _NEWLINE
 
 // Attribute List (e.g., [source,python])
-attribute_list: "[" attribute_content "]" _NEWLINE
-attribute_content: /[^\]]+/
+attribute_list: "[" [ATTR_LIST_CONTENT] "]" _NEWLINE
+ATTR_LIST_CONTENT: /[^\]]+/
+
+inline_attribute_list: "[" [ATTR_LIST_CONTENT] "]"
+
+anchor: "[[" WORD "]]" _NEWLINE
 
 // Literal Blocks
-// Can optionally be preceded by an attribute list
-literal_block: attribute_list? LITERAL_BLOCK_DELIM _NEWLINE LITERAL_BLOCK_CONTENT LITERAL_BLOCK_DELIM
+literal_block: LITERAL_BLOCK_DELIM _NEWLINE LITERAL_BLOCK_CONTENT _NEWLINE LITERAL_BLOCK_DELIM
 
 // Basic content (no containers)
-basic_block: literal_block | ulist | olist | paragraph | blank_line
+basic_block: attributed_simple_block | blank_line
 
-// Admonitions allow sidebars but not (implicitly) other admonitions to avoid ambiguity without delimiter size checks
-admonition: ADMONITION_START _NEWLINE ADMONITION_DELIM _NEWLINE admonition_content ADMONITION_DELIM _NEWLINE?
-admonition_content: (sidebar | example_block | basic_block)*
+// Delimited Blocks with Nesting Support
+admonition: admonition_4 | admonition_5 | admonition_6
+example_block: example_4 | example_5 | example_6
+sidebar: sidebar_4 | sidebar_5 | sidebar_6
 
-// Example Blocks
-example_block: ADMONITION_DELIM _NEWLINE example_content ADMONITION_DELIM _NEWLINE?
-example_content: (admonition | sidebar | basic_block)*
+admonition_4: ADMONITION_START _NEWLINE ADMONITION_DELIM_4 _NEWLINE (sidebar | example_5 | example_6 | admonition_5 | admonition_6 | basic_block)* ADMONITION_DELIM_4 _NEWLINE?
+admonition_5: ADMONITION_START _NEWLINE ADMONITION_DELIM_5 _NEWLINE (sidebar | example_4 | example_6 | admonition_4 | admonition_6 | basic_block)* ADMONITION_DELIM_5 _NEWLINE?
+admonition_6: ADMONITION_START _NEWLINE ADMONITION_DELIM_6 _NEWLINE (sidebar | example_4 | example_5 | admonition_4 | admonition_5 | basic_block)* ADMONITION_DELIM_6 _NEWLINE?
 
-// Sidebars allow admonitions but not other sidebars
-sidebar: SIDEBAR_DELIM _NEWLINE sidebar_content SIDEBAR_DELIM _NEWLINE?
-sidebar_content: (admonition | example_block | basic_block)*
+example_4: ADMONITION_DELIM_4 _NEWLINE (sidebar | example_5 | example_6 | admonition_5 | admonition_6 | basic_block)* ADMONITION_DELIM_4 _NEWLINE?
+example_5: ADMONITION_DELIM_5 _NEWLINE (sidebar | example_4 | example_6 | admonition_4 | admonition_6 | basic_block)* ADMONITION_DELIM_5 _NEWLINE?
+example_6: ADMONITION_DELIM_6 _NEWLINE (sidebar | example_4 | example_5 | admonition_4 | admonition_5 | basic_block)* ADMONITION_DELIM_6 _NEWLINE?
+
+sidebar_4: SIDEBAR_DELIM_4 _NEWLINE (example_block | admonition | sidebar_5 | sidebar_6 | basic_block)* SIDEBAR_DELIM_4 _NEWLINE?
+sidebar_5: SIDEBAR_DELIM_5 _NEWLINE (example_block | admonition | sidebar_4 | sidebar_6 | basic_block)* SIDEBAR_DELIM_5 _NEWLINE?
+sidebar_6: SIDEBAR_DELIM_6 _NEWLINE (example_block | admonition | sidebar_4 | sidebar_5 | basic_block)* SIDEBAR_DELIM_6 _NEWLINE?
+
+thematic_break: THEMATIC_BREAK_MARKER _NEWLINE
+page_break: "<<<" _NEWLINE
 
 // --- Inline Elements ---
 // Using a recursive definition. Requires the Earley parser.
 text_content: inline_element+
 
 attribute_reference: LBRACE ATTR_NAME RBRACE
-?inline_element: bold | italic | monospace | attribute_reference | WORD | WHITESPACE
+?inline_element: bold | italic | monospace | attribute_reference | WORD | WHITESPACE | COLON | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref
+
+image_block: "image::" TARGET "[" [ATTR_LIST_CONTENT] "]" _NEWLINE
+inline_image: "image:" TARGET "[" [ATTR_LIST_CONTENT] "]"
+icon_inline: "icon:" TARGET "[" [ATTR_LIST_CONTENT] "]"
+
+inline_anchor: "[[" text_content "]]"
+inline_xref: "<<" text_content ">>"
+inline_bibref: "[[[" text_content "]]]"
+
+TARGET: /[^\[\n ]+/
+
+footnote: "footnote:" "[" text_content "]"
+footnoteref: "footnoteref:" "[" [WORD] ["," text_content] "]"
 
 bold: "*" text_content "*"
 italic: "_" text_content "_"
 monospace: "`" text_content "`"
+marked: "#" text_content "#"
+superscript: "^" text_content "^"
+subscript: "~" text_content "~"
+double_quoted: "\"`" text_content "`\""
+single_quoted: "'`" text_content "`'"
 
 
 // --- Terminals ---
@@ -69,19 +116,30 @@ DOC_TITLE_LEAD: /= [ \t]*/
 SECTION_TITLE_LEAD: /==+ [ \t]*/
 ULIST_MARKER: /(\*+|[-])[ \t]+/
 OLIST_MARKER: /([0-9]+\.|[\.]+)[ \t]+/
-LITERAL_BLOCK_DELIM.2: /----/
+LITERAL_BLOCK_DELIM.2: /-{4,}/
 ADMONITION_START: /\[ *(NOTE|TIP|IMPORTANT|WARNING|CAUTION) *\]/
-ADMONITION_DELIM: /====/
-SIDEBAR_DELIM: /\*\*\*\*/
+
+ADMONITION_DELIM_4: "===="
+ADMONITION_DELIM_5: "====="
+ADMONITION_DELIM_6: "======"
+ADMONITION_DELIM_LONG: /={7,}/
+
+SIDEBAR_DELIM_4: "****"
+SIDEBAR_DELIM_5: "*****"
+SIDEBAR_DELIM_6: "******"
+SIDEBAR_DELIM_LONG: /\*{7,}/
+
+THEMATIC_BREAK_MARKER: /'''+|\*\*\*+|---+|(_ _ _)+|(\* \* \*)+|(- - -)+/
 
 // Non-greedy content matching for literal blocks.
-LITERAL_BLOCK_CONTENT: /(.(?!----\n))*./s
+LITERAL_BLOCK_CONTENT: /(.+?)(?=\n-{4,})/s
 
 _NEWLINE: /(\r\n|\n|\r)/
 WHITESPACE: /[ \t]+/
 ATTR_NAME: /[a-zA-Z0-9_\-]+/
-WORD: /[^ \t\n*_`=\[\]{}]+/  // Word characters (not whitespace or markup)
+WORD: /[^ \t\n*_`=\[\]{}:]+/  // Word characters (not whitespace or markup)
 LBRACE: "{"
 RBRACE: "}"
+COLON: ":"
 
 // %ignore WHITESPACE

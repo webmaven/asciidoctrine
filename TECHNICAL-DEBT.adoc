@@ -1,0 +1,46 @@
+= Technical Debt List: AsciiDoc Parser
+:toc:
+
+== Overview
+
+This document tracks identified technical debt in the `asciidoc_parser` project and provides a roadmap for refactoring and improvements.
+
+== Identified Debt
+
+=== 1. Lark Transformer Bloat
+* **Status**: Completed
+* **Description**: `AsciiDocTransformer` in `lark_parser.py` was a monolithic class.
+* **Resolution**: Split into mixins (`BlockTransformer`, `InlineTransformer`) in `src/asciidoc_parser/transformers/`.
+
+=== 2. Attribute Substitution Redundancy
+* **Status**: Completed
+* **Description**: Logic for resolving `{name}` references was duplicated.
+* **Resolution**: Centralized in `src/asciidoc_parser/attributes.py`.
+
+=== 3. Grammar Brittleness (Nesting)
+* **Status**: Completed
+* **Description**: Delimited block nesting was missing or brittle.
+* **Resolution**: Implemented level-based rules (4, 5, 6) for Example, Admonition, and Sidebar blocks with cross-nesting support.
+
+=== 4. Test File Bloat
+* **Status**: Completed
+* **Description**: `tests/test_parser.py` was too large.
+* **Resolution**: Partitioned into `test_blocks_parsing.py`, `test_inlines_parsing.py`, and `test_attributes.py`.
+
+=== 5. Error Handling & Recovery
+* **Status**: Low Priority
+* **Description**: The parser often provides opaque Earley parse errors without helpful context or line numbers.
+* **Impact**: Poor developer/user experience when dealing with invalid AsciiDoc.
+* **Refactor Plan**: Implement custom error handlers and improve `Lark` error reporting.
+
+=== 6. Type Hint Consistency
+* **Status**: Low Priority
+* **Description**: Some methods use `Any` or `Transformed` where more specific AST node types could be enforced.
+* **Impact**: Weakens the benefits of static analysis with `mypy`.
+* **Refactor Plan**: Gradually tighten type hints across the transformer and nodes.
+
+=== 7. Docutils Backend Alignment
+* **Status**: Medium Priority
+* **Description**: `docutils_backend.py` lags behind the AST changes in `nodes.py`.
+* **Impact**: Docutils output may be broken or missing newer features.
+* **Refactor Plan**: Ensure every new node in `nodes.py` has a corresponding visitor method in the backend.
