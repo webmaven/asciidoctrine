@@ -17,6 +17,7 @@ from .nodes import (
     Listing,
     ListItem,
     Node,
+    PageBreak,
     Paragraph,
     Quote,
     Ref,
@@ -28,6 +29,7 @@ from .nodes import (
     TableCell,
     TableRow,
     Text,
+    ThematicBreak,
     Title,
 )
 from .nodes import (
@@ -759,6 +761,12 @@ class AsciiDocTransformer(Transformer[Token, Transformed]):
         img.name = "icon"
         img.attributes.update(attrs)
         return img
+
+    def thematic_break(self, children: Children) -> ThematicBreak:
+        return ThematicBreak()
+
+    def page_break(self, children: Children) -> PageBreak:
+        return PageBreak()
 
     def inline_anchor(self, children: Children) -> Ref:
         # children[0] is text_content (list of nodes)

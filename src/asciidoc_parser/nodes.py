@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterator, Optional, Sequence
+from typing import Any, Dict, Iterator, Optional, Sequence, cast
 from typing import List as PyList
 
 """
@@ -11,6 +11,9 @@ Custom Abstract Syntax Tree (AST) for AsciiDoc parsing.
 class Node:
     """Base class for all AST nodes."""
 
+    # Controls whether self.attributes is automatically serialized in to_dict()
+    _should_serialize_attributes: bool = True
+
     def __init__(self, children: Optional[Sequence[Node]] = None):
         self.children: PyList[Node] = list(children) if children else []
         self.name: str = "unknown"
@@ -19,48 +22,14 @@ class Node:
         self.title: Optional[Title] = None
 
     def append(self, child: Node) -> None:
-        if hasattr(self, "blocks"):
-            getattr(self, "blocks").append(child)
-        elif hasattr(self, "inlines"):
-            getattr(self, "inlines").append(child)
-        elif hasattr(self, "items"):
-            getattr(self, "items").append(child)
-        else:
-            self.children.append(child)
+        self.children.append(child)
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        """Return a mapping of collection names to lists of child nodes."""
+        return {"children": self.children} if self.children else {}
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to ASG-compatible dictionary."""
-        if isinstance(self, Header):
-            header_data: Dict[str, Any] = {}
-            if self.title:
-                header_data["title"] = [n.to_dict() for n in self.title.inlines]
-            if self.authors:
-                authors_list = []
-                for author in self.authors:
-                    fullname = "".join(
-                        [
-                            getattr(n, "value", "")
-                            for n in author.inlines
-                            if hasattr(n, "value")
-                        ]
-                    )
-                    authors_list.append({"fullname": fullname})
-                header_data["authors"] = authors_list
-            if self.revision:
-                value = "".join(
-                    [
-                        getattr(n, "value", "")
-                        for n in self.revision.inlines
-                        if hasattr(n, "value")
-                    ]
-                )
-                header_data["revision"] = {
-                    "name": "revision",
-                    "type": "block",
-                    "value": value,
-                }
-            return header_data
-
         data: Dict[str, Any] = {"name": self.name, "type": self.type}
 
         # Handle simple attributes
@@ -81,51 +50,16 @@ class Node:
                     data[attr] = val
 
         # Handle child nodes
-        if hasattr(self, "inlines"):
-            data["inlines"] = [n.to_dict() for n in getattr(self, "inlines")]
-        if hasattr(self, "blocks"):
-            data["blocks"] = [n.to_dict() for n in getattr(self, "blocks")]
-        if hasattr(self, "items"):
-            data["items"] = [n.to_dict() for n in getattr(self, "items")]
-        if hasattr(self, "principal"):
-            data["principal"] = [n.to_dict() for n in getattr(self, "principal")]
+        for key, nodes in self.get_child_collections().items():
+            data[key] = [n.to_dict() for n in nodes]
 
-        # Handle specific node structures
-        if isinstance(self, Document):
-            if self.attributes or self.header:
-                resolved_attrs = {}
-                for k, v in self.attributes.items():
-                    if isinstance(v, list):
-                        resolved_attrs[k] = "".join(
-                            [
-                                getattr(n, "value", "") if hasattr(n, "value") else ""
-                                for n in v
-                            ]
-                        )
-                    else:
-                        resolved_attrs[k] = str(v)
-                data["attributes"] = resolved_attrs
-
-            if self.header:
-                data["header"] = self.header.to_dict()
-
-        if (
-            hasattr(self, "title")
-            and self.title
-            and not isinstance(self, (Header, Document))
-        ):
-            if isinstance(self.title, Title):
-                data["title"] = [n.to_dict() for n in self.title.inlines]
+        if hasattr(self, "title") and self.title:
+            if hasattr(self.title, "to_list"):
+                data["title"] = getattr(self.title, "to_list")()
             elif isinstance(self.title, list):
                 data["title"] = [n.to_dict() for n in self.title]
 
-        if isinstance(self, Table):
-            data["rows"] = [r.to_dict() for r in self.rows]
-
-        if isinstance(self, TableRow):
-            data["cells"] = [c.to_dict() for c in self.cells]
-
-        if self.attributes and not isinstance(self, (Document, Header, Image)):
+        if self.attributes and self._should_serialize_attributes:
             data["attributes"] = self.attributes
 
         return data
@@ -133,37 +67,33 @@ class Node:
     def walk(self) -> Iterator[Node]:
         """Walk the AST, yielding each node."""
         yield self
-        children = []
-        if hasattr(self, "blocks"):
-            children = getattr(self, "blocks")
-        elif hasattr(self, "inlines"):
-            children = getattr(self, "inlines")
-        elif hasattr(self, "items"):
-            children = getattr(self, "items")
-        elif hasattr(self, "principal"):
-            children = getattr(self, "principal")
-        else:
-            children = self.children
-
-        for child in children:
-            yield from child.walk()
+        for collection in self.get_child_collections().values():
+            for child in collection:
+                yield from child.walk()
 
 
 class InlineNode(Node):
     """A base class for nodes that represent inline content, such as text formatting."""
 
-    pass
+    def append(self, child: Node) -> None:
+        self.inlines.append(child)  # type: ignore[attr-defined]
 
 
 class BlockNode(Node):
     """A base class for nodes that represent block-level content, such as
     paragraphs or lists."""
 
-    pass
+    def append(self, child: Node) -> None:
+        self.blocks.append(child)  # type: ignore[attr-defined]
 
 
 class Document(BlockNode):
     """The root node of the entire AsciiDoc document AST."""
+
+    _should_serialize_attributes = False
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"blocks": self.blocks}
 
     def __init__(self, blocks: Optional[Sequence[Node]] = None):
         super().__init__()
@@ -172,9 +102,33 @@ class Document(BlockNode):
         self.blocks: PyList[Node] = list(blocks) if blocks else []
         self.header: Optional[Header] = None
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize document with header and resolved attributes."""
+        data = super().to_dict()
+        if self.attributes or self.header:
+            resolved_attrs = {}
+            for k, v in self.attributes.items():
+                if isinstance(v, list):
+                    resolved_attrs[k] = "".join(
+                        [
+                            getattr(n, "value", "") if hasattr(n, "value") else ""
+                            for n in v
+                        ]
+                    )
+                else:
+                    resolved_attrs[k] = str(v)
+            data["attributes"] = resolved_attrs
 
-class Title(Node):
+        if self.header:
+            data["header"] = self.header.to_dict()
+        return data
+
+
+class Title(InlineNode):
     """Represents the title of a document or a section."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"inlines": self.inlines}
 
     def __init__(self, inlines: Optional[Sequence[Node]] = None):
         super().__init__()
@@ -182,9 +136,16 @@ class Title(Node):
         self.type = "inline"
         self.inlines: PyList[Node] = list(inlines) if inlines else []
 
+    def to_list(self) -> PyList[Dict[str, Any]]:
+        """Return the list of serialized inlines."""
+        return [n.to_dict() for n in self.inlines]
 
-class Author(Node):
+
+class Author(InlineNode):
     """Represents an author entry in the document header."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"inlines": self.inlines}
 
     def __init__(self, inlines: Optional[Sequence[Node]] = None):
         super().__init__()
@@ -193,8 +154,11 @@ class Author(Node):
         self.inlines: PyList[Node] = list(inlines) if inlines else []
 
 
-class Revision(Node):
+class Revision(BlockNode):
     """Represents a revision entry in the document header."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"inlines": self.inlines}
 
     def __init__(self, inlines: Optional[Sequence[Node]] = None):
         super().__init__()
@@ -203,9 +167,14 @@ class Revision(Node):
         self.value: str = ""
         self.inlines: PyList[Node] = list(inlines) if inlines else []
 
+    def append(self, child: Node) -> None:
+        self.inlines.append(child)
+
 
 class Header(Node):
     """A container for the document's header metadata."""
+
+    _should_serialize_attributes = False
 
     def __init__(
         self,
@@ -222,9 +191,44 @@ class Header(Node):
         self.revision = revision
         self.attributes = attributes or {}
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize header metadata."""
+        header_data: Dict[str, Any] = {}
+        if self.title:
+            header_data["title"] = [n.to_dict() for n in self.title.inlines]
+        if self.authors:
+            authors_list = []
+            for author in self.authors:
+                fullname = "".join(
+                    [
+                        getattr(n, "value", "")
+                        for n in author.inlines
+                        if hasattr(n, "value")
+                    ]
+                )
+                authors_list.append({"fullname": fullname})
+            header_data["authors"] = authors_list
+        if self.revision:
+            value = "".join(
+                [
+                    getattr(n, "value", "")
+                    for n in self.revision.inlines
+                    if hasattr(n, "value")
+                ]
+            )
+            header_data["revision"] = {
+                "name": "revision",
+                "type": "block",
+                "value": value,
+            }
+        return header_data
+
 
 class Section(BlockNode):
     """Represents a structural section of the document."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"blocks": self.blocks}
 
     def __init__(
         self, level: int, title: Title, blocks: Optional[Sequence[Node]] = None
@@ -240,11 +244,17 @@ class Section(BlockNode):
 class Paragraph(BlockNode):
     """A block-level node representing a paragraph of text."""
 
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"inlines": self.inlines}
+
     def __init__(self, inlines: Optional[Sequence[Node]] = None):
         super().__init__()
         self.name = "paragraph"
         self.type = "block"
         self.inlines: PyList[Node] = list(inlines) if inlines else []
+
+    def append(self, child: Node) -> None:
+        self.inlines.append(child)
 
 
 class Text(InlineNode):
@@ -259,6 +269,9 @@ class Text(InlineNode):
 
 class Span(InlineNode):
     """An inline node for formatted text (bold, italic, code)."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"inlines": self.inlines}
 
     def __init__(
         self,
@@ -277,6 +290,9 @@ class Span(InlineNode):
 class Ref(InlineNode):
     """An inline node for a hyperlink or cross-reference."""
 
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"inlines": self.inlines}
+
     def __init__(
         self, variant: str, target: str, inlines: Optional[PyList[Node]] = None
     ):
@@ -290,6 +306,8 @@ class Ref(InlineNode):
 
 class Image(BlockNode):
     """A block or inline node for an image directive."""
+
+    _should_serialize_attributes = False
 
     def __init__(
         self, target: str, alt: str = "", form: str = "macro", type: str = "block"
@@ -305,6 +323,9 @@ class Image(BlockNode):
 class List(BlockNode):
     """A block node representing a list (ordered or unordered)."""
 
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"items": cast(PyList[Node], self.items)}
+
     def __init__(
         self,
         variant: str,
@@ -318,9 +339,18 @@ class List(BlockNode):
         self.marker = marker
         self.items: PyList[ListItem] = list(items) if items else []
 
+    def append(self, child: Node) -> None:
+        if isinstance(child, ListItem):
+            self.items.append(child)
+        else:
+            super().append(child)
+
 
 class ListItem(BlockNode):
     """A node representing a single item within a list. It can contain blocks."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"principal": self.principal, "blocks": self.blocks}
 
     def __init__(
         self,
@@ -341,6 +371,9 @@ class ListItem(BlockNode):
 class Listing(BlockNode):
     """A block for preformatted text, typically used for code listings."""
 
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"inlines": self.inlines}
+
     def __init__(
         self,
         inlines: Optional[Sequence[Node]] = None,
@@ -354,9 +387,15 @@ class Listing(BlockNode):
         self.inlines: PyList[Node] = list(inlines) if inlines else []
         self.attributes = attributes or {}
 
+    def append(self, child: Node) -> None:
+        self.inlines.append(child)
+
 
 class Example(BlockNode):
     """A block for content that should be rendered as an example."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"blocks": self.blocks}
 
     def __init__(self, blocks: Optional[Sequence[Node]] = None):
         super().__init__()
@@ -370,6 +409,9 @@ class Example(BlockNode):
 class Quote(BlockNode):
     """A block representing a quotation."""
 
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"blocks": self.blocks}
+
     def __init__(self, blocks: Optional[Sequence[Node]] = None):
         super().__init__()
         self.name = "quote"
@@ -381,6 +423,9 @@ class Quote(BlockNode):
 
 class Admonition(BlockNode):
     """A block for admonitions like NOTE, TIP, IMPORTANT, etc."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"blocks": self.blocks}
 
     def __init__(self, variant: str, blocks: Optional[Sequence[Node]] = None):
         super().__init__()
@@ -395,6 +440,9 @@ class Admonition(BlockNode):
 class Sidebar(BlockNode):
     """A block for content that is separate from the main flow of text."""
 
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"blocks": self.blocks}
+
     def __init__(self, blocks: Optional[Sequence[Node]] = None):
         super().__init__()
         self.name = "sidebar"
@@ -407,15 +455,28 @@ class Sidebar(BlockNode):
 class Table(BlockNode):
     """A node representing a table."""
 
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"rows": cast(PyList[Node], self.rows)}
+
     def __init__(self, rows: Optional[Sequence[TableRow]] = None) -> None:
         super().__init__()
         self.name = "table"
         self.type = "block"
         self.rows: PyList[TableRow] = list(rows) if rows else []
 
+    def append(self, child: Node) -> None:
+        if isinstance(child, TableRow):
+            self.rows.append(child)
+        else:
+            super().append(child)
+
+
 
 class TableRow(Node):
     """A node representing a single row in a table."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"cells": cast(PyList[Node], self.cells)}
 
     def __init__(self, cells: Optional[Sequence[TableCell]] = None) -> None:
         super().__init__()
@@ -423,15 +484,43 @@ class TableRow(Node):
         self.type = "block"
         self.cells: PyList[TableCell] = list(cells) if cells else []
 
+    def append(self, child: Node) -> None:
+        if isinstance(child, TableCell):
+            self.cells.append(child)
+        else:
+            super().append(child)
 
-class TableCell(Node):
+
+
+class TableCell(BlockNode):
     """A node representing a single cell in a table row."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"blocks": self.blocks}
 
     def __init__(self, blocks: Optional[Sequence[Node]] = None):
         super().__init__()
         self.name = "cell"
         self.type = "block"
         self.blocks: PyList[Node] = list(blocks) if blocks else []
+
+
+class ThematicBreak(BlockNode):
+    """Represents a horizontal rule or thematic break (---, ***, ''')."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.name = "thematic_break"
+        self.type = "block"
+
+
+class PageBreak(BlockNode):
+    """Represents a page break (<<<)."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.name = "page_break"
+        self.type = "block"
 
 
 class AttributeEntry(Node):
@@ -464,18 +553,6 @@ class NodeVisitor:
         return visitor(node, **kwargs)
 
     def generic_visit(self, node: Node, **kwargs: Any) -> Any:
-        # Fallback to children if blocks/inlines not present
-        children = []
-        if hasattr(node, "blocks"):
-            children = getattr(node, "blocks")
-        elif hasattr(node, "inlines"):
-            children = getattr(node, "inlines")
-        elif hasattr(node, "items"):
-            children = getattr(node, "items")
-        elif hasattr(node, "principal"):
-            children = getattr(node, "principal")
-        else:
-            children = node.children
-
-        for child in children:
-            self.visit(child, **kwargs)
+        for collection in node.get_child_collections().values():
+            for child in collection:
+                self.visit(child, **kwargs)

@@ -25,8 +25,6 @@ KNOWN_UNSUPPORTED = {
     "verse:*",
     "open:*",
     "outline:*",
-    "page_break:*",
-    "thematic_break:*",
     "toc:*",
     "floating_title:*",
     "embedded:*",

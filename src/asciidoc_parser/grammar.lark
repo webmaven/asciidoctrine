@@ -12,7 +12,7 @@ document_title: DOC_TITLE_LEAD text_content _NEWLINE
 
 AUTHOR_SPECIAL_CHARS: /[<>;,.@\-_]/
 
-block: attributed_block | blank_line | attribute_entry | comment | image_block
+block: attributed_block | blank_line | attribute_entry | comment | image_block | thematic_break | page_break
 
 blank_line: _NEWLINE+
 
@@ -71,6 +71,9 @@ example_content: (sidebar | basic_block)*
 sidebar: SIDEBAR_DELIM _NEWLINE sidebar_content SIDEBAR_DELIM _NEWLINE?
 sidebar_content: (admonition | example_block | basic_block)*
 
+thematic_break: THEMATIC_BREAK_MARKER _NEWLINE
+page_break: "<<<" _NEWLINE
+
 // --- Inline Elements ---
 // Using a recursive definition. Requires the Earley parser.
 text_content: inline_element+
@@ -112,6 +115,8 @@ LITERAL_BLOCK_DELIM.2: /----/
 ADMONITION_START: /\[ *(NOTE|TIP|IMPORTANT|WARNING|CAUTION) *\]/
 ADMONITION_DELIM: /====/
 SIDEBAR_DELIM: /\*\*\*\*/
+
+THEMATIC_BREAK_MARKER: /'''+|\*\*\*+|---+|(_ _ _)+|(\* \* \*)+|(- - -)+/
 
 // Non-greedy content matching for literal blocks.
 LITERAL_BLOCK_CONTENT: /(.+?)(?=\n----)/s
