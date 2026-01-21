@@ -1,5 +1,5 @@
-import pytest
 from docutils import nodes
+
 from asciidoc_parser.docutils_backend import asciidoc_to_docutils
 
 
@@ -24,7 +24,8 @@ def test_basic_conversion():
 
     # Check inline nodes
     inline_nodes = para.children
-    # Expected: [Text('Testing '), strong(Text('bold')), Text(' and '), emphasis(Text('italic')), Text('.')]
+    # Expected: [Text('Testing '), strong(Text('bold')), Text(' and '),
+    # emphasis(Text('italic')), Text('.')]
     types = [type(c) for c in inline_nodes]
     assert nodes.strong in types
     assert nodes.emphasis in types

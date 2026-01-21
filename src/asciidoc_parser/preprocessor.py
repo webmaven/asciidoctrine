@@ -56,7 +56,8 @@ class Preprocessor:
                     os.path.join(current_dir, include_path)
                 )
 
-                # Security check: verify target is within base directory if safe_mode is on
+                # Security check: verify target is within base directory if
+                # safe_mode is on
                 if (
                     self.safe_mode
                     and os.path.commonprefix([target_file_path, self.base_dir])

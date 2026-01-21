@@ -1,7 +1,9 @@
-from typing import Any, Dict, Optional
 import os
-from sphinx.parsers import Parser as SphinxParser
+from typing import Any, Dict
+
 from docutils import nodes
+from sphinx.parsers import Parser as SphinxParser
+
 from .docutils_backend import DocutilsRenderer
 from .lark_parser import parse_to_ast
 
@@ -11,7 +13,7 @@ class AsciiDocParser(SphinxParser):
     Sphinx parser for AsciiDoc files.
     """
 
-    supported: tuple[str, ...] = ("asciidoc", "adoc")
+    supported: tuple[str, ...] = ("asciidoc", "adoc")  # type: ignore[misc]
 
     def parse(self, inputstring: str, document: nodes.document) -> None:
         """
@@ -28,7 +30,8 @@ class AsciiDocParser(SphinxParser):
 
         try:
             # We parse to our custom AST first
-            # Disable safe_mode for Sphinx builds to allow including files from project root
+            # Disable safe_mode for Sphinx builds to allow including files from
+            # project root
             ast = parse_to_ast(inputstring, base_dir=base_dir, safe_mode=False)
 
             # Then we use our new DocutilsRenderer to populate the Sphinx/Docutils tree

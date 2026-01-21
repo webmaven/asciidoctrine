@@ -2,7 +2,7 @@
 Converts the AsciiDoc AST to a Docutils document tree.
 """
 
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Optional, Union
 
 from docutils import nodes
 from docutils.frontend import OptionParser
@@ -10,29 +10,21 @@ from docutils.utils import new_document
 
 from .nodes import (
     Admonition,
-    BlockNode,
     Document,
-    Example,
-    Header,
     Image,
-    List as ASTList,
-    ListItem,
     Listing,
-    Node,
+    ListItem,
     NodeVisitor,
     Paragraph,
-    Quote,
     Ref,
-    Revision,
     Section,
     Sidebar,
     Span,
-    Table,
-    TableCell,
-    TableRow,
     Text,
     ThematicBreak,
-    Title,
+)
+from .nodes import (
+    List as ASTList,
 )
 
 
@@ -41,12 +33,12 @@ class DocutilsRenderer(NodeVisitor):
         self.document = document
         self.current_node: nodes.Element = document
 
-    def visit_document(self, node: Document):
-        if node.header and node.header.title:
+    def visit_document(self, node: Document) -> None:
+        if node.header and (header_title := node.header.title):
             title = nodes.title()
             old_parent = self.current_node
             self.current_node = title
-            for inline in node.header.title.inlines:
+            for inline in header_title.inlines:
                 self.visit(inline)
             self.document += title
             self.current_node = old_parent
@@ -54,7 +46,7 @@ class DocutilsRenderer(NodeVisitor):
         for block in node.blocks:
             self.visit(block)
 
-    def visit_section(self, node: Section):
+    def visit_section(self, node: Section) -> None:
         section = nodes.section()
         # Always ensure an ID exists for Sphinx/Docutils
         if "id" in node.attributes:
@@ -64,8 +56,9 @@ class DocutilsRenderer(NodeVisitor):
         title = nodes.title()
         old_parent = self.current_node
         self.current_node = title
-        for inline in node.title.inlines:
-            self.visit(inline)
+        if node.title:
+            for inline in node.title.inlines:
+                self.visit(inline)
         section += title
 
         self.current_node = section
@@ -75,7 +68,7 @@ class DocutilsRenderer(NodeVisitor):
         old_parent += section
         self.current_node = old_parent
 
-    def visit_paragraph(self, node: Paragraph):
+    def visit_paragraph(self, node: Paragraph) -> None:
         para = nodes.paragraph()
         old_parent = self.current_node
         self.current_node = para
@@ -84,10 +77,10 @@ class DocutilsRenderer(NodeVisitor):
         old_parent += para
         self.current_node = old_parent
 
-    def visit_text(self, node: Text):
+    def visit_text(self, node: Text) -> None:
         self.current_node += nodes.Text(node.value)
 
-    def visit_span(self, node: Span):
+    def visit_span(self, node: Span) -> None:
         mapping = {
             "strong": nodes.strong,
             "emphasis": nodes.emphasis,
@@ -105,7 +98,8 @@ class DocutilsRenderer(NodeVisitor):
         old_parent += span_node
         self.current_node = old_parent
 
-    def visit_list(self, node: ASTList):
+    def visit_list(self, node: ASTList) -> None:
+        list_node: Union[nodes.bullet_list, nodes.enumerated_list]
         if node.variant == "ordered":
             list_node = nodes.enumerated_list()
         else:
@@ -118,7 +112,7 @@ class DocutilsRenderer(NodeVisitor):
         old_parent += list_node
         self.current_node = old_parent
 
-    def visit_listitem(self, node: ListItem):
+    def visit_listitem(self, node: ListItem) -> None:
         item = nodes.list_item()
         old_parent = self.current_node
         self.current_node = item
@@ -137,7 +131,7 @@ class DocutilsRenderer(NodeVisitor):
         old_parent += item
         self.current_node = old_parent
 
-    def visit_ref(self, node: Ref):
+    def visit_ref(self, node: Ref) -> None:
         # Handle cross-references and links
         ref_node = nodes.reference()
 
@@ -146,7 +140,8 @@ class DocutilsRenderer(NodeVisitor):
         if node.variant == "link":
             ref_node["refuri"] = target
         elif node.variant == "xref":
-            # If target looks like a filename without extension, assume .html for Sphinx/HTML
+            # If target looks like a filename without extension, assume .html for
+            # Sphinx/HTML
             if "." not in target and "/" not in target:
                 target = target + ".html"
             else:
@@ -162,7 +157,7 @@ class DocutilsRenderer(NodeVisitor):
         old_parent += ref_node
         self.current_node = old_parent
 
-    def visit_listing(self, node: Listing):
+    def visit_listing(self, node: Listing) -> None:
         content = "".join(
             [getattr(n, "value", "") for n in node.inlines if hasattr(n, "value")]
         )
@@ -171,8 +166,8 @@ class DocutilsRenderer(NodeVisitor):
             literal["classes"].append(node.attributes["language"])
         self.current_node += literal
 
-    def visit_admonition(self, node: Admonition):
-        mapping = {
+    def visit_admonition(self, node: Admonition) -> None:
+        mapping: Any = {
             "note": nodes.note,
             "tip": nodes.tip,
             "important": nodes.important,
@@ -189,14 +184,14 @@ class DocutilsRenderer(NodeVisitor):
         old_parent += adm
         self.current_node = old_parent
 
-    def visit_image(self, node: Image):
+    def visit_image(self, node: Image) -> None:
         img = nodes.image(uri=node.target, alt=node.attributes.get("alt", ""))
         self.current_node += img
 
-    def visit_thematic_break(self, node: ThematicBreak):
-        self.current_node += nodes.thematic_break()
+    def visit_thematic_break(self, node: ThematicBreak) -> None:
+        self.current_node += nodes.transition()
 
-    def visit_sidebar(self, node: Sidebar):
+    def visit_sidebar(self, node: Sidebar) -> None:
         sb = nodes.sidebar()
         if node.title:
             title = nodes.title()
