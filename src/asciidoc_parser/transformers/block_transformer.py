@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Sequence, Tuple, cast
+from typing import Any, Dict, Sequence, Tuple, cast
 from typing import List as PyList
 
 from lark import Discard, Token
@@ -18,6 +18,7 @@ from ..nodes import (
 from ..nodes import (
     List as ASTList,
 )
+
 
 class BlockTransformer:
     """
@@ -205,7 +206,7 @@ class BlockTransformer:
         ]
 
         blocks = [c for c in children if isinstance(c, BlockNode)]
-        merged_inner = self._merge_consecutive_lists(blocks) # type: ignore
+        merged_inner = self._merge_consecutive_lists(blocks)
         delimiter = delims[0].value if delims else "===="
         return Example(blocks=merged_inner, delimiter=delimiter)
 
@@ -220,9 +221,11 @@ class BlockTransformer:
 
         if len(delims) >= 2:
             if len(delims[0]) != len(delims[-1]):
-                raise ValueError(
-                    f"Mismatched literal block delimiter lengths: {len(delims[0])} vs {len(delims[-1])}"
+                msg = (
+                    f"Mismatched literal block delimiter lengths: "
+                    f"{len(delims[0])} vs {len(delims[-1])}"
                 )
+                raise ValueError(msg)
 
         for c in children:
             if isinstance(c, dict):
@@ -258,7 +261,7 @@ class BlockTransformer:
 
         blocks = [c for c in children if isinstance(c, BlockNode)]
 
-        merged_inner = self._merge_consecutive_lists(blocks) # type: ignore
+        merged_inner = self._merge_consecutive_lists(blocks)
         delimiter = delims[0].value if delims else "===="
         return Admonition(variant=variant, blocks=merged_inner, delimiter=delimiter)
 
@@ -282,6 +285,6 @@ class BlockTransformer:
         ]
 
         blocks = [c for c in children if isinstance(c, BlockNode)]
-        merged_inner = self._merge_consecutive_lists(blocks) # type: ignore
+        merged_inner = self._merge_consecutive_lists(blocks)
         delimiter = delims[0].value if delims else "****"
         return Sidebar(blocks=merged_inner, delimiter=delimiter)

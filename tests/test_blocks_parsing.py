@@ -129,7 +129,10 @@ class TestBlocks(unittest.TestCase):
         self.assertEqual(ast["blocks"][0]["variant"], "caution")
 
     def test_admonition_with_list(self):
-        source = "[NOTE]\n====\nConsider these points:\n\n- First point\n- Second point\n====\n"
+        source = (
+            "[NOTE]\n====\nConsider these points:\n\n"
+            "- First point\n- Second point\n====\n"
+        )
         ast = parse_to_ast(source).to_dict()
         admonition = ast["blocks"][0]
         child_names = [c["name"] for c in admonition["blocks"]]
@@ -149,7 +152,10 @@ class TestBlocks(unittest.TestCase):
         self.assertGreaterEqual(len(paragraphs), 2)
 
     def test_admonition_with_literal_block(self):
-        source = "[TIP]\n====\nHere's some code:\n\n----\ndef hello():\n    print(\"world\")\n----\n====\n"
+        source = (
+            "[TIP]\n====\nHere's some code:\n\n----\ndef hello():\n"
+            '    print("world")\n----\n====\n'
+        )
         ast = parse_to_ast(source).to_dict()
         admonition = ast["blocks"][0]
         child_names = [c["name"] for c in admonition["blocks"]]
@@ -163,7 +169,9 @@ class TestBlocks(unittest.TestCase):
         self.assertEqual(ast["blocks"][0]["variant"], "note")
 
     def test_multiple_admonitions(self):
-        source = "[NOTE]\n====\nFirst note.\n====\n\n[WARNING]\n====\nA warning.\n====\n"
+        source = (
+            "[NOTE]\n====\nFirst note.\n====\n\n[WARNING]\n====\nA warning.\n====\n"
+        )
         ast = parse_to_ast(source).to_dict()
         admonitions = [c for c in ast["blocks"] if c["name"] == "admonition"]
         self.assertEqual(len(admonitions), 2)
@@ -180,7 +188,9 @@ class TestBlocks(unittest.TestCase):
         ast = parse_to_ast(source).to_dict()
         sidebar = ast["blocks"][0]
         self.assertEqual(sidebar["name"], "sidebar")
-        self.assertEqual(sidebar["blocks"][0]["inlines"][0]["value"], "This is a sidebar.")
+        self.assertEqual(
+            sidebar["blocks"][0]["inlines"][0]["value"], "This is a sidebar."
+        )
 
     def test_sidebar_nested_content(self):
         source = "****\nSidebar paragraph.\n\n- List item\n\n----\ncode\n----\n****\n"
@@ -228,13 +238,10 @@ class TestBlocks(unittest.TestCase):
         self.assertEqual(example["blocks"][0]["name"], "sidebar")
 
     def test_nested_examples_variable_length(self):
-        # This test currently fails (expected)
         source = "=====\n====\nnested\n====\n=====\n"
-        try:
-            ast = parse_to_ast(source).to_dict()
-        except ValueError as e:
-            self.assertIn("Mismatched example block delimiter lengths", str(e))
-            raise
+        ast = parse_to_ast(source).to_dict()
+        self.assertEqual(ast["blocks"][0]["name"], "example")
+        self.assertEqual(ast["blocks"][0]["blocks"][0]["name"], "example")
 
     def test_admonition_vs_example(self):
         source_adm = "[NOTE]\n====\nNote content\n====\n"
@@ -266,6 +273,7 @@ class TestBlocks(unittest.TestCase):
         ast = parse_to_ast(source, base_dir=self.base_dir).to_dict()
         self.assertEqual(len(ast["blocks"]), 2)
         self.assertEqual(ast["blocks"][1]["name"], "list")
+
 
 if __name__ == "__main__":
     unittest.main()

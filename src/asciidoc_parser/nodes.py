@@ -481,7 +481,6 @@ class Table(BlockNode):
             super().append(child)
 
 
-
 class TableRow(Node):
     """A node representing a single row in a table."""
 
@@ -499,7 +498,6 @@ class TableRow(Node):
             self.cells.append(child)
         else:
             super().append(child)
-
 
 
 class TableCell(BlockNode):
@@ -533,7 +531,7 @@ class PageBreak(BlockNode):
         self.type = "block"
 
 
-class AttributeEntry(Node):
+class AttributeEntry(BlockNode):
     """A node representing an attribute declaration in the document header."""
 
     def __init__(self, name: str, value: str):
@@ -544,7 +542,7 @@ class AttributeEntry(Node):
         self.value = value
 
 
-class Include(Node):
+class Include(BlockNode):
     """A node representing an `include::` directive."""
 
     def __init__(self, filename: str):

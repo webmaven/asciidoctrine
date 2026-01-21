@@ -5,6 +5,7 @@ from typing import List as PyList
 
 from lark import Discard, Lark, Token, Transformer
 
+from .attributes import resolve_node_to_string
 from .nodes import (
     AttributeEntry,
     Author,
@@ -24,13 +25,14 @@ from .nodes import (
 from .preprocessor import Preprocessor
 from .transformers.block_transformer import BlockTransformer
 from .transformers.inline_transformer import InlineTransformer
-from .attributes import resolve_node_to_string
 
 Children = PyList[Any]
 Transformed = Union[Node, Any, Dict[str, Any], PyList[Any], str]
 
 
-class AsciiDocTransformer(BlockTransformer, InlineTransformer, Transformer[Token, Transformed]):
+class AsciiDocTransformer(
+    BlockTransformer, InlineTransformer, Transformer[Token, Transformed]
+):
     """
     Transforms the Lark parse tree (CST) into a structured AST.
     Inherits from BlockTransformer and InlineTransformer for modularity.
@@ -172,6 +174,7 @@ class AsciiDocTransformer(BlockTransformer, InlineTransformer, Transformer[Token
 
     def attributed_block(self, children: Children) -> BlockNode:
         from .nodes import Admonition, Example
+
         metadata = [c for c in children[:-1] if c is not Discard]
         block = cast(BlockNode, children[-1])
 
@@ -218,7 +221,7 @@ class AsciiDocTransformer(BlockTransformer, InlineTransformer, Transformer[Token
         level = 1
         lead = [c for c in children if isinstance(c, Token) and c.type == "SECTION_TITLE_LEAD"]
         if lead:
-            level = lead[0].value.strip().count("=")
+            level = max(1, lead[0].value.strip().count("=") - 1)
         
         nodes = [c for c in children if isinstance(c, list)]
         title_nodes = nodes[0] if nodes else []

@@ -1,14 +1,16 @@
 import re
-from typing import Any, Dict, List, Optional
-from .nodes import Node
+from typing import Any, Dict
+
 
 def substitute_attributes(text: str, attributes: Dict[str, str]) -> str:
     """Replace {name} with attribute values in text."""
+
     def replace(match: re.Match[str]) -> str:
         name = match.group(1)
         return str(attributes.get(name, match.group(0)))
 
     return re.sub(r"\{([a-zA-Z0-9_-]+)\}", replace, text)
+
 
 def resolve_node_to_string(node: Any) -> str:
     """Recursively resolve an AST node to its string representation."""
@@ -19,6 +21,7 @@ def resolve_node_to_string(node: Any) -> str:
     if hasattr(node, "principal"):
         return resolve_node_to_string(node.principal)
     return ""
+
 
 def resolve_attribute_map(attributes: Dict[str, Any]) -> Dict[str, str]:
     """Resolve a map of rich attribute values (nodes) to simple strings."""

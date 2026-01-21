@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Sequence
+from typing import Any, Dict, Optional, cast
 from typing import List as PyList
 
 from lark import Token
@@ -11,10 +11,12 @@ from ..nodes import (
     Text,
 )
 
+
 class InlineTransformer:
     """
     Mixin class for inline-level AsciiDoc transformations.
     """
+
     # attributes: Dict[str, PyList[Node]]  # Will be provided by main transformer
 
     def attribute_reference(self, children: PyList[Any]) -> PyList[Node]:
@@ -25,7 +27,8 @@ class InlineTransformer:
                 break
 
         # Access attributes from the instance (AsciiDocTransformer)
-        return getattr(self, "attributes").get(name, [Text(f"{{{name}}}")])
+        attrs = cast(Dict[str, PyList[Node]], getattr(self, "attributes"))
+        return attrs.get(name, [Text(f"{{{name}}}")])
 
     def text_content(self, children: PyList[Any]) -> PyList[Node]:
         nodes: PyList[Node] = []
@@ -79,27 +82,30 @@ class InlineTransformer:
 
     def bold(self, children: PyList[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
-        nodes = content[0] if content else []
-        if (
-            len(nodes) == 1
-            and isinstance(nodes[0], Span)
-            and nodes[0].variant == "strong"
-        ):
-            return Span(variant="strong", inlines=nodes[0].inlines)
-        return Span(variant="strong", inlines=nodes)
+        return Span(variant="strong", form="constrained", inlines=content[0] if content else [])
+
+    def unconstrained_bold(self, children: PyList[Any]) -> Span:
+        content = [c for c in children if isinstance(c, list)]
+        return Span(variant="strong", form="unconstrained", inlines=content[0] if content else [])
 
     def italic(self, children: PyList[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
-        return Span(variant="emphasis", inlines=content[0] if content else [])
+        return Span(variant="emphasis", form="constrained", inlines=content[0] if content else [])
+
+    def unconstrained_italic(self, children: PyList[Any]) -> Span:
+        content = [c for c in children if isinstance(c, list)]
+        return Span(variant="emphasis", form="unconstrained", inlines=content[0] if content else [])
 
     def literal_content(self, children: PyList[Any]) -> str:
         return str(children[0])
 
     def monospace(self, children: PyList[Any]) -> Span:
-        # Monospace now receives a single literal string or token, not a list of Nodes
-        content = children[0]
-        # Wrap it in a single Text node
-        return Span(variant="code", inlines=[Text(str(content))])
+        content = [c for c in children if isinstance(c, list)]
+        return Span(variant="code", form="constrained", inlines=content[0] if content else [])
+
+    def unconstrained_monospace(self, children: PyList[Any]) -> Span:
+        content = [c for c in children if isinstance(c, list)]
+        return Span(variant="code", form="unconstrained", inlines=content[0] if content else [])
 
     def marked(self, children: PyList[Any]) -> Span:
         return Span(variant="mark", inlines=children[0] if children else [])
