@@ -33,16 +33,42 @@ def main():
         resolver = ASGResolver(ast)
         asg = resolver.resolve(ast)
 
+        def clean_asg_for_tck(obj):
+            if isinstance(obj, dict):
+                # TCK doesn't expect 'form' in spans
+                res = {
+                    k: clean_asg_for_tck(v)
+                    for k, v in obj.items()
+                    if k != "form"
+                }
+                # TCK prefers omitting empty child collections in some contexts
+                for key in ["blocks", "inlines", "items"]:
+                    if key in res and not res[key]:
+                        del res[key]
+                return res
+            elif isinstance(obj, list):
+                return [clean_asg_for_tck(i) for i in obj]
+            return obj
+
         if parse_type == "inline":
             # For inline type, TCK expects a list of inlines.
             if asg.get("blocks") and asg["blocks"][0].get("name") == "paragraph":
-                print(json.dumps(asg["blocks"][0]["inlines"]))
+                output = clean_asg_for_tck(asg["blocks"][0]["inlines"])
             else:
-                print(json.dumps([]))
+                output = []
         else:
             # Block type
-            print(json.dumps(asg))
+            output = clean_asg_for_tck(asg)
 
+        result_json = json.dumps(output)
+        
+        # DEBUG LOGGING
+        with open("tck_debug.log", "a", encoding="utf-8") as f:
+            f.write(f"--- TEST TYPE: {parse_type} ---\n")
+            f.write(f"INPUT:\n{contents}\n")
+            f.write(f"OUTPUT:\n{result_json}\n\n")
+
+        print(result_json)
         sys.exit(0)
 
     except Exception as e:

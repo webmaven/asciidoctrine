@@ -350,7 +350,10 @@ class ListItem(BlockNode):
     """A node representing a single item within a list. It can contain blocks."""
 
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
-        return {"principal": self.principal, "blocks": self.blocks}
+        res: Dict[str, PyList[Node]] = {"principal": self.principal}
+        if self.blocks:
+            res["blocks"] = self.blocks
+        return res
 
     def __init__(
         self,
