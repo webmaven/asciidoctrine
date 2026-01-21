@@ -103,10 +103,9 @@ class BlockTransformer:
         return all_root_children
 
     def section(self, children: PyList[Any]) -> Section:
-        children = [c for c in children if c is not Discard]
-        title, *blocks = children
-        merged_blocks = self._merge_consecutive_lists(blocks) # type: ignore
-        return Section(level=1, title=title, blocks=merged_blocks)
+        # Now section is flat: children[0] is (level, title)
+        level, title = children[0]
+        return Section(level=level, title=title, blocks=[])
 
     def paragraph(self, children: PyList[Any]) -> Paragraph:
         children = [c for c in children if c is not Discard]

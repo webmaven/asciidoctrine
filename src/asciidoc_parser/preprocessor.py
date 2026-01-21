@@ -18,14 +18,16 @@ class Preprocessor:
     Processes AsciiDoc source to handle `include::` directives.
     """
 
-    def __init__(self, base_dir: Optional[str] = None) -> None:
+    def __init__(self, base_dir: Optional[str] = None, safe_mode: bool = True) -> None:
         """
         Initializes the preprocessor.
         Args:
             base_dir (str, optional): The base directory for resolving include paths.
                                       Defaults to the current working directory.
+            safe_mode (bool): If True, prevents including files outside base_dir.
         """
         self.base_dir = os.path.abspath(base_dir) if base_dir else os.getcwd()
+        self.safe_mode = safe_mode
         self.include_regex = re.compile(r"^include::([^\[]+)\[\]\s*$")
 
     def process(self, source: str) -> str:
@@ -43,14 +45,6 @@ class Preprocessor:
     ) -> str:
         """
         Recursively processes source text, handling includes.
-        Args:
-            source (str): The source text to process.
-            current_dir (str): The directory of the current file being processed,
-                               for resolving relative paths.
-            included_files (set): A set of absolute file paths currently in the
-                                  inclusion chain, to detect circular dependencies.
-        Returns:
-            str: The processed source text.
         """
         processed_lines = []
         for line in source.splitlines(True):
@@ -62,11 +56,8 @@ class Preprocessor:
                     os.path.join(current_dir, include_path)
                 )
 
-                # Security check: ensure the target is within the base directory
-                if (
-                    os.path.commonprefix([target_file_path, self.base_dir])
-                    != self.base_dir
-                ):
+                # Security check: verify target is within base directory if safe_mode is on
+                if self.safe_mode and os.path.commonprefix([target_file_path, self.base_dir]) != self.base_dir:
                     raise PreprocessorError(
                         f"Security error: include path '{include_path}' "
                         "attempts to access files outside the base directory."

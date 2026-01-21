@@ -92,10 +92,14 @@ class InlineTransformer:
         content = [c for c in children if isinstance(c, list)]
         return Span(variant="emphasis", inlines=content[0] if content else [])
 
+    def literal_content(self, children: PyList[Any]) -> str:
+        return str(children[0])
+
     def monospace(self, children: PyList[Any]) -> Span:
-        content = [c for c in children if isinstance(c, list)]
-        nodes = content[0] if content else []
-        return Span(variant="code", inlines=nodes)
+        # Monospace now receives a single literal string or token, not a list of Nodes
+        content = children[0]
+        # Wrap it in a single Text node
+        return Span(variant="code", inlines=[Text(str(content))])
 
     def marked(self, children: PyList[Any]) -> Span:
         return Span(variant="mark", inlines=children[0] if children else [])
@@ -148,22 +152,49 @@ class InlineTransformer:
         return img
 
     def inline_anchor(self, children: PyList[Any]) -> Ref:
-        nodes = children[0]
-        target = "".join(
-            [getattr(n, "value", "") for n in nodes if hasattr(n, "value")]
-        )
-        if "," in target:
-            target, _ = target.split(",", 1)
-        return Ref(variant="anchor", target=target.strip(), inlines=nodes)
+        if isinstance(children[0], Token) and children[0].type == "TARGET":
+            # anchor:TARGET[ATTR_LIST_CONTENT]
+            target = children[0].value
+            attrs = (
+                children[1]
+                if len(children) > 1 and isinstance(children[1], dict)
+                else {}
+            )
+            label = attrs.get("style", target)
+            return Ref(variant="anchor", target=target.strip(), inlines=[Text(label)])
+        else:
+            # [[text_content]]
+            nodes = children[0]
+            target = "".join(
+                [getattr(n, "value", "") for n in nodes if hasattr(n, "value")]
+            )
+            if "," in target:
+                target, _ = target.split(",", 1)
+            return Ref(variant="anchor", target=target.strip(), inlines=nodes)
 
     def inline_xref(self, children: PyList[Any]) -> Ref:
-        nodes = children[0]
-        target = "".join(
-            [getattr(n, "value", "") for n in nodes if hasattr(n, "value")]
-        )
-        if "," in target:
-            target, _ = target.split(",", 1)
-        return Ref(variant="xref", target=target.strip(), inlines=nodes)
+        if isinstance(children[0], Token) and children[0].type == "TARGET":
+            # xref:TARGET[ATTR_LIST_CONTENT]
+            target = children[0].value
+            attrs = (
+                children[1]
+                if len(children) > 1 and isinstance(children[1], dict)
+                else {}
+            )
+            label = attrs.get("style", target)
+            return Ref(variant="xref", target=target.strip(), inlines=[Text(label)])
+        else:
+            # <<text_content>>
+            nodes = children[0]
+            target_str = "".join(
+                [getattr(n, "value", "") for n in nodes if hasattr(n, "value")]
+            )
+            label_nodes = nodes
+            if "," in target_str:
+                target_str, label_text = target_str.split(",", 1)
+                label_nodes = [Text(label_text.strip())]
+
+            return Ref(variant="xref", target=target_str.strip(), inlines=label_nodes)
 
     def inline_bibref(self, children: PyList[Any]) -> Ref:
         nodes = children[0]

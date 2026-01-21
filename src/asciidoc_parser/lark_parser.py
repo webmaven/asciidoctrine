@@ -15,6 +15,8 @@ from .nodes import (
     Node,
     PageBreak,
     Revision,
+    Section,
+    Ref,
     Text,
     ThematicBreak,
     Title,
@@ -56,8 +58,8 @@ class AsciiDocTransformer(BlockTransformer, InlineTransformer, Transformer[Token
                 blocks = [c for c in children[i + 1 :] if isinstance(c, BlockNode)]
                 break
 
-        merged_blocks = self._merge_consecutive_lists(blocks)
-        doc = Document(merged_blocks)
+        final_blocks = self._finalize_document_blocks(blocks)
+        doc = Document(final_blocks)
         if header:
             doc.header = header
             doc.attributes.update(header.attributes)
@@ -65,8 +67,34 @@ class AsciiDocTransformer(BlockTransformer, InlineTransformer, Transformer[Token
         return doc
 
     def body_only(self, children: Children) -> Document:
-        merged_blocks = self._merge_consecutive_lists(children)
-        return Document(merged_blocks)
+        final_blocks = self._finalize_document_blocks(children)
+        return Document(final_blocks)
+
+    def _finalize_document_blocks(self, blocks: PyList[Any]) -> PyList[Node]:
+        block_nodes = [b for b in blocks if isinstance(b, BlockNode)]
+        # 1. Merge consecutive lists of same type
+        merged = self._merge_consecutive_lists(block_nodes)
+        # 2. Nest sections correctly
+        return self._nest_sections(merged)
+
+    def _nest_sections(self, blocks: PyList[Node]) -> PyList[Node]:
+        root: PyList[Node] = []
+        stack: PyList[Section] = []
+        for block in blocks:
+            if isinstance(block, Section):
+                while stack and stack[-1].level >= block.level:
+                    stack.pop()
+                if stack:
+                    stack[-1].blocks.append(block)
+                else:
+                    root.append(block)
+                stack.append(block)
+            else:
+                if stack:
+                    stack[-1].blocks.append(block)
+                else:
+                    root.append(block)
+        return root
 
     def document_header(self, children: Children) -> Header:
         title = children[0]
@@ -186,12 +214,15 @@ class AsciiDocTransformer(BlockTransformer, InlineTransformer, Transformer[Token
     def attributed_simple_block(self, children: Children) -> BlockNode:
         return self.attributed_block(children)
 
-    def section_title(self, children: Children) -> Title:
+    def section_title(self, children: Children) -> Tuple[int, Title]:
+        level = 1
+        lead = [c for c in children if isinstance(c, Token) and c.type == "SECTION_TITLE_LEAD"]
+        if lead:
+            level = lead[0].value.strip().count("=")
+        
         nodes = [c for c in children if isinstance(c, list)]
-        if not nodes:
-            content = [c for c in children if c is not Discard]
-            return Title(content if isinstance(content, list) else [content])
-        return Title(nodes[0])
+        title_nodes = nodes[0] if nodes else []
+        return level, Title(title_nodes)
 
     def attribute_content(self, children: Children) -> str:
         return cast(str, children[0].value)
@@ -315,7 +346,7 @@ class AsciiDocTransformer(BlockTransformer, InlineTransformer, Transformer[Token
         return Token("WORD", " ")
 
     def SECTION_TITLE_LEAD(self, token: Token) -> Any:
-        return Discard
+        return token
 
     def _NEWLINE(self, token: Token) -> Any:
         return Discard
@@ -328,8 +359,9 @@ def parse_to_ast(
     source: str,
     grammar_file: str = DEFAULT_GRAMMAR,
     base_dir: Optional[str] = None,
+    safe_mode: bool = True,
 ) -> Document:
-    preprocessor = Preprocessor(base_dir)
+    preprocessor = Preprocessor(base_dir, safe_mode=safe_mode)
     processed_source = preprocessor.process(source)
 
     with open(grammar_file, "r") as f:

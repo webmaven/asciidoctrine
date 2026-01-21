@@ -27,7 +27,7 @@ block_metadata: block_title | attribute_list | anchor
 block_title: "." text_content _NEWLINE
 
 // Sections and Titles
-section: section_title block*
+section: section_title
 section_title: SECTION_TITLE_LEAD text_content _NEWLINE
 
 // Paragraphs
@@ -84,14 +84,14 @@ page_break: "<<<" _NEWLINE
 text_content: inline_element+
 
 attribute_reference: LBRACE ATTR_NAME RBRACE
-?inline_element: bold | italic | monospace | attribute_reference | WORD | WHITESPACE | COLON | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref
+?inline_element: bold | italic | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | WHITESPACE | COLON | WORD
 
 image_block: "image::" TARGET "[" [ATTR_LIST_CONTENT] "]" _NEWLINE
-inline_image: "image:" TARGET "[" [ATTR_LIST_CONTENT] "]"
-icon_inline: "icon:" TARGET "[" [ATTR_LIST_CONTENT] "]"
+inline_image: "image:" TARGET inline_attribute_list
+icon_inline: "icon:" TARGET inline_attribute_list
 
-inline_anchor: "[[" text_content "]]"
-inline_xref: "<<" text_content ">>"
+inline_anchor: "[[" text_content "]]" | "anchor:" TARGET inline_attribute_list
+inline_xref: "<<" text_content ">>" | "xref:" TARGET inline_attribute_list
 inline_bibref: "[[[" text_content "]]]"
 
 TARGET: /[^\[\n ]+/
@@ -99,9 +99,12 @@ TARGET: /[^\[\n ]+/
 footnote: "footnote:" "[" text_content "]"
 footnoteref: "footnoteref:" "[" [WORD] ["," text_content] "]"
 
+// Text that allows substitutions but NOT formatting (for now, simplistic)
+literal_content: /[^\n`]+/ 
+
 bold: "*" text_content "*"
 italic: "_" text_content "_"
-monospace: "`" text_content "`"
+monospace: "`" literal_content "`"
 marked: "#" text_content "#"
 superscript: "^" text_content "^"
 subscript: "~" text_content "~"

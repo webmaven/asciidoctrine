@@ -1,0 +1,4 @@
+include::../ARCHITECTURE.adoc[]
+
+:relfileprefix: ../
+:relfilesuffix: .adoc
