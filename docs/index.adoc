@@ -1,0 +1,57 @@
+= AsciiDoc Parser Documentation
+Michael R. Bernstein <zopemaven@gmail.com>
+v0.1.0
+
+Welcome to the official documentation for the **AsciiDoc Parser for Python**.
+
+This documentation is self-hosted: it is rendered using Sphinx with our own `asciidoc_parser.sphinx_ext` plugin!
+
+== Features
+
+* **Lark-based Grammar**: High-performance parsing using the Earley and LALR algorithms.
+* **Semantic AST**: A structured, type-safe representation of your document.
+* **Sphinx Integration**: Author your documentation in AsciiDoc and render it with Sphinx.
+* **TCK Compliance**: Developed against the official AsciiDoc Technology Compatibility Kit.
+
+== Project Documents
+
+The following documents have been integrated into this documentation site from the project root:
+
+* xref:architecture[Architecture Overview]
+* xref:contributing[Contributing Guide]
+
+== Architecture
+
+[NOTE]
+====
+This section is a summary of our architectural approach.
+====
+
+The parser operates in a multi-pass pipeline:
+
+1. **Source Parsing**: Lark processes the source text into a CST.
+2. **Transformation**: Our `AsciiDocTransformer` converts the CST into a structured AST.
+3. **Semantic Resolution**: Attributes, includes, and links are resolved to produce the final ASG.
+
+== Installation
+
+[source,bash]
+----
+pip install asciidoc-parser
+----
+
+== Project Roadmap
+
+The project is currently in **Alpha**. We are focusing on achieving (and maintaining) 100% compliance with the TCK core blocks.
+
+=== Core Blocks
+* Sections
+* Paragraphs
+* Lists
+* Admonitions
+* Listing/Source blocks
+
+=== Coming Soon
+* Tables
+* Footnotes
+* Advanced Cross-references

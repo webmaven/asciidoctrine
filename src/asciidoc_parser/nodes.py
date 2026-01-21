@@ -350,7 +350,10 @@ class ListItem(BlockNode):
     """A node representing a single item within a list. It can contain blocks."""
 
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
-        return {"principal": self.principal, "blocks": self.blocks}
+        res: Dict[str, PyList[Node]] = {"principal": self.principal}
+        if self.blocks:
+            res["blocks"] = self.blocks
+        return res
 
     def __init__(
         self,
@@ -531,7 +534,7 @@ class PageBreak(BlockNode):
         self.type = "block"
 
 
-class AttributeEntry(Node):
+class AttributeEntry(BlockNode):
     """A node representing an attribute declaration in the document header."""
 
     def __init__(self, name: str, value: str):
@@ -542,7 +545,7 @@ class AttributeEntry(Node):
         self.value = value
 
 
-class Include(Node):
+class Include(BlockNode):
     """A node representing an `include::` directive."""
 
     def __init__(self, filename: str):

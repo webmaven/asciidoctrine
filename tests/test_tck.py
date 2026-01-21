@@ -2,6 +2,7 @@ import glob
 import os
 import re
 import subprocess
+import sys
 
 import pytest
 
@@ -9,8 +10,20 @@ import pytest
 @pytest.fixture(scope="session")
 def tck_output():
     """Runs the TCK and returns (stdout, stderr, returncode)."""
-    # Ensure TCK is initialized and run it
-    result = subprocess.run(["./run-tck.sh"], capture_output=True, text=True)
+    tck_dir = os.path.join("vendor", "asciidoc-tck")
+    node_modules = os.path.join(tck_dir, "node_modules")
+    
+    # Ensure TCK is initialized
+    if not os.path.exists(node_modules):
+        subprocess.run(["npm", "ci"], cwd=tck_dir, check=True)
+
+    # Run TCK directly via node
+    harness_path = os.path.join(tck_dir, "harness", "bin", "asciidoc-tck.js")
+    adapter_cmd = f"{sys.executable} bin/tck-adapter.py"
+    
+    cmd = ["node", harness_path, "cli", "--adapter-command", adapter_cmd]
+    
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
     return result.stdout, result.stderr, result.returncode
 
 

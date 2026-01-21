@@ -27,6 +27,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest", "ruff", "mypy", "docutils", "types-docutils"]
+docs = ["sphinx", "sphinx-rtd-theme"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
