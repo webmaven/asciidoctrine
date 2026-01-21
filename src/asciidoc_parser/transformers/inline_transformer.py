@@ -82,30 +82,48 @@ class InlineTransformer:
 
     def bold(self, children: PyList[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
-        return Span(variant="strong", form="constrained", inlines=content[0] if content else [])
+        return Span(
+            variant="strong", form="constrained", inlines=content[0] if content else []
+        )
 
     def unconstrained_bold(self, children: PyList[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
-        return Span(variant="strong", form="unconstrained", inlines=content[0] if content else [])
+        return Span(
+            variant="strong",
+            form="unconstrained",
+            inlines=content[0] if content else [],
+        )
 
     def italic(self, children: PyList[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
-        return Span(variant="emphasis", form="constrained", inlines=content[0] if content else [])
+        return Span(
+            variant="emphasis",
+            form="constrained",
+            inlines=content[0] if content else [],
+        )
 
     def unconstrained_italic(self, children: PyList[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
-        return Span(variant="emphasis", form="unconstrained", inlines=content[0] if content else [])
+        return Span(
+            variant="emphasis",
+            form="unconstrained",
+            inlines=content[0] if content else [],
+        )
 
     def literal_content(self, children: PyList[Any]) -> str:
         return str(children[0])
 
     def monospace(self, children: PyList[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
-        return Span(variant="code", form="constrained", inlines=content[0] if content else [])
+        return Span(
+            variant="code", form="constrained", inlines=content[0] if content else []
+        )
 
     def unconstrained_monospace(self, children: PyList[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
-        return Span(variant="code", form="unconstrained", inlines=content[0] if content else [])
+        return Span(
+            variant="code", form="unconstrained", inlines=content[0] if content else []
+        )
 
     def marked(self, children: PyList[Any]) -> Span:
         return Span(variant="mark", inlines=children[0] if children else [])

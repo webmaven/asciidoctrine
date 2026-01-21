@@ -57,7 +57,11 @@ class Preprocessor:
                 )
 
                 # Security check: verify target is within base directory if safe_mode is on
-                if self.safe_mode and os.path.commonprefix([target_file_path, self.base_dir]) != self.base_dir:
+                if (
+                    self.safe_mode
+                    and os.path.commonprefix([target_file_path, self.base_dir])
+                    != self.base_dir
+                ):
                     raise PreprocessorError(
                         f"Security error: include path '{include_path}' "
                         "attempts to access files outside the base directory."

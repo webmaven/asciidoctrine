@@ -13,6 +13,9 @@ class CombinedFeaturesTest(unittest.TestCase):
 Another paragraph.
 """
         ast = parse_to_ast(source).to_dict()
+        import json
+        print(json.dumps(ast, indent=2))
+        self.maxDiff = None
         expected_ast = {
             "name": "document",
             "type": "block",
@@ -45,7 +48,7 @@ Another paragraph.
                                             "name": "span",
                                             "type": "inline",
                                             "variant": "strong",
-                                            "form": "constrained",
+                                            "form": "unconstrained",
                                             "inlines": [
                                                 {
                                                     "name": "text",

@@ -60,18 +60,18 @@ class DocutilsRenderer(NodeVisitor):
         if "id" in node.attributes:
             section["ids"].append(node.attributes["id"])
         self.document.set_id(section)
-        
+
         title = nodes.title()
         old_parent = self.current_node
         self.current_node = title
         for inline in node.title.inlines:
             self.visit(inline)
         section += title
-        
+
         self.current_node = section
         for block in node.blocks:
             self.visit(block)
-        
+
         old_parent += section
         self.current_node = old_parent
 
@@ -97,7 +97,7 @@ class DocutilsRenderer(NodeVisitor):
         }
         creator = mapping.get(node.variant, nodes.inline)
         span_node = creator()
-        
+
         old_parent = self.current_node
         self.current_node = span_node
         for inline in node.inlines:
@@ -110,7 +110,7 @@ class DocutilsRenderer(NodeVisitor):
             list_node = nodes.enumerated_list()
         else:
             list_node = nodes.bullet_list()
-        
+
         old_parent = self.current_node
         self.current_node = list_node
         for item in node.items:
@@ -122,7 +122,7 @@ class DocutilsRenderer(NodeVisitor):
         item = nodes.list_item()
         old_parent = self.current_node
         self.current_node = item
-        
+
         if node.principal:
             para = nodes.paragraph()
             self.current_node = para
@@ -133,28 +133,28 @@ class DocutilsRenderer(NodeVisitor):
 
         for block in node.blocks:
             self.visit(block)
-            
+
         old_parent += item
         self.current_node = old_parent
 
     def visit_ref(self, node: Ref):
         # Handle cross-references and links
         ref_node = nodes.reference()
-        
+
         # Determine URI or Reference ID
         target = node.target
         if node.variant == "link":
-             ref_node["refuri"] = target
+            ref_node["refuri"] = target
         elif node.variant == "xref":
-             # If target looks like a filename without extension, assume .html for Sphinx/HTML
-             if "." not in target and "/" not in target:
-                 target = target + ".html"
-             else:
-                 target = target.replace(".adoc", ".html")
-             ref_node["refuri"] = target
+            # If target looks like a filename without extension, assume .html for Sphinx/HTML
+            if "." not in target and "/" not in target:
+                target = target + ".html"
+            else:
+                target = target.replace(".adoc", ".html")
+            ref_node["refuri"] = target
         else:
-             ref_node["refuri"] = target
-             
+            ref_node["refuri"] = target
+
         old_parent = self.current_node
         self.current_node = ref_node
         for inline in node.inlines:
@@ -163,7 +163,9 @@ class DocutilsRenderer(NodeVisitor):
         self.current_node = old_parent
 
     def visit_listing(self, node: Listing):
-        content = "".join([getattr(n, "value", "") for n in node.inlines if hasattr(n, "value")])
+        content = "".join(
+            [getattr(n, "value", "") for n in node.inlines if hasattr(n, "value")]
+        )
         literal = nodes.literal_block(content, content)
         if "language" in node.attributes:
             literal["classes"].append(node.attributes["language"])
@@ -179,7 +181,7 @@ class DocutilsRenderer(NodeVisitor):
         }
         creator = mapping.get(node.variant, nodes.admonition)
         adm = creator()
-        
+
         old_parent = self.current_node
         self.current_node = adm
         for block in node.blocks:
@@ -204,7 +206,7 @@ class DocutilsRenderer(NodeVisitor):
                 self.visit(inline)
             sb += title
             self.current_node = old_parent_inner
-            
+
         old_parent = self.current_node
         self.current_node = sb
         for block in node.blocks:

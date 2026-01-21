@@ -84,7 +84,7 @@ page_break: "<<<" _NEWLINE
 text_content: inline_element+
 
 attribute_reference: LBRACE ATTR_NAME RBRACE
-?inline_element: bold | unconstrained_bold | italic | unconstrained_italic | monospace | unconstrained_monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | WHITESPACE | COLON | WORD
+?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | WHITESPACE | COLON | WORD
 
 image_block: "image::" TARGET "[" [ATTR_LIST_CONTENT] "]" _NEWLINE
 inline_image: "image:" TARGET inline_attribute_list
@@ -103,11 +103,11 @@ footnoteref: "footnoteref:" "[" [WORD] ["," text_content] "]"
 literal_content: /[^\n`]+/ 
 
 bold: "*" text_content "*"
-unconstrained_bold: "**" text_content "**"
+unconstrained_bold.2: "**" text_content "**"
 italic: "_" text_content "_"
-unconstrained_italic: "__" text_content "__"
+unconstrained_italic.2: "__" text_content "__"
 monospace: "`" text_content "`"
-unconstrained_monospace: "``" text_content "``"
+unconstrained_monospace.2: "``" text_content "``"
 marked: "#" text_content "#"
 superscript: "^" text_content "^"
 subscript: "~" text_content "~"

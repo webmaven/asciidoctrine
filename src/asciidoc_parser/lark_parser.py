@@ -219,10 +219,14 @@ class AsciiDocTransformer(
 
     def section_title(self, children: Children) -> Tuple[int, Title]:
         level = 1
-        lead = [c for c in children if isinstance(c, Token) and c.type == "SECTION_TITLE_LEAD"]
+        lead = [
+            c
+            for c in children
+            if isinstance(c, Token) and c.type == "SECTION_TITLE_LEAD"
+        ]
         if lead:
             level = max(1, lead[0].value.strip().count("=") - 1)
-        
+
         nodes = [c for c in children if isinstance(c, list)]
         title_nodes = nodes[0] if nodes else []
         return level, Title(title_nodes)
