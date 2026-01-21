@@ -37,6 +37,21 @@ class TestDocBuildDiscoveries(unittest.TestCase):
         self.assertEqual(len(span["inlines"]), 1)
         self.assertEqual(span["inlines"][0]["value"], "asciidoc_parser.sphinx_ext")
 
+    def test_unconstrained_monospace_literal(self):
+        """
+        Unconstrained monospace backticks (``) should also be literal.
+        """
+        source = "``*bold* _italic_``\n"
+        ast = parse_to_ast(source).to_dict()
+        paragraph = ast["blocks"][0]
+        span = paragraph["inlines"][0]
+        self.assertEqual(span["variant"], "code")
+        self.assertEqual(span["form"], "unconstrained")
+
+        # The content should be a single text node with literal content
+        self.assertEqual(len(span["inlines"]), 1)
+        self.assertEqual(span["inlines"][0]["value"], "*bold* _italic_")
+
 
 if __name__ == "__main__":
     unittest.main()
