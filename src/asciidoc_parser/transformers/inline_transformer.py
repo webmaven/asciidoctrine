@@ -113,17 +113,17 @@ class InlineTransformer:
     def literal_content(self, children: PyList[Any]) -> str:
         return str(children[0])
 
+    def monospace_content(self, children: PyList[Any]) -> PyList[Node]:
+        return self.text_content(children)
+
+    def unconstrained_monospace_content(self, children: PyList[Any]) -> PyList[Node]:
+        return self.text_content(children)
+
     def monospace(self, children: PyList[Any]) -> Span:
-        content = [c for c in children if isinstance(c, list)]
-        return Span(
-            variant="code", form="constrained", inlines=content[0] if content else []
-        )
+        return Span(variant="code", form="constrained", inlines=children[0])
 
     def unconstrained_monospace(self, children: PyList[Any]) -> Span:
-        content = [c for c in children if isinstance(c, list)]
-        return Span(
-            variant="code", form="unconstrained", inlines=content[0] if content else []
-        )
+        return Span(variant="code", form="unconstrained", inlines=children[0])
 
     def marked(self, children: PyList[Any]) -> Span:
         return Span(variant="mark", inlines=children[0] if children else [])

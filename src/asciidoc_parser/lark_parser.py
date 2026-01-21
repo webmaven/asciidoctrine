@@ -1,6 +1,6 @@
 import os
 import re
-from typing import Any, Dict, Optional, Sequence, Tuple, Union, cast
+from typing import Any, Dict, Optional, Tuple, Union, cast
 from typing import List as PyList
 
 from lark import Discard, Lark, Token, Transformer
@@ -17,7 +17,6 @@ from .nodes import (
     PageBreak,
     Revision,
     Section,
-    Ref,
     Text,
     ThematicBreak,
     Title,

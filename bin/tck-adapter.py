@@ -35,12 +35,7 @@ def main():
 
         def clean_asg_for_tck(obj):
             if isinstance(obj, dict):
-                # TCK doesn't expect 'form' in spans
-                res = {
-                    k: clean_asg_for_tck(v)
-                    for k, v in obj.items()
-                    if k != "form"
-                }
+                res = {k: clean_asg_for_tck(v) for k, v in obj.items()}
                 # TCK prefers omitting empty child collections in some contexts
                 for key in ["blocks", "inlines", "items"]:
                     if key in res and not res[key]:
@@ -61,12 +56,6 @@ def main():
             output = clean_asg_for_tck(asg)
 
         result_json = json.dumps(output)
-        
-        # DEBUG LOGGING
-        with open("tck_debug.log", "a", encoding="utf-8") as f:
-            f.write(f"--- TEST TYPE: {parse_type} ---\n")
-            f.write(f"INPUT:\n{contents}\n")
-            f.write(f"OUTPUT:\n{result_json}\n\n")
 
         print(result_json)
         sys.exit(0)

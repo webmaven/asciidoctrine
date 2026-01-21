@@ -1,7 +1,8 @@
+import json
+
 from asciidoc_parser.lark_parser import parse_to_ast
 from asciidoc_parser.resolver import ASGResolver
-import json
-import os
+
 
 def remove_location(obj):
     if isinstance(obj, dict):
@@ -10,6 +11,7 @@ def remove_location(obj):
         return [remove_location(i) for i in obj]
     else:
         return obj
+
 
 source = "single word\n"
 ast = parse_to_ast(source)
@@ -31,8 +33,9 @@ if actual_clean == expected_clean:
 else:
     print("MISMATCH")
     import difflib
+
     diff = difflib.ndiff(
         json.dumps(expected_clean, indent=2).splitlines(),
-        json.dumps(actual_clean, indent=2).splitlines()
+        json.dumps(actual_clean, indent=2).splitlines(),
     )
     print("\n".join(diff))

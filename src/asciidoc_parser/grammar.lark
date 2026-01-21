@@ -83,8 +83,8 @@ page_break: "<<<" _NEWLINE
 // Using a recursive definition. Requires the Earley parser.
 text_content: inline_element+
 
-attribute_reference: LBRACE ATTR_NAME RBRACE
-?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | WHITESPACE | COLON | WORD
+attribute_reference.2: LBRACE ATTR_NAME RBRACE
+?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | WHITESPACE | COLON | WORD | LBRACE | RBRACE | EQUALS | LSQB | RSQB
 
 image_block: "image::" TARGET "[" [ATTR_LIST_CONTENT] "]" _NEWLINE
 inline_image: "image:" TARGET inline_attribute_list
@@ -106,8 +106,14 @@ bold: "*" text_content "*"
 unconstrained_bold.2: "**" text_content "**"
 italic: "_" text_content "_"
 unconstrained_italic.2: "__" text_content "__"
-monospace: "`" text_content "`"
-unconstrained_monospace.2: "``" text_content "``"
+monospace: "`" monospace_content "`"
+unconstrained_monospace.2: "``" unconstrained_monospace_content "``"
+
+monospace_content: (attribute_reference | MONOSPACE_TEXT)+
+unconstrained_monospace_content: (attribute_reference | UNCONSTRAINED_MONOSPACE_TEXT)+
+
+MONOSPACE_TEXT: /[^`{\n]+/ | "{"
+UNCONSTRAINED_MONOSPACE_TEXT: /([^`{\n]|`[^`])+/ | "{"
 marked: "#" text_content "#"
 superscript: "^" text_content "^"
 subscript: "~" text_content "~"
@@ -119,15 +125,15 @@ single_quoted: "'`" text_content "`'"
 
 // Block Terminals
 DOC_TITLE_LEAD: /= [ \t]*/
-SECTION_TITLE_LEAD: /==+ [ \t]*/
+SECTION_TITLE_LEAD.2: /==+ [ \t]*/
 ULIST_MARKER: /(\*+|[-])[ \t]+/
 OLIST_MARKER: /([0-9]+\.|[\.]+)[ \t]+/
 LITERAL_BLOCK_DELIM.2: /-{4,}/
 ADMONITION_START: /\[ *(NOTE|TIP|IMPORTANT|WARNING|CAUTION) *\]/
 
-ADMONITION_DELIM_4: "===="
-ADMONITION_DELIM_5: "====="
-ADMONITION_DELIM_6: "======"
+ADMONITION_DELIM_4.2: "===="
+ADMONITION_DELIM_5.2: "====="
+ADMONITION_DELIM_6.2: "======"
 ADMONITION_DELIM_LONG: /={7,}/
 
 SIDEBAR_DELIM_4: "****"
@@ -146,6 +152,9 @@ ATTR_NAME: /[a-zA-Z0-9_\-]+/
 WORD: /[^ \t\n*_`=\[\]{}:]+/  // Word characters (not whitespace or markup)
 LBRACE: "{"
 RBRACE: "}"
+LSQB: "["
+RSQB: "]"
+EQUALS: "="
 COLON: ":"
 
 // %ignore WHITESPACE
