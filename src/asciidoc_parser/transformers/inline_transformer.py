@@ -26,9 +26,10 @@ class InlineTransformer:
     def _set_location_from_children(self, node: Node, children: PyList[Any]) -> Node:
         """Sets the location of a node based on its children's locations."""
         from lark import Tree
+
         valid_locations = []
 
-        def collect_locations(item: Any):
+        def collect_locations(item: Any) -> None:
             if isinstance(item, Node) and item.location:
                 valid_locations.extend(item.location)
             elif isinstance(item, Token):
@@ -180,11 +181,13 @@ class InlineTransformer:
 
     @v_args(meta=True)
     def monospace_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
-        return self.text_content(meta, children)
+        return self.text_content(meta, children) # type: ignore
 
     @v_args(meta=True)
-    def unconstrained_monospace_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
-        return self.text_content(meta, children)
+    def unconstrained_monospace_content(
+        self, meta: Any, children: PyList[Any]
+    ) -> PyList[Node]:
+        return self.text_content(meta, children) # type: ignore
 
     @v_args(meta=True)
     def monospace(self, meta: Any, children: PyList[Any]) -> Span:

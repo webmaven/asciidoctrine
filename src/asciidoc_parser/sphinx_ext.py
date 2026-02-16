@@ -8,12 +8,12 @@ from .docutils_backend import DocutilsRenderer
 from .lark_parser import parse_to_ast
 
 
-class AsciiDocParser(SphinxParser):
+class AsciiDocParser(SphinxParser): # type: ignore
     """
     Sphinx parser for AsciiDoc files.
     """
 
-    supported: tuple[str, ...] = ("asciidoc", "adoc")  # type: ignore[misc]
+    supported: tuple[str, ...] = ("asciidoc", "adoc")
 
     def parse(self, inputstring: str, document: nodes.document) -> None:
         """

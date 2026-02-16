@@ -24,7 +24,9 @@ def main():
         parse_type = payload.get("type", "block")
 
         # Check if we should include locations (default: False for TCK comparison)
-        include_locations = os.environ.get("TCK_INCLUDE_LOCATIONS", "false").lower() == "true"
+        include_locations = (
+            os.environ.get("TCK_INCLUDE_LOCATIONS", "false").lower() == "true"
+        )
 
         # Ensure trailing newline to satisfy parser requirements
         if contents and not contents.endswith("\n"):
@@ -44,7 +46,7 @@ def main():
                     if k == "location" and not include_locations:
                         continue
                     res[k] = clean_asg_for_tck(v)
-                
+
                 # TCK prefers omitting empty child collections in some contexts
                 for key in ["blocks", "inlines", "items"]:
                     if key in res and not res[key]:

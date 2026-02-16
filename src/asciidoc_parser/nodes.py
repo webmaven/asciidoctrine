@@ -761,9 +761,7 @@ class Open(BlockNode):
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
         return {"blocks": self.blocks}
 
-    def __init__(
-        self, blocks: Optional[Sequence[Node]] = None, delimiter: str = "--"
-    ):
+    def __init__(self, blocks: Optional[Sequence[Node]] = None, delimiter: str = "--"):
         super().__init__()
         self.name = "open"
         self.type = "block"

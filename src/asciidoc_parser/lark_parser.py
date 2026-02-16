@@ -42,7 +42,7 @@ Transformed = Union[Node, Any, Dict[str, Any], PyList[Any], str]
 
 
 class AsciiDocTransformer(
-    BlockTransformer, InlineTransformer, Transformer[Token, Transformed]
+    BlockTransformer, InlineTransformer, Transformer[Token, Transformed] # type: ignore
 ):
     """
     Transforms the Lark parse tree (CST) into a structured AST.
@@ -69,9 +69,10 @@ class AsciiDocTransformer(
     def _set_location_from_children(self, node: Node, children: PyList[Any]) -> Node:
         """Sets the location of a node based on its children's locations."""
         from lark import Tree
+
         valid_locations = []
 
-        def collect_locations(item: Any):
+        def collect_locations(item: Any) -> None:
             if isinstance(item, Node) and item.location:
                 valid_locations.extend(item.location)
             elif isinstance(item, Token):
@@ -220,7 +221,7 @@ class AsciiDocTransformer(
 
     @v_args(meta=True)
     def author_rev_line(self, meta: Any, children: Children) -> PyList[Node]:
-        return self.text_content(meta, children)
+        return self.text_content(meta, children) # type: ignore
 
     def AUTHOR_SPECIAL_CHARS(self, token: Token) -> Token:
         return Token("WORD", token.value)
@@ -291,19 +292,24 @@ class AsciiDocTransformer(
                                     else [block]
                                 )
                                 delimiter = getattr(block, "delimiter", None)
-                                block = Quote(blocks=blocks, delimiter=delimiter)
+                                block = Quote(blocks=blocks, delimiter=delimiter) # type: ignore
                             else:
                                 block.attributes["style"] = v
                         elif variant in ["discrete", "float"]:
                             if isinstance(block, Section):
-                                block = FloatingTitle(level=block.level, title=block.title)
+                                block = FloatingTitle(level=block.level, title=block.title) # type: ignore
                             else:
                                 block.attributes["style"] = v
+                        
                         elif variant == "stem":
                             # Determine variant (asciimath or latexmath)
-                            stem_variant = self.attributes.get("stem", [Text("asciimath")])
+                            stem_variant = self.attributes.get(
+                                "stem", [Text("asciimath")]
+                            )
                             if isinstance(stem_variant, list) and stem_variant:
-                                variant_str = getattr(stem_variant[0], "value", "asciimath")
+                                variant_str = getattr(
+                                    stem_variant[0], "value", "asciimath"
+                                )
                             else:
                                 variant_str = "asciimath"
 
@@ -332,7 +338,7 @@ class AsciiDocTransformer(
 
     @v_args(meta=True)
     def attributed_simple_block(self, meta: Any, children: Children) -> BlockNode:
-        return self.attributed_block(meta, children)
+        return self.attributed_block(meta, children) # type: ignore
 
     @v_args(meta=True)
     def section_title(self, meta: Any, children: Children) -> Tuple[int, Title]:
@@ -451,9 +457,11 @@ class AsciiDocTransformer(
         else:
             self.attributes[name] = value_nodes
             # Use centralized logic to resolve rich nodes to a string value
-            value_str = "".join([resolve_node_to_string(n) for n in value_nodes]).strip()
+            value_str = "".join(
+                [resolve_node_to_string(n) for n in value_nodes]
+            ).strip()
             node = AttributeEntry(name, value_str)
-        
+
         return cast(AttributeEntry, self._set_location_from_children(node, children))
 
     @v_args(meta=True)
@@ -485,12 +493,14 @@ class AsciiDocTransformer(
             node.attributes.update(attrs)
             if target:
                 node.attributes["target"] = target
-        
+
         return cast(BlockNode, self._set_location_from_children(block, children))
 
     @v_args(meta=True)
     def thematic_break(self, meta: Any, children: Children) -> ThematicBreak:
-        return cast(ThematicBreak, self._set_location_from_children(ThematicBreak(), children))
+        return cast(
+            ThematicBreak, self._set_location_from_children(ThematicBreak(), children)
+        )
 
     @v_args(meta=True)
     def page_break(self, meta: Any, children: Children) -> PageBreak:
@@ -502,7 +512,7 @@ class AsciiDocTransformer(
 
     @v_args(meta=True)
     def inline_attribute_list(self, meta: Any, children: Children) -> Dict[str, str]:
-        return self.attribute_list(meta, children)
+        return self.attribute_list(meta, children) # type: ignore
 
     # --- Terminals ---
 

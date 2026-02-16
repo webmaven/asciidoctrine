@@ -284,7 +284,9 @@ class DocutilsRenderer(NodeVisitor):
         old_parent += item
         self.current_node = old_parent
 
-    def visit_descriptionlistterm(self, node: DescriptionListTerm, **kwargs: Any) -> None:
+    def visit_descriptionlistterm(
+        self, node: DescriptionListTerm, **kwargs: Any
+    ) -> None:
         term = nodes.term()
         old_parent = self.current_node
         self.current_node = term
@@ -414,11 +416,15 @@ class DocutilsRenderer(NodeVisitor):
 
     def visit_audio(self, node: Audio) -> None:
         # Placeholder for audio
-        self.current_node += nodes.raw("", f"<!-- audio: {node.target} -->", format="html")
+        self.current_node += nodes.raw(
+            "", f"<!-- audio: {node.target} -->", format="html"
+        )
 
     def visit_video(self, node: Video) -> None:
         # Placeholder for video
-        self.current_node += nodes.raw("", f"<!-- video: {node.target} -->", format="html")
+        self.current_node += nodes.raw(
+            "", f"<!-- video: {node.target} -->", format="html"
+        )
 
     def visit_sidebar(self, node: Sidebar) -> None:
         sb = nodes.sidebar()
