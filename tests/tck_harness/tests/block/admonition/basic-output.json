@@ -3,12 +3,12 @@
   "type": "block",
   "location": [
     {
-      "line": 1,
+      "line": 2,
       "col": 1
     },
     {
       "line": 4,
-      "col": 5
+      "col": 4
     }
   ],
   "blocks": [
@@ -17,12 +17,12 @@
       "type": "block",
       "location": [
         {
-          "line": 1,
+          "line": 2,
           "col": 1
         },
         {
           "line": 4,
-          "col": 5
+          "col": 4
         }
       ],
       "variant": "note",
@@ -39,7 +39,7 @@
             },
             {
               "line": 3,
-              "col": 18
+              "col": 17
             }
           ],
           "inlines": [

@@ -369,14 +369,17 @@ def test_parser_never_crashes(content: str):
 === Week 5-6: Test Migration
 
 * [x] Phase 1.6: Update all existing tests
-* [x] Generate ASG snapshots for doctest examples (In progress: 134 passing)
-* [x] Complete Tier 1 TCK failures
+* [x] Generate ASG snapshots for doctest examples (242/244 passing)
+* [x] Complete Tier 1 TCK failures (27/27 passing)
+* [x] **New**: Implement inclusive location tracking
 
-=== Week 7-8: Polish
+=== Week 7-8: Polish & Upstream
 
 * [ ] Create FEATURE_MATRIX.md
+* [x] Add unit, integration, and functional tests (9/9 passing)
 * [ ] Add Hypothesis fuzz tests
 * [x] Update documentation
+* [ ] Upstream TCK additions to Eclipse AsciiDoc project
 * [ ] Merge to main
 
 == File Structure After Implementation

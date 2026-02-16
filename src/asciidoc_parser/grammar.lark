@@ -19,19 +19,22 @@ blank_line: _NEWLINE+
 comment: "//" [COMMENT_CONTENT] _NEWLINE
 COMMENT_CONTENT: /[^\n]+/
 
-attributed_block: (block_metadata)* (section | ulist | olist | dlist | colist | table | listing_block | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | paragraph)
+attributed_block: (block_metadata)* (section | ulist | olist | dlist | colist | table | listing_block | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | indented_literal | paragraph)
 
-attributed_simple_block: (block_metadata)* (ulist | olist | dlist | colist | literal_block | passthrough_block | shorthand_admonition | paragraph)
+attributed_simple_block: (block_metadata)* (ulist | olist | dlist | colist | literal_block | passthrough_block | shorthand_admonition | indented_literal | paragraph)
 
 block_metadata: block_title | attribute_list | anchor
 block_title: "." text_content _NEWLINE
 
 // Sections and Titles
 section: section_title
-section_title: SECTION_TITLE_LEAD text_content _NEWLINE
+section_title: SECTION_TITLE_LEAD text_content
 
 // Paragraphs
 paragraph: (text_content _NEWLINE)+
+
+indented_literal: INDENTED_LITERAL_LEAD text_content _NEWLINE
+INDENTED_LITERAL_LEAD: /[ \t]+/
 
 shorthand_admonition: ADMONITION_TYPE COLON [WHITESPACE] text_content _NEWLINE
 ADMONITION_TYPE: "NOTE" | "TIP" | "IMPORTANT" | "WARNING" | "CAUTION"
@@ -49,7 +52,7 @@ colist_item: "<" NUMBER ">" [WHITESPACE] text_content _NEWLINE
 
 dlist_item: dlist_term+ dlist_description?
 dlist_term.10: text_content DLIST_MARKER [WHITESPACE] _NEWLINE?
-dlist_description: [WHITESPACE] (section | ulist | olist | colist | table | listing_block | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | paragraph)
+dlist_description: _NEWLINE? [WHITESPACE] (section | ulist | olist | colist | table | listing_block | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | paragraph)+ _NEWLINE?
 
 CHECKBOX: /\[[ x*X]\][ \t]+/
 
@@ -171,13 +174,13 @@ single_quoted: "'`" text_content "`'"
 // Block Terminals
 DOC_TITLE_LEAD.3: /= [ \t]*/
 SECTION_TITLE_LEAD.2: /=+ [ \t]*/
-ULIST_MARKER: /(\*+|[-])[ \t]+/
-OLIST_MARKER: /([0-9]+\.|[\.]+)[ \t]+/
-DLIST_MARKER: /::+:?/
-LISTING_DELIM.2: /-{4,}/
-LITERAL_DELIM.2: /\.{4,}/
-PASSTHROUGH_BLOCK_DELIM.2: /\+{4,}/
-ADMONITION_START: /\[ *(NOTE|TIP|IMPORTANT|WARNING|CAUTION) *\]/
+ULIST_MARKER: /[ \t]*(\*+|[-])[ \t]+/
+OLIST_MARKER: /[ \t]*([0-9]+\.|[\.]+)[ \t]+/
+DLIST_MARKER: /[ \t]*::+:?/
+LISTING_DELIM.2: /[ \t]*-{4,}/
+LITERAL_DELIM.2: /[ \t]*\.{4,}/
+PASSTHROUGH_BLOCK_DELIM.2: /[ \t]*\+{4,}/
+ADMONITION_START: /[ \t]*\[ *(NOTE|TIP|IMPORTANT|WARNING|CAUTION) *\]/
 
 ADMONITION_DELIM_4.2: "===="
 ADMONITION_DELIM_5.2: "====="

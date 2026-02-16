@@ -8,7 +8,7 @@
     },
     {
       "line": 1,
-      "col": 24
+      "col": 23
     }
   ],
   "blocks": [
@@ -22,7 +22,7 @@
         },
         {
           "line": 1,
-          "col": 24
+          "col": 23
         }
       ],
       "variant": "note",
@@ -38,7 +38,7 @@
             },
             {
               "line": 1,
-              "col": 24
+              "col": 23
             }
           ],
           "inlines": [

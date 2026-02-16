@@ -5,11 +5,11 @@
     "location": [
       {
         "line": 1,
-        "col": 1
+        "col": 2
       },
       {
         "line": 1,
-        "col": 22
+        "col": 20
       }
     ],
     "variant": "strong",
@@ -36,11 +36,11 @@
         "location": [
           {
             "line": 1,
-            "col": 7
+            "col": 8
           },
           {
             "line": 1,
-            "col": 14
+            "col": 13
           }
         ],
         "variant": "emphasis",
@@ -74,11 +74,11 @@
         "location": [
           {
             "line": 1,
-            "col": 16
+            "col": 17
           },
           {
             "line": 1,
-            "col": 21
+            "col": 20
           }
         ],
         "variant": "code",

@@ -8,7 +8,7 @@
     },
     {
       "line": 5,
-      "col": 5
+      "col": 4
     }
   ],
   "blocks": [
@@ -22,7 +22,7 @@
         },
         {
           "line": 1,
-          "col": 7
+          "col": 6
         }
       ],
       "value": "",
@@ -33,7 +33,7 @@
       "type": "block",
       "location": [
         {
-          "line": 2,
+          "line": 3,
           "col": 1
         },
         {
@@ -48,16 +48,6 @@
         {
           "name": "text",
           "type": "string",
-          "location": [
-            {
-              "line": 4,
-              "col": 1
-            },
-            {
-              "line": 4,
-              "col": 11
-            }
-          ],
           "value": "sqrt(4) = 2"
         }
       ]

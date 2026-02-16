@@ -58,7 +58,7 @@ class AsciiDocTransformer(
         super().__init__(*args, **kwargs)
         self.attributes: Dict[str, PyList[Node]] = {}
 
-    def _set_location(self, node: Node, meta: Any) -> Node:
+    def _set_location_from_meta(self, node: Node, meta: Any) -> Node:
         """Sets the location of a node from Lark meta."""
         node.location = [
             {"line": meta.line, "col": meta.column},
@@ -66,10 +66,49 @@ class AsciiDocTransformer(
         ]
         return node
 
+    def _set_location_from_children(self, node: Node, children: PyList[Any]) -> Node:
+        """Sets the location of a node based on its children's locations."""
+        from lark import Tree
+        valid_locations = []
+
+        def collect_locations(item: Any):
+            if isinstance(item, Node) and item.location:
+                valid_locations.extend(item.location)
+            elif isinstance(item, Token):
+                if item.type == "_NEWLINE" or item.type.startswith("__ANON_"):
+                    return
+                if item.line is not None and item.column is not None:
+                    valid_locations.append({"line": item.line, "col": item.column})
+                if item.end_line is not None and item.end_column is not None:
+                    # Subtract 1 for inclusive end column
+                    valid_locations.append(
+                        {"line": item.end_line, "col": item.end_column - 1}
+                    )
+            elif isinstance(item, Tree):
+                for child in item.children:
+                    collect_locations(child)
+            elif isinstance(item, list):
+                for subitem in item:
+                    collect_locations(subitem)
+
+        for child in children:
+            collect_locations(child)
+
+        if valid_locations:
+            # Filter out any None values just in case
+            valid_locations = [
+                loc for loc in valid_locations if loc.get("line") is not None
+            ]
+            if valid_locations:
+                # Sort by line then col
+                valid_locations.sort(key=lambda x: (x["line"], x["col"]))
+                node.location = [valid_locations[0], valid_locations[-1]]
+        return node
+
     @v_args(meta=True)
     def document(self, meta: Any, children: Children) -> Document:
         doc = cast(Document, children[0])
-        return cast(Document, self._set_location(doc, meta))
+        return cast(Document, self._set_location_from_children(doc, children))
 
     @v_args(meta=True)
     def document_header_with_body(self, meta: Any, children: Children) -> Document:
@@ -88,13 +127,13 @@ class AsciiDocTransformer(
             doc.header = header
             doc.attributes.update(header.attributes)
             self.attributes.update(header.attributes)
-        return cast(Document, self._set_location(doc, meta))
+        return cast(Document, self._set_location_from_children(doc, children))
 
     @v_args(meta=True)
     def body_only(self, meta: Any, children: Children) -> Document:
         final_blocks = self._finalize_document_blocks(children)
         doc = Document(final_blocks)
-        return cast(Document, self._set_location(doc, meta))
+        return cast(Document, self._set_location_from_children(doc, children))
 
     def _finalize_document_blocks(self, blocks: PyList[Any]) -> PyList[Node]:
         block_nodes = [b for b in blocks if isinstance(b, BlockNode)]
@@ -177,7 +216,7 @@ class AsciiDocTransformer(
         header = Header(
             title=title, authors=authors, revision=revision, attributes=attributes
         )
-        return cast(Header, self._set_location(header, meta))
+        return cast(Header, self._set_location_from_children(header, children))
 
     @v_args(meta=True)
     def author_rev_line(self, meta: Any, children: Children) -> PyList[Node]:
@@ -190,7 +229,7 @@ class AsciiDocTransformer(
     def document_title(self, meta: Any, children: Children) -> Title:
         nodes = [c for c in children if isinstance(c, list)]
         title = Title(nodes[0] if nodes else [])
-        return cast(Title, self._set_location(title, meta))
+        return cast(Title, self._set_location_from_children(title, children))
 
     @v_args(meta=True)
     def block(self, meta: Any, children: Children) -> Transformed:
@@ -280,7 +319,7 @@ class AsciiDocTransformer(
                             block.attributes["style"] = v
                     else:
                         block.attributes[k] = v
-        return cast(BlockNode, self._set_location(block, meta))
+        return cast(BlockNode, self._set_location_from_children(block, children))
 
     @v_args(meta=True)
     def block_metadata(self, meta: Any, children: Children) -> Any:
@@ -289,7 +328,7 @@ class AsciiDocTransformer(
     @v_args(meta=True)
     def block_title(self, meta: Any, children: Children) -> Title:
         title = Title(children[0])
-        return cast(Title, self._set_location(title, meta))
+        return cast(Title, self._set_location_from_children(title, children))
 
     @v_args(meta=True)
     def attributed_simple_block(self, meta: Any, children: Children) -> BlockNode:
@@ -309,7 +348,7 @@ class AsciiDocTransformer(
         nodes = [c for c in children if isinstance(c, list)]
         title_nodes = nodes[0] if nodes else []
         title = Title(title_nodes)
-        self._set_location(title, meta)
+        self._set_location_from_children(title, children)
         return level, title
 
     @v_args(meta=True)
@@ -415,7 +454,7 @@ class AsciiDocTransformer(
             value_str = "".join([resolve_node_to_string(n) for n in value_nodes]).strip()
             node = AttributeEntry(name, value_str)
         
-        return cast(AttributeEntry, self._set_location(node, meta))
+        return cast(AttributeEntry, self._set_location_from_children(node, children))
 
     @v_args(meta=True)
     def block_macro(self, meta: Any, children: Children) -> BlockNode:
@@ -447,15 +486,15 @@ class AsciiDocTransformer(
             if target:
                 node.attributes["target"] = target
         
-        return cast(BlockNode, self._set_location(block, meta))
+        return cast(BlockNode, self._set_location_from_children(block, children))
 
     @v_args(meta=True)
     def thematic_break(self, meta: Any, children: Children) -> ThematicBreak:
-        return cast(ThematicBreak, self._set_location(ThematicBreak(), meta))
+        return cast(ThematicBreak, self._set_location_from_children(ThematicBreak(), children))
 
     @v_args(meta=True)
     def page_break(self, meta: Any, children: Children) -> PageBreak:
-        return cast(PageBreak, self._set_location(PageBreak(), meta))
+        return cast(PageBreak, self._set_location_from_children(PageBreak(), children))
 
     @v_args(meta=True)
     def anchor(self, meta: Any, children: Children) -> Dict[str, str]:

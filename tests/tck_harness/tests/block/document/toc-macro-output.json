@@ -7,24 +7,14 @@
       "col": 1
     },
     {
-      "line": 8,
-      "col": 11
+      "line": 6,
+      "col": 7
     }
   ],
   "blocks": [
     {
       "name": "section",
       "type": "block",
-      "location": [
-        {
-          "line": 4,
-          "col": 1
-        },
-        {
-          "line": 4,
-          "col": 9
-        }
-      ],
       "level": 1,
       "blocks": [
         {
@@ -37,7 +27,7 @@
             },
             {
               "line": 6,
-              "col": 8
+              "col": 7
             }
           ],
           "target": ""
@@ -64,16 +54,6 @@
     {
       "name": "section",
       "type": "block",
-      "location": [
-        {
-          "line": 8,
-          "col": 1
-        },
-        {
-          "line": 8,
-          "col": 11
-        }
-      ],
       "level": 1,
       "title": [
         {

@@ -31,7 +31,7 @@
         {
           "name": "text",
           "type": "string",
-          "value": "A basic literal block."
+          "value": "*bold*"
         }
       ]
     }

@@ -8,7 +8,7 @@
     },
     {
       "line": 3,
-      "col": 3
+      "col": 2
     }
   ],
   "blocks": [
@@ -22,7 +22,7 @@
         },
         {
           "line": 3,
-          "col": 3
+          "col": 2
         }
       ],
       "form": "delimited",
@@ -38,7 +38,7 @@
             },
             {
               "line": 2,
-              "col": 15
+              "col": 14
             }
           ],
           "inlines": [

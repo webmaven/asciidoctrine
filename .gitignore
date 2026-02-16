@@ -72,3 +72,5 @@ dmypy.json
 
 # Sphinx documentation
 docs/_build/
+*.log
+debug_*.py
