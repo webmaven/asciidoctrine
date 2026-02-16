@@ -1,0 +1,15 @@
+[
+  {
+    "name": "span",
+    "type": "inline",
+    "variant": "code",
+    "form": "constrained",
+    "inlines": [
+      {
+        "name": "text",
+        "type": "string",
+        "value": "word"
+      }
+    ]
+  }
+]

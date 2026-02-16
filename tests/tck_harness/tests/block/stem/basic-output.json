@@ -1,0 +1,26 @@
+{
+  "name": "document",
+  "type": "block",
+  "blocks": [
+    {
+      "name": "attribute_entry",
+      "type": "block",
+      "attribute_name": "stem",
+      "value": ""
+    },
+    {
+      "name": "stem",
+      "type": "block",
+      "variant": "asciimath",
+      "form": "delimited",
+      "delimiter": "++++",
+      "inlines": [
+        {
+          "name": "text",
+          "type": "string",
+          "value": "sqrt(4) = 2"
+        }
+      ]
+    }
+  ]
+}

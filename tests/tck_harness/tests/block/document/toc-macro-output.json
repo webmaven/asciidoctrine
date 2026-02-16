@@ -1,0 +1,49 @@
+{
+  "name": "document",
+  "type": "block",
+  "header": {
+    "title": [
+      {
+        "name": "text",
+        "type": "string",
+        "value": "Document Title"
+      }
+    ]
+  },
+  "attributes": {
+    "toc": "macro"
+  },
+  "blocks": [
+    {
+      "name": "section",
+      "type": "block",
+      "level": 1,
+      "title": [
+        {
+          "name": "text",
+          "type": "string",
+          "value": "Intro"
+        }
+      ],
+      "blocks": [
+        {
+          "name": "toc",
+          "type": "block",
+          "target": ""
+        }
+      ]
+    },
+    {
+      "name": "section",
+      "type": "block",
+      "level": 1,
+      "title": [
+        {
+          "name": "text",
+          "type": "string",
+          "value": "Content"
+        }
+      ]
+    }
+  ]
+}

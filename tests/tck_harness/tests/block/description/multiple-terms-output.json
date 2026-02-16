@@ -1,0 +1,53 @@
+{
+  "name": "document",
+  "type": "block",
+  "blocks": [
+    {
+      "name": "descriptionList",
+      "type": "block",
+      "items": [
+        {
+          "name": "descriptionListItem",
+          "type": "block",
+          "terms": [
+            {
+              "name": "descriptionListTerm",
+              "type": "inline",
+              "inlines": [
+                {
+                  "name": "text",
+                  "type": "string",
+                  "value": "term 1"
+                }
+              ]
+            },
+            {
+              "name": "descriptionListTerm",
+              "type": "inline",
+              "inlines": [
+                {
+                  "name": "text",
+                  "type": "string",
+                  "value": "term 2"
+                }
+              ]
+            }
+          ],
+          "blocks": [
+            {
+              "name": "paragraph",
+              "type": "block",
+              "inlines": [
+                {
+                  "name": "text",
+                  "type": "string",
+                  "value": "description"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

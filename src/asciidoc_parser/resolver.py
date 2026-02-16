@@ -27,7 +27,7 @@ class ASGResolver:
                 asg.get("value", ""), self.resolved_attributes
             )
 
-        for key in ["inlines", "blocks", "items", "principal"]:
+        for key in ["inlines", "blocks", "items", "principal", "terms", "rows", "cells"]:
             if key in asg and isinstance(asg[key], list):
                 asg[key] = [self._resolve_recursive(child) for child in asg[key]]
 

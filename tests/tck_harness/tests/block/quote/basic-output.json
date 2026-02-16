@@ -1,0 +1,25 @@
+{
+  "name": "document",
+  "type": "block",
+  "blocks": [
+    {
+      "name": "quote",
+      "type": "block",
+      "form": "delimited",
+      "delimiter": "____",
+      "blocks": [
+        {
+          "name": "paragraph",
+          "type": "block",
+          "inlines": [
+            {
+              "name": "text",
+              "type": "string",
+              "value": "A basic quote."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

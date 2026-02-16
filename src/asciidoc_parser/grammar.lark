@@ -12,16 +12,16 @@ document_title: DOC_TITLE_LEAD text_content _NEWLINE
 
 AUTHOR_SPECIAL_CHARS: /[<>;,.@\-_]/
 
-block: attributed_block | blank_line | attribute_entry | comment | image_block | thematic_break | page_break
+block: attributed_block | blank_line | attribute_entry | comment | block_macro | thematic_break | page_break
 
 blank_line: _NEWLINE+
 
 comment: "//" [COMMENT_CONTENT] _NEWLINE
 COMMENT_CONTENT: /[^\n]+/
 
-attributed_block: (block_metadata)* (section | ulist | olist | literal_block | admonition | sidebar | example_block | paragraph)
+attributed_block: (block_metadata)* (section | ulist | olist | dlist | colist | table | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | paragraph)
 
-attributed_simple_block: (block_metadata)* (ulist | olist | literal_block | paragraph)
+attributed_simple_block: (block_metadata)* (ulist | olist | dlist | colist | literal_block | passthrough_block | shorthand_admonition | paragraph)
 
 block_metadata: block_title | attribute_list | anchor
 block_title: "." text_content _NEWLINE
@@ -33,17 +33,31 @@ section_title: SECTION_TITLE_LEAD text_content _NEWLINE
 // Paragraphs
 paragraph: (text_content _NEWLINE)+
 
+shorthand_admonition: ADMONITION_TYPE COLON [WHITESPACE] text_content _NEWLINE
+ADMONITION_TYPE: "NOTE" | "TIP" | "IMPORTANT" | "WARNING" | "CAUTION"
+
 // Lists
 ulist: ulist_item+
 olist: olist_item+
+dlist: dlist_item+
+colist: colist_item+
 
 ulist_item: ULIST_MARKER [CHECKBOX] text_content _NEWLINE
 olist_item: OLIST_MARKER text_content _NEWLINE
 
+colist_item: "<" NUMBER ">" [WHITESPACE] text_content _NEWLINE
+
+dlist_item: dlist_term+ dlist_description?
+dlist_term.10: text_content DLIST_MARKER [WHITESPACE] _NEWLINE?
+dlist_description: [WHITESPACE] (section | ulist | olist | colist | table | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | paragraph)
+
 CHECKBOX: /\[[ x*X]\][ \t]+/
 
 // Attributes
-attribute_entry.2: COLON ATTR_NAME COLON [WHITESPACE] [text_content] _NEWLINE
+attribute_entry.2: COLON ATTR_NAME [BANG] COLON [WHITESPACE] [text_content] _NEWLINE
+                 | COLON BANG ATTR_NAME COLON [WHITESPACE] _NEWLINE
+
+BANG: "!"
 
 // Attribute List (e.g., [source,python])
 attribute_list: "[" [ATTR_LIST_CONTENT] "]" _NEWLINE
@@ -53,8 +67,18 @@ inline_attribute_list: "[" [ATTR_LIST_CONTENT] "]"
 
 anchor: "[[" WORD "]]" _NEWLINE
 
+// Tables
+table: TABLE_DELIM _NEWLINE (table_row | blank_line)* TABLE_DELIM _NEWLINE?
+table_row: (TABLE_CELL_LEAD table_cell)+ _NEWLINE
+table_cell: [text_content]
+
+TABLE_DELIM: "|==="
+TABLE_CELL_LEAD: "|"
+
 // Literal Blocks
 literal_block: LITERAL_BLOCK_DELIM _NEWLINE LITERAL_BLOCK_CONTENT _NEWLINE LITERAL_BLOCK_DELIM
+
+passthrough_block: PASSTHROUGH_BLOCK_DELIM _NEWLINE PASSTHROUGH_CONTENT _NEWLINE PASSTHROUGH_BLOCK_DELIM
 
 // Basic content (no containers)
 basic_block: attributed_simple_block | blank_line
@@ -63,18 +87,25 @@ basic_block: attributed_simple_block | blank_line
 admonition: admonition_4 | admonition_5 | admonition_6
 example_block: example_4 | example_5 | example_6
 sidebar: sidebar_4 | sidebar_5 | sidebar_6
+quote_block: quote_4 | quote_5 | quote_6
 
-admonition_4: ADMONITION_START _NEWLINE ADMONITION_DELIM_4 _NEWLINE (sidebar | example_5 | example_6 | admonition_5 | admonition_6 | basic_block)* ADMONITION_DELIM_4 _NEWLINE?
-admonition_5: ADMONITION_START _NEWLINE ADMONITION_DELIM_5 _NEWLINE (sidebar | example_4 | example_6 | admonition_4 | admonition_6 | basic_block)* ADMONITION_DELIM_5 _NEWLINE?
-admonition_6: ADMONITION_START _NEWLINE ADMONITION_DELIM_6 _NEWLINE (sidebar | example_4 | example_5 | admonition_4 | admonition_5 | basic_block)* ADMONITION_DELIM_6 _NEWLINE?
+admonition_4: ADMONITION_START _NEWLINE ADMONITION_DELIM_4 _NEWLINE (sidebar | example_5 | example_6 | quote_block | admonition_5 | admonition_6 | basic_block)* ADMONITION_DELIM_4 _NEWLINE?
+admonition_5: ADMONITION_START _NEWLINE ADMONITION_DELIM_5 _NEWLINE (sidebar | example_4 | example_6 | quote_block | admonition_4 | admonition_6 | basic_block)* ADMONITION_DELIM_5 _NEWLINE?
+admonition_6: ADMONITION_START _NEWLINE ADMONITION_DELIM_6 _NEWLINE (sidebar | example_4 | example_5 | quote_block | admonition_4 | admonition_5 | basic_block)* ADMONITION_DELIM_6 _NEWLINE?
 
-example_4: ADMONITION_DELIM_4 _NEWLINE (sidebar | example_5 | example_6 | admonition_5 | admonition_6 | basic_block)* ADMONITION_DELIM_4 _NEWLINE?
-example_5: ADMONITION_DELIM_5 _NEWLINE (sidebar | example_4 | example_6 | admonition_4 | admonition_6 | basic_block)* ADMONITION_DELIM_5 _NEWLINE?
-example_6: ADMONITION_DELIM_6 _NEWLINE (sidebar | example_4 | example_5 | admonition_4 | admonition_5 | basic_block)* ADMONITION_DELIM_6 _NEWLINE?
+example_4: ADMONITION_DELIM_4 _NEWLINE (sidebar | example_5 | example_6 | quote_block | admonition_5 | admonition_6 | basic_block)* ADMONITION_DELIM_4 _NEWLINE?
+example_5: ADMONITION_DELIM_5 _NEWLINE (sidebar | example_4 | example_6 | quote_block | admonition_4 | admonition_6 | basic_block)* ADMONITION_DELIM_5 _NEWLINE?
+example_6: ADMONITION_DELIM_6 _NEWLINE (sidebar | example_4 | example_5 | quote_block | admonition_4 | admonition_5 | basic_block)* ADMONITION_DELIM_6 _NEWLINE?
 
-sidebar_4: SIDEBAR_DELIM_4 _NEWLINE (example_block | admonition | sidebar_5 | sidebar_6 | basic_block)* SIDEBAR_DELIM_4 _NEWLINE?
-sidebar_5: SIDEBAR_DELIM_5 _NEWLINE (example_block | admonition | sidebar_4 | sidebar_6 | basic_block)* SIDEBAR_DELIM_5 _NEWLINE?
-sidebar_6: SIDEBAR_DELIM_6 _NEWLINE (example_block | admonition | sidebar_4 | sidebar_5 | basic_block)* SIDEBAR_DELIM_6 _NEWLINE?
+sidebar_4: SIDEBAR_DELIM_4 _NEWLINE (example_block | admonition | quote_block | sidebar_5 | sidebar_6 | basic_block)* SIDEBAR_DELIM_4 _NEWLINE?
+sidebar_5: SIDEBAR_DELIM_5 _NEWLINE (example_block | admonition | quote_block | sidebar_4 | sidebar_6 | basic_block)* SIDEBAR_DELIM_5 _NEWLINE?
+sidebar_6: SIDEBAR_DELIM_6 _NEWLINE (example_block | admonition | quote_block | sidebar_4 | sidebar_5 | basic_block)* SIDEBAR_DELIM_6 _NEWLINE?
+
+open_block: OPEN_BLOCK_DELIM _NEWLINE (example_block | admonition | sidebar | quote_block | basic_block)* OPEN_BLOCK_DELIM _NEWLINE?
+
+quote_4: QUOTE_DELIM_4 _NEWLINE (example_block | admonition | sidebar | quote_5 | quote_6 | basic_block)* QUOTE_DELIM_4 _NEWLINE?
+quote_5: QUOTE_DELIM_5 _NEWLINE (example_block | admonition | sidebar | quote_4 | quote_6 | basic_block)* QUOTE_DELIM_5 _NEWLINE?
+quote_6: QUOTE_DELIM_6 _NEWLINE (example_block | admonition | sidebar | quote_4 | quote_5 | basic_block)* QUOTE_DELIM_6 _NEWLINE?
 
 thematic_break: THEMATIC_BREAK_MARKER _NEWLINE
 page_break: "<<<" _NEWLINE
@@ -84,9 +115,20 @@ page_break: "<<<" _NEWLINE
 text_content: inline_element+
 
 attribute_reference.2: LBRACE ATTR_NAME RBRACE
-?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | WHITESPACE | COLON | WORD | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK
+?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK
 
-image_block: "image::" TARGET "[" [ATTR_LIST_CONTENT] "]" _NEWLINE
+inline_break: " +"
+inline_kbd: "kbd:[" ATTR_LIST_CONTENT "]"
+inline_button: "btn:[" ATTR_LIST_CONTENT "]"
+inline_menu: "menu:" WORD "[" [ATTR_LIST_CONTENT] "]"
+inline_callout: "<" NUMBER ">"
+inline_stem: "stem:[" [ATTR_LIST_CONTENT] "]"
+inline_asciimath: "asciimath:[" [ATTR_LIST_CONTENT] "]"
+inline_latexmath: "latexmath:[" [ATTR_LIST_CONTENT] "]"
+
+block_macro.20: MACRO_NAME "::" [TARGET] [LSQB] [ATTR_LIST_CONTENT] [RSQB] _NEWLINE
+
+MACRO_NAME: WORD
 inline_image: "image:" TARGET inline_attribute_list
 icon_inline: "icon:" TARGET inline_attribute_list
 
@@ -126,11 +168,13 @@ single_quoted: "'`" text_content "`'"
 // --- Terminals ---
 
 // Block Terminals
-DOC_TITLE_LEAD: /= [ \t]*/
-SECTION_TITLE_LEAD.2: /==+ [ \t]*/
+DOC_TITLE_LEAD.3: /= [ \t]*/
+SECTION_TITLE_LEAD.2: /=+ [ \t]*/
 ULIST_MARKER: /(\*+|[-])[ \t]+/
 OLIST_MARKER: /([0-9]+\.|[\.]+)[ \t]+/
+DLIST_MARKER: /::+:?/
 LITERAL_BLOCK_DELIM.2: /-{4,}/
+PASSTHROUGH_BLOCK_DELIM.2: /\+{4,}/
 ADMONITION_START: /\[ *(NOTE|TIP|IMPORTANT|WARNING|CAUTION) *\]/
 
 ADMONITION_DELIM_4.2: "===="
@@ -143,13 +187,22 @@ SIDEBAR_DELIM_5: "*****"
 SIDEBAR_DELIM_6: "******"
 SIDEBAR_DELIM_LONG: /\*{7,}/
 
+OPEN_BLOCK_DELIM: "--"
+
+QUOTE_DELIM_4: "____"
+QUOTE_DELIM_5: "_____"
+QUOTE_DELIM_6: "______"
+QUOTE_DELIM_LONG: /_{7,}/
+
 THEMATIC_BREAK_MARKER: /'''+|\*\*\*+|---+|(_ _ _)+|(\* \* \*)+|(- - -)+/
 
 // Non-greedy content matching for literal blocks.
 LITERAL_BLOCK_CONTENT: /(.+?)(?=\n-{4,})/s
+PASSTHROUGH_CONTENT: /(.+?)(?=\n\+{4,})/s
 
 _NEWLINE: /(\r\n|\n|\r)/
 WHITESPACE: /[ \t]+/
+NUMBER: /[0-9]+/
 ATTR_NAME: /[a-zA-Z0-9_\-]+/
 WORD: /[^ \t\n*_`=\[\]{}:]+/  // Word characters (not whitespace or markup)
 LBRACE: "{"

@@ -8,29 +8,8 @@ from tests.conftest import get_all_doctest_examples
 # List of example groups or specific examples known to be unsupported currently
 # to avoid failing the whole suite.
 KNOWN_UNSUPPORTED = {
-    "audio:*",
-    "video:*",
-    "table:*",
-    "stem:*",
-    "colist:*",
-    "dlist:*",
-    "inline_break:*",
-    "inline_button:*",
-    "inline_callout:*",
-    "inline_kbd:*",
-    "inline_menu:*",
-    "pass:*",
-    "preamble:*",
-    "quote:*",
-    "verse:*",
-    "open:*",
-    "outline:*",
-    "toc:*",
-    "floating_title:*",
-    "embedded:*",
-    "inline_quoted:asciimath",
-    "inline_quoted:latexmath",
-    "*:book-part-title",
+    "dlist:mixed",
+    "table:insane-cells-formatting",
 }
 
 

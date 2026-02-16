@@ -35,7 +35,7 @@ def main():
 
         def clean_asg_for_tck(obj):
             if isinstance(obj, dict):
-                res = {k: clean_asg_for_tck(v) for k, v in obj.items()}
+                res = {k: clean_asg_for_tck(v) for k, v in obj.items() if k != "location"}
                 # TCK prefers omitting empty child collections in some contexts
                 for key in ["blocks", "inlines", "items"]:
                     if key in res and not res[key]:

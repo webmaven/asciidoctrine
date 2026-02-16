@@ -7,19 +7,31 @@ from lark import Discard, Lark, Token, Transformer
 
 from .attributes import resolve_node_to_string
 from .nodes import (
+    Admonition,
     AttributeEntry,
+    Audio,
     Author,
     BlockNode,
     Document,
+    Example,
+    FloatingTitle,
     Header,
     Image,
     Node,
+    Open,
     PageBreak,
+    Paragraph,
+    Passthrough,
+    Quote,
     Revision,
     Section,
+    Stem,
     Text,
     ThematicBreak,
     Title,
+    Toc,
+    Verse,
+    Video,
 )
 from .preprocessor import Preprocessor
 from .transformers.block_transformer import BlockTransformer
@@ -46,8 +58,40 @@ class AsciiDocTransformer(
         super().__init__(*args, **kwargs)
         self.attributes: Dict[str, PyList[Node]] = {}
 
+    def _set_location_from_children(self, node: Node, children: PyList[Any]) -> Node:
+        """Sets the location of a node based on its children's locations."""
+        valid_locations = []
+        for child in children:
+            if isinstance(child, Node) and child.location:
+                valid_locations.extend(child.location)
+            elif isinstance(child, Token):
+                if child.line is not None and child.column is not None:
+                    valid_locations.append({"line": child.line, "col": child.column})
+                if child.end_line is not None and child.end_column is not None:
+                    valid_locations.append({"line": child.end_line, "col": child.end_column})
+            elif isinstance(child, list):
+                # Recursively check lists (e.g., text_content)
+                for item in child:
+                    if isinstance(item, Node) and item.location:
+                        valid_locations.extend(item.location)
+                    elif isinstance(item, Token):
+                        if item.line is not None and item.column is not None:
+                            valid_locations.append({"line": item.line, "col": item.column})
+                        if item.end_line is not None and item.end_column is not None:
+                            valid_locations.append({"line": item.end_line, "col": item.end_column})
+
+        if valid_locations:
+            # Filter out any None values just in case
+            valid_locations = [loc for loc in valid_locations if loc.get("line") is not None]
+            if valid_locations:
+                # Sort by line then col
+                valid_locations.sort(key=lambda x: (x["line"], x["col"]))
+                node.location = [valid_locations[0], valid_locations[-1]]
+        return node
+
     def document(self, children: Children) -> Document:
-        return cast(Document, children[0])
+        doc = cast(Document, children[0])
+        return cast(Document, self._set_location_from_children(doc, children))
 
     def document_header_with_body(self, children: Children) -> Document:
         header = None
@@ -65,11 +109,12 @@ class AsciiDocTransformer(
             doc.header = header
             doc.attributes.update(header.attributes)
             self.attributes.update(header.attributes)
-        return doc
+        return cast(Document, self._set_location_from_children(doc, children))
 
     def body_only(self, children: Children) -> Document:
         final_blocks = self._finalize_document_blocks(children)
-        return Document(final_blocks)
+        doc = Document(final_blocks)
+        return cast(Document, self._set_location_from_children(doc, children))
 
     def _finalize_document_blocks(self, blocks: PyList[Any]) -> PyList[Node]:
         block_nodes = [b for b in blocks if isinstance(b, BlockNode)]
@@ -148,9 +193,10 @@ class AsciiDocTransformer(
                     child.attribute_name, []
                 )
 
-        return Header(
+        header = Header(
             title=title, authors=authors, revision=revision, attributes=attributes
         )
+        return cast(Header, self._set_location_from_children(header, children))
 
     def author_rev_line(self, children: Children) -> PyList[Node]:
         return self.text_content(children)
@@ -160,7 +206,8 @@ class AsciiDocTransformer(
 
     def document_title(self, children: Children) -> Title:
         nodes = [c for c in children if isinstance(c, list)]
-        return Title(nodes[0] if nodes else [])
+        title = Title(nodes[0] if nodes else [])
+        return cast(Title, self._set_location_from_children(title, children))
 
     def block(self, children: Children) -> Transformed:
         return children[0] if children else Discard
@@ -172,8 +219,6 @@ class AsciiDocTransformer(
         return Discard
 
     def attributed_block(self, children: Children) -> BlockNode:
-        from .nodes import Admonition, Example
-
         metadata = [c for c in children[:-1] if c is not Discard]
         block = cast(BlockNode, children[-1])
 
@@ -201,17 +246,61 @@ class AsciiDocTransformer(
                                 block = Admonition(variant=variant, blocks=block.blocks)
                             else:
                                 block.attributes["style"] = v
+                        elif variant == "verse":
+                            if isinstance(block, (Paragraph, Quote, Example, Open)):
+                                blocks = (
+                                    block.blocks
+                                    if hasattr(block, "blocks")
+                                    else [block]
+                                )
+                                delimiter = getattr(block, "delimiter", None)
+                                block = Verse(blocks=blocks, delimiter=delimiter)
+                            else:
+                                block.attributes["style"] = v
+                        elif variant == "quote":
+                            if isinstance(block, (Paragraph, Example, Open)):
+                                blocks = (
+                                    block.blocks
+                                    if hasattr(block, "blocks")
+                                    else [block]
+                                )
+                                delimiter = getattr(block, "delimiter", None)
+                                block = Quote(blocks=blocks, delimiter=delimiter)
+                            else:
+                                block.attributes["style"] = v
+                        elif variant in ["discrete", "float"]:
+                            if isinstance(block, Section):
+                                block = FloatingTitle(level=block.level, title=block.title)
+                            else:
+                                block.attributes["style"] = v
+                        elif variant == "stem":
+                            # Determine variant (asciimath or latexmath)
+                            stem_variant = self.attributes.get("stem", [Text("asciimath")])
+                            if isinstance(stem_variant, list) and stem_variant:
+                                variant_str = getattr(stem_variant[0], "value", "asciimath")
+                            else:
+                                variant_str = "asciimath"
+
+                            if isinstance(block, (Passthrough, Paragraph)):
+                                block = Stem(
+                                    variant=variant_str,
+                                    inlines=block.inlines,
+                                    delimiter=getattr(block, "delimiter", None),
+                                )
+                            else:
+                                block.attributes["style"] = v
                         else:
                             block.attributes["style"] = v
                     else:
                         block.attributes[k] = v
-        return block
+        return cast(BlockNode, self._set_location_from_children(block, children))
 
     def block_metadata(self, children: Children) -> Any:
         return children[0]
 
     def block_title(self, children: Children) -> Title:
-        return Title(children[0])
+        title = Title(children[0])
+        return cast(Title, self._set_location_from_children(title, children))
 
     def attributed_simple_block(self, children: Children) -> BlockNode:
         return self.attributed_block(children)
@@ -224,11 +313,13 @@ class AsciiDocTransformer(
             if isinstance(c, Token) and c.type == "SECTION_TITLE_LEAD"
         ]
         if lead:
-            level = max(1, lead[0].value.strip().count("=") - 1)
+            level = max(0, lead[0].value.strip().count("=") - 1)
 
         nodes = [c for c in children if isinstance(c, list)]
         title_nodes = nodes[0] if nodes else []
-        return level, Title(title_nodes)
+        title = Title(title_nodes)
+        self._set_location_from_children(title, children)
+        return level, title
 
     def attribute_content(self, children: Children) -> str:
         return cast(str, children[0].value)
@@ -308,37 +399,66 @@ class AsciiDocTransformer(
     def attribute_entry(self, children: Children) -> AttributeEntry:
         name = ""
         value_nodes: PyList[Node] = []
+        negated = False
+
         for c in children:
-            if isinstance(c, Token) and (c.type == "ATTR_NAME" or c.type == "COLON"):
+            if isinstance(c, Token):
                 if c.type == "ATTR_NAME":
                     name = c.value
+                elif c.type == "BANG":
+                    negated = True
             elif isinstance(c, list):
                 value_nodes = c
 
-        self.attributes[name] = value_nodes
+        node: AttributeEntry
+        if negated:
+            if name in self.attributes:
+                del self.attributes[name]
+            node = AttributeEntry(name, "!")  # Using "!" as a marker for negation
+        else:
+            self.attributes[name] = value_nodes
+            # Use centralized logic to resolve rich nodes to a string value
+            value_str = "".join([resolve_node_to_string(n) for n in value_nodes]).strip()
+            node = AttributeEntry(name, value_str)
+        
+        return cast(AttributeEntry, self._set_location_from_children(node, children))
 
-        # Use centralized logic to resolve rich nodes to a string value
-        value_str = "".join([resolve_node_to_string(n) for n in value_nodes]).strip()
-
-        return AttributeEntry(name, value_str)
-
-    def image_block(self, children: Children) -> Image:
-        target = str(children[0].value)
+    def block_macro(self, children: Children) -> BlockNode:
+        name = str(children[0].value).lower()
+        target = str(children[1].value) if len(children) > 1 and children[1] else ""
         attrs = (
-            children[1] if len(children) > 1 and isinstance(children[1], dict) else {}
+            children[2] if len(children) > 2 and isinstance(children[2], dict) else {}
         )
-        alt = attrs.get("style", "")
-        img = Image(target=target, alt=alt, form="macro", type="block")
-        img.attributes.update(attrs)
-        if "style" in img.attributes:
-            img.attributes["alt"] = img.attributes.pop("style")
-        return img
+
+        block: BlockNode
+        if name == "image":
+            alt = attrs.get("style", "")
+            block = Image(target=target, alt=alt, form="macro", type="block")
+            block.attributes.update(attrs)
+            if "style" in block.attributes:
+                block.attributes["alt"] = block.attributes.pop("style")
+        elif name == "toc":
+            block = Toc(target=target, attributes=attrs)
+        elif name == "audio":
+            block = Audio(target=target, attributes=attrs)
+        elif name == "video":
+            block = Video(target=target, attributes=attrs)
+        else:
+            # Generic block macro
+            block = BlockNode()
+            block.name = name
+            node = block
+            node.attributes.update(attrs)
+            if target:
+                node.attributes["target"] = target
+        
+        return cast(BlockNode, self._set_location_from_children(block, children))
 
     def thematic_break(self, children: Children) -> ThematicBreak:
-        return ThematicBreak()
+        return cast(ThematicBreak, self._set_location_from_children(ThematicBreak(), children))
 
     def page_break(self, children: Children) -> PageBreak:
-        return PageBreak()
+        return cast(PageBreak, self._set_location_from_children(PageBreak(), children))
 
     def anchor(self, children: Children) -> Dict[str, str]:
         return {"id": str(children[0].value)}
@@ -372,7 +492,13 @@ def parse_to_ast(
 
     with open(grammar_file, "r") as f:
         grammar = f.read()
-    parser = Lark(grammar, start="document", parser="earley")
+    parser = Lark(
+        grammar,
+        start="document",
+        parser="earley",
+        ambiguity="resolve",
+        propagate_positions=True,
+    )
     tree = parser.parse(processed_source)
     ast_root = AsciiDocTransformer().transform(tree)
     if not isinstance(ast_root, Document):

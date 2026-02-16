@@ -1,0 +1,46 @@
+[
+  {
+    "name": "span",
+    "type": "inline",
+    "variant": "strong",
+    "form": "constrained",
+    "inlines": [
+      {
+        "name": "text",
+        "type": "string",
+        "value": "bold "
+      },
+      {
+        "name": "span",
+        "type": "inline",
+        "variant": "emphasis",
+        "form": "constrained",
+        "inlines": [
+          {
+            "name": "text",
+            "type": "string",
+            "value": "italic"
+          }
+        ]
+      },
+      {
+        "name": "text",
+        "type": "string",
+        "value": " "
+      },
+      {
+        "name": "span",
+        "type": "inline",
+        "variant": "code",
+        "form": "constrained",
+        "inlines": [
+          {
+            "name": "text",
+            "type": "string",
+            "value": "code"
+          }
+        ]
+      }
+    ]
+  }
+]
