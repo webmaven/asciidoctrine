@@ -1,22 +1,72 @@
 {
   "name": "document",
   "type": "block",
+  "location": [
+    {
+      "line": 1,
+      "col": 1
+    },
+    {
+      "line": 1,
+      "col": 19
+    }
+  ],
   "blocks": [
     {
       "name": "descriptionList",
       "type": "block",
+      "location": [
+        {
+          "line": 1,
+          "col": 1
+        },
+        {
+          "line": 1,
+          "col": 19
+        }
+      ],
       "items": [
         {
           "name": "descriptionListItem",
           "type": "block",
+          "location": [
+            {
+              "line": 1,
+              "col": 1
+            },
+            {
+              "line": 1,
+              "col": 19
+            }
+          ],
           "terms": [
             {
               "name": "descriptionListTerm",
               "type": "inline",
+              "location": [
+                {
+                  "line": 1,
+                  "col": 1
+                },
+                {
+                  "line": 1,
+                  "col": 7
+                }
+              ],
               "inlines": [
                 {
                   "name": "text",
                   "type": "string",
+                  "location": [
+                    {
+                      "line": 1,
+                      "col": 1
+                    },
+                    {
+                      "line": 1,
+                      "col": 4
+                    }
+                  ],
                   "value": "term"
                 }
               ]
@@ -26,10 +76,30 @@
             {
               "name": "paragraph",
               "type": "block",
+              "location": [
+                {
+                  "line": 1,
+                  "col": 8
+                },
+                {
+                  "line": 1,
+                  "col": 19
+                }
+              ],
               "inlines": [
                 {
                   "name": "text",
                   "type": "string",
+                  "location": [
+                    {
+                      "line": 1,
+                      "col": 8
+                    },
+                    {
+                      "line": 1,
+                      "col": 18
+                    }
+                  ],
                   "value": "description"
                 }
               ]

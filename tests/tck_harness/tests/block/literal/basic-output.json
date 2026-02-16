@@ -13,7 +13,7 @@
   ],
   "blocks": [
     {
-      "name": "quote",
+      "name": "literal",
       "type": "block",
       "location": [
         {
@@ -26,11 +26,11 @@
         }
       ],
       "form": "delimited",
-      "delimiter": "____",
-      "blocks": [
+      "delimiter": "....",
+      "inlines": [
         {
-          "name": "paragraph",
-          "type": "block",
+          "name": "text",
+          "type": "string",
           "location": [
             {
               "line": 2,
@@ -38,26 +38,10 @@
             },
             {
               "line": 2,
-              "col": 15
+              "col": 22
             }
           ],
-          "inlines": [
-            {
-              "name": "text",
-              "type": "string",
-              "location": [
-                {
-                  "line": 2,
-                  "col": 1
-                },
-                {
-                  "line": 2,
-                  "col": 14
-                }
-              ],
-              "value": "A basic quote."
-            }
-          ]
+          "value": "A basic literal block."
         }
       ]
     }

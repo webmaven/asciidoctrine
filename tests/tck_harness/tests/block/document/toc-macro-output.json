@@ -1,49 +1,119 @@
 {
   "name": "document",
   "type": "block",
-  "header": {
-    "title": [
-      {
-        "name": "text",
-        "type": "string",
-        "value": "Document Title"
-      }
-    ]
-  },
-  "attributes": {
-    "toc": "macro"
-  },
+  "location": [
+    {
+      "line": 1,
+      "col": 1
+    },
+    {
+      "line": 8,
+      "col": 11
+    }
+  ],
   "blocks": [
     {
       "name": "section",
       "type": "block",
-      "level": 1,
-      "title": [
+      "location": [
         {
-          "name": "text",
-          "type": "string",
-          "value": "Intro"
+          "line": 4,
+          "col": 1
+        },
+        {
+          "line": 4,
+          "col": 9
         }
       ],
+      "level": 1,
       "blocks": [
         {
           "name": "toc",
           "type": "block",
+          "location": [
+            {
+              "line": 6,
+              "col": 1
+            },
+            {
+              "line": 6,
+              "col": 8
+            }
+          ],
           "target": ""
+        }
+      ],
+      "title": [
+        {
+          "name": "text",
+          "type": "string",
+          "location": [
+            {
+              "line": 4,
+              "col": 4
+            },
+            {
+              "line": 4,
+              "col": 8
+            }
+          ],
+          "value": "Intro"
         }
       ]
     },
     {
       "name": "section",
       "type": "block",
+      "location": [
+        {
+          "line": 8,
+          "col": 1
+        },
+        {
+          "line": 8,
+          "col": 11
+        }
+      ],
       "level": 1,
       "title": [
         {
           "name": "text",
           "type": "string",
+          "location": [
+            {
+              "line": 8,
+              "col": 4
+            },
+            {
+              "line": 8,
+              "col": 10
+            }
+          ],
           "value": "Content"
         }
       ]
     }
-  ]
+  ],
+  "attributes": {
+    "toc": "macro"
+  },
+  "header": {
+    "title": [
+      {
+        "name": "text",
+        "type": "string",
+        "location": [
+          {
+            "line": 1,
+            "col": 3
+          },
+          {
+            "line": 1,
+            "col": 16
+          }
+        ],
+        "value": "Document Title"
+      }
+    ]
+  }
 }

@@ -19,7 +19,7 @@ blank_line: _NEWLINE+
 comment: "//" [COMMENT_CONTENT] _NEWLINE
 COMMENT_CONTENT: /[^\n]+/
 
-attributed_block: (block_metadata)* (section | ulist | olist | dlist | colist | table | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | paragraph)
+attributed_block: (block_metadata)* (section | ulist | olist | dlist | colist | table | listing_block | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | paragraph)
 
 attributed_simple_block: (block_metadata)* (ulist | olist | dlist | colist | literal_block | passthrough_block | shorthand_admonition | paragraph)
 
@@ -49,7 +49,7 @@ colist_item: "<" NUMBER ">" [WHITESPACE] text_content _NEWLINE
 
 dlist_item: dlist_term+ dlist_description?
 dlist_term.10: text_content DLIST_MARKER [WHITESPACE] _NEWLINE?
-dlist_description: [WHITESPACE] (section | ulist | olist | colist | table | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | paragraph)
+dlist_description: [WHITESPACE] (section | ulist | olist | colist | table | listing_block | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | paragraph)
 
 CHECKBOX: /\[[ x*X]\][ \t]+/
 
@@ -75,8 +75,9 @@ table_cell: [text_content]
 TABLE_DELIM: "|==="
 TABLE_CELL_LEAD: "|"
 
-// Literal Blocks
-literal_block: LITERAL_BLOCK_DELIM _NEWLINE LITERAL_BLOCK_CONTENT _NEWLINE LITERAL_BLOCK_DELIM
+// Listing and Literal Blocks
+listing_block: LISTING_DELIM _NEWLINE LISTING_CONTENT _NEWLINE LISTING_DELIM _NEWLINE?
+literal_block: LITERAL_DELIM _NEWLINE LITERAL_CONTENT _NEWLINE LITERAL_DELIM _NEWLINE?
 
 passthrough_block: PASSTHROUGH_BLOCK_DELIM _NEWLINE PASSTHROUGH_CONTENT _NEWLINE PASSTHROUGH_BLOCK_DELIM
 
@@ -173,7 +174,8 @@ SECTION_TITLE_LEAD.2: /=+ [ \t]*/
 ULIST_MARKER: /(\*+|[-])[ \t]+/
 OLIST_MARKER: /([0-9]+\.|[\.]+)[ \t]+/
 DLIST_MARKER: /::+:?/
-LITERAL_BLOCK_DELIM.2: /-{4,}/
+LISTING_DELIM.2: /-{4,}/
+LITERAL_DELIM.2: /\.{4,}/
 PASSTHROUGH_BLOCK_DELIM.2: /\+{4,}/
 ADMONITION_START: /\[ *(NOTE|TIP|IMPORTANT|WARNING|CAUTION) *\]/
 
@@ -196,8 +198,9 @@ QUOTE_DELIM_LONG: /_{7,}/
 
 THEMATIC_BREAK_MARKER: /'''+|\*\*\*+|---+|(_ _ _)+|(\* \* \*)+|(- - -)+/
 
-// Non-greedy content matching for literal blocks.
-LITERAL_BLOCK_CONTENT: /(.+?)(?=\n-{4,})/s
+// Non-greedy content matching for listing and literal blocks.
+LISTING_CONTENT: /(.+?)(?=\n-{4,})/s
+LITERAL_CONTENT: /(.+?)(?=\n\.{4,})/s
 PASSTHROUGH_CONTENT: /(.+?)(?=\n\+{4,})/s
 
 _NEWLINE: /(\r\n|\n|\r)/

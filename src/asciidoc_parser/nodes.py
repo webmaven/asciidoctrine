@@ -596,6 +596,30 @@ class Listing(BlockNode):
         self.inlines.append(child)
 
 
+class Literal(BlockNode):
+    """A block for literal text, often used for computer output."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"inlines": self.inlines}
+
+    def __init__(
+        self,
+        inlines: Optional[Sequence[Node]] = None,
+        attributes: Optional[Dict[str, Any]] = None,
+        delimiter: str = "....",
+    ):
+        super().__init__()
+        self.name = "literal"
+        self.type = "block"
+        self.form = "delimited"
+        self.delimiter = delimiter
+        self.inlines: PyList[Node] = list(inlines) if inlines else []
+        self.attributes = attributes or {}
+
+    def append(self, child: Node) -> None:
+        self.inlines.append(child)
+
+
 class Passthrough(BlockNode):
     """A block for content that should be passed through without processing."""
 

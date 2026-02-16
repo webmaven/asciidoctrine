@@ -1,20 +1,60 @@
 {
   "name": "document",
   "type": "block",
+  "location": [
+    {
+      "line": 1,
+      "col": 1
+    },
+    {
+      "line": 5,
+      "col": 5
+    }
+  ],
   "blocks": [
     {
       "name": "verse",
       "type": "block",
+      "location": [
+        {
+          "line": 1,
+          "col": 1
+        },
+        {
+          "line": 5,
+          "col": 5
+        }
+      ],
       "form": "delimited",
       "delimiter": "____",
       "blocks": [
         {
           "name": "paragraph",
           "type": "block",
+          "location": [
+            {
+              "line": 3,
+              "col": 1
+            },
+            {
+              "line": 4,
+              "col": 20
+            }
+          ],
           "inlines": [
             {
               "name": "text",
               "type": "string",
+              "location": [
+                {
+                  "line": 3,
+                  "col": 1
+                },
+                {
+                  "line": 4,
+                  "col": 19
+                }
+              ],
               "value": "The fog comes\non little cat feet."
             }
           ]

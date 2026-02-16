@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional, cast
 from typing import List as PyList
 
-from lark import Token
+from lark import Token, v_args
 
 from ..nodes import (
     Break,
@@ -23,37 +23,18 @@ class InlineTransformer:
     Mixin class for inline-level AsciiDoc transformations.
     """
 
-    def _set_location_from_children(self, node: Node, children: PyList[Any]) -> Node:
-        """Sets the location of a node based on its children's locations."""
-        valid_locations = []
-        for child in children:
-            if isinstance(child, Node) and child.location:
-                valid_locations.extend(child.location)
-            elif isinstance(child, Token):
-                if child.line is not None and child.column is not None:
-                    valid_locations.append({"line": child.line, "col": child.column})
-                if child.end_line is not None and child.end_column is not None:
-                    valid_locations.append({"line": child.end_line, "col": child.end_column})
-            elif isinstance(child, list):
-                for item in child:
-                    if isinstance(item, Node) and item.location:
-                        valid_locations.extend(item.location)
-                    elif isinstance(item, Token):
-                        if item.line is not None and item.column is not None:
-                            valid_locations.append({"line": item.line, "col": item.column})
-                        if item.end_line is not None and item.end_column is not None:
-                            valid_locations.append({"line": item.end_line, "col": item.end_column})
-
-        if valid_locations:
-            valid_locations = [loc for loc in valid_locations if loc.get("line") is not None]
-            if valid_locations:
-                valid_locations.sort(key=lambda x: (x["line"], x["col"]))
-                node.location = [valid_locations[0], valid_locations[-1]]
+    def _set_location(self, node: Node, meta: Any) -> Node:
+        """Sets the location of a node from Lark meta."""
+        node.location = [
+            {"line": meta.line, "col": meta.column},
+            {"line": meta.end_line, "col": meta.end_column - 1},
+        ]
         return node
 
     # attributes: Dict[str, PyList[Node]]  # Will be provided by main transformer
 
-    def attribute_reference(self, children: PyList[Any]) -> PyList[Node]:
+    @v_args(meta=True)
+    def attribute_reference(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
         name = ""
         for c in children:
             if isinstance(c, Token) and c.type == "ATTR_NAME":
@@ -65,7 +46,8 @@ class InlineTransformer:
         nodes = attrs.get(name, [Text(f"{{{name}}}")])
         return nodes
 
-    def text_content(self, children: PyList[Any]) -> PyList[Node]:
+    @v_args(meta=True)
+    def text_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
         nodes: PyList[Node] = []
         pending_attrs: Optional[Dict[str, str]] = None
 
@@ -84,10 +66,11 @@ class InlineTransformer:
             node: Optional[Node] = None
             if isinstance(child, Token):
                 node = Text(str(child.value))
-                node.location = [
-                    {"line": child.line, "col": child.column},
-                    {"line": child.end_line, "col": child.end_column},
-                ]
+                if child.line is not None:
+                    node.location = [
+                        {"line": child.line, "col": child.column},
+                        {"line": child.end_line, "col": child.end_column - 1},
+                    ]
             elif isinstance(child, Node):
                 node = child
 
@@ -109,6 +92,7 @@ class InlineTransformer:
                     and isinstance(node, Text)
                     and nodes[-1].attributes == node.attributes
                 ):
+                    # Merge text nodes, update end location
                     nodes[-1].value += node.value
                     if nodes[-1].location and node.location:
                         nodes[-1].location[1] = node.location[1]
@@ -121,74 +105,88 @@ class InlineTransformer:
 
         return nodes
 
-    def bold(self, children: PyList[Any]) -> Span:
+    @v_args(meta=True)
+    def bold(self, meta: Any, children: PyList[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
         span = Span(
             variant="strong", form="constrained", inlines=content[0] if content else []
         )
-        return cast(Span, self._set_location_from_children(span, children))
+        return cast(Span, self._set_location(span, meta))
 
-    def unconstrained_bold(self, children: PyList[Any]) -> Span:
+    @v_args(meta=True)
+    def unconstrained_bold(self, meta: Any, children: PyList[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
         span = Span(
             variant="strong",
             form="unconstrained",
             inlines=content[0] if content else [],
         )
-        return cast(Span, self._set_location_from_children(span, children))
+        return cast(Span, self._set_location(span, meta))
 
-    def italic(self, children: PyList[Any]) -> Span:
+    @v_args(meta=True)
+    def italic(self, meta: Any, children: PyList[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
         span = Span(
             variant="emphasis",
             form="constrained",
             inlines=content[0] if content else [],
         )
-        return cast(Span, self._set_location_from_children(span, children))
+        return cast(Span, self._set_location(span, meta))
 
-    def unconstrained_italic(self, children: PyList[Any]) -> Span:
+    @v_args(meta=True)
+    def unconstrained_italic(self, meta: Any, children: PyList[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
         span = Span(
             variant="emphasis",
             form="unconstrained",
             inlines=content[0] if content else [],
         )
-        return cast(Span, self._set_location_from_children(span, children))
+        return cast(Span, self._set_location(span, meta))
 
-    def literal_content(self, children: PyList[Any]) -> str:
+    @v_args(meta=True)
+    def literal_content(self, meta: Any, children: PyList[Any]) -> str:
         return str(children[0])
 
-    def monospace_content(self, children: PyList[Any]) -> PyList[Node]:
-        return self.text_content(children)
+    @v_args(meta=True)
+    def monospace_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
+        return self.text_content(meta, children)
 
-    def unconstrained_monospace_content(self, children: PyList[Any]) -> PyList[Node]:
-        return self.text_content(children)
+    @v_args(meta=True)
+    def unconstrained_monospace_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
+        return self.text_content(meta, children)
 
-    def monospace(self, children: PyList[Any]) -> Span:
+    @v_args(meta=True)
+    def monospace(self, meta: Any, children: PyList[Any]) -> Span:
         span = Span(variant="code", form="constrained", inlines=children[0])
-        return cast(Span, self._set_location_from_children(span, children))
+        return cast(Span, self._set_location(span, meta))
 
-    def unconstrained_monospace(self, children: PyList[Any]) -> Span:
+    @v_args(meta=True)
+    def unconstrained_monospace(self, meta: Any, children: PyList[Any]) -> Span:
         span = Span(variant="code", form="unconstrained", inlines=children[0])
-        return cast(Span, self._set_location_from_children(span, children))
+        return cast(Span, self._set_location(span, meta))
 
-    def marked(self, children: PyList[Any]) -> Span:
+    @v_args(meta=True)
+    def marked(self, meta: Any, children: PyList[Any]) -> Span:
         span = Span(variant="mark", inlines=children[0] if children else [])
-        return cast(Span, self._set_location_from_children(span, children))
+        return cast(Span, self._set_location(span, meta))
 
-    def superscript(self, children: PyList[Any]) -> Span:
+    @v_args(meta=True)
+    def superscript(self, meta: Any, children: PyList[Any]) -> Span:
         span = Span(variant="superscript", inlines=children[0] if children else [])
-        return cast(Span, self._set_location_from_children(span, children))
+        return cast(Span, self._set_location(span, meta))
 
-    def subscript(self, children: PyList[Any]) -> Span:
+    @v_args(meta=True)
+    def subscript(self, meta: Any, children: PyList[Any]) -> Span:
         span = Span(variant="subscript", inlines=children[0] if children else [])
-        return cast(Span, self._set_location_from_children(span, children))
+        return cast(Span, self._set_location(span, meta))
 
-    def footnote(self, children: PyList[Any]) -> Ref:
+    @v_args(meta=True)
+    def footnote(self, meta: Any, children: PyList[Any]) -> Ref:
         ref = Ref(variant="footnote", target="", inlines=children[0])
-        return cast(Ref, self._set_location_from_children(ref, children))
+        return cast(Ref, self._set_location(ref, meta))
 
-    def footnoteref(self, children: PyList[Any]) -> Ref:
+    @v_args(meta=True)
+    def footnoteref(self, meta: Any, children: PyList[Any]) -> Ref:
         target = ""
         inlines = []
         for c in children:
@@ -197,17 +195,20 @@ class InlineTransformer:
             elif isinstance(c, list):
                 inlines = c
         ref = Ref(variant="footnote", target=target, inlines=inlines)
-        return cast(Ref, self._set_location_from_children(ref, children))
+        return cast(Ref, self._set_location(ref, meta))
 
-    def double_quoted(self, children: PyList[Any]) -> Span:
+    @v_args(meta=True)
+    def double_quoted(self, meta: Any, children: PyList[Any]) -> Span:
         span = Span(variant="double", inlines=children[0] if children else [])
-        return cast(Span, self._set_location_from_children(span, children))
+        return cast(Span, self._set_location(span, meta))
 
-    def single_quoted(self, children: PyList[Any]) -> Span:
+    @v_args(meta=True)
+    def single_quoted(self, meta: Any, children: PyList[Any]) -> Span:
         span = Span(variant="single", inlines=children[0] if children else [])
-        return cast(Span, self._set_location_from_children(span, children))
+        return cast(Span, self._set_location(span, meta))
 
-    def inline_image(self, children: PyList[Any]) -> Image:
+    @v_args(meta=True)
+    def inline_image(self, meta: Any, children: PyList[Any]) -> Image:
         target = str(children[0].value)
         attrs = (
             children[1] if len(children) > 1 and isinstance(children[1], dict) else {}
@@ -217,9 +218,10 @@ class InlineTransformer:
         img.attributes.update(attrs)
         if "style" in img.attributes:
             img.attributes["alt"] = img.attributes.pop("style")
-        return cast(Image, self._set_location_from_children(img, children))
+        return cast(Image, self._set_location(img, meta))
 
-    def icon_inline(self, children: PyList[Any]) -> Image:
+    @v_args(meta=True)
+    def icon_inline(self, meta: Any, children: PyList[Any]) -> Image:
         target = str(children[0].value)
         attrs = (
             children[1] if len(children) > 1 and isinstance(children[1], dict) else {}
@@ -227,9 +229,10 @@ class InlineTransformer:
         img = Image(target=target, alt="", form="macro", type="inline")
         img.name = "icon"
         img.attributes.update(attrs)
-        return cast(Image, self._set_location_from_children(img, children))
+        return cast(Image, self._set_location(img, meta))
 
-    def inline_anchor(self, children: PyList[Any]) -> Ref:
+    @v_args(meta=True)
+    def inline_anchor(self, meta: Any, children: PyList[Any]) -> Ref:
         if isinstance(children[0], Token) and children[0].type == "TARGET":
             target = children[0].value
             attrs = (
@@ -247,9 +250,10 @@ class InlineTransformer:
             if "," in target:
                 target, _ = target.split(",", 1)
             ref = Ref(variant="anchor", target=target.strip(), inlines=nodes)
-        return cast(Ref, self._set_location_from_children(ref, children))
+        return cast(Ref, self._set_location(ref, meta))
 
-    def inline_xref(self, children: PyList[Any]) -> Ref:
+    @v_args(meta=True)
+    def inline_xref(self, meta: Any, children: PyList[Any]) -> Ref:
         if isinstance(children[0], Token) and children[0].type == "TARGET":
             target = children[0].value
             attrs = (
@@ -270,9 +274,10 @@ class InlineTransformer:
                 label_nodes = [Text(label_text.strip())]
 
             ref = Ref(variant="xref", target=target_str.strip(), inlines=label_nodes)
-        return cast(Ref, self._set_location_from_children(ref, children))
+        return cast(Ref, self._set_location(ref, meta))
 
-    def inline_bibref(self, children: PyList[Any]) -> Ref:
+    @v_args(meta=True)
+    def inline_bibref(self, meta: Any, children: PyList[Any]) -> Ref:
         nodes = children[0]
         target = "".join(
             [getattr(n, "value", "") for n in nodes if hasattr(n, "value")]
@@ -280,33 +285,39 @@ class InlineTransformer:
         if "," in target:
             target, _ = target.split(",", 1)
         ref = Ref(variant="bibref", target=target.strip(), inlines=nodes)
-        return cast(Ref, self._set_location_from_children(ref, children))
+        return cast(Ref, self._set_location(ref, meta))
 
-    def inline_break(self, children: PyList[Any]) -> Break:
-        return cast(Break, self._set_location_from_children(Break(), children))
+    @v_args(meta=True)
+    def inline_break(self, meta: Any, children: PyList[Any]) -> Break:
+        return cast(Break, self._set_location(Break(), meta))
 
-    def inline_kbd(self, children: PyList[Any]) -> Kbd:
+    @v_args(meta=True)
+    def inline_kbd(self, meta: Any, children: PyList[Any]) -> Kbd:
         content = str(children[0].value)
         keys = [k.strip() for k in content.split("+")]
         kbd = Kbd(keys)
-        return cast(Kbd, self._set_location_from_children(kbd, children))
+        return cast(Kbd, self._set_location(kbd, meta))
 
-    def inline_button(self, children: PyList[Any]) -> Button:
+    @v_args(meta=True)
+    def inline_button(self, meta: Any, children: PyList[Any]) -> Button:
         btn = Button(str(children[0].value))
-        return cast(Button, self._set_location_from_children(btn, children))
+        return cast(Button, self._set_location(btn, meta))
 
-    def inline_menu(self, children: PyList[Any]) -> Menu:
+    @v_args(meta=True)
+    def inline_menu(self, meta: Any, children: PyList[Any]) -> Menu:
         menu_name = str(children[0].value)
         items_str = str(children[1].value) if len(children) > 1 and children[1] else ""
         items = [i.strip() for i in items_str.split(">")] if items_str else []
         menu = Menu(menu_name, items)
-        return cast(Menu, self._set_location_from_children(menu, children))
+        return cast(Menu, self._set_location(menu, meta))
 
-    def inline_callout(self, children: PyList[Any]) -> Callout:
+    @v_args(meta=True)
+    def inline_callout(self, meta: Any, children: PyList[Any]) -> Callout:
         co = Callout(int(children[0].value))
-        return cast(Callout, self._set_location_from_children(co, children))
+        return cast(Callout, self._set_location(co, meta))
 
-    def inline_stem(self, children: PyList[Any]) -> InlineStem:
+    @v_args(meta=True)
+    def inline_stem(self, meta: Any, children: PyList[Any]) -> InlineStem:
         variant = "asciimath"
         attrs = cast(Dict[str, PyList[Node]], getattr(self, "attributes"))
         stem_attr = attrs.get("stem", [])
@@ -315,14 +326,16 @@ class InlineTransformer:
 
         content = str(children[0].value) if children and children[0] else ""
         stem = InlineStem(variant=variant, value=content)
-        return cast(InlineStem, self._set_location_from_children(stem, children))
+        return cast(InlineStem, self._set_location(stem, meta))
 
-    def inline_asciimath(self, children: PyList[Any]) -> InlineStem:
+    @v_args(meta=True)
+    def inline_asciimath(self, meta: Any, children: PyList[Any]) -> InlineStem:
         content = str(children[0].value) if children and children[0] else ""
         stem = InlineStem(variant="asciimath", value=content)
-        return cast(InlineStem, self._set_location_from_children(stem, children))
+        return cast(InlineStem, self._set_location(stem, meta))
 
-    def inline_latexmath(self, children: PyList[Any]) -> InlineStem:
+    @v_args(meta=True)
+    def inline_latexmath(self, meta: Any, children: PyList[Any]) -> InlineStem:
         content = str(children[0].value) if children and children[0] else ""
         stem = InlineStem(variant="latexmath", value=content)
-        return cast(InlineStem, self._set_location_from_children(stem, children))
+        return cast(InlineStem, self._set_location(stem, meta))

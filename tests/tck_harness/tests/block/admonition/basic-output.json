@@ -1,10 +1,30 @@
 {
   "name": "document",
   "type": "block",
+  "location": [
+    {
+      "line": 1,
+      "col": 1
+    },
+    {
+      "line": 4,
+      "col": 5
+    }
+  ],
   "blocks": [
     {
       "name": "admonition",
       "type": "block",
+      "location": [
+        {
+          "line": 1,
+          "col": 1
+        },
+        {
+          "line": 4,
+          "col": 5
+        }
+      ],
       "variant": "note",
       "form": "delimited",
       "delimiter": "====",
@@ -12,10 +32,30 @@
         {
           "name": "paragraph",
           "type": "block",
+          "location": [
+            {
+              "line": 3,
+              "col": 1
+            },
+            {
+              "line": 3,
+              "col": 18
+            }
+          ],
           "inlines": [
             {
               "name": "text",
               "type": "string",
+              "location": [
+                {
+                  "line": 3,
+                  "col": 1
+                },
+                {
+                  "line": 3,
+                  "col": 17
+                }
+              ],
               "value": "A delimited note."
             }
           ]

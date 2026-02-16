@@ -2,12 +2,32 @@
   {
     "name": "span",
     "type": "inline",
+    "location": [
+      {
+        "line": 1,
+        "col": 1
+      },
+      {
+        "line": 1,
+        "col": 6
+      }
+    ],
     "variant": "code",
     "form": "constrained",
     "inlines": [
       {
         "name": "text",
         "type": "string",
+        "location": [
+          {
+            "line": 1,
+            "col": 2
+          },
+          {
+            "line": 1,
+            "col": 5
+          }
+        ],
         "value": "word"
       }
     ]
