@@ -379,7 +379,7 @@ def test_parser_never_crashes(content: str):
 * [x] Add unit, integration, and functional tests (9/9 passing)
 * [ ] Add Hypothesis fuzz tests
 * [x] Update documentation
-* [ ] Upstream TCK additions to Eclipse AsciiDoc project
+* [x] Upstream TCK additions to Eclipse AsciiDoc project (MRs Submitted)
 * [ ] Merge to main
 
 == File Structure After Implementation

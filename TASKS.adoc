@@ -396,9 +396,10 @@ Use the following template for the issue body:
 * [x] All 30 local TCK additions pass with locations enabled.
 * [x] All 48 combined TCK tests pass with locations disabled.
 
-=== TASK-7: Upstream Contributions [TODO]
+=== TASK-7: Upstream Contributions [SUBMITTED]
 
 ==== TASK-7.1: Prepare TCK Pull Request
-* [ ] Fork `eclipse/asciidoc-tck`.
-* [ ] Port our 14 new tests to the fork.
-* [ ] Submit PR to upstream.
+* [x] Fork `eclipse/asciidoc-tck`.
+* [x] Port our 14 new tests to the fork.
+* [x] Submit MRs to upstream (Harness fix, Expanded coverage).
+* [x] Open issue regarding location standardization.
