@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main ]
 
+# Cancel in-progress runs if a new push is made to the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint-and-type:
     runs-on: ubuntu-latest
@@ -16,6 +21,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.12'
+        cache: 'pip' # Enable pip caching
 
     - name: Install dependencies
       run: |
@@ -30,9 +36,24 @@ jobs:
     - name: Type check (mypy)
       run: mypy src/asciidoc_parser
 
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+    - name: Install dependencies
+      run: pip install -e '.[docs]'
+    - name: Build documentation
+      run: sphinx-build -W -b html docs/ docs/_build/html
+
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false # Don't cancel other matrix jobs if one fails
       matrix:
         python-version: ['3.9', '3.10', '3.11', '3.12']
     steps:
@@ -44,11 +65,14 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+        cache: 'pip'
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: 'vendor/asciidoc-tck/package-lock.json'
 
     - name: Install dependencies
       run: |
@@ -61,8 +85,6 @@ jobs:
 
     - name: Run TCK with Coverage
       run: |
-        # Use our coverage version of the runner
-        # Need to ensure bin/tck-adapter.py uses 'coverage run' internally or via this script
         chmod +x run-tck-coverage.sh
         ./run-tck-coverage.sh
 
@@ -74,9 +96,24 @@ jobs:
       run: |
         coverage combine
         coverage report --show-missing --fail-under=75
+        coverage html # Generate HTML report for artifact
+
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report-${{ matrix.python-version }}
+        path: htmlcov/
+        if-no-files-found: ignore
 
   test-pyodide:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Test against several recent Pyodide versions if possible, 
+        # but usually we target current stable.
+        # pytest-pyodide handles the runtime downloading.
+        pyodide-version: ['0.26.0', '0.27.0']
     steps:
     - uses: actions/checkout@v4
       with:
@@ -86,6 +123,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.12'
+        cache: 'pip'
 
     - name: Install dependencies
       run: |
@@ -96,8 +134,5 @@ jobs:
 
     - name: Run tests under Pyodide
       run: |
-        # pytest-pyodide runs tests in a browser environment (via selenium/playwright) 
-        # or in a Node.js environment. We'll use the default which often uses Chrome.
-        # Since we are in headless environment, we might need some extra setup or use 'node' runner.
-        # For simplicity in this demo, we ensure it parses basic strings.
-        pytest --runtime pyodide-node tests/test_functional.py
+        # Use node runtime for headless CI
+        pytest --runtime pyodide-node --runtime-version ${{ matrix.pyodide-version }} tests/test_functional.py

@@ -397,6 +397,33 @@ class DocutilsRenderer(NodeVisitor):
         self.current_node = old_parent
 
     def visit_open(self, node: Open) -> None:
+        if "style" in node.attributes and node.attributes["style"] == "toctree":
+            try:
+                from sphinx import addnodes
+                toctree = addnodes.toctree()
+                toctree["maxdepth"] = int(node.attributes.get("maxdepth", 1))
+                toctree["caption"] = node.attributes.get("caption")
+                
+                # In our AST, toctree links are likely in paragraphs inside the block
+                entries = []
+                for block in node.blocks:
+                    if isinstance(block, Paragraph):
+                        # Simple implementation: each word/line is a document name
+                        content = "".join(
+                            [getattr(n, "value", "") for n in block.inlines]
+                        )
+                        for line in content.splitlines():
+                            if line.strip():
+                                entries.append((None, line.strip()))
+
+                toctree["entries"] = entries
+                toctree["includefiles"] = [e[1] for e in entries]
+                self.current_node += toctree
+                return
+            except ImportError:
+                # Sphinx not available, render as normal container
+                pass
+
         container = nodes.container()
         old_parent = self.current_node
         self.current_node = container
