@@ -6,7 +6,7 @@
 
 == Executive Summary
 
-This document outlines a two-part implementation plan to advance the AsciiDoc parser toward full TCK compliance:
+This document outlines a two-part implementation plan to advance Asciidoctrine toward full TCK compliance:
 
 1. **AST/ASG Convergence**: Refactor the AST node structure to match the ASG schema directly, so that resolution only performs semantic changes.
 2. **Comprehensive Test Suite**: Expand test coverage beyond the 13-test TCK using multiple test sources.
@@ -120,7 +120,7 @@ The resolver performs only semantic changes on the already-structured ASG:
 
 [source,python]
 ----
-# src/asciidoc_parser/resolver.py
+# src/asciidoctrine/resolver.py
 
 class ASGResolver:
     """Resolves semantic elements in the ASG."""
@@ -272,7 +272,7 @@ git submodule add https://github.com/asciidoctor-contrib/asciidoctor-doctest.git
 # tests/test_doctest_parsing.py
 
 import pytest
-from asciidoc_parser import parse_to_ast
+from asciidoctrine import parse_to_ast
 from conftest import get_all_doctest_examples
 
 KNOWN_UNSUPPORTED = {"stem:*", "video:*", "audio:*", "table:*"}
@@ -318,7 +318,7 @@ Use Hypothesis for fuzz testing:
 # tests/test_fuzzing.py
 
 from hypothesis import given, strategies as st, settings
-from asciidoc_parser import parse_to_ast
+from asciidoctrine import parse_to_ast
 
 asciidoc_chars = st.sampled_from(
     list("abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ\n*_`=[]{}:;.,!?-")
@@ -386,8 +386,8 @@ def test_parser_never_crashes(content: str):
 
 [source,text]
 ----
-asciidoc_parser/
-├── src/asciidoc_parser/
+asciidoctrine/
+├── src/asciidoctrine/
 │   ├── __init__.py
 │   ├── grammar.lark
 │   ├── lark_parser.py      # Updated transformer

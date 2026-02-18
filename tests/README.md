@@ -1,6 +1,6 @@
 # Test Suite
 
-This directory contains the test suite for the AsciiDoc parser.
+This directory contains the test suite for Asciidoctrine.
 
 ## Test Tiers
 

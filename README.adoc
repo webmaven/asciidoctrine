@@ -1,4 +1,4 @@
-= AsciiDoc Parser for Python
+= Asciidoctrine
 Michael R. Bernstein <zopemaven@gmail.com>
 v0.1.0
 :toc: left
@@ -19,7 +19,7 @@ A high-performance, pure-Python AsciiDoc parser built with Lark, designed for co
 
 The Python ecosystem has long lacked a modern, maintainable, and specification-compliant AsciiDoc parser. Existing tools are often port-based or rely on regex-heavy implementations that struggle with the complex, context-sensitive nature of AsciiDoc.
 
-This project is built from the ground up to provide:
+Asciidoctrine is built from the ground up to provide:
 
 1. **Spec Alignment**: Strict adherence to the upcoming official AsciiDoc Language Specification.
 2. **First-Class AST**: A structured, type-safe Abstract Syntax Tree that makes building renderers and static analysis tools a breeze.
@@ -53,7 +53,7 @@ graph LR
 
 [source,bash]
 ----
-pip install asciidoc-parser
+pip install asciidoctrine
 ----
 
 > [!NOTE]
@@ -63,7 +63,7 @@ pip install asciidoc-parser
 
 [source,python]
 ----
-from asciidoc_parser.lark_parser import parse_to_ast
+from asciidoctrine.lark_parser import parse_to_ast
 
 source = """
 == Section Title
@@ -132,9 +132,9 @@ The path to 1:1 parity with Asciidoctor is tracked through the following phases:
 
 [source,text]
 ----
-asciidoc_parser/
+asciidoctrine/
 ├── src/
-│   └── asciidoc_parser/      # Core parser logic
+│   └── asciidoctrine/      # Core parser logic
 │       ├── grammar.lark      # EBNF Grammar
 │       ├── lark_parser.py    # Transformer and Parser entry point
 │       ├── nodes.py          # AST Node definitions

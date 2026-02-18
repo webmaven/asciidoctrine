@@ -67,6 +67,8 @@ class InlineTransformer:
 
     @v_args(meta=True)
     def attribute_reference(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
+        import copy
+
         name = ""
         for c in children:
             if isinstance(c, Token) and c.type == "ATTR_NAME":
@@ -76,7 +78,8 @@ class InlineTransformer:
         # Access attributes from the instance (AsciiDocTransformer)
         attrs = cast(Dict[str, PyList[Node]], getattr(self, "attributes"))
         nodes = attrs.get(name, [Text(f"{{{name}}}")])
-        return nodes
+        # Return a deep copy to avoid modifying the original attribute nodes during merging
+        return [copy.deepcopy(n) for n in nodes]
 
     @v_args(meta=True)
     def text_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
@@ -98,7 +101,12 @@ class InlineTransformer:
             node: Optional[Node] = None
             if isinstance(child, Token):
                 node = Text(str(child.value))
-                if child.line is not None:
+                if (
+                    child.line is not None
+                    and child.column is not None
+                    and child.end_line is not None
+                    and child.end_column is not None
+                ):
                     node.location = [
                         {"line": child.line, "col": child.column},
                         {"line": child.end_line, "col": child.end_column - 1},

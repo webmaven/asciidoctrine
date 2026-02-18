@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict
+from typing import Any, ClassVar, Dict
 
 from docutils import nodes
 from sphinx.parsers import Parser as SphinxParser
@@ -8,12 +8,12 @@ from .docutils_backend import DocutilsRenderer
 from .lark_parser import parse_to_ast
 
 
-class AsciiDocParser(SphinxParser): # type: ignore
+class AsciiDocParser(SphinxParser):
     """
     Sphinx parser for AsciiDoc files.
     """
 
-    supported: tuple[str, ...] = ("asciidoc", "adoc")
+    supported: ClassVar[tuple[str, ...]] = ("asciidoc", "adoc")
 
     def parse(self, inputstring: str, document: nodes.document) -> None:
         """

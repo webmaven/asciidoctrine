@@ -1,5 +1,5 @@
-from asciidoc_parser.lark_parser import parse_to_ast
-from asciidoc_parser.resolver import ASGResolver
+from asciidoctrine.lark_parser import parse_to_ast
+from asciidoctrine.resolver import ASGResolver
 
 
 def test_full_pipeline_with_locations():

@@ -2,7 +2,7 @@ import fnmatch
 
 import pytest
 
-from asciidoc_parser import parse_to_ast
+from asciidoctrine import parse_to_ast
 from tests.conftest import get_all_doctest_examples
 
 # List of example groups or specific examples known to be unsupported currently

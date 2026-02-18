@@ -15,4 +15,4 @@ if [ -f "venv/bin/coverage" ]; then
 fi
 
 echo "Running TCK tests with coverage..."
-node "$TCK_DIR/harness/bin/asciidoc-tck.js" cli --adapter-command "PYTHONPATH=src $COVERAGE_CMD run --parallel-mode --source=src/asciidoc_parser bin/tck-adapter.py" "$@"
+node "$TCK_DIR/harness/bin/asciidoc-tck.js" cli --adapter-command "PYTHONPATH=src $COVERAGE_CMD run --parallel-mode --source=src/asciidoctrine bin/tck-adapter.py" "$@"

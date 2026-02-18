@@ -1,6 +1,6 @@
 == Sample Document
 
-This is a comprehensive sample document for testing the AsciiDoc parser.
+This is a comprehensive sample document for testing Asciidoctrine.
 
 == Features
 

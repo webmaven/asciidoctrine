@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from asciidoc_parser.lark_parser import parse_to_ast
+from asciidoctrine.lark_parser import parse_to_ast
 
 
 def get_example_files():

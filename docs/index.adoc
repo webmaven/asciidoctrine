@@ -1,10 +1,10 @@
-= AsciiDoc Parser Documentation
+= Asciidoctrine Documentation
 Michael R. Bernstein <zopemaven@gmail.com>
 v0.1.0
 
-Welcome to the official documentation for the **AsciiDoc Parser for Python**.
+Welcome to the official documentation for **Asciidoctrine**, a modern AsciiDoc parser for Python.
 
-This documentation is self-hosted: it is rendered using Sphinx with our own `asciidoc_parser.sphinx_ext` plugin!
+This documentation is self-hosted: it is rendered using Sphinx with our own `asciidoctrine.sphinx_ext` plugin!
 
 == Features
 
@@ -43,7 +43,7 @@ The parser operates in a multi-pass pipeline:
 
 [source,bash]
 ----
-pip install asciidoc-parser
+pip install asciidoctrine
 ----
 
 == Project Roadmap

@@ -8,7 +8,7 @@ body_only: block*
 
 document_header: document_title (attribute_entry | author_rev_line)*
 author_rev_line: WORD (WORD | WHITESPACE | COLON | AUTHOR_SPECIAL_CHARS)* _NEWLINE
-document_title: DOC_TITLE_LEAD text_content _NEWLINE
+document_title: DOC_TITLE_LEAD WHITESPACE text_content _NEWLINE
 
 AUTHOR_SPECIAL_CHARS: /[<>;,.@\-_]/
 
@@ -21,14 +21,14 @@ COMMENT_CONTENT: /[^\n]+/
 
 attributed_block: (block_metadata)* (section | ulist | olist | dlist | colist | table | listing_block | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | indented_literal | paragraph)
 
-attributed_simple_block: (block_metadata)* (ulist | olist | dlist | colist | literal_block | passthrough_block | shorthand_admonition | indented_literal | paragraph)
+attributed_simple_block: (block_metadata)* (ulist | olist | dlist | colist | listing_block | literal_block | passthrough_block | shorthand_admonition | indented_literal | paragraph)
 
 block_metadata: block_title | attribute_list | anchor
 block_title: "." text_content _NEWLINE
 
 // Sections and Titles
 section: section_title
-section_title: SECTION_TITLE_LEAD text_content
+section_title: SECTION_TITLE_LEAD WHITESPACE text_content _NEWLINE
 
 // Paragraphs
 paragraph: (text_content _NEWLINE)+
@@ -119,7 +119,7 @@ page_break: "<<<" _NEWLINE
 text_content: inline_element+
 
 attribute_reference.2: LBRACE ATTR_NAME RBRACE
-?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK
+?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK
 
 inline_break: " +"
 inline_kbd: "kbd:[" ATTR_LIST_CONTENT "]"
@@ -130,9 +130,8 @@ inline_stem: "stem:[" [ATTR_LIST_CONTENT] "]"
 inline_asciimath: "asciimath:[" [ATTR_LIST_CONTENT] "]"
 inline_latexmath: "latexmath:[" [ATTR_LIST_CONTENT] "]"
 
-block_macro.20: MACRO_NAME "::" [TARGET] [LSQB] [ATTR_LIST_CONTENT] [RSQB] _NEWLINE
+block_macro.20: WORD "::" [TARGET] [LSQB] [ATTR_LIST_CONTENT] [RSQB] _NEWLINE
 
-MACRO_NAME: WORD
 inline_image: "image:" TARGET inline_attribute_list
 icon_inline: "icon:" TARGET inline_attribute_list
 
@@ -172,8 +171,8 @@ single_quoted: "'`" text_content "`'"
 // --- Terminals ---
 
 // Block Terminals
-DOC_TITLE_LEAD.3: /= [ \t]*/
-SECTION_TITLE_LEAD.2: /=+ [ \t]*/
+DOC_TITLE_LEAD.3: "="
+SECTION_TITLE_LEAD.2: /=+/
 ULIST_MARKER: /[ \t]*(\*+|[-])[ \t]+/
 OLIST_MARKER: /[ \t]*([0-9]+\.|[\.]+)[ \t]+/
 DLIST_MARKER: /[ \t]*::+:?/
@@ -207,7 +206,8 @@ LITERAL_CONTENT: /(.+?)(?=\n\.{4,})/s
 PASSTHROUGH_CONTENT: /(.+?)(?=\n\+{4,})/s
 
 _NEWLINE: /(\r\n|\n|\r)/
-WHITESPACE: /[ \t]+/
+_WS: /[ \t]/
+WHITESPACE: _WS+
 NUMBER: /[0-9]+/
 ATTR_NAME: /[a-zA-Z0-9_\-]+/
 WORD: /[^ \t\n*_`=\[\]{}:]+/  // Word characters (not whitespace or markup)

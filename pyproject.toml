@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "asciidoc-parser"
+name = "asciidoctrine"
 version = "0.1.0"
 authors = [
   { name = "Michael R. Bernstein", email = "zopemaven@gmail.com" },
@@ -22,8 +22,8 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/webmaven/asciidoc_parser"
-"Bug Tracker" = "https://github.com/webmaven/asciidoc_parser/issues"
+"Homepage" = "https://github.com/webmaven/asciidoctrine"
+"Bug Tracker" = "https://github.com/webmaven/asciidoctrine/issues"
 
 [project.optional-dependencies]
 test = ["pytest", "ruff", "mypy", "docutils", "types-docutils", "sphinx"]
@@ -46,5 +46,6 @@ quote-style = "double"
 [tool.mypy]
 python_version = "3.12"
 strict = true
-packages = ["asciidoc_parser"]
+packages = ["asciidoctrine"]
+mypy_path = "src"
 ignore_missing_imports = true

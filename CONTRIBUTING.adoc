@@ -1,4 +1,4 @@
-= Contributing to AsciiDoc Parser
+= Contributing to Asciidoctrine
 :toc:
 
 We welcome contributions! Whether you are fixing a bug, adding a feature, or improving documentation, your help is appreciated.
@@ -15,8 +15,8 @@ We welcome contributions! Whether you are fixing a bug, adding a feature, or imp
 
 [source,bash]
 ----
-git clone https://github.com/webmaven/asciidoc_parser.git
-cd asciidoc_parser
+git clone https://github.com/webmaven/asciidoctrine.git
+cd asciidoctrine
 pip install -e .
 ----
 

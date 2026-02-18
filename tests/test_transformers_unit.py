@@ -1,8 +1,8 @@
 import pytest
 from lark import Token
 
-from asciidoc_parser.nodes import Node, Text
-from asciidoc_parser.transformers.block_transformer import BlockTransformer
+from asciidoctrine.nodes import Node, Text
+from asciidoctrine.transformers.block_transformer import BlockTransformer
 
 
 class MockTransformer(BlockTransformer):

@@ -1,21 +1,21 @@
-= Technical Debt List: AsciiDoc Parser
+= Technical Debt List: Asciidoctrine
 :toc:
 
 == Overview
 
-This document tracks identified technical debt in the `asciidoc_parser` project and provides a roadmap for refactoring and improvements.
+This document tracks identified technical debt in the `asciidoctrine` project and provides a roadmap for refactoring and improvements.
 
 == Identified Debt
 
 === 1. Lark Transformer Bloat
 * **Status**: Completed
 * **Description**: `AsciiDocTransformer` in `lark_parser.py` was a monolithic class.
-* **Resolution**: Split into mixins (`BlockTransformer`, `InlineTransformer`) in `src/asciidoc_parser/transformers/`.
+* **Resolution**: Split into mixins (`BlockTransformer`, `InlineTransformer`) in `src/asciidoctrine/transformers/`.
 
 === 2. Attribute Substitution Redundancy
 * **Status**: Completed
 * **Description**: Logic for resolving `{name}` references was duplicated.
-* **Resolution**: Centralized in `src/asciidoc_parser/attributes.py`.
+* **Resolution**: Centralized in `src/asciidoctrine/attributes.py`.
 
 === 3. Grammar Brittleness (Nesting)
 * **Status**: Completed

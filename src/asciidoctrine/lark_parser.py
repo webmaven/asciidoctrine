@@ -42,7 +42,7 @@ Transformed = Union[Node, Any, Dict[str, Any], PyList[Any], str]
 
 
 class AsciiDocTransformer(
-    BlockTransformer, InlineTransformer, Transformer[Token, Transformed] # type: ignore
+    BlockTransformer, InlineTransformer, Transformer[Token, Transformed]
 ):
     """
     Transforms the Lark parse tree (CST) into a structured AST.
@@ -228,8 +228,11 @@ class AsciiDocTransformer(
 
     @v_args(meta=True)
     def document_title(self, meta: Any, children: Children) -> Title:
-        nodes = [c for c in children if isinstance(c, list)]
-        title = Title(nodes[0] if nodes else [])
+        all_nodes = []
+        for c in children:
+            if isinstance(c, list):
+                all_nodes.extend(c)
+        title = Title(all_nodes)
         return cast(Title, self._set_location_from_children(title, children))
 
     @v_args(meta=True)
@@ -351,9 +354,11 @@ class AsciiDocTransformer(
         if lead:
             level = max(0, lead[0].value.strip().count("=") - 1)
 
-        nodes = [c for c in children if isinstance(c, list)]
-        title_nodes = nodes[0] if nodes else []
-        title = Title(title_nodes)
+        all_nodes = []
+        for c in children:
+            if isinstance(c, list):
+                all_nodes.extend(c)
+        title = Title(all_nodes)
         self._set_location_from_children(title, children)
         return level, title
 
@@ -516,8 +521,11 @@ class AsciiDocTransformer(
 
     # --- Terminals ---
 
-    def WHITESPACE(self, token: Token) -> Token:
-        return Token("WORD", " ")
+    def WHITESPACE(self, token: Token) -> Any:
+        return token
+
+    def _WS(self, token: Token) -> Any:
+        return Discard
 
     def SECTION_TITLE_LEAD(self, token: Token) -> Any:
         return token

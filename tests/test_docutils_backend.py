@@ -1,6 +1,6 @@
 from docutils import nodes
 
-from asciidoc_parser.docutils_backend import asciidoc_to_docutils
+from asciidoctrine.docutils_backend import asciidoc_to_docutils
 
 
 def test_basic_conversion():

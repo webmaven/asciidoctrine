@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-TCK Adapter for AsciiDoc Parser.
+TCK Adapter for Asciidoctrine.
 Converts AsciiDoc source to TCK-compliant ASG JSON.
 """
 
@@ -8,8 +8,8 @@ import json
 import os
 import sys
 
-from asciidoc_parser import parse_to_ast
-from asciidoc_parser.resolver import ASGResolver
+from asciidoctrine import parse_to_ast
+from asciidoctrine.resolver import ASGResolver
 
 
 def main():

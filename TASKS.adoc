@@ -109,7 +109,7 @@ The TCK's dependencies must be installed first by running `npm ci` inside the `v
 
 *Constraints*:
 
-- Must import the `parse_to_ast` function from the `asciidoc_parser` library.
+- Must import the `parse_to_ast` function from the `asciidoctrine` library.
 
 *Acceptance Criteria*:
 
@@ -165,7 +165,7 @@ The TCK's dependencies must be installed first by running `npm ci` inside the `v
 - [x] A summary of the schema's top-level structure and key node types is added to the `ARCHITECTURE.adoc` file for future reference.
 
 ==== TASK-3.2: Create `ASGVisitor` Class
-*Description*: Create a new file `src/asciidoc_parser/asg_visitor.py` and define an `ASGVisitor` class that inherits from `NodeVisitor`.
+*Description*: Create a new file `src/asciidoctrine/asg_visitor.py` and define an `ASGVisitor` class that inherits from `NodeVisitor`.
 
 *Ref*: `TCK-SPEC.adoc`, Section 4.1
 
@@ -173,11 +173,11 @@ The TCK's dependencies must be installed first by running `npm ci` inside the `v
 
 *Constraints*:
 
-- The new file must be correctly placed within the `src/asciidoc_parser` module.
+- The new file must be correctly placed within the `src/asciidoctrine` module.
 
 *Acceptance Criteria*:
 
-- [x] The file `src/asciidoc_parser/asg_visitor.py` exists.
+- [x] The file `src/asciidoctrine/asg_visitor.py` exists.
 - [x] It contains a class `ASGVisitor` that inherits from `NodeVisitor`.
 
 ==== TASK-3.3: Implement Visitor for Simple Nodes

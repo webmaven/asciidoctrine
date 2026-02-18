@@ -34,7 +34,7 @@ jobs:
       run: ruff check .
 
     - name: Type check (mypy)
-      run: mypy src/asciidoc_parser
+      run: mypy src/asciidoctrine
 
   build-docs:
     runs-on: ubuntu-latest
@@ -81,7 +81,7 @@ jobs:
 
     - name: Run Core Tests with Coverage
       run: |
-        coverage run --parallel-mode -m pytest --ignore=tests/test_tck.py --ignore=tests/test_doctest_parsing.py
+        coverage run --parallel-mode --source=src/asciidoctrine -m pytest --ignore=tests/test_tck.py --ignore=tests/test_doctest_parsing.py
 
     - name: Run TCK with Coverage
       run: |
@@ -90,7 +90,7 @@ jobs:
 
     - name: Run DocTest Parsing with Coverage
       run: |
-        coverage run --parallel-mode -m pytest tests/test_doctest_parsing.py
+        coverage run --parallel-mode --source=src/asciidoctrine -m pytest tests/test_doctest_parsing.py
 
     - name: Combine and Check Coverage
       run: |
