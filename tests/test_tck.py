@@ -62,6 +62,13 @@ def parse_tck_failures(stdout):
         "span",
         "strong",
         "no-markup",
+        "description",
+        "literal",
+        "admonition",
+        "open",
+        "quote",
+        "stem",
+        "verse",
     }
 
     for line in stdout.splitlines():
@@ -77,7 +84,7 @@ def parse_tck_failures(stdout):
             name = content[2:].split("(")[0].strip()
             if name != "tests":
                 # level 1 is 'block' or 'inline', level 2 is 'admonition' etc.
-                stack = stack[:level]
+                stack = stack[: level - 1]
                 stack.append(name)
         elif content.startswith("✖"):
             name = content[2:].split("(")[0].strip()
@@ -86,7 +93,7 @@ def parse_tck_failures(stdout):
                 filename = name.replace(" ", "-") + "-input.adoc"
                 full_rel_path = os.path.join(*stack, filename)
                 failed_tests.append(full_rel_path)
-    # print(f"DEBUG: Parsed failed tests: {failed_tests}")
+
     return failed_tests
 
 

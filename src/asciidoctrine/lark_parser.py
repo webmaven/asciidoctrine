@@ -221,7 +221,7 @@ class AsciiDocTransformer(
 
     @v_args(meta=True)
     def author_rev_line(self, meta: Any, children: Children) -> PyList[Node]:
-        return self.text_content(meta, children) # type: ignore
+        return self.text_content(meta, children)  # type: ignore
 
     def AUTHOR_SPECIAL_CHARS(self, token: Token) -> Token:
         return Token("WORD", token.value)
@@ -295,15 +295,17 @@ class AsciiDocTransformer(
                                     else [block]
                                 )
                                 delimiter = getattr(block, "delimiter", None)
-                                block = Quote(blocks=blocks, delimiter=delimiter) # type: ignore
+                                block = Quote(blocks=blocks, delimiter=delimiter)  # type: ignore
                             else:
                                 block.attributes["style"] = v
                         elif variant in ["discrete", "float"]:
-                            if isinstance(block, Section):
-                                block = FloatingTitle(level=block.level, title=block.title) # type: ignore
+                            if isinstance(block, Section) and block.title:
+                                block = FloatingTitle(
+                                    level=block.level, title=block.title
+                                )
                             else:
                                 block.attributes["style"] = v
-                        
+
                         elif variant == "stem":
                             # Determine variant (asciimath or latexmath)
                             stem_variant = self.attributes.get(
@@ -341,7 +343,7 @@ class AsciiDocTransformer(
 
     @v_args(meta=True)
     def attributed_simple_block(self, meta: Any, children: Children) -> BlockNode:
-        return self.attributed_block(meta, children) # type: ignore
+        return self.attributed_block(meta, children)  # type: ignore
 
     @v_args(meta=True)
     def section_title(self, meta: Any, children: Children) -> Tuple[int, Title]:
@@ -517,7 +519,7 @@ class AsciiDocTransformer(
 
     @v_args(meta=True)
     def inline_attribute_list(self, meta: Any, children: Children) -> Dict[str, str]:
-        return self.attribute_list(meta, children) # type: ignore
+        return self.attribute_list(meta, children)  # type: ignore
 
     # --- Terminals ---
 

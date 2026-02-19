@@ -400,10 +400,11 @@ class DocutilsRenderer(NodeVisitor):
         if "style" in node.attributes and node.attributes["style"] == "toctree":
             try:
                 from sphinx import addnodes
+
                 toctree = addnodes.toctree()
                 toctree["maxdepth"] = int(node.attributes.get("maxdepth", 1))
                 toctree["caption"] = node.attributes.get("caption")
-                
+
                 # In our AST, toctree links are likely in paragraphs inside the block
                 entries = []
                 for block in node.blocks:
@@ -418,6 +419,7 @@ class DocutilsRenderer(NodeVisitor):
 
                 toctree["entries"] = entries
                 toctree["includefiles"] = [e[1] for e in entries]
+                toctree["glob"] = False
                 self.current_node += toctree
                 return
             except ImportError:

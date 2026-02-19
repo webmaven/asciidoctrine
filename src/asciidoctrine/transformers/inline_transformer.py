@@ -78,7 +78,8 @@ class InlineTransformer:
         # Access attributes from the instance (AsciiDocTransformer)
         attrs = cast(Dict[str, PyList[Node]], getattr(self, "attributes"))
         nodes = attrs.get(name, [Text(f"{{{name}}}")])
-        # Return a deep copy to avoid modifying the original attribute nodes during merging
+        # Return a deep copy to avoid modifying the original attribute nodes during
+        # merging
         return [copy.deepcopy(n) for n in nodes]
 
     @v_args(meta=True)
@@ -189,13 +190,13 @@ class InlineTransformer:
 
     @v_args(meta=True)
     def monospace_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
-        return self.text_content(meta, children) # type: ignore
+        return self.text_content(meta, children)  # type: ignore
 
     @v_args(meta=True)
     def unconstrained_monospace_content(
         self, meta: Any, children: PyList[Any]
     ) -> PyList[Node]:
-        return self.text_content(meta, children) # type: ignore
+        return self.text_content(meta, children)  # type: ignore
 
     @v_args(meta=True)
     def monospace(self, meta: Any, children: PyList[Any]) -> Span:
