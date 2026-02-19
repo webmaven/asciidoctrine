@@ -565,12 +565,11 @@ class DescriptionListTerm(InlineNode):
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
         return {"inlines": self.inlines}
 
-    def __init__(self, inlines: Optional[Sequence[Node]] = None, level: int = 1):
+    def __init__(self, inlines: Optional[Sequence[Node]] = None):
         super().__init__()
         self.name = "descriptionListTerm"
         self.type = "inline"
         self.inlines: PyList[Node] = list(inlines) if inlines else []
-        self.level = level
 
 
 class Listing(BlockNode):
@@ -607,14 +606,18 @@ class Literal(BlockNode):
         self,
         inlines: Optional[Sequence[Node]] = None,
         attributes: Optional[Dict[str, Any]] = None,
-        delimiter: Optional[str] = "....",
+        delimiter: Optional[str] = None,
         form: str = "delimited",
     ):
         super().__init__()
         self.name = "literal"
         self.type = "block"
         self.form = form
-        self.delimiter = delimiter
+        # Only set delimiter if it is provided or if form is delimited
+        if delimiter is not None:
+            self.delimiter = delimiter
+        elif form == "delimited":
+            self.delimiter = "...."
         self.inlines: PyList[Node] = list(inlines) if inlines else []
         self.attributes = attributes or {}
 

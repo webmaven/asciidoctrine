@@ -3,13 +3,14 @@
   "type": "block",
   "blocks": [
     {
-      "name": "paragraph",
+      "name": "literal",
       "type": "block",
+      "form": "indented",
       "inlines": [
         {
           "name": "text",
           "type": "string",
-          "value": " indented literal"
+          "value": "indented literal"
         }
       ]
     }

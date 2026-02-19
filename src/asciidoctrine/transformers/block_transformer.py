@@ -278,9 +278,6 @@ class BlockTransformer:
         # children[0] is text_content (list of inlines)
         # children[1] is DLIST_MARKER
         inlines = children[0]
-        marker_token = children[1]
-        marker = marker_token.value.strip()
-        level = marker.count(":") - 1
 
         # Strip leading whitespace from the first text node
         if inlines and isinstance(inlines[0], Text):
@@ -291,7 +288,7 @@ class BlockTransformer:
                 diff = len(original_val) - len(inlines[0].value)
                 inlines[0].location[0]["col"] += diff
 
-        term = DescriptionListTerm(inlines=inlines, level=level)
+        term = DescriptionListTerm(inlines=inlines)
         return cast(
             DescriptionListTerm, self._set_location_from_children(term, children)
         )

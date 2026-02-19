@@ -1,3 +1,0 @@
-block/description/multiple-terms-input.adoc
-block/description/single-item-input.adoc
-block/literal/indented-input.adoc

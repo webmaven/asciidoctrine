@@ -93,7 +93,8 @@ class DocutilsRenderer(NodeVisitor):
 
     def visit_floatingtitle(self, node: FloatingTitle) -> None:
         rubric = nodes.rubric()
-        rubric["classes"].append(f"level-{node.level}")
+        if hasattr(node, "level") and node.level is not None:
+            rubric["classes"].append(f"level-{node.level}")
         old_parent = self.current_node
         self.current_node = rubric
         if node.title:
