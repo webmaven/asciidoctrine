@@ -138,4 +138,4 @@ jobs:
     - name: Run tests under Pyodide
       run: |
         # Use node runtime for headless CI
-        pytest --runtime pyodide-node tests/test_functional.py
+        pytest --runtime node tests/test_functional.py
