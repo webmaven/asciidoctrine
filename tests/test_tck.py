@@ -76,6 +76,9 @@ def parse_tck_failures(stdout):
         if not line_clean.strip():
             continue
 
+        if "failing tests:" in line_clean:
+            break
+
         indent = len(line_clean) - len(line_clean.lstrip())
         level = indent // 2
         content = line_clean.strip()
