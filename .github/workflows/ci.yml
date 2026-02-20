@@ -138,4 +138,5 @@ jobs:
     - name: Run tests under Pyodide
       run: |
         # Use node runtime for headless CI
-        pytest --runtime node tests/test_functional.py
+        # We need to tell pytest-pyodide to install our freshly built wheel
+        pytest --runtime node --dist-dir dist/ tests/test_functional.py
