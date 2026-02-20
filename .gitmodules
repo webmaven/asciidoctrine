@@ -6,4 +6,4 @@
 	url = https://github.com/asciidoctor-contrib/asciidoctor-doctest.git
 [submodule "vendor/asciidoc-lang"]
 	path = vendor/asciidoc-lang
-	url = https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang.git
+	url = https://gitlab.eclipse.org/webmaven2/asciidoc-lang.git
