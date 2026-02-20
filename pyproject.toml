@@ -32,10 +32,12 @@ docs = ["sphinx", "sphinx-rtd-theme"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+norecursedirs = ["vendor", "venv"]
 
 [tool.ruff]
 line-length = 88
 target-version = "py39"
+exclude = ["vendor", "venv", ".git"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]

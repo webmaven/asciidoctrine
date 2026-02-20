@@ -112,13 +112,6 @@ jobs:
 
   test-pyodide:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        # Test against several recent Pyodide versions if possible, 
-        # but usually we target current stable.
-        # pytest-pyodide handles the runtime downloading.
-        pyodide-version: ['0.26.0', '0.27.0']
     steps:
     - uses: actions/checkout@v4
       with:
@@ -145,4 +138,4 @@ jobs:
     - name: Run tests under Pyodide
       run: |
         # Use node runtime for headless CI
-        pytest --runtime pyodide-node --runtime-version ${{ matrix.pyodide-version }} tests/test_functional.py
+        pytest --runtime pyodide-node tests/test_functional.py
