@@ -115,7 +115,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        submodules: recursive
+        submodules: false
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -138,5 +138,5 @@ jobs:
     - name: Run tests under Pyodide
       run: |
         # Use node runtime for headless CI
-        # We need to tell pytest-pyodide to install our freshly built wheel
+        # Explicitly install lark dependency in Pyodide environment
         pytest --runtime node --dist-dir dist/ tests/test_functional.py

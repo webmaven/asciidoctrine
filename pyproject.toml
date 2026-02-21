@@ -32,7 +32,7 @@ docs = ["sphinx", "sphinx-rtd-theme"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-norecursedirs = ["vendor", "venv"]
+norecursedirs = ["vendor", "venv", ".git", "docs"]
 
 [tool.ruff]
 line-length = 88
