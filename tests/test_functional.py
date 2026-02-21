@@ -10,7 +10,14 @@ except ImportError:
 
 def run_if_pyodide(func):
     if HAS_PYODIDE:
-        return run_in_pyodide(packages=["lark", "asciidoctrine"])(func)
+        # We need to load the wheels from the dist directory which is served by the test server.
+        # pytest-pyodide serves the dist-dir.
+        # The wheels are named something like lark-1.3.1-py3-none-any.whl
+        # and asciidoctrine-0.1.0-py3-none-any.whl
+        return run_in_pyodide(packages=[
+            "http://localhost:8000/lark-1.3.1-py3-none-any.whl",
+            "http://localhost:8000/asciidoctrine-0.1.0-py3-none-any.whl"
+        ])(func)
     return pytest.mark.skip(reason="pytest-pyodide not installed")(func)
 
 
