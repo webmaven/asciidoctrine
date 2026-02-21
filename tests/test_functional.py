@@ -1,9 +1,23 @@
 import pytest
-from pytest_pyodide import run_in_pyodide
 
-@run_in_pyodide(packages=["lark", "asciidoctrine"])
+try:
+    from pytest_pyodide import run_in_pyodide
+
+    HAS_PYODIDE = True
+except ImportError:
+    HAS_PYODIDE = False
+
+
+def run_if_pyodide(func):
+    if HAS_PYODIDE:
+        return run_in_pyodide(packages=["lark", "asciidoctrine"])(func)
+    return pytest.mark.skip(reason="pytest-pyodide not installed")(func)
+
+
+@run_if_pyodide
 def test_unconstrained_bold_functional(selenium):
     from asciidoctrine.lark_parser import parse_to_ast
+
     source = "**bold**anywhere\n"
     ast = parse_to_ast(source).to_dict()
 
@@ -15,9 +29,10 @@ def test_unconstrained_bold_functional(selenium):
     assert para["inlines"][1]["value"] == "anywhere"
 
 
-@run_in_pyodide(packages=["lark", "asciidoctrine"])
+@run_if_pyodide
 def test_indented_literal_block_functional(selenium):
     from asciidoctrine.lark_parser import parse_to_ast
+
     source = "  indented literal\n"
     ast = parse_to_ast(source).to_dict()
 
@@ -27,9 +42,10 @@ def test_indented_literal_block_functional(selenium):
     assert block["inlines"][0]["value"] == "indented literal"
 
 
-@run_in_pyodide(packages=["lark", "asciidoctrine"])
+@run_if_pyodide
 def test_admonition_shorthand_functional(selenium):
     from asciidoctrine.lark_parser import parse_to_ast
+
     source = "NOTE: This is a note.\n"
     ast = parse_to_ast(source).to_dict()
 
