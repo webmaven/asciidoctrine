@@ -1,30 +1,7 @@
-import pytest
-
-try:
-    from pytest_pyodide import run_in_pyodide
-
-    HAS_PYODIDE = True
-except ImportError:
-    HAS_PYODIDE = False
+from asciidoctrine.lark_parser import parse_to_ast
 
 
-def run_if_pyodide(func):
-    if HAS_PYODIDE:
-        # We need to load the wheels from the dist directory which is served by the test server.
-        # pytest-pyodide serves the dist-dir.
-        # The wheels are named something like lark-1.3.1-py3-none-any.whl
-        # and asciidoctrine-0.1.0-py3-none-any.whl
-        return run_in_pyodide(packages=[
-            "http://localhost:8000/lark-1.3.1-py3-none-any.whl",
-            "http://localhost:8000/asciidoctrine-0.1.0-py3-none-any.whl"
-        ])(func)
-    return pytest.mark.skip(reason="pytest-pyodide not installed")(func)
-
-
-@run_if_pyodide
-def test_unconstrained_bold_functional(selenium):
-    from asciidoctrine.lark_parser import parse_to_ast
-
+def test_unconstrained_bold_functional():
     source = "**bold**anywhere\n"
     ast = parse_to_ast(source).to_dict()
 
@@ -36,10 +13,7 @@ def test_unconstrained_bold_functional(selenium):
     assert para["inlines"][1]["value"] == "anywhere"
 
 
-@run_if_pyodide
-def test_indented_literal_block_functional(selenium):
-    from asciidoctrine.lark_parser import parse_to_ast
-
+def test_indented_literal_block_functional():
     source = "  indented literal\n"
     ast = parse_to_ast(source).to_dict()
 
@@ -49,10 +23,7 @@ def test_indented_literal_block_functional(selenium):
     assert block["inlines"][0]["value"] == "indented literal"
 
 
-@run_if_pyodide
-def test_admonition_shorthand_functional(selenium):
-    from asciidoctrine.lark_parser import parse_to_ast
-
+def test_admonition_shorthand_functional():
     source = "NOTE: This is a note.\n"
     ast = parse_to_ast(source).to_dict()
 
