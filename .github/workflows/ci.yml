@@ -133,7 +133,10 @@ jobs:
         pip install build pytest-pyodide
 
     - name: Build wheel
-      run: python -m build --wheel
+      run: |
+        python -m build --wheel
+        # Download lark dependency into dist directory for pyodide to find it
+        pip download lark -d dist/
 
     - name: Run tests under Pyodide
       run: |
