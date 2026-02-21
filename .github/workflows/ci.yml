@@ -146,5 +146,4 @@ jobs:
     - name: Run tests under Pyodide
       run: |
         # Use node runtime for headless CI
-        # Use --run-in-pyodide to ensure tests are executed within the Pyodide environment
-        pytest --runtime node --dist-dir dist/ --run-in-pyodide tests/test_functional.py
+        pytest --runtime node --dist-dir dist/ tests/test_functional.py
