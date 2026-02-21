@@ -1,7 +1,9 @@
-from asciidoctrine.lark_parser import parse_to_ast
+import pytest
+from pytest_pyodide import run_in_pyodide
 
-
-def test_unconstrained_bold_functional():
+@run_in_pyodide(packages=["lark", "asciidoctrine"])
+def test_unconstrained_bold_functional(selenium):
+    from asciidoctrine.lark_parser import parse_to_ast
     source = "**bold**anywhere\n"
     ast = parse_to_ast(source).to_dict()
 
@@ -13,7 +15,9 @@ def test_unconstrained_bold_functional():
     assert para["inlines"][1]["value"] == "anywhere"
 
 
-def test_indented_literal_block_functional():
+@run_in_pyodide(packages=["lark", "asciidoctrine"])
+def test_indented_literal_block_functional(selenium):
+    from asciidoctrine.lark_parser import parse_to_ast
     source = "  indented literal\n"
     ast = parse_to_ast(source).to_dict()
 
@@ -23,7 +27,9 @@ def test_indented_literal_block_functional():
     assert block["inlines"][0]["value"] == "indented literal"
 
 
-def test_admonition_shorthand_functional():
+@run_in_pyodide(packages=["lark", "asciidoctrine"])
+def test_admonition_shorthand_functional(selenium):
+    from asciidoctrine.lark_parser import parse_to_ast
     source = "NOTE: This is a note.\n"
     ast = parse_to_ast(source).to_dict()
 
