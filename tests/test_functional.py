@@ -10,7 +10,14 @@ except ImportError:
 
 def run_if_pyodide(func):
     if HAS_PYODIDE:
-        return run_in_pyodide(packages=["lark", "asciidoctrine"])(func)
+        # We'll use micropip to install from the served dist directory.
+        # pytest-pyodide automatically serves the dist-dir.
+        # We can find the URL from the 'selenium' or 'runtime' context if needed,
+        # but usually, just names work if they are in dist-dir and it's indexed.
+        # Since it's not indexed, we'll try to use the filenames.
+        return run_in_pyodide(
+            packages=["lark-1.3.1-py3-none-any.whl", "asciidoctrine-0.1.0-py3-none-any.whl"]
+        )(func)
     return pytest.mark.skip(reason="pytest-pyodide not installed")(func)
 
 
