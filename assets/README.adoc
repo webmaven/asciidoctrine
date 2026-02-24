@@ -1,0 +1,3 @@
+== Asciidoctrine assets
+
+logo:
