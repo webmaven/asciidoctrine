@@ -29,10 +29,14 @@ dependencies = [
 test = ["pytest", "ruff", "mypy", "docutils", "types-docutils", "sphinx"]
 docs = ["sphinx", "sphinx-rtd-theme"]
 
+[tool.setuptools.package-data]
+asciidoctrine = ["grammar.lark"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
 norecursedirs = ["vendor", "venv", ".git", "docs"]
+addopts = "--dist-dir=pyodide"
 
 [tool.ruff]
 line-length = 88
