@@ -11,6 +11,8 @@ except ImportError:
 import os
 
 
+import os
+
 def run_if_pyodide(func):
     if HAS_PYODIDE:
         cwd = os.getcwd()

@@ -36,7 +36,6 @@ asciidoctrine = ["grammar.lark"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 norecursedirs = ["vendor", "venv", ".git", "docs"]
-addopts = "--dist-dir=pyodide"
 
 [tool.ruff]
 line-length = 88
@@ -55,3 +54,4 @@ strict = true
 packages = ["asciidoctrine"]
 mypy_path = "src"
 ignore_missing_imports = true
+addopts = "--dist-dir=pyodide"
