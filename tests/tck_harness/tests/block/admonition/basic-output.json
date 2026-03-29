@@ -1,0 +1,66 @@
+{
+  "name": "document",
+  "type": "block",
+  "location": [
+    {
+      "line": 2,
+      "col": 1
+    },
+    {
+      "line": 4,
+      "col": 4
+    }
+  ],
+  "blocks": [
+    {
+      "name": "admonition",
+      "type": "block",
+      "location": [
+        {
+          "line": 2,
+          "col": 1
+        },
+        {
+          "line": 4,
+          "col": 4
+        }
+      ],
+      "variant": "note",
+      "form": "delimited",
+      "delimiter": "====",
+      "blocks": [
+        {
+          "name": "paragraph",
+          "type": "block",
+          "location": [
+            {
+              "line": 3,
+              "col": 1
+            },
+            {
+              "line": 3,
+              "col": 17
+            }
+          ],
+          "inlines": [
+            {
+              "name": "text",
+              "type": "string",
+              "location": [
+                {
+                  "line": 3,
+                  "col": 1
+                },
+                {
+                  "line": 3,
+                  "col": 17
+                }
+              ],
+              "value": "A delimited note."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

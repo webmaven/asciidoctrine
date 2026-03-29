@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """
-TCK Adapter for AsciiDoc Parser.
+TCK Adapter for Asciidoctrine.
 Converts AsciiDoc source to TCK-compliant ASG JSON.
 """
 
 import json
+import os
 import sys
 
-from asciidoc_parser import parse_to_ast
-from asciidoc_parser.resolver import ASGResolver
+from asciidoctrine import parse_to_ast
+from asciidoctrine.resolver import ASGResolver
 
 
 def main():
@@ -21,6 +22,11 @@ def main():
         payload = json.loads(input_data)
         contents = payload.get("contents", "")
         parse_type = payload.get("type", "block")
+
+        # Check if we should include locations (default: False for TCK comparison)
+        include_locations = (
+            os.environ.get("TCK_INCLUDE_LOCATIONS", "false").lower() == "true"
+        )
 
         # Ensure trailing newline to satisfy parser requirements
         if contents and not contents.endswith("\n"):
@@ -35,7 +41,12 @@ def main():
 
         def clean_asg_for_tck(obj):
             if isinstance(obj, dict):
-                res = {k: clean_asg_for_tck(v) for k, v in obj.items()}
+                res = {}
+                for k, v in obj.items():
+                    if k == "location" and not include_locations:
+                        continue
+                    res[k] = clean_asg_for_tck(v)
+
                 # TCK prefers omitting empty child collections in some contexts
                 for key in ["blocks", "inlines", "items"]:
                     if key in res and not res[key]:

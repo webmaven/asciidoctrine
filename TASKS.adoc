@@ -10,7 +10,7 @@ Each high-level task is suitable for a feature branch and pull request. Sub-task
 
 == 2. Task Breakdown
 
-=== TASK-1: Set up TCK Test Environment
+=== TASK-1: Set up TCK Test Environment [COMPLETED]
 
 *Description*: Establish the necessary local environment to run the TCK test harness against a placeholder implementation. This ensures the runner and our code can communicate before any logic is implemented.
 
@@ -27,8 +27,8 @@ Each high-level task is suitable for a feature branch and pull request. Sub-task
 
 *Acceptance Criteria*:
 
-- [ ] A `bin/` directory exists in the project root.
-- [ ] The directory is added to Git.
+- [x] A `bin/` directory exists in the project root.
+- [x] The directory is added to Git.
 
 ==== TASK-1.2: Add TCK as a Project Dependency
 *Description*: Add the official AsciiDoc TCK repository as a Git submodule in a `vendor/` directory. This allows us to version-lock the TCK and easily update it.
@@ -47,8 +47,8 @@ git submodule add https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck.
 ----
 *Acceptance Criteria*:
 
-- [ ] A `.gitmodules` file is created or updated.
-- [ ] The `vendor/asciidoc-tck` directory contains the TCK source code.
+- [x] A `.gitmodules` file is created or updated.
+- [x] The `vendor/asciidoc-tck` directory contains the TCK source code.
 
 ==== TASK-1.3: Create Placeholder TCK Adapter
 *Description*: Create an empty executable script at `bin/tck-adapter.py`. Initially, it can simply exit with a status code of 0.
@@ -60,8 +60,8 @@ git submodule add https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck.
 
 *Acceptance Criteria*:
 
-- [ ] The file `bin/tck-adapter.py` exists and is executable.
-- [ ] Running the script exits with a status code of `0`.
+- [x] The file `bin/tck-adapter.py` exists and is executable.
+- [x] Running the script exits with a status code of `0`.
 
 ==== TASK-1.4: Create TCK Runner Script
 *Description*: Create a shell script (`run-tck.sh`) that invokes the Node.js-based TCK runner, pointing it at our placeholder adapter. This validates the basic setup.
@@ -77,11 +77,11 @@ The TCK's dependencies must be installed first by running `npm ci` inside the `v
 
 *Acceptance Criteria*:
 
-- [ ] A `run-tck.sh` script exists in the project root.
-- [ ] Running the script executes the TCK harness, which in turn invokes our placeholder adapter.
-- [ ] The script should not fail, even though no tests will pass.
+- [x] A `run-tck.sh` script exists in the project root.
+- [x] Running the script executes the TCK harness, which in turn invokes our placeholder adapter.
+- [x] The script should not fail, even though no tests will pass.
 
-=== TASK-2: Implement TCK Adapter
+=== TASK-2: Implement TCK Adapter [COMPLETED]
 
 *Description*: Implement the command-line script that will serve as the bridge between the TCK runner and the parser.
 
@@ -101,20 +101,20 @@ The TCK's dependencies must be installed first by running `npm ci` inside the `v
 
 *Acceptance Criteria*:
 
-- [ ] The script can successfully parse a valid JSON input from `stdin`.
-- [ ] The `contents` field of the JSON payload is extracted into a variable.
+- [x] The script can successfully parse a valid JSON input from `stdin`.
+- [x] The `contents` field of the JSON payload is extracted into a variable.
 
 ==== TASK-2.2: Invoke the Parser
 *Description*: In the adapter, call the main `parse_to_ast` function with the AsciiDoc source from the parsed `stdin` payload.
 
 *Constraints*:
 
-- Must import the `parse_to_ast` function from the `asciidoc_parser` library.
+- Must import the `parse_to_ast` function from the `asciidoctrine` library.
 
 *Acceptance Criteria*:
 
-- [ ] The `parse_to_ast` function is called with the AsciiDoc source.
-- [ ] The returned AST is stored in a variable.
+- [x] The `parse_to_ast` function is called with the AsciiDoc source.
+- [x] The returned AST is stored in a variable.
 
 ==== TASK-2.3: Implement Basic Error Handling
 *Description*: Wrap the parser invocation in a `try...except` block. On any exception, print the error to `stderr` and exit with a non-zero status code.
@@ -127,8 +127,8 @@ The TCK's dependencies must be installed first by running `npm ci` inside the `v
 
 *Acceptance Criteria*:
 
-- [ ] If the parser raises an exception, a message is written to `stderr`.
-- [ ] If the parser raises an exception, the script exits with a non-zero status code.
+- [x] If the parser raises an exception, a message is written to `stderr`.
+- [x] If the parser raises an exception, the script exits with a non-zero status code.
 
 ==== TASK-2.4: Implement `stdout` Writing
 *Description*: Add logic to serialize a dictionary to a JSON string and print it to `stdout`. Initially, this can be a hardcoded "Hello, World" dictionary.
@@ -141,10 +141,10 @@ The TCK's dependencies must be installed first by running `npm ci` inside the `v
 
 *Acceptance Criteria*:
 
-- [ ] The script prints a JSON object to `stdout` on successful execution.
-- [ ] The script exits with a status code of `0`.
+- [x] The script prints a JSON object to `stdout` on successful execution.
+- [x] The script exits with a status code of `0`.
 
-=== TASK-3: Implement AST to ASG Transformer
+=== TASK-3: Implement AST to ASG Transformer [COMPLETED]
 
 *Description*: Create the logic to transform the parser's internal AST into the TCK-compliant ASG.
 
@@ -161,11 +161,11 @@ The TCK's dependencies must be installed first by running `npm ci` inside the `v
 
 *Acceptance Criteria*:
 
-- [ ] The path to the ASG JSON schema file is identified.
-- [ ] A summary of the schema's top-level structure and key node types is added to the `ARCHITECTURE.adoc` file for future reference.
+- [x] The path to the ASG JSON schema file is identified.
+- [x] A summary of the schema's top-level structure and key node types is added to the `ARCHITECTURE.adoc` file for future reference.
 
 ==== TASK-3.2: Create `ASGVisitor` Class
-*Description*: Create a new file `src/asciidoc_parser/asg_visitor.py` and define an `ASGVisitor` class that inherits from `NodeVisitor`.
+*Description*: Create a new file `src/asciidoctrine/asg_visitor.py` and define an `ASGVisitor` class that inherits from `NodeVisitor`.
 
 *Ref*: `TCK-SPEC.adoc`, Section 4.1
 
@@ -173,12 +173,12 @@ The TCK's dependencies must be installed first by running `npm ci` inside the `v
 
 *Constraints*:
 
-- The new file must be correctly placed within the `src/asciidoc_parser` module.
+- The new file must be correctly placed within the `src/asciidoctrine` module.
 
 *Acceptance Criteria*:
 
-- [ ] The file `src/asciidoc_parser/asg_visitor.py` exists.
-- [ ] It contains a class `ASGVisitor` that inherits from `NodeVisitor`.
+- [x] The file `src/asciidoctrine/asg_visitor.py` exists.
+- [x] It contains a class `ASGVisitor` that inherits from `NodeVisitor`.
 
 ==== TASK-3.3: Implement Visitor for Simple Nodes
 *Description*: Implement `visit` methods in `ASGVisitor` for a small subset of core nodes (e.g., `Document`, `Paragraph`, `Text`) to produce a dictionary structure.
@@ -189,8 +189,8 @@ The TCK's dependencies must be installed first by running `npm ci` inside the `v
 
 *Acceptance Criteria*:
 
-- [ ] The `ASGVisitor` has methods like `visit_document`, `visit_paragraph`, and `visit_text`.
-- [ ] Visiting a simple AST returns a nested dictionary that is valid against the ASG schema.
+- [x] The `ASGVisitor` has methods like `visit_document`, `visit_paragraph`, and `visit_text`.
+- [x] Visiting a simple AST returns a nested dictionary that is valid against the ASG schema.
 
 ==== TASK-3.4: Integrate Visitor into Adapter
 *Description*: Update `bin/tck-adapter.py` to instantiate `ASGVisitor` and use it to traverse the AST returned by the parser.
@@ -201,8 +201,8 @@ The TCK's dependencies must be installed first by running `npm ci` inside the `v
 
 *Acceptance Criteria*:
 
-- [ ] The adapter script creates an instance of `ASGVisitor`.
-- [ ] The visitor's `visit` method is called with the root of the AST.
+- [x] The adapter script creates an instance of `ASGVisitor`.
+- [x] The visitor's `visit` method is called with the root of the AST.
 
 ==== TASK-3.5: Serialize ASG to `stdout`
 *Description*: Replace the hardcoded dictionary from TASK-2.4 with the dictionary produced by the `ASGVisitor`.
@@ -213,7 +213,7 @@ The TCK's dependencies must be installed first by running `npm ci` inside the `v
 
 *Acceptance Criteria*:
 
-- [ ] The adapter now outputs a JSON representation of the transformed AST.
+- [x] The adapter now outputs a JSON representation of the transformed AST.
 
 ==== TASK-3.6: Implement Visitor for All Nodes
 *Description*: Incrementally add `visit` methods for all remaining nodes defined in `nodes.py`. This is an ongoing task that will be parallel to fixing TCK failures.
@@ -223,10 +223,10 @@ The TCK's dependencies must be installed first by running `npm ci` inside the `v
 
 *Acceptance Criteria*:
 
-- [ ] The `ASGVisitor` class has a `visit` method for every node type in `nodes.py`.
-- [ ] The output for each node type is compliant with the TCK's expectations.
+- [x] The `ASGVisitor` class has a `visit` method for every node type in `nodes.py`.
+- [x] The output for each node type is compliant with the TCK's expectations.
 
-=== TASK-4: Integrate TCK into Project Test Suite
+=== TASK-4: Integrate TCK into Project Test Suite [COMPLETED]
 
 *Description*: Automate the execution of the TCK harness within the project's `pytest` suite.
 
@@ -243,7 +243,7 @@ The TCK's dependencies must be installed first by running `npm ci` inside the `v
 
 *Acceptance Criteria*:
 
-- [ ] The file `tests/test_tck.py` exists.
+- [x] The file `tests/test_tck.py` exists.
 
 ==== TASK-4.2: Create TCK Runner Fixture
 *Description*: In `tests/test_tck.py`, create a `pytest` fixture that uses the `subprocess` module to execute the `run-tck.sh` script and capture its output.
@@ -254,8 +254,8 @@ The TCK's dependencies must be installed first by running `npm ci` inside the `v
 
 *Acceptance Criteria*:
 
-- [ ] A `pytest` fixture is defined that runs the TCK harness.
-- [ ] The fixture returns the `stdout` and `stderr` of the TCK runner.
+- [x] A `pytest` fixture is defined that runs the TCK harness.
+- [x] The fixture returns the `stdout` and `stderr` of the TCK runner.
 
 ==== TASK-4.3: Add Initial TCK Test
 *Description*: Write a test function that uses the fixture to run the TCK. The test should parse the runner's output and assert that the number of failing tests is below a certain threshold.
@@ -266,7 +266,7 @@ The TCK's dependencies must be installed first by running `npm ci` inside the `v
 
 *Acceptance Criteria*:
 
-- [ ] A test exists that fails if the number of TCK failures increases unexpectedly.
+- [x] A test exists that fails if the number of TCK failures increases unexpectedly.
 
 ==== TASK-4.4: Implement `xfail` for Known Failures
 *Description*: Create a mechanism to mark known TCK failures as `pytest.xfail`. This allows the test suite to pass while we work towards full compliance. The list of known failures should be easy to update.
@@ -277,10 +277,10 @@ The TCK's dependencies must be installed first by running `npm ci` inside the `v
 
 *Acceptance Criteria*:
 
-- [ ] The `pytest` test suite passes, with known TCK failures marked as `xfail`.
-- [ ] Removing a test name from the known failures list causes the corresponding `pytest` test to fail.
+- [x] The `pytest` test suite passes, with known TCK failures marked as `xfail`.
+- [x] Removing a test name from the known failures list causes the corresponding `pytest` test to fail.
 
-=== TASK-5: Iteratively Achieve Full TCK Compliance
+=== TASK-5: Iteratively Achieve Full TCK Compliance [COMPLETED]
 
 *Description*: The ongoing process of using the TCK harness to find and fix compliance issues.
 
@@ -299,7 +299,7 @@ The TCK's dependencies must be installed first by running `npm ci` inside the `v
 
 *Acceptance Criteria*:
 
-- [ ] A new section in `CONTRIBUTING.adoc` explains how to work on TCK failures.
+- [x] A new section in `CONTRIBUTING.adoc` explains how to work on TCK failures.
 
 ==== TASK-5.2: Create GitHub Issues for Failures
 *Description*: For each unique TCK failure, create a new GitHub Issue. The issue should include the input AsciiDoc, the expected ASG, the actual ASG, and a link to the relevant part of the AsciiDoc specification.
@@ -349,7 +349,7 @@ Use the following template for the issue body:
 ----
 *Acceptance Criteria*:
 
-- [ ] A clear, consistent format for TCK failure issues is adopted.
+- [x] A clear, consistent format for TCK failure issues is adopted.
 
 ==== TASK-5.3: Prioritize and Fix Failures
 *Description*: Triage the created issues and address them according to project priorities. This will involve fixing bugs in the grammar (`grammar.lark`), the CST-to-AST transformer (`lark_parser.py`), or the AST-to-ASG visitor (`asg_visitor.py`).
@@ -361,8 +361,8 @@ Use the following template for the issue body:
 
 *Acceptance Criteria*:
 
-- [ ] A TCK test that was previously failing is now passing.
-- [ ] The corresponding GitHub Issue is closed.
+- [x] A TCK test that was previously failing is now passing.
+- [x] The corresponding GitHub Issue is closed.
 
 ==== TASK-5.4: Update `xfail` List
 *Description*: As bugs are fixed and TCK tests pass, remove them from the list of known failures in `tests/test_tck.py`. The goal is to eventually make this list empty.
@@ -373,4 +373,33 @@ Use the following template for the issue body:
 
 *Acceptance Criteria*:
 
-- [ ] The number of `xfail`ed tests in the `pytest` suite decreases.
+- [x] The number of `xfail`ed tests in the `pytest` suite decreases.
+
+=== TASK-6: Achieve Precise Location Tracking [COMPLETED]
+
+*Description*: Align parser location output with TCK's inclusive, child-derived boundaries.
+
+==== TASK-6.1: Implement Inclusive End Columns
+* [x] Update transformer to use `end_column - 1`.
+
+==== TASK-6.2: Implement Child-Derived Boundaries
+* [x] Implement `_set_location_from_children()` to ignore non-semantic tokens (`_NEWLINE`, anonymous tokens).
+
+==== TASK-6.3: Perfect TCK Location Alignment
+* [x] Fix remaining off-by-one or structural mismatches when locations are enabled in the harness.
+
+=== TASK-8: Comprehensive Testing [COMPLETED]
+
+* [x] Unit tests for transformer logic (`tests/test_transformers_unit.py`).
+* [x] Integration tests for full pipeline (`tests/test_integration.py`).
+* [x] Functional tests for specific features (`tests/test_functional.py`).
+* [x] All 30 local TCK additions pass with locations enabled.
+* [x] All 48 combined TCK tests pass with locations disabled.
+
+=== TASK-7: Upstream Contributions [SUBMITTED]
+
+==== TASK-7.1: Prepare TCK Pull Request
+* [x] Fork `eclipse/asciidoc-tck`.
+* [x] Port our 14 new tests to the fork.
+* [x] Submit MRs to upstream (Harness fix, Expanded coverage).
+* [x] Open issue regarding location standardization.

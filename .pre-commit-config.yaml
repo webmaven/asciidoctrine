@@ -1,0 +1,26 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.6
+    hooks:
+      - id: ruff
+        args: [ --fix ]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.15.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [lark>=1.1.0, types-docutils, sphinx, docutils]
+        exclude: ^tests/
+        args: [--package, asciidoctrine]
+        pass_filenames: false
+
+  - repo: local
+    hooks:
+      - id: run-tck-coverage-check
+        name: TCK Coverage Check
+        entry: ./run-tck-coverage.sh
+        language: script
+        pass_filenames: false
+        types: [python]
+        stages: [manual] # Only run manually or in CI, too slow for commit hook

@@ -6,7 +6,7 @@ import os
 import shutil
 import unittest
 
-from asciidoc_parser.lark_parser import parse_to_ast
+from asciidoctrine.lark_parser import parse_to_ast
 
 
 class TestBlocks(unittest.TestCase):
@@ -20,9 +20,20 @@ class TestBlocks(unittest.TestCase):
         if os.path.exists(self.base_dir):
             shutil.rmtree(self.base_dir)
 
+    def _strip_locations(self, node):
+        """Recursively strip 'location' from ASG dict."""
+        if isinstance(node, dict):
+            node.pop("location", None)
+            for key, value in node.items():
+                self._strip_locations(value)
+        elif isinstance(node, list):
+            for item in node:
+                self._strip_locations(item)
+        return node
+
     def test_paragraph(self):
         source = "Hello, world.\n"
-        ast = parse_to_ast(source).to_dict()
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
         expected_ast = {
             "name": "document",
             "type": "block",
@@ -40,7 +51,7 @@ class TestBlocks(unittest.TestCase):
 
     def test_variable_length_listing(self):
         source = "-----\nlisting\n-----\n"
-        ast = parse_to_ast(source).to_dict()
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
         expected = {
             "name": "document",
             "type": "block",
@@ -196,6 +207,7 @@ class TestBlocks(unittest.TestCase):
         source = "****\nSidebar paragraph.\n\n- List item\n\n----\ncode\n----\n****\n"
         ast = parse_to_ast(source).to_dict()
         sidebar = ast["blocks"][0]
+        self.assertEqual(sidebar["name"], "sidebar")
         child_names = [c["name"] for c in sidebar["blocks"]]
         self.assertIn("paragraph", child_names)
         self.assertIn("list", child_names)

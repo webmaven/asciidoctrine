@@ -1,6 +1,9 @@
 [submodule "vendor/asciidoc-tck"]
 	path = vendor/asciidoc-tck
-	url = https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck.git
+	url = https://gitlab.com/webmaven/asciidoc-tck.git
 [submodule "vendor/asciidoctor-doctest"]
 	path = vendor/asciidoctor-doctest
 	url = https://github.com/asciidoctor-contrib/asciidoctor-doctest.git
+[submodule "vendor/asciidoc-lang"]
+	path = vendor/asciidoc-lang
+	url = https://gitlab.eclipse.org/webmaven2/asciidoc-lang.git

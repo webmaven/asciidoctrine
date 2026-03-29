@@ -62,12 +62,22 @@ def parse_tck_failures(stdout):
         "span",
         "strong",
         "no-markup",
+        "description",
+        "literal",
+        "admonition",
+        "open",
+        "quote",
+        "stem",
+        "verse",
     }
 
     for line in stdout.splitlines():
         line_clean = re.sub(r"\x1b\[[0-9;]*m", "", line)
         if not line_clean.strip():
             continue
+
+        if "failing tests:" in line_clean:
+            break
 
         indent = len(line_clean) - len(line_clean.lstrip())
         level = indent // 2
@@ -76,6 +86,7 @@ def parse_tck_failures(stdout):
         if content.startswith("▶"):
             name = content[2:].split("(")[0].strip()
             if name != "tests":
+                # level 1 is 'block' or 'inline', level 2 is 'admonition' etc.
                 stack = stack[: level - 1]
                 stack.append(name)
         elif content.startswith("✖"):
@@ -83,10 +94,9 @@ def parse_tck_failures(stdout):
             if name not in suites:
                 # This is a leaf test failure
                 filename = name.replace(" ", "-") + "-input.adoc"
-                # Make sure stack matches the current level
-                current_stack = stack[: level - 1]
-                full_rel_path = os.path.join(*current_stack, filename)
+                full_rel_path = os.path.join(*stack, filename)
                 failed_tests.append(full_rel_path)
+
     return failed_tests
 
 

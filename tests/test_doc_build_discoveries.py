@@ -1,12 +1,9 @@
 import unittest
 
-import pytest
-
-from asciidoc_parser.lark_parser import parse_to_ast
+from asciidoctrine.lark_parser import parse_to_ast
 
 
 class TestDocBuildDiscoveries(unittest.TestCase):
-    @pytest.mark.xfail(reason="Tables are not yet implemented")
     def test_table_parsing(self):
         source = """
 [cols="1,2"]
@@ -24,7 +21,7 @@ class TestDocBuildDiscoveries(unittest.TestCase):
         Monospace backticks should be literal and not allow nested formatting.
         This verifies the fix for the behavior discovered in index.adoc.
         """
-        source = "own `asciidoc_parser.sphinx_ext` plugin!\n"
+        source = "own `asciidoctrine.sphinx_ext` plugin!\n"
         ast = parse_to_ast(source).to_dict()
         paragraph = ast["blocks"][0]
         span = paragraph["inlines"][1]
@@ -35,7 +32,7 @@ class TestDocBuildDiscoveries(unittest.TestCase):
         self.assertNotIn("emphasis", nested_variants)
         # The content should be a single text node
         self.assertEqual(len(span["inlines"]), 1)
-        self.assertEqual(span["inlines"][0]["value"], "asciidoc_parser.sphinx_ext")
+        self.assertEqual(span["inlines"][0]["value"], "asciidoctrine.sphinx_ext")
 
     def test_unconstrained_monospace_literal(self):
         """

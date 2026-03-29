@@ -39,7 +39,7 @@ graph TD
 
 . **TCK Runner**: The official Node.js-based test runner provided by the AsciiDoc TCK project. It is responsible for reading test files and invoking our adapter.
 . **TCK Adapter Script**: A new command-line script (`bin/tck-adapter.py`) that acts as the bridge between the TCK Runner and our parser.
-. **Parser Library**: The existing `asciidoc_parser` library that parses AsciiDoc source into an Abstract Syntax Tree (AST).
+. **Parser Library**: The existing `asciidoctrine` library that parses AsciiDoc source into an Abstract Syntax Tree (AST).
 . **AST to ASG Transformer**: A new component responsible for converting the internal AST into the TCK-compliant ASG.
 
 == 3. TCK Adapter Specification
@@ -86,7 +86,7 @@ If any error occurs during parsing or transformation, the adapter MUST:
 
 == 4. AST to ASG Transformation Strategy
 
-The core challenge of this integration is the transformation of the parser's internal AST (defined in `src/asciidoc_parser/nodes.py`) into the TCK-compliant ASG.
+The core challenge of this integration is the transformation of the parser's internal AST (defined in `src/asciidoctrine/nodes.py`) into the TCK-compliant ASG.
 
 === 4.1. Approach
 

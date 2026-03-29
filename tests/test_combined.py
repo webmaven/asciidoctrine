@@ -1,9 +1,20 @@
 import unittest
 
-from asciidoc_parser.lark_parser import parse_to_ast
+from asciidoctrine.lark_parser import parse_to_ast
 
 
 class CombinedFeaturesTest(unittest.TestCase):
+    def _strip_locations(self, node):
+        """Recursively strip 'location' from ASG dict."""
+        if isinstance(node, dict):
+            node.pop("location", None)
+            for key, value in node.items():
+                self._strip_locations(value)
+        elif isinstance(node, list):
+            for item in node:
+                self._strip_locations(item)
+        return node
+
     def test_section_with_list_and_inline_formatting(self):
         source = """== Section Title
 
@@ -12,7 +23,7 @@ class CombinedFeaturesTest(unittest.TestCase):
 
 Another paragraph.
 """
-        ast = parse_to_ast(source).to_dict()
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
         import json
 
         print(json.dumps(ast, indent=2))

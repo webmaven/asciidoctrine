@@ -1,0 +1,143 @@
+{
+  "name": "document",
+  "type": "block",
+  "location": [
+    {
+      "line": 1,
+      "col": 1
+    },
+    {
+      "line": 3,
+      "col": 11
+    }
+  ],
+  "blocks": [
+    {
+      "name": "descriptionList",
+      "type": "block",
+      "location": [
+        {
+          "line": 1,
+          "col": 1
+        },
+        {
+          "line": 3,
+          "col": 11
+        }
+      ],
+      "items": [
+        {
+          "name": "descriptionListItem",
+          "type": "block",
+          "location": [
+            {
+              "line": 1,
+              "col": 1
+            },
+            {
+              "line": 3,
+              "col": 11
+            }
+          ],
+          "terms": [
+            {
+              "name": "descriptionListTerm",
+              "type": "inline",
+              "location": [
+                {
+                  "line": 1,
+                  "col": 1
+                },
+                {
+                  "line": 1,
+                  "col": 8
+                }
+              ],
+              "inlines": [
+                {
+                  "name": "text",
+                  "type": "string",
+                  "location": [
+                    {
+                      "line": 1,
+                      "col": 1
+                    },
+                    {
+                      "line": 1,
+                      "col": 6
+                    }
+                  ],
+                  "value": "term 1"
+                }
+              ]
+            },
+            {
+              "name": "descriptionListTerm",
+              "type": "inline",
+              "location": [
+                {
+                  "line": 2,
+                  "col": 1
+                },
+                {
+                  "line": 2,
+                  "col": 8
+                }
+              ],
+              "inlines": [
+                {
+                  "name": "text",
+                  "type": "string",
+                  "location": [
+                    {
+                      "line": 2,
+                      "col": 1
+                    },
+                    {
+                      "line": 2,
+                      "col": 6
+                    }
+                  ],
+                  "value": "term 2"
+                }
+              ]
+            }
+          ],
+          "blocks": [
+            {
+              "name": "paragraph",
+              "type": "block",
+              "location": [
+                {
+                  "line": 3,
+                  "col": 1
+                },
+                {
+                  "line": 3,
+                  "col": 11
+                }
+              ],
+              "inlines": [
+                {
+                  "name": "text",
+                  "type": "string",
+                  "location": [
+                    {
+                      "line": 3,
+                      "col": 1
+                    },
+                    {
+                      "line": 3,
+                      "col": 11
+                    }
+                  ],
+                  "value": "description"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

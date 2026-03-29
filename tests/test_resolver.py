@@ -1,5 +1,5 @@
-from asciidoc_parser.nodes import Document, Paragraph, Text
-from asciidoc_parser.resolver import ASGResolver
+from asciidoctrine.nodes import Document, Paragraph, Text
+from asciidoctrine.resolver import ASGResolver
 
 
 def test_resolver():

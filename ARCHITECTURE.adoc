@@ -57,3 +57,40 @@ The official ASG schema is the authoritative source for the structure of the Res
 - New node types added to `nodes.py` must follow the ASG schema naming conventions.
 - The `to_dict()` method must be kept in sync with any updates to the official ASG schema.
 - Semantic resolution logic (e.g., attribute substitution) is centralized in `resolver.py` and operates on the structured AST before final serialization.
+
+== Inclusive Location Tracking
+
+*Date*: 2026-02-16
+*Status*: Accepted
+
+=== Context
+
+The AsciiDoc TCK expects inclusive location boundaries (e.g., a 5-character word starting at column 1 ends at column 5). Lark's default `end_column` is exclusive. Additionally, the TCK often excludes trailing newlines and whitespace from node boundaries.
+
+=== Decision
+
+We have implemented a systematic approach to location tracking:
+1. **Inclusive End Columns**: All node locations use `end_column - 1` from Lark's metadata.
+2. **Child-Derived Boundaries**: Instead of using the raw parent rule's metadata (which often includes trailing delimiters or newlines), we use `_set_location_from_children()`.
+3. **Filtering**: The `_set_location_from_children()` method explicitly ignores `_NEWLINE` and anonymous (`__ANON_`) tokens when calculating the start and end of a node. This ensures that a Paragraph node ends exactly where its last text element ends.
+
+=== Rationale
+
+This approach provides the highest level of precision required for TCK compliance and avoids "off-by-one" errors that occur when grammar rules are designed for ease of parsing rather than strict boundary matching.
+
+== Indented Block and Marker Support
+
+*Date*: 2026-02-16
+*Status*: Accepted
+
+=== Context
+
+Standard AsciiDoc allows many block elements (like lists and literal blocks) to be indented. Our initial grammar expected these markers at the start of the line.
+
+=== Decision
+
+We have updated block-starting terminals (e.g., `ULIST_MARKER`, `LITERAL_DELIM`) to support optional leading whitespace using consolidated regexes: `/[ \t]*(\*+|[-])[ \t]+/`.
+
+=== Rationale
+
+This aligns the parser with the official AsciiDoc Language Specification regarding indented literal blocks and flexible list formatting.

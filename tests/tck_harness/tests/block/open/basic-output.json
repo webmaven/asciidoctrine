@@ -1,0 +1,65 @@
+{
+  "name": "document",
+  "type": "block",
+  "location": [
+    {
+      "line": 1,
+      "col": 1
+    },
+    {
+      "line": 3,
+      "col": 2
+    }
+  ],
+  "blocks": [
+    {
+      "name": "open",
+      "type": "block",
+      "location": [
+        {
+          "line": 1,
+          "col": 1
+        },
+        {
+          "line": 3,
+          "col": 2
+        }
+      ],
+      "form": "delimited",
+      "delimiter": "--",
+      "blocks": [
+        {
+          "name": "paragraph",
+          "type": "block",
+          "location": [
+            {
+              "line": 2,
+              "col": 1
+            },
+            {
+              "line": 2,
+              "col": 14
+            }
+          ],
+          "inlines": [
+            {
+              "name": "text",
+              "type": "string",
+              "location": [
+                {
+                  "line": 2,
+                  "col": 1
+                },
+                {
+                  "line": 2,
+                  "col": 14
+                }
+              ],
+              "value": "An open block."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "name": "document",
+  "type": "block",
+  "location": [
+    {
+      "line": 1,
+      "col": 1
+    },
+    {
+      "line": 5,
+      "col": 4
+    }
+  ],
+  "blocks": [
+    {
+      "name": "attribute_entry",
+      "type": "block",
+      "location": [
+        {
+          "line": 1,
+          "col": 1
+        },
+        {
+          "line": 1,
+          "col": 6
+        }
+      ],
+      "value": "",
+      "attribute_name": "stem"
+    },
+    {
+      "name": "stem",
+      "type": "block",
+      "location": [
+        {
+          "line": 3,
+          "col": 1
+        },
+        {
+          "line": 5,
+          "col": 4
+        }
+      ],
+      "variant": "asciimath",
+      "form": "delimited",
+      "delimiter": "++++",
+      "inlines": [
+        {
+          "name": "text",
+          "type": "string",
+          "value": "sqrt(4) = 2"
+        }
+      ]
+    }
+  ]
+}

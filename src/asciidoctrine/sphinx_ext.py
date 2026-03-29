@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict
+from typing import Any, ClassVar, Dict
 
 from docutils import nodes
 from sphinx.parsers import Parser as SphinxParser
@@ -13,7 +13,7 @@ class AsciiDocParser(SphinxParser):
     Sphinx parser for AsciiDoc files.
     """
 
-    supported: tuple[str, ...] = ("asciidoc", "adoc")  # type: ignore[misc]
+    supported: ClassVar[tuple[str, ...]] = ("asciidoc", "adoc")
 
     def parse(self, inputstring: str, document: nodes.document) -> None:
         """

@@ -1,7 +1,7 @@
 import json
 import os
 
-from asciidoc_parser.lark_parser import parse_to_ast
+from asciidoctrine.lark_parser import parse_to_ast
 
 
 def run_examples():

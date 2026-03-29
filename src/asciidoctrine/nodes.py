@@ -20,6 +20,7 @@ class Node:
         self.type: str = "block"
         self.attributes: Dict[str, Any] = {}
         self.title: Optional[Title] = None
+        self.location: Optional[PyList[Dict[str, int]]] = None
 
     def append(self, child: Node) -> None:
         self.children.append(child)
@@ -31,6 +32,10 @@ class Node:
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to ASG-compatible dictionary."""
         data: Dict[str, Any] = {"name": self.name, "type": self.type}
+
+        # Handle location
+        if self.location:
+            data["location"] = self.location
 
         # Handle simple attributes
         for attr in [
@@ -171,6 +176,20 @@ class Revision(BlockNode):
         self.inlines.append(child)
 
 
+class FloatingTitle(BlockNode):
+    """Represents a discrete or floating title that does not start a section."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"inlines": self.title.inlines} if self.title else {}
+
+    def __init__(self, level: int, title: Title):
+        super().__init__()
+        self.name = "floatingTitle"
+        self.type = "block"
+        self.level = level
+        self.title = title
+
+
 class Header(Node):
     """A container for the document's header metadata."""
 
@@ -267,6 +286,113 @@ class Text(InlineNode):
         self.value = value
 
 
+class Break(InlineNode):
+    """An inline node representing a hard line break."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.name = "break"
+        self.type = "inline"
+
+
+class Kbd(InlineNode):
+    """An inline node for a keyboard shortcut."""
+
+    def __init__(self, keys: PyList[str]):
+        super().__init__()
+        self.name = "kbd"
+        self.type = "inline"
+        self.value = keys
+
+
+class Button(InlineNode):
+    """An inline node for a UI button."""
+
+    def __init__(self, label: str):
+        super().__init__()
+        self.name = "button"
+        self.type = "inline"
+        self.value = label
+
+
+class Menu(InlineNode):
+    """An inline node for a UI menu selection."""
+
+    def __init__(self, menu: str, items: PyList[str]):
+        super().__init__()
+        self.name = "menu"
+        self.type = "inline"
+        self.menu = menu
+        self.items = items
+
+    def to_dict(self) -> Dict[str, Any]:
+        data = super().to_dict()
+        data["menu"] = self.menu
+        data["items"] = self.items
+        return data
+
+
+class Callout(InlineNode):
+    """An inline node representing a callout (e.g., <1>)."""
+
+    def __init__(self, number: int):
+        super().__init__()
+        self.name = "callout"
+        self.type = "inline"
+        self.value = number
+
+
+class InlineStem(InlineNode):
+    """An inline node for mathematical expressions."""
+
+    def __init__(self, variant: str, value: str):
+        super().__init__()
+        self.name = "stem"
+        self.type = "inline"
+        self.variant = variant
+        self.value = value
+
+
+class CalloutList(BlockNode):
+    """A block node representing a list of callout descriptions."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"items": cast(PyList[Node], self.items)}
+
+    def __init__(self, items: Optional[Sequence[CalloutListItem]] = None):
+        super().__init__()
+        self.name = "calloutList"
+        self.type = "block"
+        self.items: PyList[CalloutListItem] = list(items) if items else []
+
+    def append(self, child: Node) -> None:
+        if isinstance(child, CalloutListItem):
+            self.items.append(child)
+        else:
+            super().append(child)
+
+
+class CalloutListItem(BlockNode):
+    """A node representing a single item in a callout list."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"principal": self.principal, "blocks": self.blocks}
+
+    def __init__(
+        self,
+        number: int,
+        principal: Optional[Sequence[Node]] = None,
+        blocks: Optional[Sequence[Node]] = None,
+    ):
+        super().__init__()
+        self.name = "calloutListItem"
+        self.type = "block"
+        self.marker = f"<{number}>"
+        self.value = number
+        self.principal: PyList[Node] = list(principal) if principal else []
+        self.blocks: PyList[Node] = list(blocks) if blocks else []
+
+
 class Span(InlineNode):
     """An inline node for formatted text (bold, italic, code)."""
 
@@ -320,6 +446,28 @@ class Image(BlockNode):
         self.attributes = {"alt": alt}
 
 
+class Audio(BlockNode):
+    """A block node for an audio macro."""
+
+    def __init__(self, target: str, attributes: Optional[Dict[str, Any]] = None):
+        super().__init__()
+        self.name = "audio"
+        self.type = "block"
+        self.target = target
+        self.attributes = attributes or {}
+
+
+class Video(BlockNode):
+    """A block node for a video macro."""
+
+    def __init__(self, target: str, attributes: Optional[Dict[str, Any]] = None):
+        super().__init__()
+        self.name = "video"
+        self.type = "block"
+        self.target = target
+        self.attributes = attributes or {}
+
+
 class List(BlockNode):
     """A block node representing a list (ordered or unordered)."""
 
@@ -368,6 +516,62 @@ class ListItem(BlockNode):
         self.checked = checked
 
 
+class DescriptionList(BlockNode):
+    """A block node representing a description list (term-definition pairs)."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"items": cast(PyList[Node], self.items)}
+
+    def __init__(
+        self,
+        items: Optional[Sequence[DescriptionListItem]] = None,
+    ):
+        super().__init__()
+        self.name = "descriptionList"
+        self.type = "block"
+        self.items: PyList[DescriptionListItem] = list(items) if items else []
+
+    def append(self, child: Node) -> None:
+        if isinstance(child, DescriptionListItem):
+            self.items.append(child)
+        else:
+            super().append(child)
+
+
+class DescriptionListItem(BlockNode):
+    """A node representing a single term-description pair within a description list."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {
+            "terms": cast(PyList[Node], self.terms),
+            "blocks": self.blocks,
+        }
+
+    def __init__(
+        self,
+        terms: PyList[DescriptionListTerm],
+        blocks: Optional[Sequence[Node]] = None,
+    ):
+        super().__init__()
+        self.name = "descriptionListItem"
+        self.type = "block"
+        self.terms = terms
+        self.blocks: PyList[Node] = list(blocks) if blocks else []
+
+
+class DescriptionListTerm(InlineNode):
+    """A node representing the term part of a description list item."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"inlines": self.inlines}
+
+    def __init__(self, inlines: Optional[Sequence[Node]] = None):
+        super().__init__()
+        self.name = "descriptionListTerm"
+        self.type = "inline"
+        self.inlines: PyList[Node] = list(inlines) if inlines else []
+
+
 class Listing(BlockNode):
     """A block for preformatted text, typically used for code listings."""
 
@@ -390,6 +594,79 @@ class Listing(BlockNode):
 
     def append(self, child: Node) -> None:
         self.inlines.append(child)
+
+
+class Literal(BlockNode):
+    """A block for literal text, often used for computer output."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"inlines": self.inlines}
+
+    def __init__(
+        self,
+        inlines: Optional[Sequence[Node]] = None,
+        attributes: Optional[Dict[str, Any]] = None,
+        delimiter: Optional[str] = None,
+        form: str = "delimited",
+    ):
+        super().__init__()
+        self.name = "literal"
+        self.type = "block"
+        self.form = form
+        # Only set delimiter if it is provided or if form is delimited
+        if delimiter is not None:
+            self.delimiter = delimiter
+        elif form == "delimited":
+            self.delimiter = "...."
+        self.inlines: PyList[Node] = list(inlines) if inlines else []
+        self.attributes = attributes or {}
+
+    def append(self, child: Node) -> None:
+        self.inlines.append(child)
+
+
+class Passthrough(BlockNode):
+    """A block for content that should be passed through without processing."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"inlines": self.inlines}
+
+    def __init__(
+        self,
+        inlines: Optional[Sequence[Node]] = None,
+        attributes: Optional[Dict[str, Any]] = None,
+        delimiter: str = "++++",
+    ):
+        super().__init__()
+        self.name = "passthrough"
+        self.type = "block"
+        self.form = "delimited"
+        self.delimiter = delimiter
+        self.inlines: PyList[Node] = list(inlines) if inlines else []
+        self.attributes = attributes or {}
+
+
+class Stem(BlockNode):
+    """A block for mathematical expressions."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"inlines": self.inlines}
+
+    def __init__(
+        self,
+        variant: str,
+        inlines: Optional[Sequence[Node]] = None,
+        attributes: Optional[Dict[str, Any]] = None,
+        delimiter: Optional[str] = None,
+    ):
+        super().__init__()
+        self.name = "stem"
+        self.type = "block"
+        self.variant = variant
+        self.form = "delimited" if delimiter else "paragraph"
+        self.delimiter = delimiter
+        self.inlines: PyList[Node] = list(inlines) if inlines else []
+        self.attributes = attributes or {}
 
 
 class Example(BlockNode):
@@ -415,12 +692,14 @@ class Quote(BlockNode):
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
         return {"blocks": self.blocks}
 
-    def __init__(self, blocks: Optional[Sequence[Node]] = None):
+    def __init__(
+        self, blocks: Optional[Sequence[Node]] = None, delimiter: str = "____"
+    ):
         super().__init__()
         self.name = "quote"
         self.type = "block"
         self.form = "delimited"
-        self.delimiter = "____"
+        self.delimiter = delimiter
         self.blocks: PyList[Node] = list(blocks) if blocks else []
 
 
@@ -434,13 +713,13 @@ class Admonition(BlockNode):
         self,
         variant: str,
         blocks: Optional[Sequence[Node]] = None,
-        delimiter: str = "====",
+        delimiter: Optional[str] = "====",
     ):
         super().__init__()
         self.name = "admonition"
         self.type = "block"
         self.variant = variant
-        self.form = "delimited"
+        self.form = "delimited" if delimiter else "paragraph"
         self.delimiter = delimiter
         self.blocks: PyList[Node] = list(blocks) if blocks else []
 
@@ -456,6 +735,38 @@ class Sidebar(BlockNode):
     ):
         super().__init__()
         self.name = "sidebar"
+        self.type = "block"
+        self.form = "delimited"
+        self.delimiter = delimiter
+        self.blocks: PyList[Node] = list(blocks) if blocks else []
+
+
+class Verse(BlockNode):
+    """A block for content that should be rendered as a verse."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"blocks": self.blocks}
+
+    def __init__(
+        self, blocks: Optional[Sequence[Node]] = None, delimiter: Optional[str] = None
+    ):
+        super().__init__()
+        self.name = "verse"
+        self.type = "block"
+        self.form = "delimited" if delimiter else "paragraph"
+        self.delimiter = delimiter
+        self.blocks: PyList[Node] = list(blocks) if blocks else []
+
+
+class Open(BlockNode):
+    """A block for content that is an anonymous container."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"blocks": self.blocks}
+
+    def __init__(self, blocks: Optional[Sequence[Node]] = None, delimiter: str = "--"):
+        super().__init__()
+        self.name = "open"
         self.type = "block"
         self.form = "delimited"
         self.delimiter = delimiter
@@ -550,6 +861,17 @@ class Include(BlockNode):
         self.name = "include"
         self.type = "block"
         self.filename = filename
+
+
+class Toc(BlockNode):
+    """A node representing a table of contents macro (toc::[])."""
+
+    def __init__(self, target: str = "", attributes: Optional[Dict[str, Any]] = None):
+        super().__init__()
+        self.name = "toc"
+        self.type = "block"
+        self.target = target
+        self.attributes = attributes or {}
 
 
 class NodeVisitor:

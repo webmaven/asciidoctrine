@@ -1,0 +1,65 @@
+{
+  "name": "document",
+  "type": "block",
+  "location": [
+    {
+      "line": 1,
+      "col": 1
+    },
+    {
+      "line": 1,
+      "col": 23
+    }
+  ],
+  "blocks": [
+    {
+      "name": "admonition",
+      "type": "block",
+      "location": [
+        {
+          "line": 1,
+          "col": 1
+        },
+        {
+          "line": 1,
+          "col": 23
+        }
+      ],
+      "variant": "note",
+      "form": "paragraph",
+      "blocks": [
+        {
+          "name": "paragraph",
+          "type": "block",
+          "location": [
+            {
+              "line": 1,
+              "col": 1
+            },
+            {
+              "line": 1,
+              "col": 23
+            }
+          ],
+          "inlines": [
+            {
+              "name": "text",
+              "type": "string",
+              "location": [
+                {
+                  "line": 1,
+                  "col": 7
+                },
+                {
+                  "line": 1,
+                  "col": 23
+                }
+              ],
+              "value": "A shorthand note."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

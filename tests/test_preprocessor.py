@@ -6,7 +6,7 @@ import os
 import shutil
 import unittest
 
-from asciidoc_parser.preprocessor import Preprocessor, PreprocessorError
+from asciidoctrine.preprocessor import Preprocessor, PreprocessorError
 
 
 class PreprocessorTest(unittest.TestCase):

@@ -1,0 +1,112 @@
+{
+  "name": "document",
+  "type": "block",
+  "location": [
+    {
+      "line": 1,
+      "col": 1
+    },
+    {
+      "line": 1,
+      "col": 18
+    }
+  ],
+  "blocks": [
+    {
+      "name": "descriptionList",
+      "type": "block",
+      "location": [
+        {
+          "line": 1,
+          "col": 1
+        },
+        {
+          "line": 1,
+          "col": 18
+        }
+      ],
+      "items": [
+        {
+          "name": "descriptionListItem",
+          "type": "block",
+          "location": [
+            {
+              "line": 1,
+              "col": 1
+            },
+            {
+              "line": 1,
+              "col": 18
+            }
+          ],
+          "terms": [
+            {
+              "name": "descriptionListTerm",
+              "type": "inline",
+              "location": [
+                {
+                  "line": 1,
+                  "col": 1
+                },
+                {
+                  "line": 1,
+                  "col": 6
+                }
+              ],
+              "inlines": [
+                {
+                  "name": "text",
+                  "type": "string",
+                  "location": [
+                    {
+                      "line": 1,
+                      "col": 1
+                    },
+                    {
+                      "line": 1,
+                      "col": 4
+                    }
+                  ],
+                  "value": "term"
+                }
+              ]
+            }
+          ],
+          "blocks": [
+            {
+              "name": "paragraph",
+              "type": "block",
+              "location": [
+                {
+                  "line": 1,
+                  "col": 8
+                },
+                {
+                  "line": 1,
+                  "col": 18
+                }
+              ],
+              "inlines": [
+                {
+                  "name": "text",
+                  "type": "string",
+                  "location": [
+                    {
+                      "line": 1,
+                      "col": 8
+                    },
+                    {
+                      "line": 1,
+                      "col": 18
+                    }
+                  ],
+                  "value": "description"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

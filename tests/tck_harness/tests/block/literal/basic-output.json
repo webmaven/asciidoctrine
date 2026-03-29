@@ -1,0 +1,39 @@
+{
+  "name": "document",
+  "type": "block",
+  "location": [
+    {
+      "line": 1,
+      "col": 1
+    },
+    {
+      "line": 3,
+      "col": 4
+    }
+  ],
+  "blocks": [
+    {
+      "name": "literal",
+      "type": "block",
+      "location": [
+        {
+          "line": 1,
+          "col": 1
+        },
+        {
+          "line": 3,
+          "col": 4
+        }
+      ],
+      "form": "delimited",
+      "delimiter": "....",
+      "inlines": [
+        {
+          "name": "text",
+          "type": "string",
+          "value": "A basic literal block."
+        }
+      ]
+    }
+  ]
+}

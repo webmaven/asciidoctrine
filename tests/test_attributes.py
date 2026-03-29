@@ -1,11 +1,11 @@
 import unittest
 
-from asciidoc_parser.attributes import (
+from asciidoctrine.attributes import (
     resolve_attribute_map,
     resolve_node_to_string,
     substitute_attributes,
 )
-from asciidoc_parser.nodes import Span, Text
+from asciidoctrine.nodes import Span, Text
 
 
 class TestAttributes(unittest.TestCase):

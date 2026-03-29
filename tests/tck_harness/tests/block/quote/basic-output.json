@@ -1,0 +1,65 @@
+{
+  "name": "document",
+  "type": "block",
+  "location": [
+    {
+      "line": 1,
+      "col": 1
+    },
+    {
+      "line": 3,
+      "col": 4
+    }
+  ],
+  "blocks": [
+    {
+      "name": "quote",
+      "type": "block",
+      "location": [
+        {
+          "line": 1,
+          "col": 1
+        },
+        {
+          "line": 3,
+          "col": 4
+        }
+      ],
+      "form": "delimited",
+      "delimiter": "____",
+      "blocks": [
+        {
+          "name": "paragraph",
+          "type": "block",
+          "location": [
+            {
+              "line": 2,
+              "col": 1
+            },
+            {
+              "line": 2,
+              "col": 14
+            }
+          ],
+          "inlines": [
+            {
+              "name": "text",
+              "type": "string",
+              "location": [
+                {
+                  "line": 2,
+                  "col": 1
+                },
+                {
+                  "line": 2,
+                  "col": 14
+                }
+              ],
+              "value": "A basic quote."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

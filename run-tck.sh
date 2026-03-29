@@ -9,4 +9,4 @@ if [ ! -d "$TCK_DIR/node_modules" ]; then
 fi
 
 echo "Running TCK tests..."
-node "$TCK_DIR/harness/bin/asciidoc-tck.js" cli --adapter-command "python3 bin/tck-adapter.py" "$@"
+node "$TCK_DIR/harness/bin/asciidoc-tck.js" cli --adapter-command "PYTHONPATH=src venv/bin/python3 bin/tck-adapter.py" "$@"

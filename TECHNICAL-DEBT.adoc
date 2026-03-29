@@ -1,21 +1,21 @@
-= Technical Debt List: AsciiDoc Parser
+= Technical Debt List: Asciidoctrine
 :toc:
 
 == Overview
 
-This document tracks identified technical debt in the `asciidoc_parser` project and provides a roadmap for refactoring and improvements.
+This document tracks identified technical debt in the `asciidoctrine` project and provides a roadmap for refactoring and improvements.
 
 == Identified Debt
 
 === 1. Lark Transformer Bloat
 * **Status**: Completed
 * **Description**: `AsciiDocTransformer` in `lark_parser.py` was a monolithic class.
-* **Resolution**: Split into mixins (`BlockTransformer`, `InlineTransformer`) in `src/asciidoc_parser/transformers/`.
+* **Resolution**: Split into mixins (`BlockTransformer`, `InlineTransformer`) in `src/asciidoctrine/transformers/`.
 
 === 2. Attribute Substitution Redundancy
 * **Status**: Completed
 * **Description**: Logic for resolving `{name}` references was duplicated.
-* **Resolution**: Centralized in `src/asciidoc_parser/attributes.py`.
+* **Resolution**: Centralized in `src/asciidoctrine/attributes.py`.
 
 === 3. Grammar Brittleness (Nesting)
 * **Status**: Completed
@@ -44,3 +44,21 @@ This document tracks identified technical debt in the `asciidoc_parser` project 
 * **Description**: `docutils_backend.py` lags behind the AST changes in `nodes.py`.
 * **Impact**: Docutils output may be broken or missing newer features.
 * **Refactor Plan**: Ensure every new node in `nodes.py` has a corresponding visitor method in the backend.
+
+=== 8. Location Logic Duplication
+* **Status**: Medium Priority
+* **Description**: `_set_location_from_children` is duplicated across `lark_parser.py`, `block_transformer.py`, and `inline_transformer.py`.
+* **Impact**: Maintenance burden; fixes to location logic must be applied in three places.
+* **Refactor Plan**: Move `_set_location_from_children` to a shared base mixin or helper module.
+
+=== 9. TCK Harness Patching
+* **Status**: High Priority
+* **Description**: We locally patched `vendor/asciidoc-tck/harness/lib/suites/index.js` to support custom test directories.
+* **Impact**: Git submodule is dirty; updates to TCK might break our patch.
+* **Refactor Plan**: Submit a PR to `eclipse/asciidoc-tck` to fix the harness argument passing.
+
+=== 10. Docutils Backend Coverage
+* **Status**: Medium Priority
+* **Description**: Coverage for `docutils_backend.py` is low (~41%).
+* **Impact**: Backend might crash on supported AST nodes.
+* **Refactor Plan**: Add tests specifically targeting the docutils visitor methods.
