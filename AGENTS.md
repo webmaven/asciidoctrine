@@ -27,19 +27,18 @@ The project uses a standard Python 3.10+ virtual environment.
 *   **Pytest Path**: `venv/bin/pytest`
 
 ### Pyodide Setup (for Functional Tests)
-To run functional tests, you need a local Pyodide environment and built wheels.
+To run functional tests, you need a local Pyodide environment and built wheels in the `dist/` directory.
 
 ```bash
-# 1. Create and populate pyodide/ directory
-mkdir -p pyodide
-curl -L https://github.com/pyodide/pyodide/releases/download/0.26.4/pyodide-0.26.4.tar.bz2 | tar -xjf - -C pyodide --strip-components=1
+# 1. Create and populate dist/ directory
+mkdir -p dist
+curl -L https://github.com/pyodide/pyodide/releases/download/0.27.2/pyodide-0.27.2.tar.bz2 | tar -xjf - -C dist --strip-components=1
 
 # 2. Build project wheel
-venv/bin/python3 -m build
-cp dist/*.whl pyodide/
+venv/bin/python3 -m build --wheel
 
 # 3. Download dependencies for Pyodide
-venv/bin/python3 -m pip download "lark==1.3.1" --dest pyodide/ --only-binary=:all: --python-version 3.10 --platform any
+venv/bin/python3 -m pip download lark -d dist/
 ```
 
 ### TCK Dependencies

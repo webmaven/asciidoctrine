@@ -1,26 +1,21 @@
 import pytest
 
 try:
-    from pytest_pyodide import copy_files_to_pyodide, run_in_pyodide
+    from pytest_pyodide import run_in_pyodide
 
     HAS_PYODIDE = True
 except ImportError:
     HAS_PYODIDE = False
 
 
-import os
-
-
 def run_if_pyodide(func):
     if HAS_PYODIDE:
-        cwd = os.getcwd()
-        return copy_files_to_pyodide(
-            file_list=[
-                os.path.join(cwd, "pyodide", "lark-1.3.1-py3-none-any.whl"),
-                os.path.join(cwd, "pyodide", "asciidoctrine-0.1.0-py3-none-any.whl"),
-            ],
-            install_wheels=True,
-        )(run_in_pyodide(func))
+        return run_in_pyodide(
+            packages=[
+                "lark-1.3.1-py3-none-any.whl",
+                "asciidoctrine-0.1.0-py3-none-any.whl",
+            ]
+        )(func)
     return pytest.mark.skip(reason="pytest-pyodide not installed")(func)
 
 
