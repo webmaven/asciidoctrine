@@ -350,6 +350,150 @@ def test_parser_never_crashes(content: str):
 | 4: Fuzzing | +∞ | Medium | Low
 |===
 
+
+== Part 3: Language Feature Expansion & Ecosystem Support
+
+This part outlines the design, implementation, and verification roadmap for expanding the AsciiDoc feature coverage in `asciidoctrine`. This plan incorporates a rigorous multi-tiered testing strategy and integrates active resolutions for identified technical debt.
+
+=== Multi-Tiered Testing Strategy
+
+Every new feature implemented in this roadmap must be validated across four distinct testing tiers to guarantee absolute compliance, runtime stability, and rendering correctness:
+
+1. **Unit Tests** (`tests/test_blocks_parsing.py`, `tests/test_inlines_parsing.py`):
+* *Focus*: Verify grammar parses the syntax correctly, generating correct AST structure and properties.
+* *Assertions*: Validate that nodes map directly to expected ASG fields (e.g., correct node names, types, and attributes).
+
+2. **Functional (Pyodide) Tests** (`tests/test_functional.py`):
+* *Focus*: Verify compilation and execution in Wasm environments.
+* *Assertions*: Run the parser in Pyodide/Playwright/Chrome, asserting that the ASG serialization translates perfectly in the browser.
+
+3. **End-to-End Rendering Tests** (`tests/test_docutils_backend.py`):
+* *Focus*: Verify backend translation correctness.
+* *Assertions*: Render AST/ASG nodes through the `DocutilsRenderer`, asserting that output matches valid Docutils node trees, classes, and XML representation.
+
+4. **TCK Contributions** (`tests/tck_harness/`):
+* *Focus*: Spec-compliance validation.
+* *Assertions*: Create new compliance test cases that run successfully through the local TCK runner, formatted for easy upstreaming to the official Eclipse AsciiDoc TCK repository.
+
+=== Priority 3.1: Completing Partial Implementations (Highest Priority)
+
+These are features that have partial foundations in the grammar, parser, or backend, but are currently not fully compliant or comprehensive.
+
+==== 3.1.1 Description Lists (dlist) with Nesting & Mixed Formatting
+
+* *Current State*: Basic description lists (`Term:: Definition`) are supported. Mixed and nested description lists fail or skip.
+* *Proposed Changes*:
+** *Grammar* (`grammar.lark`): Update `dlist_description` to include `dlist` itself. Support indentation-based and multi-line descriptions.
+** *Backend* (`docutils_backend.py`): Implement full visitor support for `DescriptionList`, `DescriptionListItem`, and `DescriptionListTerm` to handle nested blocks recursively.
+* *Verification Plan*:
+** *Unit*: Add tests for nested/mixed description lists in `test_blocks_parsing.py`.
+** *Functional*: Add nested `dlist` tests in `test_functional.py` and run under Pyodide.
+** *E2E*: Verify correct generation of docutils description list nodes (`nodes.definition_list`).
+** *TCK*: Extract and verify the `dlist:mixed` test case from the skipped doctest corpus.
+
+==== 3.1.2 Advanced Table Cell Formatting
+
+* *Current State*: Basic tables parse rows/cells, but formatting prefixes (e.g., `2*>m`, `.3+^.>s`) raise errors or are ignored.
+* *Proposed Changes*:
+** *Grammar* (`grammar.lark`): Introduce table cell specifier parsing (colspan, rowspan, alignments like `^`, `>`, `<`, styles like `m`, `s`, `e`).
+** *AST Nodes* (`nodes.py`): Store cell specifications in `TableCell` attributes.
+** *Backend* (`docutils_backend.py`): Apply colspec widths, cell spanning (`morecols`, `morerows`), and text styles in docutils.
+* *Verification Plan*:
+** *Unit*: Test complex alignments and spans in `test_blocks_parsing.py`.
+** *Functional*: Assert browser-side table rendering in `test_functional.py`.
+** *E2E*: Verify cell spanning maps to valid docutils column/row span XML attributes.
+** *TCK*: Extract and verify the `table:insane-cells-formatting` test case from skipped doctests.
+
+=== Priority 3.2: Features for the `asciidoctest` Library (Next Priority)
+
+`asciidoctest` is an interactive testing library that parses files, extracts Python source listings, and verifies execution results.
+
+==== 3.2.1 Listing Block Attributes & Metadata Extraction
+
+* *Required Features*: Robust parsing of block attributes preceding listing blocks (e.g., `doctest=True`).
+* *Proposed Changes*:
+** *Grammar* (`grammar.lark`): Ensure `attribute_list` preceding a `listing_block` is parsed robustly.
+** *AST Node* (`nodes.py`): Listing nodes must cleanly expose block attributes (like `title`, `id`, `language`, and custom positional/named attributes such as `doctest="skip"` or `doctest=True`).
+* *Verification Plan*:
+** *Unit*: Test attribute dictionary extraction on listing blocks.
+** *E2E*: Assert docutils listing blocks carry custom attributes correctly.
+
+==== 3.2.2 Callout Matching and Extraction
+
+* *Required Features*: Extract raw code without callout markers (e.g., `<1>`), maintaining relationships with following callout lists.
+* *Proposed Changes*:
+** Ensure `inline_callout` is parsed and can be stripped programmatically.
+* *Verification Plan*:
+** *Unit*: Test callout list parsing and line matching.
+
+==== 3.2.3 Source Location Tracking & Technical Debt Item 8 Resolution
+
+* *Required Features*: Report exact file line numbers for failed interactive tests.
+* *Technical Debt Resolution (Debt Item 8 - Location Logic Duplication)*: Currently, `_set_location_from_children` is duplicated across three files (`lark_parser.py`, `block_transformer.py`, `inline_transformer.py`).
+* *Proposed Changes*:
+** Move `_set_location_from_children` to a shared base location mixin or helper module to remove duplication.
+** Verify that the inclusive location tracking (e.g., `start_line`, `end_line`, `start_column`, `end_column`) is perfect for `Listing` and `Literal` nodes.
+* *Verification Plan*:
+** *Unit*: Test that inclusive locations are accurate on `Listing` and `Literal` nodes.
+** *Regression*: Run the full suite to verify refactored location utility causes no regressions.
+
+=== Priority 3.3: Features for an AsciiDoc-Based Python Static Site Generator (Third Priority)
+
+A static site generator requires structural, navigation, and rendering features to build unified documentation websites.
+
+==== 3.3.1 Automatic ID Generation for Sections
+
+* *Proposed Changes*: Generate HTML-safe slug IDs if not specified (e.g., `== Getting Started` -> `_getting_started`).
+* *Verification Plan*:
+** *Unit*: Test slugifier in `resolver.py` against edge cases.
+
+==== 3.3.2 Table of Contents (TOC) Outline Extraction
+
+* *Proposed Changes*: Implement a TOC outline generator visitor in `nodes.py`.
+* *Verification Plan*:
+** *Unit*: Verify hierarchical list output representing section headings.
+
+==== 3.3.3 Cross-References (xref) and Links Resolution
+
+* *Proposed Changes*: Support `<<target-id,label>>` and `xref:file.adoc#target-id[label]`, translating extensions to target extensions (e.g. `.html`).
+* *Verification Plan*:
+** *Unit*: Verify link mapping resolver translates paths correctly.
+
+==== 3.3.4 Preprocessor & Image/Video Media Elements
+
+* *Proposed Changes*: Support modular includes (`include::`) and block/inline macros for media.
+* *Verification Plan*:
+** *E2E*: Validate correct docutils image (`nodes.image`) tree generation.
+
+=== Priority 3.4: Features for a Sphinx AsciiDoc Extension (Fourth Priority)
+
+Sphinx translates docutils node trees into multi-page sites.
+
+==== 3.4.1 Sphinx Document Metadata & Header Alignment
+
+* *Proposed Changes*: In `visit_document`, map parsed header authors and attributes to the root `nodes.document` metadata structure.
+
+==== 3.4.2 Comprehensive Renderer Node Auditing & Technical Debt Items 7 & 10 Resolution
+
+* *Technical Debt Resolution (Debt Item 7 - Docutils Backend Alignment)*: Unvisited AST nodes during rendering can crash Sphinx. We will audit and implement visitor methods for 100% of defined AST nodes in `DocutilsRenderer`.
+* *Technical Debt Resolution (Debt Item 10 - Backend Coverage)*: Currently, `docutils_backend.py` has low test coverage (~41%).
+* *Proposed Changes*:
+** Audit and implement visitor methods for all AST nodes in `nodes.py`, ensuring full structural translation coverage.
+** Write extensive rendering tests for every node type to raise backend test coverage above 90%.
+* *Verification Plan*:
+** *E2E*: Run renderer against all parsed node types and assert no `VisitorError` is raised.
+
+==== 3.4.3 Sphinx-Compatible Highlight Language Registration
+
+* *Proposed Changes*: Register listing blocks as code blocks and map parsed language directly to `nodes.literal_block` styles.
+
+=== Infrastructure Technical Debt (High Priority)
+
+==== 3.4.4 TCK Harness Patching (Debt Item 9 Resolution)
+
+* *Problem*: Locally patched `vendor/asciidoc-tck/harness/lib/suites/index.js` to support custom test directories, leaving the submodule dirty.
+* *Resolution*: Submit a clean PR to upstream `eclipse/asciidoc-tck` repository to fix the harness argument passing. Revert the local patch once merged, restoring clean submodules.
+
 == Implementation Roadmap
 
 === Week 1-2: Foundation
@@ -375,12 +519,33 @@ def test_parser_never_crashes(content: str):
 
 === Week 7-8: Polish & Upstream
 
-* [ ] Create FEATURE_MATRIX.md
-* [x] Add unit, integration, and functional tests (9/9 passing)
+* [x] Create FEATURE_MATRIX.md
+* [x] Add unit, integration, and functional tests (361 tests passing)
 * [ ] Add Hypothesis fuzz tests
 * [x] Update documentation
 * [x] Upstream TCK additions to Eclipse AsciiDoc project (MRs Submitted)
-* [ ] Merge to main
+* [x] Merge to main
+
+=== Week 9-10: Language Feature Expansion (Priority 1 & 2)
+
+* [ ] Refactor and consolidate location utility `_set_location_from_children` into a shared base location mixin (Debt Item 8)
+* [ ] Implement nested and mixed description lists (`dlist`) across Unit, Functional (Pyodide), E2E, and TCK tiers
+* [ ] Implement advanced table cell spans and styles formatting specifiers across Unit, Functional (Pyodide), E2E, and TCK tiers
+* [ ] Robustly parse and expose attributes on `Listing` blocks for `asciidoctest`
+* [ ] Support callout matching, extraction, and stripping in listing nodes
+* [ ] Verify perfect source line location tracking for `Listing` and `Literal` nodes
+
+=== Week 11-12: Static Site & Sphinx Integration (Priority 3 & 4)
+
+* [ ] Auto-generate HTML-safe IDs for section headings in `resolver.py`
+* [ ] Implement sidebar TOC outline extraction visitor in `nodes.py`
+* [ ] Parse and resolve cross-references and inter-document links
+* [ ] Support preprocessor `include::` directives and media blocks (image/video)
+* [ ] Align document header metadata structure with Docutils `nodes.document`
+* [ ] Audit and implement all missing AST visitor methods in `DocutilsRenderer` to eliminate rendering crashes (Debt Item 7)
+* [ ] Add extensive backend testing to raise `docutils_backend.py` coverage above 90% (Debt Item 10)
+* [ ] Correctly register highlight language classes in listing blocks for Sphinx Pygments
+* [ ] Submit clean PR to `eclipse/asciidoc-tck` and restore pristine git submodules (Debt Item 9)
 
 == File Structure After Implementation
 
@@ -417,9 +582,16 @@ asciidoctrine/
 4. ✅ Single `to_dict()` output format (no dual-mode)
 5. ✅ `asg_visitor.py` deleted
 6. ✅ Comprehensive CI setup via GitHub Actions
+7. ⏳ Description lists parse nested bullets and complex elements correctly across all testing tiers (Priority 1)
+8. ⏳ Table cells support column/row span and text styling verified by E2E and functional tests (Priority 1)
+9. ⏳ `asciidoctest` integration: attributes, callouts, and locations are perfectly tracked with shared utility (Priority 2 / Debt Item 8)
+10. ⏳ Static Site Generator support: section IDs are auto-slugified, TOC outline extracts correctly (Priority 3)
+11. ⏳ Sphinx extension support: 100% visitor node coverage and backend test coverage > 90% (Priority 4 / Debt Items 7 & 10)
+12. ⏳ Git submodule cleaned of harness patching with upstream PR accepted (Debt Item 9)
 
 == References
 
 * https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck[AsciiDoc TCK Repository]
 * https://github.com/asciidoctor-contrib/asciidoctor-doctest[asciidoctor-doctest]
 * https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/asg/schema.json[ASG JSON Schema]
+

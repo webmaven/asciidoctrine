@@ -10,7 +10,7 @@ authors = [
 ]
 description = "A high-performance, pure-Python AsciiDoc parser based on Lark."
 readme = { file = "README.adoc", content-type = "text/plain" }
-requires-python = ">=3.9"
+requires-python = ">=3.14"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: Apache Software License",
@@ -18,7 +18,7 @@ classifiers = [
     "Topic :: Text Processing :: Markup",
 ]
 dependencies = [
-    "lark>=1.1.0",
+    "lark==1.3.1",
 ]
 
 [project.urls]
@@ -26,7 +26,7 @@ dependencies = [
 "Bug Tracker" = "https://github.com/webmaven/asciidoctrine/issues"
 
 [project.optional-dependencies]
-test = ["pytest", "ruff", "mypy", "docutils", "types-docutils", "sphinx"]
+test = ["pytest", "ruff", "mypy", "docutils", "types-docutils", "sphinx", "pytest-pyodide", "playwright"]
 docs = ["sphinx", "sphinx-rtd-theme"]
 
 [tool.setuptools.package-data]
@@ -36,6 +36,7 @@ asciidoctrine = ["grammar.lark"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 norecursedirs = ["vendor", "venv", ".git", "docs"]
+addopts = "--dist-dir=dist --runner=playwright --runtime=chrome"
 
 [tool.ruff]
 line-length = 88

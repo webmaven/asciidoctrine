@@ -1,71 +1,74 @@
 # Plan: Fix Pyodide Functional Tests
 
 ## Objective
-Get the functional tests in `tests/test_functional.py` working by resolving the `FileNotFoundError` for the Pyodide distribution directory and ensuring all dependencies (wheels) are correctly provided to the Pyodide environment.
+Get the functional tests in `tests/test_functional.py` working by resolving the `FileNotFoundError` for the Pyodide distribution directory, ensuring all dependencies (wheels) are correctly provided to the Pyodide environment, and establishing Python 3.14 and Pyodide 314.0.2 as the baseline.
 
-## Current Failures
-The tests fail because `pytest-pyodide` defaults to searching for a `pyodide/` directory containing the Pyodide runtime.
-```
-FileNotFoundError: [Errno 2] No such file or directory: '/home/webmaven/Code/GitHub/asciidoctrine/pyodide'
-```
+## Key Decisions Implemented
+1. **Directory Standard**: Adhere to project standards and use `dist/` instead of `pyodide/`.
+2. **Pyodide Stable Release**: Use **Pyodide 314.0.2** as the current stable release.
+3. **Driver & Automation**: Use **Playwright** with its **auto-browser downloader** running in **headless mode**. Selenium is not needed and will not be installed.
+4. **Baseline Platform**: Declare **Python 3.14** and **Pyodide 314.0.2** as the minimum supported baseline environments. Since `asciidoctrine` has no existing users or released packages, this change has no backward compatibility impact.
+
+---
 
 ## Key Components
--   **Pyodide Distribution**: Needs to be present in a directory served by `pytest-pyodide`.
--   **Wheels**: `lark` and `asciidoctrine` must be available as wheels for installation within Pyodide.
--   **Runner**: `selenium` is used, so a compatible browser driver (e.g. geckodriver or chromedriver) must be available.
+- **Pyodide Distribution**: Pyodide 314.0.2 release artifacts must be present in the `dist/` directory, served locally by the runner.
+- **Wheels**: `lark` and `asciidoctrine` must be built as wheels and placed in `dist/` for installation within Pyodide.
+- **Browser & Driver**: Playwright's native Chromium browser running headlessly via Playwright's automated browser manager.
+
+---
 
 ## Proposed Solution
 
-### Step 1: Bootstrap Pyodide Environment
-Create a `pyodide` directory and populate it with a Pyodide release.
--   Download Pyodide v0.26.4 (latest stable as of this plan).
--   Extract to `pyodide/`.
+### Step 1: Update Project Dependencies & Metadata
+1. Edit `pyproject.toml` to:
+   - Declare `requires-python = ">=3.14"` (setting Python 3.14 as the baseline).
+   - Add `pytest-pyodide` and `playwright` to `[project.optional-dependencies]` under the `test` group.
+2. Install the updated test dependencies in the virtual environment:
+   ```bash
+   venv/bin/pip install -e ".[test]"
+   ```
+3. Use Playwright's auto-browser downloader to install the hermetic Chromium browser:
+   ```bash
+   venv/bin/playwright install chromium
+   ```
 
-### Step 2: Prepare Dependency Wheels
--   **Asciidoctrine**: Rebuild the wheel to ensure it includes the latest changes.
-    ```bash
-    venv/bin/python3 -m pip install build
-    venv/bin/python3 -m build
-    ```
--   **Lark**: Download the specific version of Lark wheel required.
-    ```bash
-    venv/bin/python3 -m pip download "lark>=1.1.0" --dest pyodide/ --only-binary=:all: --python-version 3.10 --platform any
-    ```
-    *Note: The test expects `lark-1.3.1-py3-none-any.whl`, so we should ensure that specific version is downloaded.*
+### Step 2: Bootstrap Pyodide 314.0.2 Environment
+1. Create the `dist/` directory:
+   ```bash
+   mkdir -p dist
+   ```
+2. Download and extract the Pyodide 314.0.2 release tarball to `dist/`:
+   ```bash
+   curl -L https://github.com/pyodide/pyodide/releases/download/314.0.2/pyodide-314.0.2.tar.bz2 | tar -xjf - -C dist --strip-components=1
+   ```
 
-### Step 3: Configure Pytest
-Update `pyproject.toml` or add a `pytest.ini` to properly configure `pytest-pyodide`.
--   Set `--dist-dir` to `pyodide`.
--   Set `--browser` (defaulting to `firefox` or `chrome` depending on environment availability).
+### Step 3: Prepare Dependency Wheels in `dist/`
+1. Rebuild the `asciidoctrine` wheel targeting the Python 3.14 baseline:
+   ```bash
+   venv/bin/python3 -m build --wheel --outdir dist/
+   ```
+2. Download the `lark` wheel into `dist/` for Python 3.14 compatibility:
+   ```bash
+   venv/bin/python3 -m pip download "lark==1.3.1" --dest dist/ --only-binary=:all: --python-version 3.14 --platform any
+   ```
 
-### Step 4: Refactor Functional Tests
-Update `tests/test_functional.py` to be more robust:
--   Ensure `run_if_pyodide` can correctly find wheels even if they are in `dist/` or `pyodide/`.
--   Use `@copy_files_to_pyodide` if appropriate to simplify wheel management.
--   Improve error reporting if `selenium` or browser drivers are missing.
+### Step 4: Configure Pytest Options
+Update the `pyproject.toml` `[tool.pytest.ini_options]` block to configure the Pyodide test options to use Playwright Chrome headlessly:
+```toml
+addopts = "--dist-dir=dist --browser=playwright-chrome --headless"
+```
 
-## Implementation Steps
+### Step 5: Refactor Functional Tests
+Update `tests/test_functional.py` to:
+1. Reference the updated wheel version patterns.
+2. Robustly check for `pytest-pyodide` installation before running, falling back to a clean skip if required.
 
-### Phase 1: Preparation (Manual/Scripted)
-1.  Create `pyodide/` directory.
-2.  Download Pyodide artifacts (e.g. from CDN or GitHub releases).
-3.  Build current project wheel and copy it to `pyodide/`.
-4.  Download `lark` wheel to `pyodide/`.
+---
 
-### Phase 2: Configuration
-1.  Modify `pyproject.toml` to include:
-    ```toml
-    [tool.pytest.ini_options]
-    addopts = "--dist-dir=pyodide --browser=firefox"
-    ```
-
-### Phase 3: Test Refactoring
-1.  Update `tests/test_functional.py` to use relative paths for wheels or ensure they match what's in `pyodide/`.
-
-## Verification
-1.  Run `venv/bin/pytest tests/test_functional.py`.
-2.  Confirm that a browser opens (or runs headlessly) and the three tests pass.
-
-## Alternatives Considered
--   **Skip tests**: Just disable them if the environment isn't set up. (Rejected: The user explicitly asked to get them working).
--   **Use CDN**: Configure `pytest-pyodide` to load from a CDN. (Rejected: `pytest-pyodide`'s `selenium` fixture is designed to serve local files for performance and reliability in CI).
+## Verification Plan
+1. Run the functional tests:
+   ```bash
+   venv/bin/pytest tests/test_functional.py
+   ```
+2. Confirm that tests execute headlessly inside Chromium via Playwright / Pyodide 314.0.2 and all three test cases pass successfully.

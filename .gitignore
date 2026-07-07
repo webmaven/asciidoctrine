@@ -74,3 +74,10 @@ dmypy.json
 docs/_build/
 *.log
 debug_*.py
+
+# macOS system files
+.DS_Store
+**/.DS_Store
+
+# Local Agent Configurations
+.agents/
