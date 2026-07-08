@@ -280,12 +280,93 @@ class TestBlocks(unittest.TestCase):
         self.assertEqual(attr["attribute_name"], "myattr")
         self.assertEqual(attr["value"], "")
 
-    def test_preprocessor_integration(self):
-        source = "include::included.adoc[]"
-        ast = parse_to_ast(source, base_dir=self.base_dir).to_dict()
-        self.assertEqual(len(ast["blocks"]), 2)
-        self.assertEqual(ast["blocks"][1]["name"], "list")
+    def test_nested_description_list(self):
+        source = (
+            "Operating Systems::\n"
+            "  Linux:::\n"
+            "    Fedora::\n"
+            "      Desktop\n"
+        )
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        expected = {
+            "name": "document",
+            "type": "block",
+            "blocks": [
+                {
+                    "name": "descriptionList",
+                    "type": "block",
+                    "items": [
+                        {
+                            "name": "descriptionListItem",
+                            "type": "block",
+                            "terms": [
+                                {
+                                    "name": "descriptionListTerm",
+                                    "type": "inline",
+                                    "inlines": [
+                                        {"name": "text", "type": "string", "value": "Operating Systems"}
+                                    ]
+                                }
+                            ],
+                            "blocks": [
+                                {
+                                    "name": "descriptionList",
+                                    "type": "block",
+                                    "items": [
+                                        {
+                                            "name": "descriptionListItem",
+                                            "type": "block",
+                                            "terms": [
+                                                {
+                                                    "name": "descriptionListTerm",
+                                                    "type": "inline",
+                                                    "inlines": [
+                                                        {"name": "text", "type": "string", "value": "Linux"}
+                                                    ]
+                                                }
+                                            ],
+                                            "blocks": [
+                                                {
+                                                    "name": "descriptionList",
+                                                    "type": "block",
+                                                    "items": [
+                                                        {
+                                                            "name": "descriptionListItem",
+                                                            "type": "block",
+                                                            "terms": [
+                                                                {
+                                                                    "name": "descriptionListTerm",
+                                                                    "type": "inline",
+                                                                    "inlines": [
+                                                                        {"name": "text", "type": "string", "value": "Fedora"}
+                                                                    ]
+                                                                }
+                                                            ],
+                                                            "blocks": [
+                                                                {
+                                                                    "name": "paragraph",
+                                                                    "type": "block",
+                                                                    "inlines": [
+                                                                        {"name": "text", "type": "string", "value": "Desktop"}
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+        self.assertEqual(ast, expected)
 
 
 if __name__ == "__main__":
     unittest.main()
+

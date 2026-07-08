@@ -114,3 +114,12 @@ When adding support for a new AsciiDoc element:
 *   **Location Tracking**: The parser uses inclusive locations (`end_column - 1`). Use `_set_location_from_children()` in the transformer to ensure accuracy.
 *   **Attribute Resolution**: Rich attributes (nodes) are resolved to strings in `attributes.py`.
 *   **Git Submodules**: If submodules are missing or empty, run `git submodule update --init --recursive`.
+
+## 📝 Recording Grammar Learnings
+
+* **Standing Instruction**: When you solve a grammar problem, don't leave the grammar file itself as the only record of whatever solution you devised, record an explanation as prose as well. Include what you tried that *didn't* work, and why.
+
+## 🤖 Subagent & Model Routing Strategy
+
+*   **Standing Instruction**: For all coding and coding-adjacent tasks, use your judgement to decide when a lower-power model would be appropriate and run that in a subagent.
+

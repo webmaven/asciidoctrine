@@ -73,3 +73,34 @@ print("hello")
     assert isinstance(listing, nodes.literal_block)
     assert 'print("hello")' in listing.astext()
     assert "python" in listing["classes"]
+
+
+def test_nested_dlist_conversion():
+    source = """
+Operating Systems::
+  Linux:::
+    Fedora:: Desktop
+"""
+    document = asciidoc_to_docutils(source)
+    # The root should be a definition_list in docutils
+    dlist = document[0]
+    assert isinstance(dlist, nodes.definition_list)
+    
+    # Check "Operating Systems" term and definition
+    item = dlist[0]
+    assert isinstance(item, nodes.definition_list_item)
+    assert item[0].astext() == "Operating Systems"
+    
+    # Check nested definition_list for "Linux"
+    nested_dlist = item[1][0]
+    assert isinstance(nested_dlist, nodes.definition_list)
+    nested_item = nested_dlist[0]
+    assert nested_item[0].astext() == "Linux"
+    
+    # Check doubly-nested definition_list for "Fedora"
+    doubly_nested = nested_item[1][0]
+    assert isinstance(doubly_nested, nodes.definition_list)
+    final_item = doubly_nested[0]
+    assert final_item[0].astext() == "Fedora"
+    assert final_item[1].astext() == "Desktop"
+
