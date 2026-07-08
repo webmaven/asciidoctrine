@@ -20,7 +20,9 @@ def tck_output():
     # Run TCK directly via node
     harness_path = os.path.join(tck_dir, "harness", "bin", "asciidoc-tck.js")
     if "COV_CORE_SOURCE" in os.environ or "COVERAGE_RUN" in os.environ:
-        adapter_cmd = "coverage run --parallel-mode --source=src/asciidoctrine bin/tck-adapter.py"
+        adapter_cmd = (
+            "coverage run --parallel-mode --source=src/asciidoctrine bin/tck-adapter.py"
+        )
     else:
         adapter_cmd = f"{sys.executable} bin/tck-adapter.py"
 
