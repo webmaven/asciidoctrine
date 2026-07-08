@@ -134,7 +134,7 @@ jobs:
         # Download lark dependency into dist directory for pyodide to find it
         pip download lark -d dist/
         # Download and extract pyodide distribution
-        curl -L https://github.com/pyodide/pyodide/releases/download/v314.0.2/pyodide-314.0.2.tar.bz2 -o pyodide.tar.bz2
+        curl -L https://github.com/pyodide/pyodide/releases/download/314.0.2/pyodide-314.0.2.tar.bz2 -o pyodide.tar.bz2
         tar -xjf pyodide.tar.bz2
         cp -r pyodide/* dist/
         rm -rf pyodide pyodide.tar.bz2
