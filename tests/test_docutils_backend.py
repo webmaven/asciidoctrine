@@ -85,18 +85,18 @@ Operating Systems::
     # The root should be a definition_list in docutils
     dlist = document[0]
     assert isinstance(dlist, nodes.definition_list)
-    
+
     # Check "Operating Systems" term and definition
     item = dlist[0]
     assert isinstance(item, nodes.definition_list_item)
     assert item[0].astext() == "Operating Systems"
-    
+
     # Check nested definition_list for "Linux"
     nested_dlist = item[1][0]
     assert isinstance(nested_dlist, nodes.definition_list)
     nested_item = nested_dlist[0]
     assert nested_item[0].astext() == "Linux"
-    
+
     # Check doubly-nested definition_list for "Fedora"
     doubly_nested = nested_item[1][0]
     assert isinstance(doubly_nested, nodes.definition_list)
@@ -104,3 +104,39 @@ Operating Systems::
     assert final_item[0].astext() == "Fedora"
     assert final_item[1].astext() == "Desktop"
 
+
+def test_table_rendering_conversion():
+    source = """
+[cols="1,1"]
+|===
+| cell 1 | cell 2
+2+^s| merged bold
+|===
+"""
+    document = asciidoc_to_docutils(source)
+    table = document[0]
+    assert isinstance(table, nodes.table)
+
+    # Check colspecs and tgroup
+    tgroup = table[0]
+    assert isinstance(tgroup, nodes.tgroup)
+
+    tbody = tgroup[-1]
+    assert isinstance(tbody, nodes.tbody)
+    assert len(tbody) == 2
+
+    # Row 1
+    row1 = tbody[0]
+    assert len(row1) == 2
+    assert row1[0].astext() == "cell 1"
+    assert row1[1].astext() == "cell 2"
+
+    # Row 2 (merged cell)
+    row2 = tbody[1]
+    assert len(row2) == 1
+    merged_cell = row2[0]
+    assert isinstance(merged_cell, nodes.entry)
+    assert merged_cell.get("morecols") == 1
+    # Check that text is wrapped in strong node because of style 's'
+    assert isinstance(merged_cell[0][0], nodes.strong)
+    assert merged_cell.astext() == "merged bold"

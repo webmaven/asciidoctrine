@@ -57,3 +57,35 @@ def test_admonition_shorthand_functional(selenium):
     block = ast["blocks"][0]
     assert block["name"] == "admonition"
     assert block["variant"] == "note"
+
+
+@run_if_pyodide
+def test_advanced_table_cells_functional(selenium):
+    from asciidoctrine.lark_parser import parse_to_ast
+
+    source = """
+[cols="1,1"]
+|===
+| cell 1 | cell 2
+2+^s| merged bold
+|===
+"""
+    ast = parse_to_ast(source).to_dict()
+    table = ast["blocks"][0]
+    assert table["name"] == "table"
+
+    # Row 1
+    row1 = table["rows"][0]
+    assert len(row1["cells"]) == 2
+    cell1 = row1["cells"][0]
+    assert cell1.get("colspan", 1) == 1
+    assert cell1.get("rowspan", 1) == 1
+
+    # Row 2 (merged cell)
+    row2 = table["rows"][1]
+    assert len(row2["cells"]) == 1
+    merged_cell = row2["cells"][0]
+    assert merged_cell["colspan"] == 2
+    assert merged_cell.get("rowspan", 1) == 1
+    assert merged_cell["align"] == "center"
+    assert merged_cell["style"] == "s"

@@ -26,6 +26,9 @@ from .nodes import (
     Revision,
     Section,
     Stem,
+    Table,
+    TableCell,
+    TableRow,
     Text,
     ThematicBreak,
     Title,
@@ -330,6 +333,83 @@ class AsciiDocTransformer(
                             block.attributes["style"] = v
                     else:
                         block.attributes[k] = v
+        if isinstance(block, Table) and "cols" in block.attributes:
+            try:
+                cols_val = block.attributes["cols"]
+                if isinstance(cols_val, list):
+                    cols_str = "".join(n.value for n in cols_val if hasattr(n, "value"))
+                elif hasattr(cols_val, "value"):
+                    cols_str = cols_val.value
+                else:
+                    cols_str = str(cols_val)
+
+                cols_str = cols_str.strip()
+                num_cols = 0
+                if cols_str.endswith("*"):
+                    try:
+                        num_cols = int(cols_str[:-1])
+                    except ValueError:
+                        pass
+                elif "," in cols_str:
+                    num_cols = len(cols_str.split(","))
+                else:
+                    try:
+                        num_cols = int(cols_str)
+                    except ValueError:
+                        pass
+
+                if num_cols > 0:
+                    flat_cells = []
+                    for row in block.rows:
+                        for cell in row.cells:
+                            if isinstance(cell, TableCell):
+                                flat_cells.append(cell)
+
+                    grid: PyList[PyList[Any]] = []
+                    cell_idx = 0
+                    while cell_idx < len(flat_cells):
+                        r = 0
+                        c = 0
+                        found = False
+                        while not found:
+                            if r >= len(grid):
+                                grid.append([None] * num_cols)
+                            for col in range(num_cols):
+                                if grid[r][col] is None:
+                                    c = col
+                                    found = True
+                                    break
+                            if not found:
+                                r += 1
+
+                        cell = flat_cells[cell_idx]
+                        cell_idx += 1
+
+                        colspan = getattr(cell, "colspan", 1) or 1
+                        rowspan = getattr(cell, "rowspan", 1) or 1
+
+                        for dr in range(rowspan):
+                            for dc in range(colspan):
+                                nr = r + dr
+                                nc = c + dc
+                                if nc < num_cols:
+                                    while nr >= len(grid):
+                                        grid.append([None] * num_cols)
+                                    if dr == 0 and dc == 0:
+                                        grid[nr][nc] = cell
+                                    else:
+                                        grid[nr][nc] = "spanned"
+
+                    new_rows = []
+                    for r in range(len(grid)):
+                        row_cells: PyList[TableCell] = [
+                            cell for cell in grid[r] if isinstance(cell, TableCell)
+                        ]
+                        if row_cells:
+                            new_rows.append(TableRow(cells=row_cells))
+                    block.rows = new_rows
+            except Exception:
+                pass
         return cast(BlockNode, self._set_location_from_children(block, children))
 
     @v_args(meta=True)
@@ -409,7 +489,25 @@ class AsciiDocTransformer(
                     break
             return attrs
 
-        parts = [p.strip() for p in attr_str.split(",")]
+        # Split parts by comma, respecting quoted strings
+        parts = []
+        current = []
+        in_double = False
+        in_single = False
+        for char in attr_str:
+            if char == '"' and not in_single:
+                in_double = not in_double
+                current.append(char)
+            elif char == "'" and not in_double:
+                in_single = not in_single
+                current.append(char)
+            elif char == "," and not in_double and not in_single:
+                parts.append("".join(current))
+                current = []
+            else:
+                current.append(char)
+        parts.append("".join(current))
+        parts = [p.strip() for p in parts if p.strip()]
 
         if parts and "=" not in parts[0] and not parts[0].startswith(("#", ".")):
             attrs["style"] = parts[0]

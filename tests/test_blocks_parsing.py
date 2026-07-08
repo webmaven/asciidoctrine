@@ -281,12 +281,7 @@ class TestBlocks(unittest.TestCase):
         self.assertEqual(attr["value"], "")
 
     def test_nested_description_list(self):
-        source = (
-            "Operating Systems::\n"
-            "  Linux:::\n"
-            "    Fedora::\n"
-            "      Desktop\n"
-        )
+        source = "Operating Systems::\n  Linux:::\n    Fedora::\n      Desktop\n"
         ast = self._strip_locations(parse_to_ast(source).to_dict())
         expected = {
             "name": "document",
@@ -304,8 +299,12 @@ class TestBlocks(unittest.TestCase):
                                     "name": "descriptionListTerm",
                                     "type": "inline",
                                     "inlines": [
-                                        {"name": "text", "type": "string", "value": "Operating Systems"}
-                                    ]
+                                        {
+                                            "name": "text",
+                                            "type": "string",
+                                            "value": "Operating Systems",
+                                        }
+                                    ],
                                 }
                             ],
                             "blocks": [
@@ -321,8 +320,12 @@ class TestBlocks(unittest.TestCase):
                                                     "name": "descriptionListTerm",
                                                     "type": "inline",
                                                     "inlines": [
-                                                        {"name": "text", "type": "string", "value": "Linux"}
-                                                    ]
+                                                        {
+                                                            "name": "text",
+                                                            "type": "string",
+                                                            "value": "Linux",
+                                                        }
+                                                    ],
                                                 }
                                             ],
                                             "blocks": [
@@ -338,8 +341,12 @@ class TestBlocks(unittest.TestCase):
                                                                     "name": "descriptionListTerm",
                                                                     "type": "inline",
                                                                     "inlines": [
-                                                                        {"name": "text", "type": "string", "value": "Fedora"}
-                                                                    ]
+                                                                        {
+                                                                            "name": "text",
+                                                                            "type": "string",
+                                                                            "value": "Fedora",
+                                                                        }
+                                                                    ],
                                                                 }
                                                             ],
                                                             "blocks": [
@@ -347,26 +354,57 @@ class TestBlocks(unittest.TestCase):
                                                                     "name": "paragraph",
                                                                     "type": "block",
                                                                     "inlines": [
-                                                                        {"name": "text", "type": "string", "value": "Desktop"}
-                                                                    ]
+                                                                        {
+                                                                            "name": "text",
+                                                                            "type": "string",
+                                                                            "value": "Desktop",
+                                                                        }
+                                                                    ],
                                                                 }
-                                                            ]
+                                                            ],
                                                         }
-                                                    ]
+                                                    ],
                                                 }
-                                            ]
+                                            ],
                                         }
-                                    ]
+                                    ],
                                 }
-                            ]
+                            ],
                         }
-                    ]
+                    ],
                 }
-            ]
+            ],
         }
         self.assertEqual(ast, expected)
+
+    def test_advanced_table_cells(self):
+        source = """
+[cols="1,1"]
+|===
+| cell 1 | cell 2
+2+^s| merged bold
+|===
+"""
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        table = ast["blocks"][0]
+        self.assertEqual(table["name"], "table")
+
+        # Row 1
+        row1 = table["rows"][0]
+        self.assertEqual(len(row1["cells"]), 2)
+        cell1 = row1["cells"][0]
+        self.assertEqual(cell1.get("colspan", 1), 1)
+        self.assertEqual(cell1.get("rowspan", 1), 1)
+
+        # Row 2
+        row2 = table["rows"][1]
+        self.assertEqual(len(row2["cells"]), 1)
+        merged_cell = row2["cells"][0]
+        self.assertEqual(merged_cell["colspan"], 2)
+        self.assertEqual(merged_cell.get("rowspan", 1), 1)
+        self.assertEqual(merged_cell["align"], "center")
+        self.assertEqual(merged_cell["style"], "s")
 
 
 if __name__ == "__main__":
     unittest.main()
-

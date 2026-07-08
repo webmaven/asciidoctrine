@@ -9,7 +9,6 @@ from tests.conftest import get_all_doctest_examples
 # to avoid failing the whole suite.
 KNOWN_UNSUPPORTED = {
     "dlist:mixed",
-    "table:insane-cells-formatting",
 }
 
 

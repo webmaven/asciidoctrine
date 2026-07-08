@@ -92,12 +92,26 @@ inline_attribute_list: "[" [ATTR_LIST_CONTENT] "]"
 anchor: "[[" WORD "]]" _NEWLINE
 
 // Tables
-table: TABLE_DELIM _NEWLINE (table_row | blank_line)* TABLE_DELIM _NEWLINE?
-table_row: (TABLE_CELL_LEAD table_cell)+ _NEWLINE
-table_cell: [text_content]
+table: TABLE_DELIM _NEWLINE (table_cell | _NEWLINE)* TABLE_DELIM _NEWLINE?
+table_cell: [table_cell_spec] TABLE_CELL
+
+table_cell_spec: (span_spec | multiplier_spec)? (align_spec)? [STYLE_SPEC]
+
+?span_spec: [NUMBER] "." NUMBER "+" -> span_both
+          | NUMBER "+"             -> span_cols
+
+?multiplier_spec: NUMBER "*" -> multiplier
+
+?align_spec: HORIZ_ALIGN [VERT_ALIGN] -> align_both
+           | VERT_ALIGN             -> align_vert
 
 TABLE_DELIM: "|==="
-TABLE_CELL_LEAD: "|"
+
+
+HORIZ_ALIGN: "<" | ">" | "^"
+VERT_ALIGN: "." ("<" | ">" | "^")
+STYLE_SPEC: /[adehlms]/
+
 
 // Listing and Literal Blocks
 listing_block: LISTING_DELIM _NEWLINE LISTING_CONTENT _NEWLINE LISTING_DELIM _NEWLINE?
@@ -228,6 +242,9 @@ THEMATIC_BREAK_MARKER: /'''+|\*\*\*+|---+|(_ _ _)+|(\* \* \*)+|(- - -)+/
 LISTING_CONTENT: /(.+?)(?=\n-{4,})/s
 LITERAL_CONTENT: /(.+?)(?=\n\.{4,})/s
 PASSTHROUGH_CONTENT: /(.+?)(?=\n\+{4,})/s
+TABLE_CELL: /\|(.*?)(?=(?:(?<!\\)(?:(?:(?:[0-9]+)?(?:\.[0-9]+)?\+|[0-9]+\*)(?:[<>^]|\.[<>^]|[<>^]\.[<>^])?[adehlms]?|(?:[<>^]|\.[<>^]|[<>^]\.[<>^])[adehlms]?|[adehlms])?\|(?!===))|\|===)/s
+
+
 
 _NEWLINE: /(\r\n|\n|\r)/
 _WS: /[ \t]/

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Sequence, Tuple, cast
+from typing import Any, Dict, Optional, Sequence, Tuple, cast
 from typing import List as PyList
 
 from lark import Discard, Token, v_args
@@ -633,10 +633,129 @@ class BlockTransformer:
         delimiter = delims[0].value if delims else "____"
         return Quote(blocks=merged_inner, delimiter=delimiter)
 
+    @v_args(inline=True)
+    def span_both(self, cols: Optional[Token], rows: Token) -> Dict[str, int]:
+        c = int(cols.value) if cols else 1
+        r = int(rows.value)
+        return {"colspan": c, "rowspan": r}
+
+    @v_args(inline=True)
+    def span_cols(self, cols: Token) -> Dict[str, int]:
+        c = int(cols.value)
+        return {"colspan": c}
+
+    @v_args(inline=True)
+    def multiplier(self, mult: Token) -> Dict[str, int]:
+        return {"multiplier": int(mult.value)}
+
+    @v_args(inline=True)
+    def align_both(self, horiz: Token, vert: Optional[Token]) -> Dict[str, str]:
+        h_map = {"<": "left", ">": "right", "^": "center"}
+        v_map = {".<": "top", ".>": "bottom", ".^": "middle"}
+        align = h_map.get(horiz.value)
+        valign = v_map.get(vert.value) if vert else None
+        res = {}
+        if align:
+            res["align"] = align
+        if valign:
+            res["valign"] = valign
+        return res
+
+    @v_args(inline=True)
+    def align_vert(self, vert: Token) -> Dict[str, str]:
+        v_map = {".<": "top", ".>": "bottom", ".^": "middle"}
+        valign = v_map.get(vert.value)
+        res = {}
+        if valign:
+            res["valign"] = valign
+        return res
+
+    def table_cell_spec(self, children: PyList[Any]) -> Dict[str, Any]:
+        res = {}
+        for child in children:
+            if isinstance(child, dict):
+                res.update(child)
+            elif isinstance(child, Token) and child.type == "STYLE_SPEC":
+                res["style"] = child.value
+        return res
+
     @v_args(meta=True)
     def table(self, meta: Any, children: PyList[Any]) -> Table:
-        rows = [c for c in children if isinstance(c, TableRow)]
-        table_node = Table(rows=rows)
+        raw_cells = [c for c in children if isinstance(c, TableCell)]
+
+        # 1. Expand multipliers
+        cells = []
+        for cell in raw_cells:
+            mult = getattr(cell, "multiplier", None)
+            if mult and mult > 1:
+                for _ in range(mult):
+                    new_cell = TableCell(blocks=cell.blocks)
+                    new_cell.colspan = cell.colspan
+                    new_cell.rowspan = cell.rowspan
+                    new_cell.align = cell.align
+                    new_cell.valign = cell.valign
+                    new_cell.style = cell.style
+                    cells.append(new_cell)
+            else:
+                cells.append(cell)
+
+        # 2. Determine default num_cols
+        if cells:
+            first_line = cells[0].location[0]["line"] if cells[0].location else 1
+            num_cols = sum(
+                1 for c in cells if c.location and c.location[0]["line"] == first_line
+            )
+            if num_cols == 0:
+                num_cols = 1
+        else:
+            num_cols = 1
+
+        # 3. Perform grid grouping into TableRow objects
+        table_node = Table()
+        grid: PyList[PyList[Any]] = []
+        cell_idx = 0
+        while cell_idx < len(cells):
+            r = 0
+            c = 0
+            found = False
+            while not found:
+                if r >= len(grid):
+                    grid.append([None] * num_cols)
+                for col in range(num_cols):
+                    if grid[r][col] is None:
+                        c = col
+                        found = True
+                        break
+                if not found:
+                    r += 1
+
+            cell = cells[cell_idx]
+            cell_idx += 1
+
+            colspan = cell.colspan or 1
+            rowspan = cell.rowspan or 1
+
+            for dr in range(rowspan):
+                for dc in range(colspan):
+                    nr = r + dr
+                    nc = c + dc
+                    if nc < num_cols:
+                        while nr >= len(grid):
+                            grid.append([None] * num_cols)
+                        if dr == 0 and dc == 0:
+                            grid[nr][nc] = cell
+                        else:
+                            grid[nr][nc] = "spanned"
+
+        rows = []
+        for r in range(len(grid)):
+            row_cells: PyList[TableCell] = [
+                cell for cell in grid[r] if isinstance(cell, TableCell)
+            ]
+            if row_cells:
+                rows.append(TableRow(cells=row_cells))
+
+        table_node.rows = rows
         return cast(Table, self._set_location_from_children(table_node, children))
 
     @v_args(meta=True)
@@ -647,7 +766,38 @@ class BlockTransformer:
 
     @v_args(meta=True)
     def table_cell(self, meta: Any, children: PyList[Any]) -> TableCell:
-        inlines = children[0] if children and children[0] else []
-        para = Paragraph(inlines=inlines)
-        cell = TableCell(blocks=[para])
+        spec = {}
+        content_token = None
+        for child in children:
+            if isinstance(child, dict):
+                spec = child
+            elif isinstance(child, Token) and child.type == "TABLE_CELL":
+                content_token = child
+
+        content_str = content_token.value if content_token else ""
+        if content_str.startswith("|"):
+            content_str = content_str[1:]
+        content_str = content_str.strip()
+
+        blocks = []
+        if content_str:
+            from asciidoctrine.lark_parser import parse_to_ast
+
+            try:
+                nested_doc = parse_to_ast(content_str)
+                blocks = nested_doc.blocks
+            except Exception:
+                blocks = [Paragraph(inlines=[Text(content_str)])]
+        else:
+            blocks = []
+
+        cell = TableCell(blocks=blocks)
+        cell.colspan = spec.get("colspan", 1)
+        cell.rowspan = spec.get("rowspan", 1)
+        cell.align = spec.get("align")
+        cell.valign = spec.get("valign")
+        cell.style = spec.get("style")
+        if "multiplier" in spec:
+            cell.multiplier = spec["multiplier"]
+
         return cast(TableCell, self._set_location_from_children(cell, children))

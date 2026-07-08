@@ -106,9 +106,27 @@ class DocutilsRenderer(NodeVisitor):
     def visit_paragraph(self, node: Paragraph) -> None:
         para = nodes.paragraph()
         old_parent = self.current_node
-        self.current_node = para
+
+        style = getattr(self, "_cell_style", None)
+        wrapper: Optional[nodes.Element] = None
+        if style in ("s", "h"):
+            wrapper = nodes.strong()
+        elif style == "e":
+            wrapper = nodes.emphasis()
+        elif style in ("m", "l"):
+            wrapper = nodes.literal()
+
+        if wrapper is not None:
+            self.current_node = wrapper
+        else:
+            self.current_node = para
+
         for inline in node.inlines:
             self.visit(inline)
+
+        if wrapper is not None:
+            para += wrapper
+
         old_parent += para
         self.current_node = old_parent
 
@@ -204,10 +222,14 @@ class DocutilsRenderer(NodeVisitor):
 
     def visit_table(self, node: Table) -> None:
         table = nodes.table()
-        # Find max cols
+        # Find max cols correctly based on sum of colspans
         max_cols = 0
         for row in node.rows:
-            max_cols = max(max_cols, len(row.cells))
+            max_cols = max(
+                max_cols, sum(getattr(cell, "colspan", 1) or 1 for cell in row.cells)
+            )
+        if max_cols == 0:
+            max_cols = 1
 
         tgroup = nodes.tgroup(cols=max_cols)
         table += tgroup
@@ -235,12 +257,27 @@ class DocutilsRenderer(NodeVisitor):
 
     def visit_cell(self, node: TableCell) -> None:
         entry = nodes.entry()
+        if getattr(node, "colspan", 1) > 1:
+            entry["morecols"] = node.colspan - 1
+        if getattr(node, "rowspan", 1) > 1:
+            entry["morerows"] = node.rowspan - 1
+
+        if getattr(node, "align", None):
+            entry["align"] = node.align
+        if getattr(node, "valign", None):
+            entry["valign"] = node.valign
+
+        old_style = getattr(self, "_cell_style", None)
+        self._cell_style = getattr(node, "style", None)
+
         old_parent = self.current_node
         self.current_node = entry
         for block in node.blocks:
             self.visit(block)
         old_parent += entry
         self.current_node = old_parent
+
+        self._cell_style = old_style
 
     def visit_listitem(self, node: ListItem) -> None:
         item = nodes.list_item()

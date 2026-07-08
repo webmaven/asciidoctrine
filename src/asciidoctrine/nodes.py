@@ -48,6 +48,11 @@ class Node:
             "target",
             "value",
             "attribute_name",
+            "colspan",
+            "rowspan",
+            "align",
+            "valign",
+            "style",
         ]:
             if hasattr(self, attr):
                 val = getattr(self, attr)
@@ -822,6 +827,12 @@ class TableCell(BlockNode):
         self.name = "cell"
         self.type = "block"
         self.blocks: PyList[Node] = list(blocks) if blocks else []
+        self.colspan: int = 1
+        self.rowspan: int = 1
+        self.align: Optional[str] = None
+        self.valign: Optional[str] = None
+        self.style: Optional[str] = None
+        self.multiplier: Optional[int] = None
 
 
 class ThematicBreak(BlockNode):

@@ -86,8 +86,7 @@ jobs:
 
     - name: Run TCK with Coverage
       run: |
-        chmod +x run-tck-coverage.sh
-        ./run-tck-coverage.sh
+        coverage run --parallel-mode --source=src/asciidoctrine -m pytest tests/test_tck.py
 
     - name: Run DocTest Parsing with Coverage
       run: |
