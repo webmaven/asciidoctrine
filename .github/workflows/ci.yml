@@ -22,7 +22,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.12'
+        python-version: '3.14'
         cache: 'pip' # Enable pip caching
 
     - name: Install dependencies
@@ -47,7 +47,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.12'
+        python-version: '3.14'
         cache: 'pip'
     - name: Install dependencies
       run: pip install -e '.[docs]'
@@ -56,19 +56,15 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false # Don't cancel other matrix jobs if one fails
-      matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12']
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
 
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python 3.14
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: '3.14'
         cache: 'pip'
 
     - name: Set up Node.js
@@ -106,7 +102,7 @@ jobs:
     - name: Upload coverage report
       uses: actions/upload-artifact@v4
       with:
-        name: coverage-report-${{ matrix.python-version }}
+        name: coverage-report-3.14
         path: htmlcov/
         if-no-files-found: ignore
 
@@ -120,7 +116,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.12'
+        python-version: '3.14'
         cache: 'pip'
 
     - name: Set up Node.js
@@ -138,7 +134,7 @@ jobs:
         # Download lark dependency into dist directory for pyodide to find it
         pip download lark -d dist/
         # Download and extract pyodide distribution
-        curl -L https://github.com/pyodide/pyodide/releases/download/0.27.2/pyodide-0.27.2.tar.bz2 -o pyodide.tar.bz2
+        curl -L https://github.com/pyodide/pyodide/releases/download/v314.0.2/pyodide-314.0.2.tar.bz2 -o pyodide.tar.bz2
         tar -xjf pyodide.tar.bz2
         cp -r pyodide/* dist/
         rm -rf pyodide pyodide.tar.bz2
