@@ -36,7 +36,6 @@ asciidoctrine = ["grammar.lark"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 norecursedirs = ["vendor", "venv", ".git", "docs"]
-addopts = "--dist-dir=dist --runner=playwright --runtime=chrome"
 
 [tool.ruff]
 line-length = 88

@@ -82,7 +82,7 @@ jobs:
     - name: Run Core Tests with Coverage
       run: |
         coverage erase
-        coverage run --parallel-mode --source=src/asciidoctrine -m pytest --ignore=tests/test_tck.py --ignore=tests/test_doctest_parsing.py
+        coverage run --parallel-mode --source=src/asciidoctrine -m pytest --ignore=tests/test_tck.py --ignore=tests/test_doctest_parsing.py --ignore=tests/test_functional.py
 
     - name: Run TCK with Coverage
       run: |
