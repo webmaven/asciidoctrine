@@ -115,9 +115,39 @@ When adding support for a new AsciiDoc element:
 *   **Attribute Resolution**: Rich attributes (nodes) are resolved to strings in `attributes.py`.
 *   **Git Submodules**: If submodules are missing or empty, run `git submodule update --init --recursive`.
 
+## 📝 Architectural & Parser Learnings
+
+The following key learnings and design decisions have been consolidated to prevent redundant research and preserve architectural context:
+
+### 1. AST vs. ASG Attribute Separation
+- **AST (Abstract Syntax Tree)**: Created by `parse_to_ast()`. Retains all syntactic block nodes, including `:name: value` (`attribute_entry` nodes), for syntax-level testing and coordinate/formatting tools.
+- **ASG (Abstract Semantic Graph)**: Resolved by `ASGResolver.resolve()`. Standalone `attribute_entry` and `comment` block nodes are **consumed and filtered out** from structural parent lists (`blocks`, `items`, etc.), while their values are resolved and mapped directly to the root `"attributes"` dictionary on the resolved document.
+
+### 2. Mixed Shorthand, Named, and Positional Attribute Parsing
+- In `lark_parser.py`, `attribute_list` handles attributes split by comma (respecting quotes).
+- **Caution**: Do NOT check `attr_str.startswith("#") or attr_str.startswith(".")` as an early-return check. Doing so causes mixed attributes (such as `[#my-id,source,python]`) to fail, as the entire line gets mistakenly swallowed as a single shorthand ID.
+- **Correct Pattern**: Split the entire string by comma first. Then, process each part sequentially, allowing individual parts to match shorthands (`#id` or `.role`), named attributes (`key=value`), options (`%option`), or positional attributes. Finally, map the first positional attribute to `style`, and the second positional to `language` if `style == "source"`.
+
+### 3. Body-Level Attribute Propagation
+- During parsing, `attribute_entry` nodes in the document body are transformed and populate the parser's local dictionary `self.attributes`.
+- These attributes must be propagated to the root `Document.attributes` dictionary so the resolver can find and substitute them. This propagation is handled in the top-level `document` transformer method by updating `doc.attributes` with any unassigned keys from `self.attributes`.
+
+### 4. Listing Node Metadata Properties
+- To cleanly support tools like `asciidoctest` that inspect source code blocks, the `Listing` node in `nodes.py` exposes explicit Python properties:
+  - `id`: Read/write accessor mapped to `self.attributes["id"]`.
+  - `language`: Read/write accessor mapped to `self.attributes["language"]`.
+  - `style`: Read/write accessor mapped to `self.attributes["style"]`.
+  - `listing_title`: A helper property returning the string value of the block title node (`self.title`) or falling back to `self.attributes.get("title")`.
+
 ## 📝 Recording Grammar Learnings
 
 * **Standing Instruction**: When you solve a grammar problem, don't leave the grammar file itself as the only record of whatever solution you devised, record an explanation as prose as well. Include what you tried that *didn't* work, and why.
+
+### 1. Block Macro vs. Description List (DList) Earley Ambiguity
+- **Problem**: Input lines like `toc::[]` (block macros with empty targets and attributes) were being parsed as description list (`dlist`) items instead of block macros.
+- **Cause**: In the Earley parsing algorithm, Lark evaluates all matching branches. `toc::[]` matches `block_macro` (where name is `toc`, target is empty, attributes are empty). However, it *also* matched `dlist -> dlist_item -> dlist_term ("toc" + "::") + dlist_description ("[]" parsed as a paragraph)`. Because Lark chooses the parse tree with the highest sum of node-level priorities, the deeper nested `dlist` tree (~27 sum of priorities) scored higher than the shallow `block_macro` tree (20 priority).
+- **What Didn't Work**: Adding internal priorities on sub-tokens (like `DLIST_MARKER_2` or `WORD`) did not work because the ambiguity exists at the structural rule-matching level, not the token-lexing level.
+- **Solution**: Raised the `block_macro` rule priority in `grammar.lark` to `block_macro.50` so that its single-node tree score always outweighs any nested description list tree structure score.
 
 ## 🤖 Subagent & Model Routing Strategy
 

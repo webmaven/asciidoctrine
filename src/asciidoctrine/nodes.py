@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Iterator, Optional, Sequence, cast
 from typing import List as PyList
+import re
 
 """
 Custom Abstract Syntax Tree (AST) for AsciiDoc parsing.
@@ -577,7 +578,91 @@ class DescriptionListTerm(InlineNode):
         self.inlines: PyList[Node] = list(inlines) if inlines else []
 
 
-class Listing(BlockNode):
+CALLOUT_RE = re.compile(
+    r'\s+'
+    r'(?:(?P<prefix>(?://|#|;;?|--|/\*|<!--)\s*))?'
+    r'(?P<markers>(?:<\d+>\s*|<\.>\s*)+)'
+    r'(?P<suffix>\*/|-->)?'
+    r'\s*$'
+)
+
+HTML_BARE_CALLOUT_RE = re.compile(
+    r'\s+<!--\s*(?P<num>\d+|\.)\s*-->\s*$'
+)
+
+
+class VerbatimBlockMixin:
+    """Mixin class for blocks containing verbatim text/code with callouts (e.g., Listing, Literal)."""
+
+    @property
+    def code(self) -> str:
+        parts = []
+        for child in getattr(self, "inlines", []):
+            if hasattr(child, "value"):
+                parts.append(str(child.value))
+            elif hasattr(child, "text"):
+                parts.append(str(child.text))
+            else:
+                for sub in child.walk():
+                    if hasattr(sub, "value") and getattr(sub, "name", "") == "text":
+                        parts.append(str(sub.value))
+        return "".join(parts)
+
+    @property
+    def stripped_code(self) -> str:
+        lines = self.code.splitlines(keepends=True)
+        stripped_lines = []
+        for line in lines:
+            if line.endswith("\r\n"):
+                text, nl = line[:-2], "\r\n"
+            elif line.endswith("\n"):
+                text, nl = line[:-1], "\n"
+            else:
+                text, nl = line, ""
+
+            m = CALLOUT_RE.search(text)
+            if m:
+                stripped_text = text[:m.start()]
+            else:
+                m2 = HTML_BARE_CALLOUT_RE.search(text)
+                if m2:
+                    stripped_text = text[:m2.start()]
+                else:
+                    stripped_text = text
+            stripped_lines.append(stripped_text + nl)
+        return "".join(stripped_lines)
+
+    @property
+    def callouts(self) -> Dict[int, PyList[int]]:
+        lines = self.code.splitlines()
+        callout_map = {}
+        next_auto = 1
+        for idx, line in enumerate(lines, start=1):
+            m = CALLOUT_RE.search(line)
+            raw_nums = []
+            if m:
+                markers = m.group("markers")
+                raw_nums = re.findall(r'<(\d+|\.)>', markers)
+            else:
+                m2 = HTML_BARE_CALLOUT_RE.search(line)
+                if m2:
+                    raw_nums = [m2.group("num")]
+
+            if raw_nums:
+                line_callouts = []
+                for num in raw_nums:
+                    if num == ".":
+                        line_callouts.append(next_auto)
+                        next_auto += 1
+                    else:
+                        val = int(num)
+                        line_callouts.append(val)
+                        next_auto = max(next_auto, val + 1)
+                callout_map[idx] = line_callouts
+        return callout_map
+
+
+class Listing(VerbatimBlockMixin, BlockNode):
     """A block for preformatted text, typically used for code listings."""
 
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
@@ -600,8 +685,58 @@ class Listing(BlockNode):
     def append(self, child: Node) -> None:
         self.inlines.append(child)
 
+    @property
+    def id(self) -> Optional[str]:
+        return self.attributes.get("id")
 
-class Literal(BlockNode):
+    @id.setter
+    def id(self, value: Optional[str]) -> None:
+        if value is None:
+            self.attributes.pop("id", None)
+        else:
+            self.attributes["id"] = value
+
+    @property
+    def language(self) -> Optional[str]:
+        return self.attributes.get("language")
+
+    @language.setter
+    def language(self, value: Optional[str]) -> None:
+        if value is None:
+            self.attributes.pop("language", None)
+        else:
+            self.attributes["language"] = value
+
+    @property
+    def style(self) -> Optional[str]:
+        return self.attributes.get("style")
+
+    @style.setter
+    def style(self, value: Optional[str]) -> None:
+        if value is None:
+            self.attributes.pop("style", None)
+        else:
+            self.attributes["style"] = value
+
+    @property
+    def listing_title(self) -> Optional[str]:
+        if self.title:
+            parts = []
+            for child in self.title.inlines:
+                if hasattr(child, "value"):
+                    parts.append(str(child.value))
+                elif hasattr(child, "text"):
+                    parts.append(str(child.text))
+                else:
+                    for sub in child.walk():
+                        if hasattr(sub, "value") and getattr(sub, "name", "") == "text":
+                            parts.append(str(sub.value))
+            return "".join(parts)
+        return self.attributes.get("title")
+
+
+
+class Literal(VerbatimBlockMixin, BlockNode):
     """A block for literal text, often used for computer output."""
 
     def get_child_collections(self) -> Dict[str, PyList[Node]]:

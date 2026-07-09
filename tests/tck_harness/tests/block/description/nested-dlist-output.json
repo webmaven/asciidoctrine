@@ -1,0 +1,242 @@
+{
+  "name": "document",
+  "type": "block",
+  "location": [
+    {
+      "line": 1,
+      "col": 1
+    },
+    {
+      "line": 3,
+      "col": 20
+    }
+  ],
+  "blocks": [
+    {
+      "name": "descriptionList",
+      "type": "block",
+      "location": [
+        {
+          "line": 1,
+          "col": 1
+        },
+        {
+          "line": 3,
+          "col": 20
+        }
+      ],
+      "items": [
+        {
+          "name": "descriptionListItem",
+          "type": "block",
+          "location": [
+            {
+              "line": 1,
+              "col": 1
+            },
+            {
+              "line": 3,
+              "col": 20
+            }
+          ],
+          "terms": [
+            {
+              "name": "descriptionListTerm",
+              "type": "inline",
+              "location": [
+                {
+                  "line": 1,
+                  "col": 1
+                },
+                {
+                  "line": 1,
+                  "col": 19
+                }
+              ],
+              "inlines": [
+                {
+                  "name": "text",
+                  "type": "string",
+                  "location": [
+                    {
+                      "line": 1,
+                      "col": 1
+                    },
+                    {
+                      "line": 1,
+                      "col": 17
+                    }
+                  ],
+                  "value": "Operating Systems"
+                }
+              ]
+            }
+          ],
+          "blocks": [
+            {
+              "name": "descriptionList",
+              "type": "block",
+              "location": [
+                {
+                  "line": 2,
+                  "col": 3
+                },
+                {
+                  "line": 3,
+                  "col": 20
+                }
+              ],
+              "items": [
+                {
+                  "name": "descriptionListItem",
+                  "type": "block",
+                  "location": [
+                    {
+                      "line": 2,
+                      "col": 3
+                    },
+                    {
+                      "line": 3,
+                      "col": 20
+                    }
+                  ],
+                  "terms": [
+                    {
+                      "name": "descriptionListTerm",
+                      "type": "inline",
+                      "location": [
+                        {
+                          "line": 2,
+                          "col": 3
+                        },
+                        {
+                          "line": 2,
+                          "col": 10
+                        }
+                      ],
+                      "inlines": [
+                        {
+                          "name": "text",
+                          "type": "string",
+                          "location": [
+                            {
+                              "line": 2,
+                              "col": 3
+                            },
+                            {
+                              "line": 2,
+                              "col": 7
+                            }
+                          ],
+                          "value": "Linux"
+                        }
+                      ]
+                    }
+                  ],
+                  "blocks": [
+                    {
+                      "name": "descriptionList",
+                      "type": "block",
+                      "location": [
+                        {
+                          "line": 3,
+                          "col": 5
+                        },
+                        {
+                          "line": 3,
+                          "col": 20
+                        }
+                      ],
+                      "items": [
+                        {
+                          "name": "descriptionListItem",
+                          "type": "block",
+                          "location": [
+                            {
+                              "line": 3,
+                              "col": 5
+                            },
+                            {
+                              "line": 3,
+                              "col": 20
+                            }
+                          ],
+                          "terms": [
+                            {
+                              "name": "descriptionListTerm",
+                              "type": "inline",
+                              "location": [
+                                {
+                                  "line": 3,
+                                  "col": 5
+                                },
+                                {
+                                  "line": 3,
+                                  "col": 13
+                                }
+                              ],
+                              "inlines": [
+                                {
+                                  "name": "text",
+                                  "type": "string",
+                                  "location": [
+                                    {
+                                      "line": 3,
+                                      "col": 5
+                                    },
+                                    {
+                                      "line": 3,
+                                      "col": 10
+                                    }
+                                  ],
+                                  "value": "Fedora"
+                                }
+                              ]
+                            }
+                          ],
+                          "blocks": [
+                            {
+                              "name": "paragraph",
+                              "type": "block",
+                              "location": [
+                                {
+                                  "line": 3,
+                                  "col": 14
+                                },
+                                {
+                                  "line": 3,
+                                  "col": 20
+                                }
+                              ],
+                              "inlines": [
+                                {
+                                  "name": "text",
+                                  "type": "string",
+                                  "location": [
+                                    {
+                                      "line": 3,
+                                      "col": 14
+                                    },
+                                    {
+                                      "line": 3,
+                                      "col": 20
+                                    }
+                                  ],
+                                  "value": "Desktop"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

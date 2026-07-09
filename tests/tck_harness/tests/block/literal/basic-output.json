@@ -31,6 +31,16 @@
         {
           "name": "text",
           "type": "string",
+          "location": [
+            {
+              "line": 2,
+              "col": 1
+            },
+            {
+              "line": 2,
+              "col": 22
+            }
+          ],
           "value": "A basic literal block."
         }
       ]

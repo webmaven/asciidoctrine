@@ -1,0 +1,136 @@
+{
+  "name": "document",
+  "type": "block",
+  "location": [
+    {
+      "line": 2,
+      "col": 1
+    },
+    {
+      "line": 7,
+      "col": 19
+    }
+  ],
+  "blocks": [
+    {
+      "name": "listing",
+      "type": "block",
+      "location": [
+        {
+          "line": 2,
+          "col": 1
+        },
+        {
+          "line": 5,
+          "col": 4
+        }
+      ],
+      "form": "delimited",
+      "delimiter": "----",
+      "style": "source",
+      "inlines": [
+        {
+          "name": "text",
+          "type": "string",
+          "location": [
+            {
+              "line": 3,
+              "col": 1
+            },
+            {
+              "line": 4,
+              "col": 20
+            }
+          ],
+          "value": "import os # <1>\nprint(\"hello\") # <.>"
+        }
+      ],
+      "attributes": {
+        "style": "source",
+        "language": "python"
+      }
+    },
+    {
+      "name": "calloutList",
+      "type": "block",
+      "location": [
+        {
+          "line": 6,
+          "col": 2
+        },
+        {
+          "line": 7,
+          "col": 19
+        }
+      ],
+      "items": [
+        {
+          "name": "calloutListItem",
+          "type": "block",
+          "location": [
+            {
+              "line": 6,
+              "col": 2
+            },
+            {
+              "line": 6,
+              "col": 20
+            }
+          ],
+          "marker": "<1>",
+          "value": 1,
+          "principal": [
+            {
+              "name": "text",
+              "type": "string",
+              "location": [
+                {
+                  "line": 6,
+                  "col": 5
+                },
+                {
+                  "line": 6,
+                  "col": 20
+                }
+              ],
+              "value": "Import OS module"
+            }
+          ]
+        },
+        {
+          "name": "calloutListItem",
+          "type": "block",
+          "location": [
+            {
+              "line": 7,
+              "col": 2
+            },
+            {
+              "line": 7,
+              "col": 19
+            }
+          ],
+          "marker": "<2>",
+          "value": 2,
+          "principal": [
+            {
+              "name": "text",
+              "type": "string",
+              "location": [
+                {
+                  "line": 7,
+                  "col": 5
+                },
+                {
+                  "line": 7,
+                  "col": 19
+                }
+              ],
+              "value": "Print statement"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

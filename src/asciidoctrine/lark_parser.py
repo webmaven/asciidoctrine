@@ -39,6 +39,7 @@ from .nodes import (
 from .preprocessor import Preprocessor
 from .transformers.block_transformer import BlockTransformer
 from .transformers.inline_transformer import InlineTransformer
+from .transformers.base_transformer import LocationDict
 
 Children = PyList[Any]
 Transformed = Union[Node, Any, Dict[str, Any], PyList[Any], str]
@@ -69,49 +70,14 @@ class AsciiDocTransformer(
         ]
         return node
 
-    def _set_location_from_children(self, node: Node, children: PyList[Any]) -> Node:
-        """Sets the location of a node based on its children's locations."""
-        from lark import Tree
-
-        valid_locations = []
-
-        def collect_locations(item: Any) -> None:
-            if isinstance(item, Node) and item.location:
-                valid_locations.extend(item.location)
-            elif isinstance(item, Token):
-                if item.type == "_NEWLINE" or item.type.startswith("__ANON_"):
-                    return
-                if item.line is not None and item.column is not None:
-                    valid_locations.append({"line": item.line, "col": item.column})
-                if item.end_line is not None and item.end_column is not None:
-                    # Subtract 1 for inclusive end column
-                    valid_locations.append(
-                        {"line": item.end_line, "col": item.end_column - 1}
-                    )
-            elif isinstance(item, Tree):
-                for child in item.children:
-                    collect_locations(child)
-            elif isinstance(item, list):
-                for subitem in item:
-                    collect_locations(subitem)
-
-        for child in children:
-            collect_locations(child)
-
-        if valid_locations:
-            # Filter out any None values just in case
-            valid_locations = [
-                loc for loc in valid_locations if loc.get("line") is not None
-            ]
-            if valid_locations:
-                # Sort by line then col
-                valid_locations.sort(key=lambda x: (x["line"], x["col"]))
-                node.location = [valid_locations[0], valid_locations[-1]]
-        return node
 
     @v_args(meta=True)
     def document(self, meta: Any, children: Children) -> Document:
         doc = cast(Document, children[0])
+        # Propagate all collected attributes (both header and body) to the Document node
+        for k, v in self.attributes.items():
+            if k not in doc.attributes:
+                doc.attributes[k] = v
         return cast(Document, self._set_location_from_children(doc, children))
 
     @v_args(meta=True)
@@ -450,6 +416,13 @@ class AsciiDocTransformer(
 
     @v_args(meta=True)
     def attribute_list(self, meta: Any, children: Children) -> Dict[str, str]:
+        attrs = LocationDict()
+        if meta:
+            attrs.location = [
+                {"line": meta.line, "col": meta.column},
+                {"line": meta.end_line, "col": meta.end_column - 1}
+            ]
+
         attr_str = ""
         for c in children:
             if isinstance(c, Token) and c.type == "attribute_content":
@@ -460,33 +433,6 @@ class AsciiDocTransformer(
                 break
 
         if not attr_str:
-            return {}
-
-        attrs: Dict[str, str] = {}
-
-        if attr_str.startswith("#") or attr_str.startswith("."):
-            curr = attr_str
-            while curr:
-                if curr.startswith("#"):
-                    match = re.search(r"^#([^.# \[\]]+)", curr)
-                    if match:
-                        attrs["id"] = match.group(1)
-                        curr = curr[match.end() :]
-                    else:
-                        break
-                elif curr.startswith("."):
-                    match = re.search(r"^\.([^.# \[\]]+)", curr)
-                    if match:
-                        role = match.group(1)
-                        if "role" in attrs:
-                            attrs["role"] += f" {role}"
-                        else:
-                            attrs["role"] = role
-                        curr = curr[match.end() :]
-                    else:
-                        break
-                else:
-                    break
             return attrs
 
         # Split parts by comma, respecting quoted strings
@@ -509,21 +455,34 @@ class AsciiDocTransformer(
         parts.append("".join(current))
         parts = [p.strip() for p in parts if p.strip()]
 
-        if parts and "=" not in parts[0] and not parts[0].startswith(("#", ".")):
-            attrs["style"] = parts[0]
-
         for part in parts:
             if "=" in part:
                 k, v = part.split("=", 1)
                 attrs[k.strip()] = v.strip().strip('"').strip("'")
-            elif part.startswith("#"):
-                attrs["id"] = part[1:]
-            elif part.startswith("."):
-                role = part[1:]
-                if "role" in attrs:
-                    attrs["role"] += f" {role}"
-                else:
-                    attrs["role"] = role
+            elif part.startswith("#") or part.startswith("."):
+                # Parse shorthands (supporting multiple, e.g. #id.role)
+                curr = part
+                while curr:
+                    if curr.startswith("#"):
+                        match = re.search(r"^#([^.# \[\]]+)", curr)
+                        if match:
+                            attrs["id"] = match.group(1)
+                            curr = curr[match.end() :]
+                        else:
+                            break
+                    elif curr.startswith("."):
+                        match = re.search(r"^\.([^.# \[\]]+)", curr)
+                        if match:
+                            role = match.group(1)
+                            if "role" in attrs:
+                                attrs["role"] += f" {role}"
+                            else:
+                                attrs["role"] = role
+                            curr = curr[match.end() :]
+                        else:
+                            break
+                    else:
+                        break
             elif part.startswith("%"):
                 option = part[1:]
                 if "options" in attrs:
@@ -531,8 +490,15 @@ class AsciiDocTransformer(
                 else:
                     attrs["options"] = option
 
-        if attrs.get("style") == "source" and len(parts) > 1 and "=" not in parts[1]:
-            attrs["language"] = parts[1]
+        # Map positional attributes (non-named, non-shorthand, non-option)
+        positional_parts = [
+            p for p in parts
+            if "=" not in p and not p.startswith(("#", ".", "%"))
+        ]
+        if positional_parts:
+            attrs["style"] = positional_parts[0]
+            if attrs["style"].lower() == "source" and len(positional_parts) > 1:
+                attrs["language"] = positional_parts[1]
 
         return attrs
 

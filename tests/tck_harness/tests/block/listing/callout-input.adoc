@@ -1,0 +1,7 @@
+[source,python]
+----
+import os # <1>
+print("hello") # <.>
+----
+<1> Import OS module
+<2> Print statement

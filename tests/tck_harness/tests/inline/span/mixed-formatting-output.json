@@ -25,7 +25,7 @@
           },
           {
             "line": 1,
-            "col": 5
+            "col": 6
           }
         ],
         "value": "bold "
@@ -66,6 +66,16 @@
       {
         "name": "text",
         "type": "string",
+        "location": [
+          {
+            "line": 1,
+            "col": 15
+          },
+          {
+            "line": 1,
+            "col": 15
+          }
+        ],
         "value": " "
       },
       {

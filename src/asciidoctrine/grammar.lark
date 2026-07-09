@@ -165,7 +165,7 @@ inline_stem: "stem:[" [ATTR_LIST_CONTENT] "]"
 inline_asciimath: "asciimath:[" [ATTR_LIST_CONTENT] "]"
 inline_latexmath: "latexmath:[" [ATTR_LIST_CONTENT] "]"
 
-block_macro.20: WORD "::" [TARGET] [LSQB] [ATTR_LIST_CONTENT] [RSQB] _NEWLINE
+block_macro.50: WORD "::" [TARGET] [LSQB] [ATTR_LIST_CONTENT] [RSQB] _NEWLINE
 
 inline_image: "image:" TARGET inline_attribute_list
 icon_inline: "icon:" TARGET inline_attribute_list

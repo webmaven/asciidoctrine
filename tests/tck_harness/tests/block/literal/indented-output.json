@@ -1,15 +1,45 @@
 {
   "name": "document",
   "type": "block",
+  "location": [
+    {
+      "line": 1,
+      "col": 1
+    },
+    {
+      "line": 1,
+      "col": 18
+    }
+  ],
   "blocks": [
     {
       "name": "literal",
       "type": "block",
+      "location": [
+        {
+          "line": 1,
+          "col": 1
+        },
+        {
+          "line": 1,
+          "col": 18
+        }
+      ],
       "form": "indented",
       "inlines": [
         {
           "name": "text",
           "type": "string",
+          "location": [
+            {
+              "line": 1,
+              "col": 3
+            },
+            {
+              "line": 1,
+              "col": 18
+            }
+          ],
           "value": "indented literal"
         }
       ]

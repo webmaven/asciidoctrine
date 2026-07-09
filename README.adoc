@@ -15,7 +15,7 @@ image:https://img.shields.io/badge/status-alpha-orange.svg[Development Status]
 
 A high-performance, pure-Python AsciiDoc parser built with Lark, designed for compatibility with the official AsciiDoc specification and the TCK.
 
-== 💡 Motivation
+== Motivation
 
 The Python ecosystem has long lacked a modern, maintainable, and specification-compliant AsciiDoc parser. Existing tools are often port-based or rely on regex-heavy implementations that struggle with the complex, context-sensitive nature of AsciiDoc.
 
@@ -25,7 +25,7 @@ Asciidoctrine is built from the ground up to provide:
 2. **First-Class AST**: A structured, type-safe Abstract Syntax Tree that makes building renderers and static analysis tools a breeze.
 3. **Performance**: Leveraging the Lark parsing engine for efficient processing of large documents.
 
-== 🏗 Architecture
+== Architecture
 
 The parser operates in a multi-pass pipeline to handle the inherent complexity of AsciiDoc:
 
@@ -43,76 +43,108 @@ graph LR
 * **AST (Abstract Syntax Tree)**: Represented in `nodes.py`, this is a structural tree of the document elements.
 * **ASG (Abstract Semantic Graph)**: The final resolved state where attributes, cross-references, and includes are fully processed.
 
-== 🛠️ Technical Choices
+== Technical Choices
 
 *   **Lark Parsing Engine**: We use Lark because it supports multiple parsing algorithms (Earley, LALR) and has an experimental PEG mode. This allow us to handle the context-sensitive nature of AsciiDoc without the maintenance nightmare of large regex collections.
 *   **Two-Pass Pipeline**: Handling attributes and includes requires knowing the state of the whole document. Our multi-pass approach ensures that we can resolve semantic details (like cross-references) correctly.
 *   **Pure Python**: Zero C-extensions means easy installation on all platforms including Pyodide and WebAssembly.
 
-== 🚀 Installation
+== Installation & Setup
+
+For developers and contributors, the recommended "happy path" is to set up a local virtual environment and install Asciidoctrine in editable development mode:
 
 [source,bash]
 ----
-pip install asciidoctrine
+# 1. Clone the repository
+git clone https://github.com/webmaven/asciidoctrine.git
+cd asciidoctrine
+
+# 2. Create and activate a Python virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# 3. Install in development mode with test and documentation dependencies
+pip install -e ".[test,docs]"
 ----
 
 > [!NOTE]
-> This package is currently in early alpha. It is being developed in tandem with the official TCK integration.
+> This package is currently under active development in tandem with the official TCK integration.
 
-== 📖 Quick Start
+== Quick Start
+
+Asciidoctrine implements a two-pass resolution pipeline. First, parse the raw source to a syntax-level AST. Then, resolve the AST to a semantic, queryable Abstract Semantic Graph (ASG):
 
 [source,python]
 ----
-from asciidoctrine.lark_parser import parse_to_ast
+from asciidoctrine import parse_to_ast
+from asciidoctrine.resolver import ASGResolver
 
 source = """
 == Section Title
 This is a *bold* word in a paragraph.
 """
 
-# Returns a Document node from nodes.py
-doc = parse_to_ast(source)
+# 1. Parse raw source to syntax-level AST
+ast = parse_to_ast(source)
 
-# Iterate through sections
-for section in doc.walk():
-    if section.type == 'section':
-        print(f"Found section: {section.title_node.children[0].text}")
+# 2. Resolve to semantic ASG (resolves attributes, includes, and filters comments)
+resolver = ASGResolver(ast)
+asg = resolver.resolve(ast)
+
+# Iterate through sections in the ASG blocks list
+for block in asg.blocks:
+    if block.name == "section":
+        title_text = "".join(node.value for node in block.title.inlines if node.name == "text")
+        print(f"Found section: {title_text}")
 ----
 
-=== AST Representation
+=== ASG Representation
 
-Parsing the source above yields a structured representation:
+Calling `asg.to_dict()` yields a structured, spec-compliant representation matching the official AsciiDoc Language ASG schema:
 
 [source,json]
 ----
 {
-  "type": "document",
-  "children": [
+  "name": "document",
+  "type": "block",
+  "blocks": [
     {
-      "type": "section",
+      "name": "section",
+      "type": "block",
       "level": 1,
       "title": {
-        "type": "title",
-        "children": [
-          { "type": "text", "text": "Section Title" }
+        "name": "title",
+        "type": "inline",
+        "inlines": [
+          { "name": "text", "type": "string", "value": "Section Title" }
         ]
       },
-      "children": [
+      "blocks": [
         {
-          "type": "paragraph",
-          "children": [
-            { "type": "text", "text": "This is a " },
-            { "type": "strong", "children": [{ "type": "text", "text": "bold" }] },
-            { "type": "text", "text": " word in a paragraph." }
+          "name": "paragraph",
+          "type": "block",
+          "inlines": [
+            { "name": "text", "type": "string", "value": "This is a " },
+            {
+              "name": "span",
+              "type": "inline",
+              "variant": "strong",
+              "form": "constrained",
+              "inlines": [
+                { "name": "text", "type": "string", "value": "bold" }
+              ]
+            },
+            { "name": "text", "type": "string", "value": " word in a paragraph." }
           ]
         }
       ]
     }
-  ]
+  ],
+  "attributes": {}
 }
 ----
 
-== 🗺 Roadmap to Parity
+== Roadmap to Parity
 
 The path to 1:1 parity with Asciidoctor is tracked through the following phases:
 
@@ -123,13 +155,13 @@ The path to 1:1 parity with Asciidoctor is tracked through the following phases:
 | **0** | **Foundations**: PEG grammar, structured AST, and TCK harness. | ✅
 | **1** | **Advanced Blocks**: Admonitions ✅, Sidebars ✅, Source blocks ✅, and Example blocks ✅. | ✅
 | **2** | **Document Infra**: Headers ✅, attributes ✅, and includes ✅. | ✅
-| **3** | **Tables & Description Lists**: Nested/mixed description lists and advanced table cell alignments/spans (Priority 1). | ⏳
-| **4** | **Testing Integration (`asciidoctest`)**: Code block attributes, callout stripping, and source location tracking (Priority 2). | ⏳
+| **3** | **Tables & Description Lists**: Nested/mixed description lists and advanced table cell alignments/spans. | ✅
+| **4** | **Testing & Developer Experience**: Code block attributes, callout stripping, and precise source location coordinate tracking. | ✅
 | **5** | **Static Site Generator Support**: Auto-slugified section IDs, TOC outline extraction, and cross-references (Priority 3). | ⏳
 | **6** | **Sphinx Extension Support**: Metadata alignment, complete node renderer visitor auditing, and Pygments styling (Priority 4). | ⏳
 |===
 
-== 📁 Project Structure
+== Project Structure
 
 [source,text]
 ----
@@ -146,23 +178,44 @@ asciidoctrine/
 └── README.adoc               # This file
 ----
 
-== 🧪 Testing & Compliance
+== Testing & Compliance
 
 We prioritize correctness by testing against three fronts:
-1. **Unit Tests**: Granular tests for individual grammar rules.
-2. **Integration Suite**: A library of real-world `.adoc` examples.
-3. **TCK (Technology Compatibility Kit)**: (In-Progress) Alignment with the official AsciiDoc TCK suite.
+1. **Unit & Integration Tests**: Granular tests for grammar and semantic components.
+2. **External Corpus (DocTest)**: Real-world examples from the `asciidoctor-doctest` corpus.
+3. **TCK (Technology Compatibility Kit)**: Direct compliance with the official AsciiDoc Language TCK suite.
 
-Run tests locally with:
+Run the stable Pytest suite locally with:
 [source,bash]
 ----
-pytest
+pytest -k "not functional"
 ----
 
-== 🤝 Contributing
+Run the official TCK test suite with:
+[source,bash]
+----
+./run-tck.sh
+----
 
-We welcome contributions! Please see link:CONTRIBUTING.adoc[CONTRIBUTING.adoc] for setup instructions and code style guidelines.
+== Self-Hosted Documentation
 
-== 📜 License
+This project's documentation is authored entirely in AsciiDoc and compiled using Sphinx along with our own self-hosted `asciidoctrine.sphinx_ext` plugin!
+
+Build and view the documentation locally:
+[source,bash]
+----
+# Compile HTML documentation
+sphinx-build -b html docs/ docs/_build/html
+
+# Open in your browser (macOS example)
+open docs/_build/html/index.html
+----
+
+== Contributing
+
+We welcome contributions! Please see link:CONTRIBUTING.adoc[CONTRIBUTING.adoc] for detailed development workflow guidelines, TCK compliance processes, and code style.
+
+== License
 
 Distributed under the **Apache License 2.0**. See link:LICENSE[LICENSE] for details.
+

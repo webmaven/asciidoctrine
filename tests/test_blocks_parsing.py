@@ -97,6 +97,38 @@ class TestBlocks(unittest.TestCase):
             literal["attributes"], {"style": "source", "language": "python"}
         )
 
+    def test_listing_metadata_properties(self):
+        # 1. Inline title and attributes
+        source = "[#my-id,source,python,title=\"My Title\",doctest=True]\n----\ndef foo(): pass\n----\n"
+        ast = parse_to_ast(source)
+        node = ast.blocks[0]
+        
+        # Verify block type
+        from asciidoctrine.nodes import Listing
+        self.assertTrue(isinstance(node, Listing))
+        
+        # Verify programmatic properties
+        self.assertEqual(node.id, "my-id")
+        self.assertEqual(node.language, "python")
+        self.assertEqual(node.style, "source")
+        self.assertEqual(node.listing_title, "My Title")
+        self.assertEqual(node.attributes.get("doctest"), "True")
+        
+        # 2. Block-level title line style
+        source_with_title_line = ".Line Title\n[#my-id,source,python]\n----\ndef foo(): pass\n----\n"
+        ast_with_title_line = parse_to_ast(source_with_title_line)
+        node_with_title_line = ast_with_title_line.blocks[0]
+        self.assertEqual(node_with_title_line.listing_title, "Line Title")
+        
+        # 3. Mutability of properties
+        node.id = "new-id"
+        node.language = "ruby"
+        node.style = "listing"
+        self.assertEqual(node.attributes.get("id"), "new-id")
+        self.assertEqual(node.attributes.get("language"), "ruby")
+        self.assertEqual(node.attributes.get("style"), "listing")
+
+
     def test_section_parsing(self):
         source = "== Section 1\n\nThis is the first section.\n"
         ast = parse_to_ast(source).to_dict()

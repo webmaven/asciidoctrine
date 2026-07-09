@@ -13,8 +13,23 @@
   ],
   "blocks": [
     {
-      "name": "attribute_entry",
+      "name": "attributes",
       "type": "block",
+      "attributes": {
+        "stem": {
+          "value": "",
+          "location": [
+            {
+              "line": 1,
+              "col": 1
+            },
+            {
+              "line": 1,
+              "col": 6
+            }
+          ]
+        }
+      },
       "location": [
         {
           "line": 1,
@@ -24,16 +39,14 @@
           "line": 1,
           "col": 6
         }
-      ],
-      "value": "",
-      "attribute_name": "stem"
+      ]
     },
     {
       "name": "stem",
       "type": "block",
       "location": [
         {
-          "line": 3,
+          "line": 2,
           "col": 1
         },
         {
@@ -48,9 +61,22 @@
         {
           "name": "text",
           "type": "string",
+          "location": [
+            {
+              "line": 4,
+              "col": 1
+            },
+            {
+              "line": 4,
+              "col": 11
+            }
+          ],
           "value": "sqrt(4) = 2"
         }
       ]
     }
-  ]
+  ],
+  "attributes": {
+    "stem": ""
+  }
 }

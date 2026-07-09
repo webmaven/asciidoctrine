@@ -8,10 +8,12 @@ This documentation is self-hosted: it is rendered using Sphinx with our own `asc
 
 == Features
 
-* **Lark-based Grammar**: High-performance parsing using the Earley and LALR algorithms.
-* **Semantic AST**: A structured, type-safe representation of your document.
-* **Sphinx Integration**: Author your documentation in AsciiDoc and render it with Sphinx.
-* **TCK Compliance**: Developed against the official AsciiDoc Technology Compatibility Kit.
+* **Lark-based Grammar**: High-performance, pure-Python parsing using the Earley and LALR algorithms.
+* **Semantic AST/ASG Convergence**: A type-safe representation aligned directly with the official Language ASG schema.
+* **Two-Pass Resolution**: Centralized semantic resolution pass for attributes, includes, and comment stripping.
+* **Advanced Location Tracking**: Highly accurate, child-derived start and end line coordinates on block nodes.
+* **Sphinx Integration**: Full extension support allowing you to author documentation in AsciiDoc and build it natively using Sphinx.
+* **TCK Compliance**: Fully compliant core suite matching the official AsciiDoc Technology Compatibility Kit.
 
 == Project Documents
 
@@ -30,34 +32,37 @@ The following documents have been integrated into this documentation site from t
 
 [NOTE]
 ====
-This section is a summary of our architectural approach.
+This section is a summary of our architectural approach. For full details, please refer to the xref:architecture[Architecture Overview].
 ====
 
 The parser operates in a multi-pass pipeline:
 
 1. **Source Parsing**: Lark processes the source text into a CST.
 2. **Transformation**: Our `AsciiDocTransformer` converts the CST into a structured AST.
-3. **Semantic Resolution**: Attributes, includes, and links are resolved to produce the final ASG.
+3. **Semantic Resolution**: Attributes, includes, and links are resolved by `ASGResolver` to produce the final, spec-compliant ASG.
 
-== Installation
+== Installation & Setup
+
+For developers, install Asciidoctrine locally in editable development mode:
 
 [source,bash]
 ----
-pip install asciidoctrine
+pip install -e ".[test,docs]"
 ----
 
 == Project Roadmap
 
-The project is currently in **Alpha**. We are focusing on achieving (and maintaining) 100% compliance with the TCK core blocks.
+Asciidoctrine is actively moving towards full spec compliance. Our current roadmap status:
 
-=== Core Blocks
-* Sections
-* Paragraphs
-* Lists
-* Admonitions
-* Listing/Source blocks
+=== Completed Features
+* **Foundations**: EBNF grammar, converged AST/ASG structure, and Pytest-integrated TCK harness.
+* **Core & Advanced Blocks**: Sections, Paragraphs, Admonitions, Sidebars, Examples, and Quotes.
+* **Document Infrastructure**: Headers, multi-pass attribute entry propagation/resolution, and includes.
+* **Lists & Tables**: Ordered/unordered lists, complex nested/mixed description lists, and basic tables.
+* **Developer Experience**: Listing metadata properties, verbatim block callout parsing/stripping, and child-derived inclusive location tracking.
 
-=== Coming Soon
-* Tables
-* Footnotes
-* Advanced Cross-references
+=== Next Up
+* Section ID auto-slugification and cross-reference resolution.
+* Sphinx renderer visitor auditing and Pygments styling.
+* TOC outline extraction.
+
