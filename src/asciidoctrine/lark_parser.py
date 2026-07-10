@@ -626,3 +626,34 @@ def parse_to_ast(
     if not isinstance(ast_root, Document):
         raise TypeError("Parsing did not return a Document node.")
     return ast_root
+
+
+_INLINE_PARSER = None
+
+
+def parse_inlines(
+    source: str,
+    grammar_file: str = DEFAULT_GRAMMAR,
+) -> PyList[Node]:
+    """
+    Parses a string containing only inline elements directly starting from 'text_content'.
+    """
+    global _INLINE_PARSER
+    if _INLINE_PARSER is None:
+        with open(grammar_file, "r") as f:
+            grammar = f.read()
+        _INLINE_PARSER = Lark(
+            grammar,
+            start="text_content",
+            parser="earley",
+            ambiguity="resolve",
+            propagate_positions=True,
+        )
+    tree = _INLINE_PARSER.parse(source)
+    result = AsciiDocTransformer().transform(tree)
+    if isinstance(result, list):
+        return result
+    elif isinstance(result, Node):
+        return [result]
+    else:
+        return []

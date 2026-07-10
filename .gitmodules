@@ -7,3 +7,6 @@
 [submodule "vendor/asciidoc-lang"]
 	path = vendor/asciidoc-lang
 	url = https://gitlab.eclipse.org/webmaven2/asciidoc-lang.git
+[submodule "vendor/asciidoc-parsing-lab"]
+	path = vendor/asciidoc-parsing-lab
+	url = https://github.com/opendevise/asciidoc-parsing-lab

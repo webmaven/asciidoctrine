@@ -154,7 +154,7 @@ page_break: "<<<" _NEWLINE
 text_content: inline_element+
 
 attribute_reference.2: LBRACE ATTR_NAME RBRACE
-?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK
+?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK
 
 inline_break: " +"
 inline_kbd: "kbd:[" ATTR_LIST_CONTENT "]"
@@ -173,7 +173,9 @@ icon_inline: "icon:" TARGET inline_attribute_list
 inline_anchor: "[[" text_content "]]" | "anchor:" TARGET inline_attribute_list
 inline_xref: "<<" text_content ">>" | "xref:" TARGET inline_attribute_list
 inline_bibref: "[[[" text_content "]]]"
+inline_link: "link:" TARGET inline_attribute_list | URI inline_attribute_list
 
+URI.3: /(https?|ftp|file|irc):\/\/[^\[\n ]+/ | /mailto:[^\[\n ]+/
 TARGET: /[^\[\n ]+/
 
 footnote: "footnote:" "[" text_content "]"

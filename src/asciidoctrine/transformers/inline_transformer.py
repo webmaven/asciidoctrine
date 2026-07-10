@@ -283,6 +283,35 @@ class InlineTransformer(BaseTransformer):
         return cast(Ref, self._set_location_from_children(ref, children))
 
     @v_args(meta=True)
+    def inline_link(self, meta: Any, children: PyList[Any]) -> Ref:
+        target = str(children[0].value)
+        attrs = (
+            children[1] if len(children) > 1 and isinstance(children[1], dict) else {}
+        )
+        
+        label = attrs.get("style", "")
+        
+        # Handle the caret '^' new-window hint
+        window = None
+        if label.endswith("^"):
+            label = label[:-1]
+            window = "_blank"
+            
+        inlines = []
+        if label:
+            from asciidoctrine.lark_parser import parse_inlines
+            try:
+                inlines = parse_inlines(label)
+            except Exception:
+                inlines = [Text(label)]
+                
+        ref = Ref(variant="link", target=target.strip(), inlines=inlines)
+        if window:
+            ref.attributes["window"] = window
+            
+        return cast(Ref, self._set_location_from_children(ref, children))
+
+    @v_args(meta=True)
     def inline_bibref(self, meta: Any, children: PyList[Any]) -> Ref:
         nodes = children[0]
         target = "".join(

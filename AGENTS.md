@@ -139,6 +139,18 @@ The following key learnings and design decisions have been consolidated to preve
   - `style`: Read/write accessor mapped to `self.attributes["style"]`.
   - `listing_title`: A helper property returning the string value of the block title node (`self.title`) or falling back to `self.attributes.get("title")`.
 
+### 5. AST to ASG Node Structure Mapping
+To produce a TCK-compliant Resolved Abstract Semantic Graph (ASG), the internal AST structure in `nodes.py` aligns directly with the official ASG schema. Each node implements a polymorphic `to_dict()` method producing compliant output:
+- `Document`: `{"name": "document", "type": "block", "blocks": [], "attributes": {}, "header": {}}`
+- `Paragraph`: `{"name": "paragraph", "type": "block", "inlines": []}`
+- `Text`: `{"name": "text", "type": "string", "value": "text content"}`
+- `Span`: `{"name": "span", "type": "inline", "variant": "strong|emphasis|code", "form": "constrained", "inlines": []}`
+- `Section`: `{"name": "section", "type": "block", "level": 1, "title": [], "blocks": []}`
+- `List`: `{"name": "list", "type": "block", "variant": "unordered|ordered", "marker": "*|.", "items": []}`
+- `ListItem`: `{"name": "listItem", "type": "block", "principal": [], "blocks": []}`
+- `Listing`: `{"name": "listing", "type": "block", "form": "delimited", "delimiter": "----", "inlines": []}`
+- `Ref`: `{"name": "ref", "type": "inline", "variant": "link", "target": "url", "inlines": []}`
+
 ## 📝 Recording Grammar Learnings
 
 * **Standing Instruction**: When you solve a grammar problem, don't leave the grammar file itself as the only record of whatever solution you devised, record an explanation as prose as well. Include what you tried that *didn't* work, and why.

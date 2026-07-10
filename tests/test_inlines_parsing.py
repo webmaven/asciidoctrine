@@ -105,6 +105,43 @@ class TestInlines(unittest.TestCase):
         text_node = title_node[0]
         self.assertEqual(text_node["value"], "Cool Project Docs")
 
+    def test_inline_link_macro(self):
+        source = "link:path/to/home.html[Go to Home]\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        paragraph = ast["blocks"][0]
+        link_node = paragraph["inlines"][0]
+        self.assertEqual(link_node["name"], "ref")
+        self.assertEqual(link_node["variant"], "link")
+        self.assertEqual(link_node["target"], "path/to/home.html")
+        self.assertEqual(link_node["inlines"][0]["value"], "Go to Home")
+
+    def test_inline_url_macro(self):
+        source = "https://example.com[example domain]\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        paragraph = ast["blocks"][0]
+        link_node = paragraph["inlines"][0]
+        self.assertEqual(link_node["name"], "ref")
+        self.assertEqual(link_node["variant"], "link")
+        self.assertEqual(link_node["target"], "https://example.com")
+        self.assertEqual(link_node["inlines"][0]["value"], "example domain")
+
+    def test_inline_link_with_nested_formatting(self):
+        source = "https://example.com[_example only_]\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        paragraph = ast["blocks"][0]
+        link_node = paragraph["inlines"][0]
+        self.assertEqual(link_node["inlines"][0]["name"], "span")
+        self.assertEqual(link_node["inlines"][0]["variant"], "emphasis")
+        self.assertEqual(link_node["inlines"][0]["inlines"][0]["value"], "example only")
+
+    def test_inline_link_with_window_caret(self):
+        source = "https://example.com[example domain^]\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        paragraph = ast["blocks"][0]
+        link_node = paragraph["inlines"][0]
+        self.assertEqual(link_node["attributes"]["window"], "_blank")
+        self.assertEqual(link_node["inlines"][0]["value"], "example domain")
+
 
 if __name__ == "__main__":
     unittest.main()
