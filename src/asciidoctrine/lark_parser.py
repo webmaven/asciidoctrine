@@ -453,9 +453,11 @@ class AsciiDocTransformer(
             else:
                 current.append(char)
         parts.append("".join(current))
-        parts = [p.strip() for p in parts if p.strip()]
+        parts = [p.strip() for p in parts]
 
-        for part in parts:
+        for idx, part in enumerate(parts, 1):
+            if not part:
+                continue
             if "=" in part:
                 k, v = part.split("=", 1)
                 attrs[k.strip()] = v.strip().strip('"').strip("'")
@@ -490,15 +492,30 @@ class AsciiDocTransformer(
                 else:
                     attrs["options"] = option
 
-        # Map positional attributes (non-named, non-shorthand, non-option)
+        # Map positional attributes (non-named, non-shorthand, non-option for style/language)
         positional_parts = [
             p for p in parts
-            if "=" not in p and not p.startswith(("#", ".", "%"))
+            if p and "=" not in p and not p.startswith(("#", ".", "%"))
         ]
         if positional_parts:
             attrs["style"] = positional_parts[0]
             if attrs["style"].lower() == "source" and len(positional_parts) > 1:
                 attrs["language"] = positional_parts[1]
+
+        # Store 1-based string keys and the full positional list
+        positional_list = []
+        for idx, part in enumerate(parts, 1):
+            if not part:
+                continue
+            if "=" in part:
+                continue
+            # Shorthands (id, role, options) are included as positional attributes in their raw format
+            val = part.strip('"').strip("'")
+            attrs[str(idx)] = val
+            positional_list.append(val)
+
+        if positional_list:
+            attrs["positional"] = positional_list
 
         return attrs
 

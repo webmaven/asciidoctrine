@@ -94,7 +94,14 @@ class TestBlocks(unittest.TestCase):
         literal = ast["blocks"][0]
         self.assertEqual(literal["name"], "listing")
         self.assertEqual(
-            literal["attributes"], {"style": "source", "language": "python"}
+            literal["attributes"],
+            {
+                "style": "source",
+                "language": "python",
+                "1": "source",
+                "2": "python",
+                "positional": ["source", "python"],
+            },
         )
 
     def test_listing_metadata_properties(self):
@@ -435,7 +442,57 @@ class TestBlocks(unittest.TestCase):
         self.assertEqual(merged_cell["colspan"], 2)
         self.assertEqual(merged_cell.get("rowspan", 1), 1)
         self.assertEqual(merged_cell["align"], "center")
+        self.assertEqual(merged_cell["align"], "center")
         self.assertEqual(merged_cell["style"], "s")
+
+    def test_block_positional_attributes(self):
+        source = """
+[source,python,my-custom-test]
+----
+print("hello")
+----
+"""
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        block = ast["blocks"][0]
+        self.assertEqual(block["name"], "listing")
+        # Legacy mappings
+        self.assertEqual(block["attributes"]["style"], "source")
+        self.assertEqual(block["attributes"]["language"], "python")
+        # 1-based string keys
+        self.assertEqual(block["attributes"]["1"], "source")
+        self.assertEqual(block["attributes"]["2"], "python")
+        self.assertEqual(block["attributes"]["3"], "my-custom-test")
+        # Positional list key
+        self.assertEqual(block["attributes"]["positional"], ["source", "python", "my-custom-test"])
+
+    def test_block_positional_attributes_with_empty_slots(self):
+        source = """
+[, ,third-val]
+====
+Empty slots test
+====
+"""
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        block = ast["blocks"][0]
+        self.assertEqual(block["attributes"]["3"], "third-val")
+        self.assertNotIn("1", block["attributes"])
+        self.assertNotIn("2", block["attributes"])
+        self.assertEqual(block["attributes"]["positional"], ["third-val"])
+
+    def test_block_positional_attributes_mixed(self):
+        source = """
+[source,foo=bar,python]
+----
+print("mixed")
+----
+"""
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        block = ast["blocks"][0]
+        self.assertEqual(block["attributes"]["1"], "source")
+        self.assertEqual(block["attributes"]["foo"], "bar")
+        self.assertEqual(block["attributes"]["3"], "python")
+        self.assertNotIn("2", block["attributes"])
+        self.assertEqual(block["attributes"]["positional"], ["source", "python"])
 
 
 if __name__ == "__main__":
