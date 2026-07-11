@@ -494,6 +494,38 @@ print("mixed")
         self.assertNotIn("2", block["attributes"])
         self.assertEqual(block["attributes"]["positional"], ["source", "python"])
 
+    def test_consecutive_block_attributes_merging(self):
+        source = """
+[.role-one]
+[source,python]
+----
+print("test")
+----
+"""
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        block = ast["blocks"][0]
+        self.assertEqual(block["name"], "listing")
+        self.assertEqual(block["attributes"]["role"], "role-one")
+        self.assertEqual(block["attributes"]["style"], "source")
+        self.assertEqual(block["attributes"]["language"], "python")
+
+    def test_consecutive_block_attributes_merging_three_lines(self):
+        source = """
+[#my-id]
+[.role-one]
+[source,python]
+----
+print("test")
+----
+"""
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        block = ast["blocks"][0]
+        self.assertEqual(block["name"], "listing")
+        self.assertEqual(block["attributes"]["id"], "my-id")
+        self.assertEqual(block["attributes"]["role"], "role-one")
+        self.assertEqual(block["attributes"]["style"], "source")
+        self.assertEqual(block["attributes"]["language"], "python")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -161,6 +161,15 @@ To produce a TCK-compliant Resolved Abstract Semantic Graph (ASG), the internal 
 - **What Didn't Work**: Adding internal priorities on sub-tokens (like `DLIST_MARKER_2` or `WORD`) did not work because the ambiguity exists at the structural rule-matching level, not the token-lexing level.
 - **Solution**: Raised the `block_macro` rule priority in `grammar.lark` to `block_macro.50` so that its single-node tree score always outweighs any nested description list tree structure score.
 
+### 2. Consecutive Block Attributes vs. Paragraph Earley Ambiguity (Issue #72)
+- **Problem**: When block attribute lines were consecutive (such as `[.role-one]` followed by `[source,python]`), if they were preceded by a blank line (anywhere other than the very beginning of the document with no leading blank lines), the first attribute line was parsed as a standalone `paragraph` block containing the stringified representation of the attributes. Only the second attribute line merged with the actual target block.
+- **Cause**: Because `paragraph` is defined as `(text_content _NEWLINE)+`, any attribute line like `[.role-one]\n` can syntactically match `paragraph` as well as `attribute_list` (which is part of the optional `(block_metadata)*` preceding blocks in `attributed_block`). Under some conditions (specifically after a blank line), Lark's Earley parser preferred splitting the blocks into a `paragraph` and an `attributed_block` rather than parsing them as a single `attributed_block` with two `block_metadata` children.
+- **What Didn't Work**:
+  - Assigning a high priority (e.g. `.10`) to the `attribute_list` rule or a priority `.5` to `block_metadata` solved the consecutive attribute issue but broke nested blocks inside sidebars, examples, and admonitions. This is because high-priority `attribute_list` rules shadowed specific block-starter terminals like `ADMONITION_START` (matching `[NOTE]`, `[IMPORTANT]`, etc.), causing the nested blocks to fail parsing entirely.
+- **Solution**:
+  1. Assigned a very low priority of `.1` on `attribute_list` and `anchor` rules in `grammar.lark`. This priority is sufficient to break the tie with `paragraph` (giving the merged `attributed_block` parse tree the necessary edge to always win when there are consecutive attribute lines) without forcing a fallback when parsed within constrained nesting contexts.
+  2. Raised the priority of the `ADMONITION_START` terminal rule to `.5` to ensure specific admonition headers like `[NOTE]` always win over general `attribute_list.1` and are correctly parsed as block admonitions inside sidebars/examples.
+
 ## 🤖 Subagent & Model Routing Strategy
 
 *   **Standing Instruction**: For all coding and coding-adjacent tasks, use your judgement to decide when a lower-power model would be appropriate and run that in a subagent.

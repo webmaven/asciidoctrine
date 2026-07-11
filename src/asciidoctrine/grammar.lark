@@ -84,12 +84,12 @@ attribute_entry.2: COLON ATTR_NAME [BANG] COLON [WHITESPACE] [text_content] _NEW
 BANG: "!"
 
 // Attribute List (e.g., [source,python])
-attribute_list: "[" [ATTR_LIST_CONTENT] "]" _NEWLINE
+attribute_list.1: "[" [ATTR_LIST_CONTENT] "]" _NEWLINE
 ATTR_LIST_CONTENT: /[^\]]+/
 
 inline_attribute_list: "[" [ATTR_LIST_CONTENT] "]"
 
-anchor: "[[" WORD "]]" _NEWLINE
+anchor.1: "[[" WORD "]]" _NEWLINE
 
 // Tables
 table: TABLE_DELIM _NEWLINE (table_cell | _NEWLINE)* TABLE_DELIM _NEWLINE?
@@ -219,7 +219,7 @@ DLIST_MARKER_2: /[ \t]*::(?!:)/
 LISTING_DELIM.2: /[ \t]*-{4,}/
 LITERAL_DELIM.2: /[ \t]*\.{4,}/
 PASSTHROUGH_BLOCK_DELIM.2: /[ \t]*\+{4,}/
-ADMONITION_START: /[ \t]*\[ *(NOTE|TIP|IMPORTANT|WARNING|CAUTION) *\]/
+ADMONITION_START.5: /[ \t]*\[ *(NOTE|TIP|IMPORTANT|WARNING|CAUTION) *\]/
 
 ADMONITION_DELIM_4.2: "===="
 ADMONITION_DELIM_5.2: "====="
