@@ -1032,3 +1032,21 @@ class NodeVisitor:
         for collection in node.get_child_collections().values():
             for child in collection:
                 self.visit(child, **kwargs)
+
+
+class NodeTransformer(NodeVisitor):
+    """A base class for implementing the transformer pattern to modify/rewrite the AST."""
+
+    def generic_visit(self, node: Node, **kwargs: Any) -> Node:
+        for attr_name, collection in list(node.get_child_collections().items()):
+            new_collection = []
+            for child in collection:
+                res = self.visit(child, **kwargs)
+                if res is None:
+                    continue
+                elif isinstance(res, list):
+                    new_collection.extend(res)
+                else:
+                    new_collection.append(res)
+            setattr(node, attr_name, new_collection)
+        return node
