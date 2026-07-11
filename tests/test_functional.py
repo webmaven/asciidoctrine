@@ -89,3 +89,33 @@ def test_advanced_table_cells_functional(selenium):
     assert merged_cell.get("rowspan", 1) == 1
     assert merged_cell["align"] == "center"
     assert merged_cell["style"] == "s"
+
+
+@run_if_pyodide
+def test_node_transformer_functional(selenium):
+    from asciidoctrine.lark_parser import parse_to_ast
+    from asciidoctrine.nodes import NodeTransformer
+
+    class CapitalizeTransformer(NodeTransformer):
+        def visit_text(self, node):
+            node.value = node.value.upper()
+            return node
+
+    source = "Hello world\n"
+    ast = parse_to_ast(source)
+    transformed_ast = CapitalizeTransformer().visit(ast)
+    transformed_dict = transformed_ast.to_dict()
+
+    text_node = transformed_dict["blocks"][0]["inlines"][0]
+    assert text_node["value"] == "HELLO WORLD"
+
+
+@run_if_pyodide
+def test_serializer_functional(selenium):
+    from asciidoctrine.lark_parser import parse_to_ast
+    from asciidoctrine.serializer import serialize_to_asciidoc
+
+    source = "A paragraph with *bold* formatting.\n"
+    ast = parse_to_ast(source)
+    serialized = serialize_to_asciidoc(ast)
+    assert "*bold*" in serialized

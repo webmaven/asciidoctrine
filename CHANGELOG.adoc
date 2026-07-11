@@ -3,10 +3,31 @@
 
 All notable changes to this project will be documented in this file.
 
-== [0.1.0] - 2025-12-22
+== [0.1.0a3] - 2026-07-11
 
 === Added
-* **Project Baseline**: Initial implementation of the AsciiDoc parser.
+* **Native AsciiDoc Serializer** (Issue #74): Created `AsciiDocSerializerVisitor` and the public `serialize_to_asciidoc()` function to serialize any unresolved AST back into standard, clean, valid AsciiDoc source.
+* **NodeTransformer Class** (Issue #73): Introduced `NodeTransformer` to facilitate programmatic AST/ASG modification, replacement, pruning, and expansion.
+* **Native Inline Link Parsing** (Issue #75): Standardized native parsing of inline links/URIs as `Ref` nodes instead of simple text elements.
+* **Expanded Functional & Unit Tests**: Added regression tests for `NodeTransformer`, `serialize_to_asciidoc` under unit suites and Pyodide functional test setups.
+
+=== Fixed
+* **Consecutive Block Attributes Merging** (Issue #72): Resolved a structural Lark Earley ambiguity by lowering the priority of attribute and anchor rules, allowing consecutive metadata lines (e.g. `[.role]\n[source,python]`) to merge correctly.
+* **Positional Attributes Parsing** (Issue #71): Corrected parsing of mixed shorthand, named, and positional attributes without early return collisions.
+
+== [0.1.0a2] - 2026-07-07
+
+=== Added
+* **Nested & Mixed Description Lists**: Complete parsing and ASG structure mapping of recursive definition/description lists.
+* **Advanced Table Cell Formatting**: Full support for inline cell options, colspans, rowspans, text alignment patterns, and cell style operators.
+* **Listing Block Metadata & ASG Resolution**: Direct properties mapping (`id`, `language`, `style`, `listing_title`) on Listing nodes with compliant resolved attributes propagation.
+* **Callout Stripping and Matching**: Implemented robust matching/stripping of callout annotations (`<1>`) from verbatim listing blocks.
+* **Location Accuracy & Consolidation**: Consolidated node coordinates with precise line/column inclusive tracking.
+
+== [0.1.0a1] - 2026-07-07
+
+=== Added
+* **Initial Release**: Published and packaged the baseline AsciiDoc parser.
 * **Structured AST**: Migration from dictionary-based AST to class-based node objects in `nodes.py`.
 * **Nested List Support**: Improved handling of multi-level unordered and ordered lists.
 * **Modern Grammar**: Standardized bold and italic markers and refined word parsing.
