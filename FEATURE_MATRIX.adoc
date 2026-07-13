@@ -9,86 +9,86 @@ This feature matrix maps the standardization, prototyping, testing, and implemen
 | Feature | Language Spec Status | Parsing Lab Prototype | TCK Status | AsciiDoctrine Support
 
 | *Document Header*
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-preprocessor.pegjs[Peggy Preprocessor]
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-tck/-/tree/main/tests/block/header/[TCK Covered]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/header/[TCK Covered]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Attribute Entry Resolution*
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-preprocessor.pegjs[Peggy Preprocessor]
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-tck/-/tree/main/tests/block/header/[TCK Covered]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/header/[TCK Covered]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/resolver.py[Fully Supported]
 
 | *Paragraphs*
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/paragraph.adoc[Standardized]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/paragraph.adoc[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-tck/-/tree/main/tests/block/paragraph/[TCK Covered]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/paragraph/[TCK Covered]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Inline Formatting (Spans)*
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/strong-span.adoc[Standardized]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/strong-span.adoc[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs[Peggy Inlines]
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-tck/-/tree/main/tests/inline/[TCK Covered]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/inline/[TCK Covered]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Sections & Levels*
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-tck/-/tree/main/tests/block/section/[TCK Covered]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/section/[TCK Covered]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Admonition Blocks & Paragraphs*
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-tck/-/tree/main/tests/block/paragraph/[TCK Covered]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/paragraph/[TCK Covered]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Sidebars & Examples*
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-tck/-/tree/main/tests/block/sidebar/[TCK Covered]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/sidebar/[TCK Covered]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Listing & Literal Blocks*
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-tck/-/tree/main/tests/block/listing/[TCK Covered]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/listing/[TCK Covered]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Description Lists*
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-tck/-/tree/main/tests/block/list/[TCK Covered]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/list/[TCK Covered]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Unordered & Ordered Lists*
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-tck/-/tree/main/tests/block/list/[TCK Covered]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/list/[TCK Covered]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Tables*
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-tck/-/tree/main/tests/block/[TCK Covered]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/[TCK Covered]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Block Macros*
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-tck/-/tree/main/tests/block/open/[TCK Covered]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/open/[TCK Covered]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Verbatim Block Callouts*
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-tck/-/tree/main/tests/block/listing/[TCK Covered]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/listing/[TCK Covered]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Include Directives*
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-preprocessor.pegjs[Peggy Preprocessor]
-| link:https://gitlab.eclipse.org/webmaven2/asciidoc-tck/-/tree/main/tests/block/[TCK Covered]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/[TCK Covered]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 |===
