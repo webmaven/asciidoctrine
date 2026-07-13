@@ -93,6 +93,12 @@
 <li><p><strong>Draft</strong>: Conformance tests exist locally in our repository (<code class="docutils literal notranslate"><span class="pre">tests/tck_harness/</span></code>) but have not yet been proposed upstream.</p></li>
 </ul>
 </dd>
+<dt>AsciiDoctrine Support</dt><dd><ul class="simple">
+<li><p><strong>Fully Supported</strong>: Fully handled from grammar and AST transformation through to the Docutils renderer backend.</p></li>
+<li><p><strong>Partially Supported</strong>: Supported in parsing/AST but incomplete or unhandled in the Docutils/Sphinx renderer backend.</p></li>
+<li><p><strong>Not Supported</strong>: Not yet implemented in the parser’s EBNF grammar or AST.</p></li>
+</ul>
+</dd>
 </dl>
 </section>
 <section id="id3">
@@ -211,7 +217,7 @@
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-page-break-macro">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p>-</p></td>
-<td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
+<td><p>Partially Supported (Parsed into <code class="docutils literal notranslate"><span class="pre">PageBreak</span></code> AST node, but behaves as a no-op in the Docutils/Sphinx renderer backend)</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>Thematic Breaks / Horizontal Rules</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-thematic-break-macro">Outline</a></p></td>
@@ -241,7 +247,7 @@
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-collapsible">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p>-</p></td>
-<td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
+<td><p>Not Supported (No parsing rules or AST representation exist)</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>STEM Blocks</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-delimited-blocks--structural-containers">Outline</a></p></td>
@@ -265,37 +271,37 @@
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-footnote-macro">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs">Peggy Inlines</a></p></td>
 <td><p>-</p></td>
-<td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
+<td><p>Partially Supported (Parsed into standard <code class="docutils literal notranslate"><span class="pre">Ref(variant=&quot;footnote&quot;)</span></code> AST nodes, but lacks specific Docutils footnote elements rendering in backend)</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>Index Terms</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-index-term-macros">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs">Peggy Inlines</a></p></td>
 <td><p>-</p></td>
-<td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
+<td><p>Not Supported (No parsing rules or AST representation exist)</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>Typographic Replacements</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-typographic-replacements">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs">Peggy Inlines</a></p></td>
 <td><p>-</p></td>
-<td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
+<td><p>Not Supported (Not parsed directly into AST structure; managed outside the parser context)</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>Floating Contentless Anchors</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-ids--reference-names">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs">Peggy Inlines</a></p></td>
 <td><p>-</p></td>
-<td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
+<td><p>Partially Supported (Parsed into standard <code class="docutils literal notranslate"><span class="pre">Ref(variant=&quot;anchor&quot;)</span></code> AST nodes, but falls back to generic link reference nodes in the Docutils backend)</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>Conditional Preprocessor Directives</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-conditional-directives">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-preprocessor.pegjs">Peggy Preprocessor</a></p></td>
 <td><p>-</p></td>
-<td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
+<td><p>Not Supported (No preprocessor-level conditional filtering is implemented yet)</p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>Comment Lines &amp; Blocks</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-comments">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-preprocessor.pegjs">Peggy Preprocessor</a></p></td>
 <td><p>-</p></td>
-<td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
+<td><p>Partially Supported (Line comments are fully parsed and supported, but delimited comment blocks <code class="docutils literal notranslate"><span class="pre">////</span></code> are not)</p></td>
 </tr>
 <tr class="row-even"><td><p><strong>Verbatim Block Callouts</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-callout-lists">Outline</a></p></td>
