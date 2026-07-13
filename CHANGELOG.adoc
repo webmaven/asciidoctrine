@@ -3,6 +3,19 @@
 
 All notable changes to this project will be documented in this file.
 
+== link:https://pypi.org/project/asciidoctrine/0.1.0a7/[0.1.0a7] - 2026-07-13
+
+=== Added
+* **Footnotes and Named Footnoterefs Support**:
+  * **EBNF Grammar & AST Transformation**: Added complete, prioritized EBNF grammar rules in `grammar.lark` for standard auto-numbered `footnote:[text]`, named definitions `footnoteref:[id, text]`, and subsequent references `footnoteref:[id]`. Implemented strict coordinate tracking and resolved bracket/comma lexer conflicts.
+  * **Docutils/Sphinx Rendering**: Developed dynamic footnote rendering inside `DocutilsRenderer` to collect definitions, auto-number them, render them as aligned label/body pairs, and position footnote tables elegantly at the bottom of the output document.
+  * **Lossless AST Serialization**: Added full round-trip formatting inside `AsciiDocSerializerVisitor` to preserve footnotes and definitions with exact character accuracy.
+  * **TCK Conformance Tests**: Authored and integrated two complete local TCK specification tests inside `vendor/asciidoc-tck/` and `tests/tck_harness/` for auto-numbered and named footnote macros.
+* **Expanded Feature Matrix Audit**:
+  * Cross-referenced `FEATURE_MATRIX.adoc` with the 1,748-line official specification `outline.adoc` to add **10 new feature rows** tracking specification progress, Peggy prototyping, TCK status, and explicit support levels (including checklists, block/inline passthroughs, TOC macro, and autolinks).
+* **Developer Experience (DX) Error Handling Roadmap**:
+  * Created a detailed architectural feature design (Issue #78) for strict diagnostics (visual carets), forgiving puppet-driven error recovery, and a formatting linter.
+
 == link:https://pypi.org/project/asciidoctrine/0.1.0a6/[0.1.0a6] - 2026-07-12
 
 === Added

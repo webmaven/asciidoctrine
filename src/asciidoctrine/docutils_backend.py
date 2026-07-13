@@ -55,8 +55,15 @@ class DocutilsRenderer(NodeVisitor):
     def __init__(self, document: nodes.document):
         self.document = document
         self.current_node: nodes.Element = document
+        self.footnotes: list[nodes.footnote] = []
+        self.footnote_by_custom_id: dict[str, tuple[str, str]] = {}
+        self.footnote_counter = 0
 
     def visit_document(self, node: Document) -> None:
+        self.footnotes = []
+        self.footnote_by_custom_id = {}
+        self.footnote_counter = 0
+
         if node.header and (header_title := node.header.title):
             root_section = nodes.section()
             self.document.set_id(root_section)
@@ -77,6 +84,9 @@ class DocutilsRenderer(NodeVisitor):
         else:
             for block in node.blocks:
                 self.visit(block)
+
+        for fn in self.footnotes:
+            self.document += fn
 
     def visit_section(self, node: Section) -> None:
         section = nodes.section()
@@ -347,13 +357,84 @@ class DocutilsRenderer(NodeVisitor):
         self.current_node = old_parent
 
     def visit_ref(self, node: Ref) -> None:
+        if node.variant == "footnote":
+            custom_id = node.target
+            if custom_id:
+                if node.inlines:
+                    # Defining footnoteref:[custom_id, text]
+                    self.footnote_counter += 1
+                    docutils_id = f"fn-{custom_id}"
+                    label = str(self.footnote_counter)
+                    self.footnote_by_custom_id[custom_id] = (label, docutils_id)
+
+                    fn_node = nodes.footnote(ids=[docutils_id])
+                    fn_node += nodes.label("", label)
+
+                    fn_para = nodes.paragraph()
+                    old_parent = self.current_node
+                    self.current_node = fn_para
+                    for inline in node.inlines:
+                        self.visit(inline)
+                    self.current_node = old_parent
+
+                    fn_node += fn_para
+                    self.footnotes.append(fn_node)
+
+                    ref_node = nodes.footnote_reference(refid=docutils_id)
+                    ref_node += nodes.Text(label)
+                    self.current_node += ref_node
+                else:
+                    # Referencing footnoteref:[custom_id]
+                    if custom_id in self.footnote_by_custom_id:
+                        label, docutils_id = self.footnote_by_custom_id[custom_id]
+                        ref_node = nodes.footnote_reference(refid=docutils_id)
+                        ref_node += nodes.Text(label)
+                        self.current_node += ref_node
+                    else:
+                        self.footnote_counter += 1
+                        docutils_id = f"fn-{custom_id}"
+                        label = str(self.footnote_counter)
+                        self.footnote_by_custom_id[custom_id] = (label, docutils_id)
+
+                        fn_node = nodes.footnote(ids=[docutils_id])
+                        fn_node += nodes.label("", label)
+                        fn_node += nodes.paragraph("", "")
+                        self.footnotes.append(fn_node)
+
+                        ref_node = nodes.footnote_reference(refid=docutils_id)
+                        ref_node += nodes.Text(label)
+                        self.current_node += ref_node
+            else:
+                # Standard auto-numbered footnote:[text]
+                self.footnote_counter += 1
+                docutils_id = f"fn-{self.footnote_counter}"
+                label = str(self.footnote_counter)
+
+                fn_node = nodes.footnote(ids=[docutils_id])
+                fn_node += nodes.label("", label)
+
+                fn_para = nodes.paragraph()
+                old_parent = self.current_node
+                self.current_node = fn_para
+                for inline in node.inlines:
+                    self.visit(inline)
+                self.current_node = old_parent
+
+                fn_node += fn_para
+                self.footnotes.append(fn_node)
+
+                ref_node = nodes.footnote_reference(refid=docutils_id)
+                ref_node += nodes.Text(label)
+                self.current_node += ref_node
+            return
+
         # Handle cross-references and links
-        ref_node = nodes.reference()
+        link_node = nodes.reference()
 
         # Determine URI or Reference ID
         target = node.target
         if node.variant == "link":
-            ref_node["refuri"] = target
+            link_node["refuri"] = target
         elif node.variant == "xref":
             # If target looks like a filename without extension, assume .html for
             # Sphinx/HTML
@@ -361,15 +442,15 @@ class DocutilsRenderer(NodeVisitor):
                 target = target + ".html"
             else:
                 target = target.replace(".adoc", ".html")
-            ref_node["refuri"] = target
+            link_node["refuri"] = target
         else:
-            ref_node["refuri"] = target
+            link_node["refuri"] = target
 
         old_parent = self.current_node
-        self.current_node = ref_node
+        self.current_node = link_node
         for inline in node.inlines:
             self.visit(inline)
-        old_parent += ref_node
+        old_parent += link_node
         self.current_node = old_parent
 
     def visit_listing(self, node: Listing) -> None:
@@ -529,7 +610,12 @@ def asciidoc_to_docutils(source: str, base_dir: Optional[str] = None) -> nodes.d
 
     ast = parse_to_ast(source, base_dir=base_dir)
 
-    settings = OptionParser(components=()).get_default_values()
+    try:
+        from docutils.frontend import get_default_settings
+
+        settings = get_default_settings()
+    except ImportError:
+        settings = OptionParser(components=()).get_default_values()
     document = new_document("<string>", settings=settings)
 
     renderer = DocutilsRenderer(document)

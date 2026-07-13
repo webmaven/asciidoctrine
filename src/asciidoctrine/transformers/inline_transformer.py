@@ -128,6 +128,10 @@ class InlineTransformer(BaseTransformer):
         return cast(PyList[Node], self.text_content(meta, children))
 
     @v_args(meta=True)
+    def footnote_text_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
+        return cast(PyList[Node], self.text_content(meta, children))
+
+    @v_args(meta=True)
     def bold(self, meta: Any, children: PyList[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
         span = Span(
@@ -214,7 +218,7 @@ class InlineTransformer(BaseTransformer):
         target = ""
         inlines = []
         for c in children:
-            if isinstance(c, Token) and c.type == "WORD":
+            if isinstance(c, Token) and c.type in ("WORD", "FN_ID"):
                 target = str(c.value)
             elif isinstance(c, list):
                 inlines = c

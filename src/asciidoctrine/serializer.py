@@ -453,6 +453,22 @@ class AsciiDocSerializerVisitor(NodeVisitor):
             if label_parts:
                 self.write(f", {''.join(label_parts)}")
             self.write(">>")
+        elif variant == "footnote":
+            if not target:
+                self.write("footnote:[")
+                label_parts = []
+                for child in getattr(node, "inlines", []):
+                    label_parts.append(AsciiDocSerializerVisitor().serialize(child))
+                self.write("".join(label_parts))
+                self.write("]")
+            else:
+                self.write(f"footnoteref:[{target}")
+                label_parts = []
+                for child in getattr(node, "inlines", []):
+                    label_parts.append(AsciiDocSerializerVisitor().serialize(child))
+                if label_parts:
+                    self.write(f", {''.join(label_parts)}")
+                self.write("]")
 
     def visit_image(self, node: Node) -> None:
         target = getattr(node, "target", "")

@@ -1,0 +1,1 @@
+A paragraph with footnote:[This is an auto-numbered footnote.].

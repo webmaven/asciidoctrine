@@ -1,0 +1,65 @@
+[
+  {
+    "name": "text",
+    "type": "string",
+    "location": [
+      {
+        "line": 1,
+        "col": 1
+      },
+      {
+        "line": 1,
+        "col": 17
+      }
+    ],
+    "value": "A paragraph with "
+  },
+  {
+    "name": "ref",
+    "type": "inline",
+    "location": [
+      {
+        "line": 1,
+        "col": 28
+      },
+      {
+        "line": 1,
+        "col": 61
+      }
+    ],
+    "variant": "footnote",
+    "target": "",
+    "inlines": [
+      {
+        "name": "text",
+        "type": "string",
+        "location": [
+          {
+            "line": 1,
+            "col": 28
+          },
+          {
+            "line": 1,
+            "col": 61
+          }
+        ],
+        "value": "This is an auto-numbered footnote."
+      }
+    ]
+  },
+  {
+    "name": "text",
+    "type": "string",
+    "location": [
+      {
+        "line": 1,
+        "col": 63
+      },
+      {
+        "line": 1,
+        "col": 63
+      }
+    ],
+    "value": "."
+  }
+]

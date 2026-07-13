@@ -171,3 +171,55 @@ Section 1 content.
     assert isinstance(sec1, nodes.section)
     assert sec1[0].astext() == "Section 1"
     assert sec1[1].astext() == "Section 1 content."
+
+
+def test_footnote_rendering_conversion():
+    # 1. Test auto-numbered footnote
+    source_auto = "This is a paragraph with footnote:[Auto-numbered footnote content]."
+    doc_auto = asciidoc_to_docutils(source_auto)
+
+    # The paragraph should have a footnote reference
+    para = doc_auto[0]
+    assert isinstance(para, nodes.paragraph)
+    assert len(para.children) == 3  # Text, footnote_reference, Text (trailing period)
+    assert isinstance(para.children[1], nodes.footnote_reference)
+    ref = para.children[1]
+    assert ref["refid"] == "fn-1"
+    assert ref.astext() == "1"
+
+    # The footnote body should be appended to the document root
+    assert len(doc_auto) == 2  # Paragraph and the footnote body
+    fn_body = doc_auto[1]
+    assert isinstance(fn_body, nodes.footnote)
+    assert fn_body["ids"] == ["fn-1"]
+    assert isinstance(fn_body[0], nodes.label)
+    assert fn_body[0].astext() == "1"
+    assert isinstance(fn_body[1], nodes.paragraph)
+    assert fn_body[1].astext() == "Auto-numbered footnote content"
+
+    # 2. Test named footnoteref definition and subsequent reference
+    source_named = "Define here footnoteref:[my-custom-id, Named footnote content], and reference again footnoteref:[my-custom-id]."
+    doc_named = asciidoc_to_docutils(source_named)
+
+    para_named = doc_named[0]
+    assert isinstance(para_named, nodes.paragraph)
+    # Inline children: [Text, footnote_ref1, Text, footnote_ref2, Text (trailing period)]
+    assert len(para_named.children) == 5
+
+    ref1 = para_named.children[1]
+    assert isinstance(ref1, nodes.footnote_reference)
+    assert ref1["refid"] == "fn-my-custom-id"
+    assert ref1.astext() == "1"
+
+    ref2 = para_named.children[3]
+    assert isinstance(ref2, nodes.footnote_reference)
+    assert ref2["refid"] == "fn-my-custom-id"
+    assert ref2.astext() == "1"
+
+    # Footnote body appended to document root
+    assert len(doc_named) == 2
+    fn_body_named = doc_named[1]
+    assert isinstance(fn_body_named, nodes.footnote)
+    assert fn_body_named["ids"] == ["fn-my-custom-id"]
+    assert fn_body_named[0].astext() == "1"
+    assert fn_body_named[1].astext() == "Named footnote content"

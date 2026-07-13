@@ -190,3 +190,18 @@ toc::[]
         self.assertIn("\r\nParagraph 1\r\n", serialized)
         self.assertNotIn("\n", serialized.replace("\r\n", ""))
         self.assertTrue(serialized.endswith("\r\n"))
+
+    def test_footnotes_serialization(self):
+        # 1. Standard auto-numbered footnote
+        source1 = (
+            "This is a paragraph with footnote:[Auto-numbered footnote content].\n"
+        )
+        ast1 = parse_to_ast(source1)
+        serialized1 = serialize_to_asciidoc(ast1)
+        self.assertEqual(serialized1, source1)
+
+        # 2. Named footnote definition and subsequent reference
+        source2 = "Define here footnoteref:[my-custom-id, Named footnote content], and reference again footnoteref:[my-custom-id].\n"
+        ast2 = parse_to_ast(source2)
+        serialized2 = serialize_to_asciidoc(ast2)
+        self.assertEqual(serialized2, source2)

@@ -1,0 +1,96 @@
+[
+  {
+    "name": "text",
+    "type": "string",
+    "location": [
+      {
+        "line": 1,
+        "col": 1
+      },
+      {
+        "line": 1,
+        "col": 7
+      }
+    ],
+    "value": "A term "
+  },
+  {
+    "name": "ref",
+    "type": "inline",
+    "location": [
+      {
+        "line": 1,
+        "col": 21
+      },
+      {
+        "line": 1,
+        "col": 49
+      }
+    ],
+    "variant": "footnote",
+    "target": "fn-term",
+    "inlines": [
+      {
+        "name": "text",
+        "type": "string",
+        "location": [
+          {
+            "line": 1,
+            "col": 30
+          },
+          {
+            "line": 1,
+            "col": 49
+          }
+        ],
+        "value": "Detailed definition."
+      }
+    ]
+  },
+  {
+    "name": "text",
+    "type": "string",
+    "location": [
+      {
+        "line": 1,
+        "col": 51
+      },
+      {
+        "line": 1,
+        "col": 63
+      }
+    ],
+    "value": ". Subsequent "
+  },
+  {
+    "name": "ref",
+    "type": "inline",
+    "location": [
+      {
+        "line": 1,
+        "col": 77
+      },
+      {
+        "line": 1,
+        "col": 83
+      }
+    ],
+    "variant": "footnote",
+    "target": "fn-term"
+  },
+  {
+    "name": "text",
+    "type": "string",
+    "location": [
+      {
+        "line": 1,
+        "col": 85
+      },
+      {
+        "line": 1,
+        "col": 85
+      }
+    ],
+    "value": "."
+  }
+]

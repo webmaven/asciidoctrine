@@ -156,6 +156,9 @@ text_content: inline_element+
 attribute_reference.2: LBRACE ATTR_NAME RBRACE
 ?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
 
+footnote_text_content: footnote_inline_element+
+?footnote_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | BACKTICK | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
+
 inline_break: " +"
 inline_kbd: "kbd:[" ATTR_LIST_CONTENT "]"
 inline_button: "btn:[" ATTR_LIST_CONTENT "]"
@@ -178,8 +181,8 @@ inline_link.10: "link:" (TARGET | URI) inline_attribute_list | URI inline_attrib
 URI.3: /(https?|ftp|file|irc):\/\/[^\[\n ]+/ | /mailto:[^\[\n ]+/
 TARGET: /[^\[\n ]+/
 
-footnote: "footnote:" "[" text_content "]"
-footnoteref: "footnoteref:" "[" [WORD] ["," text_content] "]"
+footnote.10: "footnote:" "[" footnote_text_content "]"
+footnoteref.10: "footnoteref:" "[" [FN_ID] ["," [WHITESPACE] footnote_text_content] "]"
 
 // Text that allows substitutions but NOT formatting (for now, simplistic)
 literal_content: /[^\n`]+/ 
@@ -268,6 +271,7 @@ _WS: /[ \t]/
 WHITESPACE: _WS+
 NUMBER: /[0-9]+/
 ATTR_NAME: /[a-zA-Z0-9_\-]+/
+FN_ID: /[a-zA-Z0-9_\-]+/
 WORD: /[^ \t\n*_`=\[\]{}:]+/  // Word characters (not whitespace or markup)
 LBRACE: "{"
 RBRACE: "}"
