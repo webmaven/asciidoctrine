@@ -15,6 +15,7 @@ release = "0.1.0"
 extensions = [
     "sphinx_rtd_theme",
     "asciidoctrine.sphinx_ext",
+    "sphinx.ext.githubpages",
 ]
 
 templates_path = ["_templates"]
