@@ -3,6 +3,13 @@
 
 All notable changes to this project will be documented in this file.
 
+== link:https://pypi.org/project/asciidoctrine/0.1.0a5/[0.1.0a5] - 2026-07-12
+
+=== Fixed
+* **Earley Parser Description List Term Grouping**: Corrected parsing priorities of nested lists to natively prefer grouping multiple consecutive terms under a single description list item (resolving TCK compliance failures on multi-term definitions).
+* **Block ASG Conformance**: Implemented recursive block-level attribute cleaning inside the ASG Resolver to filter out syntactic positional/style keys (like `'1'`, `'positional'`, and `'style'`) from resolved block-level metadata, achieving 100% compliant and clean ASG output for all blocks including `Stem` and `Verse`.
+* **Pyodide Sandbox Wheel Parsing**: Added standard dynamic wheel version mapping inside functional tests via `tomllib` to prevent version mismatch crashes in local/CI sandbox executions.
+
 == link:https://pypi.org/project/asciidoctrine/0.1.0a4/[0.1.0a4] - 2026-07-12
 
 === Added

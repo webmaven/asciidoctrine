@@ -14,7 +14,7 @@ from .nodes import (
 )
 from .serializer import serialize_to_asciidoc
 
-__version__ = "0.1.0a4"
+__version__ = "0.1.0a5"
 
 __all__ = [
     "parse_to_ast",
