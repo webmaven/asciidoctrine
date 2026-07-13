@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.abspath("../src"))
 
 # -- Project information -----------------------------------------------------
 
-project = "Asciidoctrine"
+project = "AsciiDoctrine"
 copyright = "2026, Michael R. Bernstein"
 author = "Michael R. Bernstein"
 release = "0.1.0"

@@ -626,6 +626,22 @@ def parse_to_ast(
     base_dir: Optional[str] = None,
     safe_mode: bool = True,
 ) -> Document:
+    # Detect if the original document preferred Windows CRLF or standard Unix LF
+    # by checking if the very first newline sequence in the file is \r\n
+    first_lf = source.find("\n")
+    if first_lf != -1 and first_lf > 0 and source[first_lf - 1] == "\r":
+        line_ending = "\r\n"
+    else:
+        line_ending = "\n"
+
+    had_trailing_newline = source.endswith("\n") or source.endswith("\r") if source else True
+
+    # Standardize all line endings to LF for internal parsing robust performance
+    source = source.replace("\r\n", "\n").replace("\r", "\n")
+
+    if source and not source.endswith("\n"):
+        source += "\n"
+
     preprocessor = Preprocessor(base_dir, safe_mode=safe_mode)
     processed_source = preprocessor.process(source)
 
@@ -642,6 +658,8 @@ def parse_to_ast(
     ast_root = AsciiDocTransformer().transform(tree)
     if not isinstance(ast_root, Document):
         raise TypeError("Parsing did not return a Document node.")
+    ast_root.had_trailing_newline = had_trailing_newline
+    ast_root.line_ending = line_ending
     return ast_root
 
 

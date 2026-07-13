@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-TCK Adapter for Asciidoctrine.
+TCK Adapter for AsciiDoctrine.
 Converts AsciiDoc source to TCK-compliant ASG JSON.
 """
 

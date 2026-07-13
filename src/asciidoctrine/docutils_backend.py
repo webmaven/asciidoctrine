@@ -58,16 +58,25 @@ class DocutilsRenderer(NodeVisitor):
 
     def visit_document(self, node: Document) -> None:
         if node.header and (header_title := node.header.title):
+            root_section = nodes.section()
+            self.document.set_id(root_section)
+
             title = nodes.title()
             old_parent = self.current_node
             self.current_node = title
             for inline in header_title.inlines:
                 self.visit(inline)
-            self.document += title
-            self.current_node = old_parent
+            root_section += title
 
-        for block in node.blocks:
-            self.visit(block)
+            self.current_node = root_section
+            for block in node.blocks:
+                self.visit(block)
+
+            self.document += root_section
+            self.current_node = old_parent
+        else:
+            for block in node.blocks:
+                self.visit(block)
 
     def visit_section(self, node: Section) -> None:
         section = nodes.section()

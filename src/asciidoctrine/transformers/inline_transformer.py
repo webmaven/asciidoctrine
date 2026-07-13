@@ -110,6 +110,27 @@ class InlineTransformer(BaseTransformer):
         return nodes
 
     @v_args(meta=True)
+    def bold_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
+        return self.text_content(meta, children)
+
+    @v_args(meta=True)
+    def italic_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
+        return self.text_content(meta, children)
+
+    @v_args(meta=True)
+    def marked_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
+        return self.text_content(meta, children)
+
+    @v_args(meta=True)
+    def superscript_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
+        return self.text_content(meta, children)
+
+    @v_args(meta=True)
+    def subscript_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
+        return self.text_content(meta, children)
+
+
+    @v_args(meta=True)
     def bold(self, meta: Any, children: PyList[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
         span = Span(

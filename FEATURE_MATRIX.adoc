@@ -1,0 +1,94 @@
+= AsciiDoc Feature Matrix
+:toc: left
+:toclevels: 2
+
+This feature matrix maps the standardization, prototyping, testing, and implementation status of core AsciiDoc features. It serves as an authoritative guide for tracking spec conformance across the working group submodules and our own parser implementation.
+
+[cols="2,2,2,2,2",options="header"]
+|===
+| Feature | Language Spec Status | Parsing Lab Prototype | TCK Status | AsciiDoctrine Support
+
+| *Document Header*
+| link:vendor/asciidoc-lang/spec/outline.adoc[Standardized]
+| link:vendor/asciidoc-parsing-lab/grammar/asciidoc-preprocessor.pegjs[Peggy Preprocessor]
+| link:vendor/asciidoc-tck/tests/block/header/[TCK Covered]
+| link:src/asciidoctrine/lark_parser.py[Fully Supported]
+
+| *Attribute Entry Resolution*
+| link:vendor/asciidoc-lang/spec/outline.adoc[Standardized]
+| link:vendor/asciidoc-parsing-lab/grammar/asciidoc-preprocessor.pegjs[Peggy Preprocessor]
+| link:vendor/asciidoc-tck/tests/block/header/[TCK Covered]
+| link:src/asciidoctrine/resolver.py[Fully Supported]
+
+| *Paragraphs*
+| link:vendor/asciidoc-lang/spec/modules/ROOT/pages/paragraph.adoc[Standardized]
+| link:vendor/asciidoc-parsing-lab/grammar/asciidoc-block.pegjs[Peggy Blocks]
+| link:vendor/asciidoc-tck/tests/block/paragraph/[TCK Covered]
+| link:src/asciidoctrine/lark_parser.py[Fully Supported]
+
+| *Inline Formatting (Spans)*
+| link:vendor/asciidoc-lang/spec/modules/ROOT/pages/strong-span.adoc[Standardized]
+| link:vendor/asciidoc-parsing-lab/grammar/asciidoc-inline.pegjs[Peggy Inlines]
+| link:vendor/asciidoc-tck/tests/inline/[TCK Covered]
+| link:src/asciidoctrine/lark_parser.py[Fully Supported]
+
+| *Sections & Levels*
+| link:vendor/asciidoc-lang/spec/outline.adoc[Standardized]
+| link:vendor/asciidoc-parsing-lab/grammar/asciidoc-block.pegjs[Peggy Blocks]
+| link:vendor/asciidoc-tck/tests/block/section/[TCK Covered]
+| link:src/asciidoctrine/lark_parser.py[Fully Supported]
+
+| *Admonition Blocks & Paragraphs*
+| link:vendor/asciidoc-lang/spec/outline.adoc[Standardized]
+| link:vendor/asciidoc-parsing-lab/grammar/asciidoc-block.pegjs[Peggy Blocks]
+| link:vendor/asciidoc-tck/tests/block/paragraph/[TCK Covered]
+| link:src/asciidoctrine/lark_parser.py[Fully Supported]
+
+| *Sidebars & Examples*
+| link:vendor/asciidoc-lang/spec/outline.adoc[Standardized]
+| link:vendor/asciidoc-parsing-lab/grammar/asciidoc-block.pegjs[Peggy Blocks]
+| link:vendor/asciidoc-tck/tests/block/sidebar/[TCK Covered]
+| link:src/asciidoctrine/lark_parser.py[Fully Supported]
+
+| *Listing & Literal Blocks*
+| link:vendor/asciidoc-lang/spec/outline.adoc[Standardized]
+| link:vendor/asciidoc-parsing-lab/grammar/asciidoc-block.pegjs[Peggy Blocks]
+| link:vendor/asciidoc-tck/tests/block/listing/[TCK Covered]
+| link:src/asciidoctrine/lark_parser.py[Fully Supported]
+
+| *Description Lists*
+| link:vendor/asciidoc-lang/spec/outline.adoc[Standardized]
+| link:vendor/asciidoc-parsing-lab/grammar/asciidoc-block.pegjs[Peggy Blocks]
+| link:vendor/asciidoc-tck/tests/block/list/[TCK Covered]
+| link:src/asciidoctrine/lark_parser.py[Fully Supported]
+
+| *Unordered & Ordered Lists*
+| link:vendor/asciidoc-lang/spec/outline.adoc[Standardized]
+| link:vendor/asciidoc-parsing-lab/grammar/asciidoc-block.pegjs[Peggy Blocks]
+| link:vendor/asciidoc-tck/tests/block/list/[TCK Covered]
+| link:src/asciidoctrine/lark_parser.py[Fully Supported]
+
+| *Tables*
+| link:vendor/asciidoc-lang/spec/outline.adoc[Standardized]
+| link:vendor/asciidoc-parsing-lab/grammar/asciidoc-block.pegjs[Peggy Blocks]
+| link:vendor/asciidoc-tck/tests/block/[TCK Covered]
+| link:src/asciidoctrine/lark_parser.py[Fully Supported]
+
+| *Block Macros*
+| link:vendor/asciidoc-lang/spec/outline.adoc[Standardized]
+| link:vendor/asciidoc-parsing-lab/grammar/asciidoc-block.pegjs[Peggy Blocks]
+| link:vendor/asciidoc-tck/tests/block/open/[TCK Covered]
+| link:src/asciidoctrine/lark_parser.py[Fully Supported]
+
+| *Verbatim Block Callouts*
+| link:vendor/asciidoc-lang/spec/outline.adoc[Standardized]
+| link:vendor/asciidoc-parsing-lab/grammar/asciidoc-block.pegjs[Peggy Blocks]
+| link:vendor/asciidoc-tck/tests/block/listing/[TCK Covered]
+| link:src/asciidoctrine/lark_parser.py[Fully Supported]
+
+| *Include Directives*
+| link:vendor/asciidoc-lang/spec/outline.adoc[Standardized]
+| link:vendor/asciidoc-parsing-lab/grammar/asciidoc-preprocessor.pegjs[Peggy Preprocessor]
+| link:vendor/asciidoc-tck/tests/block/[TCK Covered]
+| link:src/asciidoctrine/lark_parser.py[Fully Supported]
+|===

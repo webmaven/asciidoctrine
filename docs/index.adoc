@@ -1,68 +1,96 @@
-= Asciidoctrine Documentation
+= AsciiDoctrine Documentation
 Michael R. Bernstein <zopemaven@gmail.com>
 v0.1.0
 
-Welcome to the official documentation for **Asciidoctrine**, a modern AsciiDoc parser for Python.
+Welcome to the official documentation for **AsciiDoctrine**, a modern, specification-compliant AsciiDoc parser for Python.
 
-This documentation is self-hosted: it is rendered using Sphinx with our own `asciidoctrine.sphinx_ext` plugin!
+AsciiDoctrine is designed from the ground up to provide a structured, type-safe representation of AsciiDoc documents, perfect for building renderers, static site generators, and custom documentation tools.
+
+---
 
 == Features
 
-* **Lark-based Grammar**: High-performance, pure-Python parsing using the Earley and LALR algorithms.
+* **Lark-based Grammar**: Pure-Python parsing using standard EBNF syntax.
 * **Semantic AST/ASG Convergence**: A type-safe representation aligned directly with the official Language ASG schema.
-* **Two-Pass Resolution**: Centralized semantic resolution pass for attributes, includes, and comment stripping.
+* **Two-Pass Resolution**: Centralized semantic resolution pass for attribute substitutions, include processing, and comment filtering.
 * **Advanced Location Tracking**: Highly accurate, child-derived start and end line coordinates on block nodes.
 * **Sphinx Integration**: Full extension support allowing you to author documentation in AsciiDoc and build it natively using Sphinx.
-* **TCK Compliance**: Fully compliant core suite matching the official AsciiDoc Technology Compatibility Kit.
+* **TCK Compliance**: Robust test suite matching the official AsciiDoc Technology Compatibility Kit.
+
+---
 
 == Project Documents
 
+The following table of contents provides reference information for library users:
+
 [toctree]
 --
-architecture
-contributing
+feature-matrix
+changelog
 --
 
-The following documents have been integrated into this documentation site from the project root:
-
-* xref:architecture[Architecture Overview]
-* xref:contributing[Contributing Guide]
-
-== Architecture
-
-[NOTE]
-====
-This section is a summary of our architectural approach. For full details, please refer to the xref:architecture[Architecture Overview].
-====
-
-The parser operates in a multi-pass pipeline:
-
-1. **Source Parsing**: Lark processes the source text into a CST.
-2. **Transformation**: Our `AsciiDocTransformer` converts the CST into a structured AST.
-3. **Semantic Resolution**: Attributes, includes, and links are resolved by `ASGResolver` to produce the final, spec-compliant ASG.
+---
 
 == Installation & Setup
 
-For developers, install Asciidoctrine locally in editable development mode:
+Install the `asciidoctrine` package using `pip`:
 
 [source,bash]
 ----
-pip install -e ".[test,docs]"
+pip install asciidoctrine
 ----
 
-== Project Roadmap
+---
 
-Asciidoctrine is actively moving towards full spec compliance. Our current roadmap status:
+== Quick Start
 
-=== Completed Features
-* **Foundations**: EBNF grammar, converged AST/ASG structure, and Pytest-integrated TCK harness.
-* **Core & Advanced Blocks**: Sections, Paragraphs, Admonitions, Sidebars, Examples, and Quotes.
-* **Document Infrastructure**: Headers, multi-pass attribute entry propagation/resolution, and includes.
-* **Lists & Tables**: Ordered/unordered lists, complex nested/mixed description lists, and basic tables.
-* **Developer Experience**: Listing metadata properties, verbatim block callout parsing/stripping, and child-derived inclusive location tracking.
+AsciiDoctrine implements a two-pass resolution pipeline. First, parse the raw source to a syntax-level AST. Then, resolve the AST to a semantic, queryable Abstract Semantic Graph (ASG):
 
-=== Next Up
-* Section ID auto-slugification and cross-reference resolution.
-* Sphinx renderer visitor auditing and Pygments styling.
-* TOC outline extraction.
+[source,python]
+----
+from asciidoctrine import parse_to_ast
+from asciidoctrine.resolver import ASGResolver
 
+source = """
+== Section Title
+This is a *bold* word in a paragraph.
+"""
+
+# 1. Parse raw source to syntax-level AST
+ast = parse_to_ast(source)
+
+# 2. Resolve to semantic ASG (resolves attributes, includes, and filters comments)
+resolver = ASGResolver(ast)
+asg = resolver.resolve(ast)
+
+# Iterate through sections in the ASG blocks list
+for block in asg.blocks:
+    if block.name == "section":
+        title_text = "".join(node.value for node in block.title.inlines if node.name == "text")
+        print(f"Found section: {title_text}")
+----
+
+---
+
+== Sphinx Extension Integration
+
+AsciiDoctrine comes with built-in Sphinx support, allowing you to author your documentation natively in AsciiDoc using the .adoc or .asciidoc extensions.
+
+=== 1. Enable the Extension
+Add `"asciidoctrine.sphinx_ext"` to the `extensions` list in your Sphinx `conf.py`:
+
+[source,python]
+----
+# conf.py
+extensions = [
+    "asciidoctrine.sphinx_ext",
+]
+----
+
+=== 2. Configure Document Suffixes
+The extension automatically registers `.adoc` and `.asciidoc` source files. You can author your index or any sub-page in AsciiDoc and run standard Sphinx build commands:
+
+[source,bash]
+----
+sphinx-build -b html docs/ docs/_build/html
+----

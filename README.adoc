@@ -1,4 +1,4 @@
-= Asciidoctrine
+= AsciiDoctrine
 Michael R. Bernstein <zopemaven@gmail.com>
 v0.1.0
 :toc: left
@@ -12,14 +12,17 @@ v0.1.0
 image:https://img.shields.io/badge/License-Apache_2.0-blue.svg[License, link=https://opensource.org/licenses/Apache-2.0]
 image:https://img.shields.io/badge/python-3.9+-blue.svg[Python Version]
 image:https://img.shields.io/badge/status-alpha-orange.svg[Development Status]
+image:https://img.shields.io/badge/docs-GitHub_Pages-blue[Documentation, link=https://webmaven.github.io/asciidoctrine/]
 
-A high-performance, pure-Python AsciiDoc parser built with Lark, designed for compatibility with the official AsciiDoc specification and the TCK.
+A high-performance, pure-Python AsciiDoc parser built with Lark, designed for compatibility with the official AsciiDoc specification and the TCK. 
+
+The complete, compiled user documentation is available online at link:https://webmaven.github.io/asciidoctrine/[https://webmaven.github.io/asciidoctrine/].
 
 == Motivation
 
 The Python ecosystem has long lacked a modern, maintainable, and specification-compliant AsciiDoc parser. Existing tools are often port-based or rely on regex-heavy implementations that struggle with the complex, context-sensitive nature of AsciiDoc.
 
-Asciidoctrine is built from the ground up to provide:
+AsciiDoctrine is built from the ground up to provide:
 
 1. **Spec Alignment**: Strict adherence to the upcoming official AsciiDoc Language Specification.
 2. **First-Class AST**: A structured, type-safe Abstract Syntax Tree that makes building renderers and static analysis tools a breeze.
@@ -51,7 +54,7 @@ graph LR
 
 == Installation & Setup
 
-For developers and contributors, the recommended "happy path" is to set up a local virtual environment and install Asciidoctrine in editable development mode:
+For developers and contributors, the recommended "happy path" is to set up a local virtual environment and install AsciiDoctrine in editable development mode:
 
 [source,bash]
 ----
@@ -72,7 +75,7 @@ pip install -e ".[test,docs]"
 
 == Quick Start
 
-Asciidoctrine implements a two-pass resolution pipeline. First, parse the raw source to a syntax-level AST. Then, resolve the AST to a semantic, queryable Abstract Semantic Graph (ASG):
+AsciiDoctrine implements a two-pass resolution pipeline. First, parse the raw source to a syntax-level AST. Then, resolve the AST to a semantic, queryable Abstract Semantic Graph (ASG):
 
 [source,python]
 ----
@@ -199,7 +202,7 @@ Run the official TCK test suite with:
 
 == Self-Hosted Documentation
 
-This project's documentation is authored entirely in AsciiDoc and compiled using Sphinx along with our own self-hosted `asciidoctrine.sphinx_ext` plugin!
+This project's documentation is authored entirely in AsciiDoc, compiled using Sphinx along with our own self-hosted `asciidoctrine.sphinx_ext` plugin, and published online at link:https://webmaven.github.io/asciidoctrine/[https://webmaven.github.io/asciidoctrine/]!
 
 Build and view the documentation locally:
 [source,bash]

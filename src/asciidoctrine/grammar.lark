@@ -45,10 +45,10 @@ olist: olist_item+
 ?dlist: dlist_5 | dlist_4 | dlist_3 | dlist_2
 colist: colist_item+
 
-ulist_item: ULIST_MARKER [CHECKBOX] text_content _NEWLINE
-olist_item: OLIST_MARKER text_content _NEWLINE
+ulist_item.5: ULIST_MARKER [CHECKBOX] text_content _NEWLINE
+olist_item.5: OLIST_MARKER text_content _NEWLINE
 
-colist_item: "<" NUMBER ">" [WHITESPACE] text_content _NEWLINE
+colist_item.5: "<" NUMBER ">" [WHITESPACE] text_content _NEWLINE
 
 ?dlist_nested_2: dlist_5 | dlist_4 | dlist_3
 ?dlist_nested_3: dlist_5 | dlist_4 | dlist_2
@@ -56,29 +56,29 @@ colist_item: "<" NUMBER ">" [WHITESPACE] text_content _NEWLINE
 ?dlist_nested_5: dlist_4 | dlist_3 | dlist_2
 
 dlist_2: dlist_item_2+ -> dlist
-dlist_item_2: dlist_term_2+ dlist_description_2? -> dlist_item
+dlist_item_2.5: dlist_term_2+ dlist_description_2? -> dlist_item
 dlist_term_2.12: text_content DLIST_MARKER_2 [WHITESPACE] _NEWLINE? -> dlist_term
 dlist_description_2.15: _NEWLINE? [WHITESPACE] (section | ulist | olist | dlist_nested_2 | colist | table | listing_block | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | paragraph)+ _NEWLINE? -> dlist_description
 
 dlist_3: dlist_item_3+ -> dlist
-dlist_item_3: dlist_term_3+ dlist_description_3? -> dlist_item
+dlist_item_3.5: dlist_term_3+ dlist_description_3? -> dlist_item
 dlist_term_3.12: text_content DLIST_MARKER_3 [WHITESPACE] _NEWLINE? -> dlist_term
 dlist_description_3.15: _NEWLINE? [WHITESPACE] (section | ulist | olist | dlist_nested_3 | colist | table | listing_block | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | paragraph)+ _NEWLINE? -> dlist_description
 
 dlist_4: dlist_item_4+ -> dlist
-dlist_item_4: dlist_term_4+ dlist_description_4? -> dlist_item
+dlist_item_4.5: dlist_term_4+ dlist_description_4? -> dlist_item
 dlist_term_4.12: text_content DLIST_MARKER_4 [WHITESPACE] _NEWLINE? -> dlist_term
 dlist_description_4.15: _NEWLINE? [WHITESPACE] (section | ulist | olist | dlist_nested_4 | colist | table | listing_block | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | paragraph)+ _NEWLINE? -> dlist_description
 
 dlist_5: dlist_item_5+ -> dlist
-dlist_item_5: dlist_term_5+ dlist_description_5? -> dlist_item
+dlist_item_5.5: dlist_term_5+ dlist_description_5? -> dlist_item
 dlist_term_5.12: text_content DLIST_MARKER_5 [WHITESPACE] _NEWLINE? -> dlist_term
 dlist_description_5.15: _NEWLINE? [WHITESPACE] (section | ulist | olist | dlist_nested_5 | colist | table | listing_block | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | paragraph)+ _NEWLINE? -> dlist_description
 
 CHECKBOX: /\[[ x*X]\][ \t]+/
 
 // Attributes
-attribute_entry.2: COLON ATTR_NAME [BANG] COLON [WHITESPACE] [text_content] _NEWLINE
+attribute_entry.10: COLON ATTR_NAME [BANG] COLON [WHITESPACE] [text_content] _NEWLINE
                  | COLON BANG ATTR_NAME COLON [WHITESPACE] _NEWLINE
 
 BANG: "!"
@@ -92,7 +92,7 @@ inline_attribute_list: "[" [ATTR_LIST_CONTENT] "]"
 anchor.1: "[[" WORD "]]" _NEWLINE
 
 // Tables
-table: TABLE_DELIM _NEWLINE (table_cell | _NEWLINE)* TABLE_DELIM _NEWLINE?
+table.50: TABLE_DELIM _NEWLINE (table_cell | _NEWLINE)* TABLE_DELIM _NEWLINE?
 table_cell: [table_cell_spec] TABLE_CELL
 
 table_cell_spec: (span_spec | multiplier_spec)? (align_spec)? [STYLE_SPEC]
@@ -105,7 +105,7 @@ table_cell_spec: (span_spec | multiplier_spec)? (align_spec)? [STYLE_SPEC]
 ?align_spec: HORIZ_ALIGN [VERT_ALIGN] -> align_both
            | VERT_ALIGN             -> align_vert
 
-TABLE_DELIM: "|==="
+TABLE_DELIM.30: "|==="
 
 
 HORIZ_ALIGN: "<" | ">" | "^"
@@ -114,10 +114,10 @@ STYLE_SPEC: /[adehlms]/
 
 
 // Listing and Literal Blocks
-listing_block: LISTING_DELIM _NEWLINE LISTING_CONTENT _NEWLINE LISTING_DELIM _NEWLINE?
-literal_block: LITERAL_DELIM _NEWLINE LITERAL_CONTENT _NEWLINE LITERAL_DELIM _NEWLINE?
+listing_block.50: LISTING_DELIM _NEWLINE LISTING_CONTENT _NEWLINE LISTING_DELIM _NEWLINE?
+literal_block.50: LITERAL_DELIM _NEWLINE LITERAL_CONTENT _NEWLINE LITERAL_DELIM _NEWLINE?
 
-passthrough_block: PASSTHROUGH_BLOCK_DELIM _NEWLINE PASSTHROUGH_CONTENT _NEWLINE PASSTHROUGH_BLOCK_DELIM
+passthrough_block.50: PASSTHROUGH_BLOCK_DELIM _NEWLINE PASSTHROUGH_CONTENT _NEWLINE PASSTHROUGH_BLOCK_DELIM
 
 // Basic content (no containers)
 basic_block: attributed_simple_block | blank_line
@@ -128,23 +128,23 @@ example_block: example_4 | example_5 | example_6
 sidebar: sidebar_4 | sidebar_5 | sidebar_6
 quote_block: quote_4 | quote_5 | quote_6
 
-admonition_4: ADMONITION_START _NEWLINE ADMONITION_DELIM_4 _NEWLINE (sidebar | example_5 | example_6 | quote_block | admonition_5 | admonition_6 | basic_block)* ADMONITION_DELIM_4 _NEWLINE?
-admonition_5: ADMONITION_START _NEWLINE ADMONITION_DELIM_5 _NEWLINE (sidebar | example_4 | example_6 | quote_block | admonition_4 | admonition_6 | basic_block)* ADMONITION_DELIM_5 _NEWLINE?
-admonition_6: ADMONITION_START _NEWLINE ADMONITION_DELIM_6 _NEWLINE (sidebar | example_4 | example_5 | quote_block | admonition_4 | admonition_5 | basic_block)* ADMONITION_DELIM_6 _NEWLINE?
+admonition_4.10: ADMONITION_START _NEWLINE ADMONITION_DELIM_4 _NEWLINE (sidebar | example_5 | example_6 | quote_block | admonition_5 | admonition_6 | basic_block)* ADMONITION_DELIM_4 _NEWLINE?
+admonition_5.10: ADMONITION_START _NEWLINE ADMONITION_DELIM_5 _NEWLINE (sidebar | example_4 | example_6 | quote_block | admonition_4 | admonition_6 | basic_block)* ADMONITION_DELIM_5 _NEWLINE?
+admonition_6.10: ADMONITION_START _NEWLINE ADMONITION_DELIM_6 _NEWLINE (sidebar | example_4 | example_5 | quote_block | admonition_4 | admonition_5 | basic_block)* ADMONITION_DELIM_6 _NEWLINE?
 
-example_4: ADMONITION_DELIM_4 _NEWLINE (sidebar | example_5 | example_6 | quote_block | admonition_5 | admonition_6 | basic_block)* ADMONITION_DELIM_4 _NEWLINE?
-example_5: ADMONITION_DELIM_5 _NEWLINE (sidebar | example_4 | example_6 | quote_block | admonition_4 | admonition_6 | basic_block)* ADMONITION_DELIM_5 _NEWLINE?
-example_6: ADMONITION_DELIM_6 _NEWLINE (sidebar | example_4 | example_5 | quote_block | admonition_4 | admonition_5 | basic_block)* ADMONITION_DELIM_6 _NEWLINE?
+example_4.10: ADMONITION_DELIM_4 _NEWLINE (sidebar | example_5 | example_6 | quote_block | admonition_5 | admonition_6 | basic_block)* ADMONITION_DELIM_4 _NEWLINE?
+example_5.10: ADMONITION_DELIM_5 _NEWLINE (sidebar | example_4 | example_6 | quote_block | admonition_4 | admonition_6 | basic_block)* ADMONITION_DELIM_5 _NEWLINE?
+example_6.10: ADMONITION_DELIM_6 _NEWLINE (sidebar | example_4 | example_5 | quote_block | admonition_4 | admonition_5 | basic_block)* ADMONITION_DELIM_6 _NEWLINE?
 
-sidebar_4: SIDEBAR_DELIM_4 _NEWLINE (example_block | admonition | quote_block | sidebar_5 | sidebar_6 | basic_block)* SIDEBAR_DELIM_4 _NEWLINE?
-sidebar_5: SIDEBAR_DELIM_5 _NEWLINE (example_block | admonition | quote_block | sidebar_4 | sidebar_6 | basic_block)* SIDEBAR_DELIM_5 _NEWLINE?
-sidebar_6: SIDEBAR_DELIM_6 _NEWLINE (example_block | admonition | quote_block | sidebar_4 | sidebar_5 | basic_block)* SIDEBAR_DELIM_6 _NEWLINE?
+sidebar_4.10: SIDEBAR_DELIM_4 _NEWLINE (example_block | admonition | quote_block | sidebar_5 | sidebar_6 | basic_block)* SIDEBAR_DELIM_4 _NEWLINE?
+sidebar_5.10: SIDEBAR_DELIM_5 _NEWLINE (example_block | admonition | quote_block | sidebar_4 | sidebar_6 | basic_block)* SIDEBAR_DELIM_5 _NEWLINE?
+sidebar_6.10: SIDEBAR_DELIM_6 _NEWLINE (example_block | admonition | quote_block | sidebar_4 | sidebar_5 | basic_block)* SIDEBAR_DELIM_6 _NEWLINE?
 
-open_block: OPEN_BLOCK_DELIM _NEWLINE (example_block | admonition | sidebar | quote_block | basic_block)* OPEN_BLOCK_DELIM _NEWLINE?
+open_block.50: OPEN_BLOCK_DELIM _NEWLINE (example_block | admonition | sidebar | quote_block | basic_block)* OPEN_BLOCK_DELIM _NEWLINE?
 
-quote_4: QUOTE_DELIM_4 _NEWLINE (example_block | admonition | sidebar | quote_5 | quote_6 | basic_block)* QUOTE_DELIM_4 _NEWLINE?
-quote_5: QUOTE_DELIM_5 _NEWLINE (example_block | admonition | sidebar | quote_4 | quote_6 | basic_block)* QUOTE_DELIM_5 _NEWLINE?
-quote_6: QUOTE_DELIM_6 _NEWLINE (example_block | admonition | sidebar | quote_4 | quote_5 | basic_block)* QUOTE_DELIM_6 _NEWLINE?
+quote_4.10: QUOTE_DELIM_4 _NEWLINE (example_block | admonition | sidebar | quote_5 | quote_6 | basic_block)* QUOTE_DELIM_4 _NEWLINE?
+quote_5.10: QUOTE_DELIM_5 _NEWLINE (example_block | admonition | sidebar | quote_4 | quote_6 | basic_block)* QUOTE_DELIM_5 _NEWLINE?
+quote_6.10: QUOTE_DELIM_6 _NEWLINE (example_block | admonition | sidebar | quote_4 | quote_5 | basic_block)* QUOTE_DELIM_6 _NEWLINE?
 
 thematic_break: THEMATIC_BREAK_MARKER _NEWLINE
 page_break: "<<<" _NEWLINE
@@ -154,7 +154,7 @@ page_break: "<<<" _NEWLINE
 text_content: inline_element+
 
 attribute_reference.2: LBRACE ATTR_NAME RBRACE
-?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK
+?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
 
 inline_break: " +"
 inline_kbd: "kbd:[" ATTR_LIST_CONTENT "]"
@@ -173,7 +173,7 @@ icon_inline: "icon:" TARGET inline_attribute_list
 inline_anchor: "[[" text_content "]]" | "anchor:" TARGET inline_attribute_list
 inline_xref: "<<" text_content ">>" | "xref:" TARGET inline_attribute_list
 inline_bibref: "[[[" text_content "]]]"
-inline_link: "link:" TARGET inline_attribute_list | URI inline_attribute_list
+inline_link.10: "link:" (TARGET | URI) inline_attribute_list | URI inline_attribute_list
 
 URI.3: /(https?|ftp|file|irc):\/\/[^\[\n ]+/ | /mailto:[^\[\n ]+/
 TARGET: /[^\[\n ]+/
@@ -184,13 +184,13 @@ footnoteref: "footnoteref:" "[" [WORD] ["," text_content] "]"
 // Text that allows substitutions but NOT formatting (for now, simplistic)
 literal_content: /[^\n`]+/ 
 
-bold: "*" text_content "*"
-unconstrained_bold.2: "**" text_content "**"
-italic: "_" text_content "_"
-unconstrained_italic.2: "__" text_content "__"
+bold.2: ASTERISK bold_content ASTERISK
+unconstrained_bold.3: "**" bold_content "**"
+italic.2: UNDERSCORE italic_content UNDERSCORE
+unconstrained_italic.3: "__" italic_content "__"
 
-monospace: "`" monospace_content "`"
-unconstrained_monospace.2: "``" unconstrained_monospace_content "``"
+monospace.10: "`" monospace_content "`"
+unconstrained_monospace.10: "``" unconstrained_monospace_content "``"
 
 monospace_content: (attribute_reference | MONOSPACE_TEXT)+
 unconstrained_monospace_content: (attribute_reference | UNCONSTRAINED_MONOSPACE_TEXT)+
@@ -198,11 +198,26 @@ unconstrained_monospace_content: (attribute_reference | UNCONSTRAINED_MONOSPACE_
 MONOSPACE_TEXT: /[^`{\n]+/ | "{"
 UNCONSTRAINED_MONOSPACE_TEXT: /([^`{\n]|`[^`])+/ | "{"
 
-marked: "#" text_content "#"
-superscript: "^" text_content "^"
-subscript: "~" text_content "~"
+marked.2: HASH marked_content HASH
+superscript.2: CIRCUMFLEX superscript_content CIRCUMFLEX
+subscript.2: TILDE subscript_content TILDE
 double_quoted: "\"`" text_content "`\""
 single_quoted: "'`" text_content "`'"
+
+bold_content: bold_inline_element+
+?bold_inline_element: unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
+
+italic_content: italic_inline_element+
+?italic_inline_element: unconstrained_bold | bold | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK | ASTERISK | CIRCUMFLEX | TILDE | HASH
+
+marked_content: marked_inline_element+
+?marked_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE
+
+superscript_content: superscript_inline_element+
+?superscript_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK | ASTERISK | UNDERSCORE | TILDE | HASH
+
+subscript_content: subscript_inline_element+
+?subscript_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK | ASTERISK | UNDERSCORE | CIRCUMFLEX | HASH
 
 
 // --- Terminals ---
@@ -231,24 +246,24 @@ SIDEBAR_DELIM_5: "*****"
 SIDEBAR_DELIM_6: "******"
 SIDEBAR_DELIM_LONG: /\*{7,}/
 
-OPEN_BLOCK_DELIM: "--"
+OPEN_BLOCK_DELIM.10: /(?<!-)-{2}(?!-)/
 
 QUOTE_DELIM_4: "____"
 QUOTE_DELIM_5: "_____"
 QUOTE_DELIM_6: "______"
 QUOTE_DELIM_LONG: /_{7,}/
 
-THEMATIC_BREAK_MARKER: /'''+|\*\*\*+|---+|(_ _ _)+|(\* \* \*)+|(- - -)+/
+THEMATIC_BREAK_MARKER.5: /'{3,}|\*{3}(?!\*)|\*{5,}|-{3}(?!-)|-{5,}|(_ _ _)+|(\* \* \*)+|(- - -)+/
 
 // Non-greedy content matching for listing and literal blocks.
 LISTING_CONTENT: /(.+?)(?=\n-{4,})/s
 LITERAL_CONTENT: /(.+?)(?=\n\.{4,})/s
 PASSTHROUGH_CONTENT: /(.+?)(?=\n\+{4,})/s
-TABLE_CELL: /\|(.*?)(?=(?:(?<!\\)(?:(?:(?:[0-9]+)?(?:\.[0-9]+)?\+|[0-9]+\*)(?:[<>^]|\.[<>^]|[<>^]\.[<>^])?[adehlms]?|(?:[<>^]|\.[<>^]|[<>^]\.[<>^])[adehlms]?|[adehlms])?\|(?!===))|\|===)/s
+TABLE_CELL.20: /\|(.*?)(?=(?:(?<!\\)(?:(?:(?:[0-9]+)?(?:\.[0-9]+)?\+|[0-9]+\*)(?:[<>^]|\.[<>^]|[<>^]\.[<>^])?[adehlms]?|(?:[<>^]|\.[<>^]|[<>^]\.[<>^])[adehlms]?|[adehlms])?\|(?!===))|\|===)/s
 
 
 
-_NEWLINE: /(\r\n|\n|\r)/
+_NEWLINE: "\n"
 _WS: /[ \t]/
 WHITESPACE: _WS+
 NUMBER: /[0-9]+/
@@ -260,6 +275,11 @@ LSQB: "["
 RSQB: "]"
 EQUALS: "="
 BACKTICK: "`"
+ASTERISK: "*"
+UNDERSCORE: "_"
+CIRCUMFLEX: "^"
+TILDE: "~"
+HASH: "#"
 COLON: /:(?!:)/
 
 // %ignore WHITESPACE

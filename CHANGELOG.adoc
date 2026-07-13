@@ -3,7 +3,19 @@
 
 All notable changes to this project will be documented in this file.
 
-== [0.1.0a3] - 2026-07-11
+== link:https://pypi.org/project/asciidoctrine/0.1.0a4/[0.1.0a4] - 2026-07-12
+
+=== Added
+* **Native macOS Browser Automation Support**: Established global and project-scoped developer instructions (`AGENTS.md`) and customized skills to natively execute high-fidelity Playwright/Selenium browser previews and layout audits on macOS.
+* **Refructured Sphinx Documentation Landing Page**: Redesigned `docs/index.adoc` as a clean, polished onboarding guide, removing internal-only engineering blueprints to provide a professional, user-focused documentation site.
+
+=== Fixed
+* **Delimiter Token-Splitting and Block Swallowing (Issue #76)**: Integrated strict lookahead/lookbehind boundaries on `OPEN_BLOCK_DELIM` to prevent Lark's dynamic lexer from splitting thematic breaks (`---`) or listing delimiters (`----`) under Earley parser predictions, guaranteeing sections are never swallowed inside open blocks.
+* **High-Performance Thematic Break Matching**: Optimized `THEMATIC_BREAK_MARKER` by removing slow, backtracking regex lookbehinds (`(?<!...)`) in favor of lookahead-only patterns, resulting in massive performance gains across large files.
+* **Sphinx Title Promotion and Heading Nesting**: Corrected Docutils node hierarchy rendering where document titles were ignored and sections were flattened into flat root `h1` headings, wrapping them under a single root section.
+* **Escaped Table Cell Delimiters**: Resolved row-splitting corruption in table cells containing formatting delimiters by escaping vertical pipes as `\|`.
+
+== link:https://pypi.org/project/asciidoctrine/0.1.0a3/[0.1.0a3] - 2026-07-11
 
 === Added
 * **Native AsciiDoc Serializer** (Issue #74): Created `AsciiDocSerializerVisitor` and the public `serialize_to_asciidoc()` function to serialize any unresolved AST back into standard, clean, valid AsciiDoc source.
@@ -15,7 +27,7 @@ All notable changes to this project will be documented in this file.
 * **Consecutive Block Attributes Merging** (Issue #72): Resolved a structural Lark Earley ambiguity by lowering the priority of attribute and anchor rules, allowing consecutive metadata lines (e.g. `[.role]\n[source,python]`) to merge correctly.
 * **Positional Attributes Parsing** (Issue #71): Corrected parsing of mixed shorthand, named, and positional attributes without early return collisions.
 
-== [0.1.0a2] - 2026-07-07
+== link:https://pypi.org/project/asciidoctrine/0.1.0a2/[0.1.0a2] - 2026-07-07
 
 === Added
 * **Nested & Mixed Description Lists**: Complete parsing and ASG structure mapping of recursive definition/description lists.
@@ -24,7 +36,7 @@ All notable changes to this project will be documented in this file.
 * **Callout Stripping and Matching**: Implemented robust matching/stripping of callout annotations (`<1>`) from verbatim listing blocks.
 * **Location Accuracy & Consolidation**: Consolidated node coordinates with precise line/column inclusive tracking.
 
-== [0.1.0a1] - 2026-07-07
+== link:https://pypi.org/project/asciidoctrine/0.1.0a1/[0.1.0a1] - 2026-07-07
 
 === Added
 * **Initial Release**: Published and packaged the baseline AsciiDoc parser.

@@ -30,13 +30,13 @@ The mapping follows the official AsciiDoc ASG schema (https://gitlab.eclipse.org
 | `{"name": "text", "type": "string", "value": "text content"}`
 
 | `Span`
-| `{"name": "span", "type": "inline", "variant": "strong|emphasis|code", "form": "constrained", "inlines": []}`
+| `{"name": "span", "type": "inline", "variant": "strong\|emphasis\|code", "form": "constrained", "inlines": []}`
 
 | `Section`
 | `{"name": "section", "type": "block", "level": 1, "title": [], "blocks": []}`
 
 | `List`
-| `{"name": "list", "type": "block", "variant": "unordered|ordered", "marker": "*|.", "items": []}`
+| `{"name": "list", "type": "block", "variant": "unordered\|ordered", "marker": "*\|.", "items": []}`
 
 | `ListItem`
 | `{"name": "listItem", "type": "block", "principal": [], "blocks": []}`

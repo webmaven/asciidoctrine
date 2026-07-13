@@ -526,6 +526,18 @@ print("test")
         self.assertEqual(block["attributes"]["style"], "source")
         self.assertEqual(block["attributes"]["language"], "python")
 
+    def test_missing_trailing_newline(self):
+        # Paragraph lacking trailing newline
+        source1 = "= Document\n\nParagraph content"
+        ast1 = self._strip_locations(parse_to_ast(source1).to_dict())
+        self.assertEqual(ast1["blocks"][0]["name"], "paragraph")
+        self.assertEqual(ast1["blocks"][0]["inlines"][0]["value"], "Paragraph content")
+
+        # Listing block lacking trailing newline
+        source2 = "= Document\n\n[source,python]\n----\nx = 1\n----"
+        ast2 = self._strip_locations(parse_to_ast(source2).to_dict())
+        self.assertEqual(ast2["blocks"][0]["name"], "listing")
+
 
 if __name__ == "__main__":
     unittest.main()

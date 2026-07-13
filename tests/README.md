@@ -1,6 +1,6 @@
 # Test Suite
 
-This directory contains the test suite for Asciidoctrine.
+This directory contains the test suite for AsciiDoctrine.
 
 ## Test Tiers
 

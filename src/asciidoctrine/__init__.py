@@ -1,5 +1,5 @@
 """
-Asciidoctrine: Pure-Python AsciiDoc parser library using Lark.
+AsciiDoctrine: Pure-Python AsciiDoc parser library using Lark.
 """
 
 from .lark_parser import parse_to_ast

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "asciidoctrine"
-version = "0.1.0a3"
+version = "0.1.0a4"
 authors = [
   { name = "Michael R. Bernstein", email = "zopemaven@gmail.com" },
 ]
@@ -24,6 +24,7 @@ dependencies = [
 [project.urls]
 "Homepage" = "https://github.com/webmaven/asciidoctrine"
 "Bug Tracker" = "https://github.com/webmaven/asciidoctrine/issues"
+"Documentation" = "https://webmaven.github.io/asciidoctrine/"
 
 [project.optional-dependencies]
 test = ["pytest", "ruff", "mypy", "docutils", "types-docutils", "sphinx", "pytest-pyodide", "playwright"]

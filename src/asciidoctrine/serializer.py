@@ -8,12 +8,24 @@ class AsciiDocSerializerVisitor(NodeVisitor):
     """
     def __init__(self) -> None:
         self.stream = io.StringIO()
+        self.line_ending = "\n"
 
     def serialize(self, node: Node) -> str:
+        if getattr(node, "name", None) == "document":
+            self.line_ending = getattr(node, "line_ending", "\n")
         self.visit(node)
-        return self.stream.getvalue()
+        val = self.stream.getvalue()
+        # If the root document had no trailing newline, strip the very last trailing newline if present.
+        if getattr(node, "name", None) == "document" and not getattr(node, "had_trailing_newline", True):
+            if val.endswith("\r\n"):
+                val = val[:-2]
+            elif val.endswith("\n"):
+                val = val[:-1]
+        return val
 
     def write(self, s: str) -> None:
+        if self.line_ending != "\n":
+            s = s.replace("\n", self.line_ending)
         self.stream.write(s)
 
     def write_block_metadata(self, node: Node) -> None:
@@ -123,8 +135,6 @@ class AsciiDocSerializerVisitor(NodeVisitor):
                 self.write(f":{k}:\n")
             elif v is not None:
                 self.write(f":{k}: {v}\n")
-
-        self.write("\n")
 
     def visit_section(self, node: Node) -> None:
         self.write_block_metadata(node)

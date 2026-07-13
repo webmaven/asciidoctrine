@@ -108,6 +108,28 @@ When adding support for a new AsciiDoc element:
 | `vendor/asciidoctor-doctest/` | External example corpus (Submodule) |
 | `bin/tck-adapter.py` | CLI entry point for the TCK runner |
 
+## 📚 Submodule References
+
+The project relies on four key submodules inside the `vendor/` directory:
+
+1. **`vendor/asciidoc-tck/` (Technology Compatibility Kit)**:
+   - **Purpose**: Authoritative conformance test suite for AsciiDoc specification compliance.
+   - **Usage**: Automatically run via `./run-tck.sh` to ensure our parsed ASG matches the reference semantic model.
+   - **Contributions**: We contribute expansions of the test suite to this submodule. Note that tests can only be contributed for parts of the specification that are already accepted.
+
+2. **`vendor/asciidoc-lang/` (AsciiDoc Language Specification)**:
+   - **Purpose**: Contains the source documents and schemas for the official AsciiDoc language standard.
+   - **Usage**: Serves as our reference source for validating nodes and structural mappings (e.g., ASG schemas).
+   - **Contributions**: This is where we contribute direct expansions or clarifications to the language specification itself.
+
+3. **`vendor/asciidoctor-doctest/`**:
+   - **Purpose**: Real-world AsciiDoc test corpus.
+   - **Usage**: Used in `tests/test_doctest_parsing.py` to assert that complex formatting and structure examples compile without error.
+
+4. **`vendor/asciidoc-parsing-lab/`**:
+   - **Purpose**: Pre-draft grammar prototyping playground for the official AsciiDoc Language Specification.
+   - **Usage**: Serving as the direct prototype laboratory where new spec grammars and features are drafted, compiled, and tested (using Peggy/JavaScript) before they are fully finalized and added to the official specification. Always use this as a design reference for emerging or debated language syntax.
+
 ## 💡 Troubleshooting & Patterns
 
 *   **Earley Ambiguity**: If the grammar becomes ambiguous, Lark will raise a `VisitError` or `AmbiguityError`. Use `?rule` in the grammar to compress simple wrappers.
@@ -170,7 +192,36 @@ To produce a TCK-compliant Resolved Abstract Semantic Graph (ASG), the internal 
   1. Assigned a very low priority of `.1` on `attribute_list` and `anchor` rules in `grammar.lark`. This priority is sufficient to break the tie with `paragraph` (giving the merged `attributed_block` parse tree the necessary edge to always win when there are consecutive attribute lines) without forcing a fallback when parsed within constrained nesting contexts.
   2. Raised the priority of the `ADMONITION_START` terminal rule to `.5` to ensure specific admonition headers like `[NOTE]` always win over general `attribute_list.1` and are correctly parsed as block admonitions inside sidebars/examples.
 
+### 3. Unified LF Normalization & Simplified Newline Lexing
+- **Problem**: Lark's Earley parser suffered from extra backtrack overhead evaluating mixed line endings within complex regex block-delimited lookaheads (such as `LISTING_CONTENT: /(.+?)(?=\n-{4,})/s`). Additionally, when running inside browser/Pyodide sandboxed environments without native filesystem streams, copy-pasting across different OS clipboards introduced mixed CRLF/LF line endings, leading to silent format drift and noisy Git diffs on round-trips.
+- **Solution**:
+  1. Standardized all source line endings to standard Unix LF (`\n`) pre-parsing.
+  2. Detected the original document's line ending preference using a fast, positional lookahead check on the very first encountered newline, storing it as `line_ending` on the root `Document` AST node along with `had_trailing_newline`.
+  3. Simplified the `_NEWLINE` terminal in `grammar.lark` from the complex regex `_NEWLINE: /(\r\n|\n|\r)/` to a simple, faster literal match `_NEWLINE: "\n"`.
+  4. Custom-translated all serialized newlines back to the document's original `line_ending` sequence inside the serializer's `write` method, ensuring $100\%$ exact, character-for-character round-trip accuracy on modern files.
+
+### 4. Balancing Structural, List, and Inline Formatting Priorities in Earley Parser
+- **Problem**: 
+  1. Assigning a high priority (e.g. `.10`) to general inline formatting rules (`bold`, `italic`, `marked`, `superscript`, `subscript`) caused the parser to choose incorrect parse trees by greedy matching of formatting characters. This "stole" asterisks from list markers (turning lists into bold formatting nodes), stole underscores/asterisks from within attribute names and links, and broke literal monospace block formatting rules.
+  2. Conversely, assigning too low a priority to structural block rules like `table` caused lines starting with table delimiters `|===` to be incorrectly swallowed as normal `paragraph` content when attributes (`[cols="1,2"]`) preceded them.
+  3. Attempting to fix lists by assigning a high priority (e.g., `.10`) to the top-level list containers (`ulist`, `olist`, etc.) caused the Earley parser to split continuous lists of multiple items into separate, single-item lists. Because Earley maximizes the *sum* of priorities in the tree, splitting a list of 3 items into 3 separate container blocks yielded a higher total priority (`3 * 10 = 30`) than keeping them in a single container block (`1 * 10 = 10`).
+- **What Didn't Work**:
+  - Setting high priorities on all inline style rules broke other syntactic structures entirely.
+  - Setting priorities on list container rules caused incorrect list block splits.
+- **Solution**:
+  1. **Moderate Inline Priorities**: Shifted standard inline formatting rules (`bold`, `italic`, `marked`, `superscript`, `subscript`) to moderate priorities (e.g., `bold.2`, `unconstrained_bold.3`) so they can successfully compete with default text matching, but are out-prioritized by structural elements.
+  2. **High Table Priority**: Assigned high priority (`table.10`) to the table delimiter rule so that tables are prioritized over generic paragraph interpretation.
+  3. **Item-Level List Priorities**: Assigned moderate-high priority (`.5`) to individual list item rules (`ulist_item.5`, `olist_item.5`, etc.) rather than the container rules (`ulist`, `olist`). Since the count of list items is identical regardless of how the list blocks are split, assigning priority to items avoids the Earley split multiplication problem while still ensuring that list markers are fully protected from being stolen by inline styles.
+  4. **High Literal/Structure Priorities**: Kept high priority on attribute entry blocks (`attribute_entry.10`), inline links (`inline_link.10`), and literal monospace spans (`monospace.10`, `unconstrained_monospace.10`) to protect their contents from nested style interpretation.
+
+### 5. Lexer Terminal Token Priority Conflicts inside Table Cells
+- **Problem**: When a table contained multiple rows with complex inline elements (like URLs/URIs, formatting, etc.), the table block failed to parse, falling back to a series of plain `paragraph` blocks.
+- **Cause**: High-priority inline terminals (like `URI` with priority `.3` or `inline_link` with priority `.10`) competed with the `TABLE_CELL` terminal (default priority 1). Lark's lexer matched these individual high-priority inline tokens *inside* the cell instead of tokenizing the entire cell content as a single `TABLE_CELL` terminal. Because the cell string was split into other tokens, the structural `table` rule failed to match.
+- **What Didn't Work**: Setting a high priority on the structural `table` rule itself (e.g. `table.50`) only helps if the input is successfully tokenized. It did not prevent the lexer from mis-tokenizing cell text.
+- **Solution**:
+  1. Assigned an explicit priority of `.20` to the `TABLE_CELL` terminal rule in `grammar.lark`. This is higher than `.10` (for `inline_link`) and `.3` (for `URI`), ensuring the entire cell content is cleanly swallowed as a single `TABLE_CELL` token.
+  2. Assigned a priority of `.30` to `TABLE_DELIM` to ensure it wins over `TABLE_CELL` when starting/ending a table.
+
 ## 🤖 Subagent & Model Routing Strategy
 
 *   **Standing Instruction**: For all coding and coding-adjacent tasks, use your judgement to decide when a lower-power model would be appropriate and run that in a subagent.
-

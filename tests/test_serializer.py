@@ -135,3 +135,50 @@ toc::[]
 :some-body-attr: body-value
 """
         self._assert_roundtrip(source)
+
+    def test_trailing_newline_roundtrip(self):
+        # Case 1: No trailing newline
+        source1 = "Hello world! This is a simple paragraph."
+        ast1 = parse_to_ast(source1)
+        serialized1 = serialize_to_asciidoc(ast1)
+        self.assertEqual(serialized1, source1)
+
+        # Case 2: Standard trailing newline
+        source2 = "Hello world! This is a simple paragraph.\n"
+        ast2 = parse_to_ast(source2)
+        serialized2 = serialize_to_asciidoc(ast2)
+        self.assertEqual(serialized2, source2)
+
+        # Case 3: Multiple trailing newlines (normalized to a single trailing newline by serializer)
+        source3 = "Hello world! This is a simple paragraph.\n\n"
+        ast3 = parse_to_ast(source3)
+        serialized3 = serialize_to_asciidoc(ast3)
+        self.assertEqual(serialized3, "Hello world! This is a simple paragraph.\n")
+
+    def test_all_line_ending_combinations_roundtrip(self):
+        # Combinations of modern line endings (Unix LF and Windows CRLF)
+        combinations = {
+            "unix_lf_with": "= Document Title\n\nThis is paragraph content.\n",
+            "unix_lf_without": "= Document Title\n\nThis is paragraph content.",
+            "windows_crlf_with": "= Document Title\r\n\r\nThis is paragraph content.\r\n",
+            "windows_crlf_without": "= Document Title\r\n\r\nThis is paragraph content.",
+        }
+
+        for name, source in combinations.items():
+            with self.subTest(combination=name):
+                ast = parse_to_ast(source)
+                serialized = serialize_to_asciidoc(ast)
+                self.assertEqual(serialized, source)
+
+    def test_pathological_paste_preserves_original_ending(self):
+        # A small CRLF document with a massive LF pasted block below it (with a trailing newline)
+        source = "= Document Title\r\n\r\nParagraph 1\r\n\r\n" + "\n".join([f"Pasted line {i}" for i in range(50)]) + "\n"
+        ast = parse_to_ast(source)
+        serialized = serialize_to_asciidoc(ast)
+        
+        # The entire serialized output should use CRLF
+        self.assertTrue(serialized.startswith("= Document Title\r\n"))
+        self.assertIn("\r\nParagraph 1\r\n", serialized)
+        self.assertNotIn("\n", serialized.replace("\r\n", ""))
+        self.assertTrue(serialized.endswith("\r\n"))
+

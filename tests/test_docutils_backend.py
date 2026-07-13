@@ -140,3 +140,35 @@ def test_table_rendering_conversion():
     # Check that text is wrapped in strong node because of style 's'
     assert isinstance(merged_cell[0][0], nodes.strong)
     assert merged_cell.astext() == "merged bold"
+
+
+def test_document_title_wrapping():
+    source = """= Document Title
+
+Preamble text.
+
+== Section 1
+Section 1 content.
+"""
+    document = asciidoc_to_docutils(source)
+    assert isinstance(document, nodes.document)
+
+    # There should be exactly one top-level node: the root section
+    assert len(document) == 1
+    root_section = document[0]
+    assert isinstance(root_section, nodes.section)
+
+    # First child of root section is the title
+    assert isinstance(root_section[0], nodes.title)
+    assert root_section[0].astext() == "Document Title"
+
+    # Second child is the preamble paragraph
+    assert isinstance(root_section[1], nodes.paragraph)
+    assert root_section[1].astext() == "Preamble text."
+
+    # Third child is Section 1
+    sec1 = root_section[2]
+    assert isinstance(sec1, nodes.section)
+    assert sec1[0].astext() == "Section 1"
+    assert sec1[1].astext() == "Section 1 content."
+

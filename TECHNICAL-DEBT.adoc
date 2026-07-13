@@ -1,4 +1,4 @@
-= Technical Debt List: Asciidoctrine
+= Technical Debt List: AsciiDoctrine
 :toc:
 
 == Overview
