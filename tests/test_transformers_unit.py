@@ -75,8 +75,6 @@ def test_set_location_from_children_with_newline(transformer):
 # NodeTransformer TDD Tests (Issue #73)
 
 
-
-
 class WordReplacer(NodeTransformer):
     """Replaces a specific word in Text nodes."""
 

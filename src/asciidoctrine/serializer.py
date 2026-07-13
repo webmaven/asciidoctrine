@@ -1,5 +1,4 @@
 import io
-
 from typing import Any
 
 from .nodes import Node, NodeVisitor

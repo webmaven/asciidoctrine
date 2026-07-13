@@ -6,6 +6,7 @@ from lark import Token
 
 class LocationDict(dict[str, Any]):
     """A dictionary subclass that can hold location coordinates."""
+
     location: Optional[PyList[dict[str, Any]]]
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
