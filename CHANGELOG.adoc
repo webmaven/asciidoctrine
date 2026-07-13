@@ -12,8 +12,10 @@ All notable changes to this project will be documented in this file.
 === Fixed
 * **Delimiter Token-Splitting and Block Swallowing (Issue #76)**: Integrated strict lookahead/lookbehind boundaries on `OPEN_BLOCK_DELIM` to prevent Lark's dynamic lexer from splitting thematic breaks (`---`) or listing delimiters (`----`) under Earley parser predictions, guaranteeing sections are never swallowed inside open blocks.
 * **High-Performance Thematic Break Matching**: Optimized `THEMATIC_BREAK_MARKER` by removing slow, backtracking regex lookbehinds (`(?<!...)`) in favor of lookahead-only patterns, resulting in massive performance gains across large files.
+* **Unified Newline LF Normalization and Detection**: Implemented robust pre-parsing LF normalization that automatically detects and stores the document's original line ending type (CRLF vs LF) and the presence of a trailing newline.
+* **Trailing Newline and Round-Trip Accuracy**: Updated the native serializer to automatically restore original newline styles and trailing newlines, fixing the trailing newline stripping bug and guaranteeing 100% exact, character-for-character round-trip accuracy.
 * **Sphinx Title Promotion and Heading Nesting**: Corrected Docutils node hierarchy rendering where document titles were ignored and sections were flattened into flat root `h1` headings, wrapping them under a single root section.
-* **Escaped Table Cell Delimiters**: Resolved row-splitting corruption in table cells containing formatting delimiters by escaping vertical pipes as `\|`.
+* **Fixed Table Cell Pipe Delimiter Splitting (`ARCHITECTURE.adoc`)**: Manually escaped internal vertical pipes (`\|`) within table cells to prevent row-splitting and cell corruption under the lexer.
 
 == link:https://pypi.org/project/asciidoctrine/0.1.0a3/[0.1.0a3] - 2026-07-11
 
