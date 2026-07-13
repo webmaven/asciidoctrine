@@ -4,7 +4,7 @@ from asciidoctrine.nodes import Listing, Literal, Text
 
 
 def test_listing_block_coordinates_without_attributes():
-    source = "----\nimport os\nprint(\"hello\")\n----\n"
+    source = '----\nimport os\nprint("hello")\n----\n'
     ast = parse_to_ast(source)
     node = ast.blocks[0]
 
@@ -23,7 +23,7 @@ def test_listing_block_coordinates_without_attributes():
 
 
 def test_listing_block_coordinates_with_attributes():
-    source = "[source,python]\n----\nimport os\nprint(\"hello\")\n----\n"
+    source = '[source,python]\n----\nimport os\nprint("hello")\n----\n'
     ast = parse_to_ast(source)
     node = ast.blocks[0]
 

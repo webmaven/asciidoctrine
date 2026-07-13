@@ -56,22 +56,22 @@ colist_item.5: "<" NUMBER ">" [WHITESPACE] text_content _NEWLINE
 ?dlist_nested_5: dlist_4 | dlist_3 | dlist_2
 
 dlist_2: dlist_item_2+ -> dlist
-dlist_item_2.5: dlist_term_2+ dlist_description_2? -> dlist_item
+dlist_item_2.-5: dlist_term_2+ dlist_description_2? -> dlist_item
 dlist_term_2.12: text_content DLIST_MARKER_2 [WHITESPACE] _NEWLINE? -> dlist_term
 dlist_description_2.15: _NEWLINE? [WHITESPACE] (section | ulist | olist | dlist_nested_2 | colist | table | listing_block | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | paragraph)+ _NEWLINE? -> dlist_description
 
 dlist_3: dlist_item_3+ -> dlist
-dlist_item_3.5: dlist_term_3+ dlist_description_3? -> dlist_item
+dlist_item_3.-5: dlist_term_3+ dlist_description_3? -> dlist_item
 dlist_term_3.12: text_content DLIST_MARKER_3 [WHITESPACE] _NEWLINE? -> dlist_term
 dlist_description_3.15: _NEWLINE? [WHITESPACE] (section | ulist | olist | dlist_nested_3 | colist | table | listing_block | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | paragraph)+ _NEWLINE? -> dlist_description
 
 dlist_4: dlist_item_4+ -> dlist
-dlist_item_4.5: dlist_term_4+ dlist_description_4? -> dlist_item
+dlist_item_4.-5: dlist_term_4+ dlist_description_4? -> dlist_item
 dlist_term_4.12: text_content DLIST_MARKER_4 [WHITESPACE] _NEWLINE? -> dlist_term
 dlist_description_4.15: _NEWLINE? [WHITESPACE] (section | ulist | olist | dlist_nested_4 | colist | table | listing_block | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | paragraph)+ _NEWLINE? -> dlist_description
 
 dlist_5: dlist_item_5+ -> dlist
-dlist_item_5.5: dlist_term_5+ dlist_description_5? -> dlist_item
+dlist_item_5.-5: dlist_term_5+ dlist_description_5? -> dlist_item
 dlist_term_5.12: text_content DLIST_MARKER_5 [WHITESPACE] _NEWLINE? -> dlist_term
 dlist_description_5.15: _NEWLINE? [WHITESPACE] (section | ulist | olist | dlist_nested_5 | colist | table | listing_block | literal_block | passthrough_block | admonition | shorthand_admonition | sidebar | quote_block | open_block | example_block | paragraph)+ _NEWLINE? -> dlist_description
 

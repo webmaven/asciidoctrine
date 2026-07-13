@@ -275,7 +275,11 @@ class BlockTransformer(BaseTransformer):
     def colist_item(self, meta: Any, children: PyList[Any]) -> CalloutListItem:
         number = int(children[0].value)
         # Filter out WHITESPACE tokens to find the actual list of inline text nodes
-        nodes = [c for c in children[1:] if not (hasattr(c, "type") and getattr(c, "type") == "WHITESPACE")]
+        nodes = [
+            c
+            for c in children[1:]
+            if not (hasattr(c, "type") and getattr(c, "type") == "WHITESPACE")
+        ]
         content = nodes[0] if nodes else []
         item = CalloutListItem(number=number, principal=content)
         return cast(CalloutListItem, self._set_location_from_children(item, children))

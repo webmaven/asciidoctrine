@@ -22,6 +22,22 @@ class ASGResolver:
 
     def _resolve_recursive(self, asg: Dict[str, Any]) -> Dict[str, Any]:
         """Recursively resolve attribute references."""
+        # Clean block-level attributes to remove AST/syntactic artifacts
+        if "attributes" in asg and asg.get("name") not in ("document", "attributes"):
+            attrs = asg["attributes"]
+            if isinstance(attrs, dict):
+                cleaned_attrs = {}
+                for k, v in attrs.items():
+                    # Skip positional indexes ('1', '2', etc.), 'positional' list, and 'style'
+                    if k == "positional" or k == "style" or k.isdigit():
+                        continue
+                    cleaned_attrs[k] = v
+
+                if cleaned_attrs:
+                    asg["attributes"] = cleaned_attrs
+                else:
+                    del asg["attributes"]
+
         if asg.get("name") == "text":
             asg["value"] = substitute_attributes(
                 asg.get("value", ""), self.resolved_attributes
@@ -81,7 +97,10 @@ class ASGResolver:
                     current_group.clear()
 
                 for child in asg[key]:
-                    if isinstance(child, dict) and child.get("name") == "attribute_entry":
+                    if (
+                        isinstance(child, dict)
+                        and child.get("name") == "attribute_entry"
+                    ):
                         current_group.append(child)
                     else:
                         flush_group()
@@ -97,4 +116,3 @@ class ASGResolver:
                 asg[key] = resolved_children
 
         return asg
-

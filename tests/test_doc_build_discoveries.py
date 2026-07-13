@@ -49,7 +49,6 @@ class TestDocBuildDiscoveries(unittest.TestCase):
         self.assertEqual(len(span["inlines"]), 1)
         self.assertEqual(span["inlines"][0]["value"], "*bold* _italic_")
 
-
     def test_nested_styles_inside_verbatim_listing_blocks(self):
         """
         Verbatim listing blocks should protect all nested characters (such as _to_
@@ -104,12 +103,12 @@ ast = parse_to_ast(source)
         ast = parse_to_ast(source).to_dict()
         header = ast["blocks"][0]
         self.assertEqual(header["name"], "section")
-        
+
         # Verify the title contains the Ref link inline node and no plain text "link:"
         title_inlines = header["title"]
         inline_types = [n["name"] for n in title_inlines]
         self.assertIn("ref", inline_types)
-        
+
         # Ensure there is no plain-text 'link:' string before the link
         plain_texts = [n["value"] for n in title_inlines if n["name"] == "text"]
         for t in plain_texts:

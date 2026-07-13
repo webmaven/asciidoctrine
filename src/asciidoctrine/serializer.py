@@ -2,10 +2,12 @@ import io
 from typing import Any, Dict, List, Optional, Sequence
 from .nodes import Node, NodeVisitor
 
+
 class AsciiDocSerializerVisitor(NodeVisitor):
     """
     A visitor that serializes an unresolved AsciiDoc AST back to AsciiDoc source string.
     """
+
     def __init__(self) -> None:
         self.stream = io.StringIO()
         self.line_ending = "\n"
@@ -16,7 +18,9 @@ class AsciiDocSerializerVisitor(NodeVisitor):
         self.visit(node)
         val = self.stream.getvalue()
         # If the root document had no trailing newline, strip the very last trailing newline if present.
-        if getattr(node, "name", None) == "document" and not getattr(node, "had_trailing_newline", True):
+        if getattr(node, "name", None) == "document" and not getattr(
+            node, "had_trailing_newline", True
+        ):
             if val.endswith("\r\n"):
                 val = val[:-2]
             elif val.endswith("\n"):
@@ -56,8 +60,14 @@ class AsciiDocSerializerVisitor(NodeVisitor):
         # Format block attributes: [style, language, key=value]
         # Ignore structural/internal attributes already serialized
         ignored_keys = {
-            "id", "role", "title", "form", "delimiter", "checked",
-            "positional", "positional_attributes"
+            "id",
+            "role",
+            "title",
+            "form",
+            "delimiter",
+            "checked",
+            "positional",
+            "positional_attributes",
         }
         style = attrs.get("style")
         language = attrs.get("language")
@@ -84,7 +94,7 @@ class AsciiDocSerializerVisitor(NodeVisitor):
                 if " " in str(v) or "," in str(v):
                     attr_parts.append(f'{k}="{v}"')
                 else:
-                    attr_parts.append(f'{k}={v}')
+                    attr_parts.append(f"{k}={v}")
 
         if attr_parts:
             self.write(f"[{', '.join(attr_parts)}]\n")
@@ -330,9 +340,15 @@ class AsciiDocSerializerVisitor(NodeVisitor):
 
         if style:
             style_map = {
-                "asciidoc": "a", "code": "c", "default": "d", "emphasis": "e",
-                "header": "h", "literal": "l", "monospaced": "m", "strong": "s",
-                "verse": "v"
+                "asciidoc": "a",
+                "code": "c",
+                "default": "d",
+                "emphasis": "e",
+                "header": "h",
+                "literal": "l",
+                "monospaced": "m",
+                "strong": "s",
+                "verse": "v",
             }
             specifiers.append(style_map.get(style.lower(), style))
 
@@ -387,7 +403,7 @@ class AsciiDocSerializerVisitor(NodeVisitor):
         markup_map = {
             "strong": ("*", "**"),
             "emphasis": ("_", "__"),
-            "code": ("`", "``")
+            "code": ("`", "``"),
         }
 
         if variant in markup_map:
@@ -409,7 +425,11 @@ class AsciiDocSerializerVisitor(NodeVisitor):
         if variant == "link":
             # For links, target can be a URL or a label
             # Standard URI scheme check
-            has_scheme = target.startswith("http://") or target.startswith("https://") or target.startswith("mailto:")
+            has_scheme = (
+                target.startswith("http://")
+                or target.startswith("https://")
+                or target.startswith("mailto:")
+            )
             prefix = "" if has_scheme else "link:"
             self.write(f"{prefix}{target}[")
 

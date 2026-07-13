@@ -4,6 +4,7 @@ from lark import Token
 
 class LocationDict(dict):
     """A dictionary subclass that can hold location coordinates."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.location = None

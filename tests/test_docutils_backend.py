@@ -171,4 +171,3 @@ Section 1 content.
     assert isinstance(sec1, nodes.section)
     assert sec1[0].astext() == "Section 1"
     assert sec1[1].astext() == "Section 1 content."
-

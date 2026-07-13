@@ -70,7 +70,6 @@ class AsciiDocTransformer(
         ]
         return node
 
-
     @v_args(meta=True)
     def document(self, meta: Any, children: Children) -> Document:
         doc = cast(Document, children[0])
@@ -420,7 +419,7 @@ class AsciiDocTransformer(
         if meta:
             attrs.location = [
                 {"line": meta.line, "col": meta.column},
-                {"line": meta.end_line, "col": meta.end_column - 1}
+                {"line": meta.end_line, "col": meta.end_column - 1},
             ]
 
         attr_str = ""
@@ -494,8 +493,7 @@ class AsciiDocTransformer(
 
         # Map positional attributes (non-named, non-shorthand, non-option for style/language)
         positional_parts = [
-            p for p in parts
-            if p and "=" not in p and not p.startswith(("#", ".", "%"))
+            p for p in parts if p and "=" not in p and not p.startswith(("#", ".", "%"))
         ]
         if positional_parts:
             attrs["style"] = positional_parts[0]
@@ -634,7 +632,9 @@ def parse_to_ast(
     else:
         line_ending = "\n"
 
-    had_trailing_newline = source.endswith("\n") or source.endswith("\r") if source else True
+    had_trailing_newline = (
+        source.endswith("\n") or source.endswith("\r") if source else True
+    )
 
     # Standardize all line endings to LF for internal parsing robust performance
     source = source.replace("\r\n", "\n").replace("\r", "\n")

@@ -579,16 +579,14 @@ class DescriptionListTerm(InlineNode):
 
 
 CALLOUT_RE = re.compile(
-    r'\s+'
-    r'(?:(?P<prefix>(?://|#|;;?|--|/\*|<!--)\s*))?'
-    r'(?P<markers>(?:<\d+>\s*|<\.>\s*)+)'
-    r'(?P<suffix>\*/|-->)?'
-    r'\s*$'
+    r"\s+"
+    r"(?:(?P<prefix>(?://|#|;;?|--|/\*|<!--)\s*))?"
+    r"(?P<markers>(?:<\d+>\s*|<\.>\s*)+)"
+    r"(?P<suffix>\*/|-->)?"
+    r"\s*$"
 )
 
-HTML_BARE_CALLOUT_RE = re.compile(
-    r'\s+<!--\s*(?P<num>\d+|\.)\s*-->\s*$'
-)
+HTML_BARE_CALLOUT_RE = re.compile(r"\s+<!--\s*(?P<num>\d+|\.)\s*-->\s*$")
 
 
 class VerbatimBlockMixin:
@@ -622,11 +620,11 @@ class VerbatimBlockMixin:
 
             m = CALLOUT_RE.search(text)
             if m:
-                stripped_text = text[:m.start()]
+                stripped_text = text[: m.start()]
             else:
                 m2 = HTML_BARE_CALLOUT_RE.search(text)
                 if m2:
-                    stripped_text = text[:m2.start()]
+                    stripped_text = text[: m2.start()]
                 else:
                     stripped_text = text
             stripped_lines.append(stripped_text + nl)
@@ -642,7 +640,7 @@ class VerbatimBlockMixin:
             raw_nums = []
             if m:
                 markers = m.group("markers")
-                raw_nums = re.findall(r'<(\d+|\.)>', markers)
+                raw_nums = re.findall(r"<(\d+|\.)>", markers)
             else:
                 m2 = HTML_BARE_CALLOUT_RE.search(line)
                 if m2:
@@ -733,7 +731,6 @@ class Listing(VerbatimBlockMixin, BlockNode):
                             parts.append(str(sub.value))
             return "".join(parts)
         return self.attributes.get("title")
-
 
 
 class Literal(VerbatimBlockMixin, BlockNode):

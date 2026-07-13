@@ -3,10 +3,18 @@ AsciiDoctrine: Pure-Python AsciiDoc parser library using Lark.
 """
 
 from .lark_parser import parse_to_ast
-from .nodes import Document, Node, NodeVisitor, NodeTransformer, Paragraph, Section, Text
+from .nodes import (
+    Document,
+    Node,
+    NodeVisitor,
+    NodeTransformer,
+    Paragraph,
+    Section,
+    Text,
+)
 from .serializer import serialize_to_asciidoc
 
-__version__ = "0.1.0a3"
+__version__ = "0.1.0a4"
 
 __all__ = [
     "parse_to_ast",

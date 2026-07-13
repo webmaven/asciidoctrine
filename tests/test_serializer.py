@@ -2,6 +2,7 @@ import os
 import unittest
 from asciidoctrine import parse_to_ast, serialize_to_asciidoc
 
+
 class TestAsciiDocSerializer(unittest.TestCase):
     def setUp(self):
         # Create a dummy include file in the current working directory
@@ -35,7 +36,10 @@ class TestAsciiDocSerializer(unittest.TestCase):
         try:
             self.assertEqual(dict_serialized["name"], dict_original["name"])
             self.assertEqual(dict_serialized["type"], dict_original["type"])
-            self.assertEqual(len(dict_serialized.get("blocks", [])), len(dict_original.get("blocks", [])))
+            self.assertEqual(
+                len(dict_serialized.get("blocks", [])),
+                len(dict_original.get("blocks", [])),
+            )
         except AssertionError as e:
             print("\n--- Assertion Failed ---")
             print("Serialized output was:")
@@ -172,13 +176,16 @@ toc::[]
 
     def test_pathological_paste_preserves_original_ending(self):
         # A small CRLF document with a massive LF pasted block below it (with a trailing newline)
-        source = "= Document Title\r\n\r\nParagraph 1\r\n\r\n" + "\n".join([f"Pasted line {i}" for i in range(50)]) + "\n"
+        source = (
+            "= Document Title\r\n\r\nParagraph 1\r\n\r\n"
+            + "\n".join([f"Pasted line {i}" for i in range(50)])
+            + "\n"
+        )
         ast = parse_to_ast(source)
         serialized = serialize_to_asciidoc(ast)
-        
+
         # The entire serialized output should use CRLF
         self.assertTrue(serialized.startswith("= Document Title\r\n"))
         self.assertIn("\r\nParagraph 1\r\n", serialized)
         self.assertNotIn("\n", serialized.replace("\r\n", ""))
         self.assertTrue(serialized.endswith("\r\n"))
-

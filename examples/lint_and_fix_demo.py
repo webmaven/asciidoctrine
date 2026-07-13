@@ -45,14 +45,22 @@ class FormattingLinter:
                 fixed_inlines.append(self.lint_and_fix(inline))
             node.inlines = fixed_inlines
 
-        if isinstance(node, Section) and hasattr(node, "title") and node.title is not None:
+        if (
+            isinstance(node, Section)
+            and hasattr(node, "title")
+            and node.title is not None
+        ):
             node.title = self.lint_and_fix(node.title)
 
         return node
 
     def _check_node(self, node: Node):
         # Rule 1: Warn on and clean up obsolete unconstrained monospace double backticks
-        if isinstance(node, Span) and node.variant == "monospace" and node.form == "unconstrained":
+        if (
+            isinstance(node, Span)
+            and node.variant == "monospace"
+            and node.form == "unconstrained"
+        ):
             self.warnings.append(
                 f"Line {getattr(node, 'start_line', '?')}: Found unconstrained monospace double-backticks. "
                 "Standardizing to constrained single-backticks."
