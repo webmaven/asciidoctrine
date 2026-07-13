@@ -1,0 +1,4 @@
+include::../FEATURE_MATRIX.adoc[]
+
+:relfileprefix: ../
+:relfilesuffix: .adoc
