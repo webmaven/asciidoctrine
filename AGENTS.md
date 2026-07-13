@@ -94,6 +94,44 @@ When adding support for a new AsciiDoc element:
     *   Add a unit test in `tests/test_blocks_parsing.py` or `tests/test_inlines_parsing.py`.
     *   Add a functional test or TCK-style test in `tests/tck_harness/`.
 
+## 🚀 Pre-Release Verification Checklist
+
+Before releasing any package version to PyPI, follow this checklist sequentially to prevent regressions, formatting lints, and setup failures:
+
+1. **Local Test & Lint Execution**:
+   - Ensure Ruff linter and formatter are completely happy:
+     ```bash
+     venv/bin/ruff format --check .
+     venv/bin/ruff check .
+     ```
+   - Ensure the Mypy strict type-checker passes cleanly:
+     ```bash
+     venv/bin/mypy src/asciidoctrine
+     ```
+   - Run the full test suite locally:
+     ```bash
+     venv/bin/pytest -k "not functional"
+     ```
+   - Run the TCK suite locally and check for 100% compliance:
+     ```bash
+     ./run-tck.sh
+     ```
+
+2. **Verify Version Coherence**:
+   - Check that the exact target version is aligned in `pyproject.toml` (under `version = "..."`).
+   - Check that the exact same string matches `__version__ = "..."` inside `src/asciidoctrine/__init__.py`.
+   - Ensure the new release section is added at the top of `CHANGELOG.adoc`.
+
+3. **Verify Documentation and Sandboxes**:
+   - Clear and rebuild documentation:
+     ```bash
+     venv/bin/sphinx-build -a -E -b html docs docs/_build/html
+     ```
+   - Confirm that the Pyodide/sandbox tests (`tests/test_functional.py`) dynamically resolve and load the correct built wheel name instead of relying on any hardcoded version.
+
+4. **Verify GHA Status on main**:
+   - Push release branches to GitHub and verify that **all GitHub Actions jobs** (including Pyodide runs, document builders, and linters) succeed cleanly with a green checkmark before creating the PyPI release.
+
 ## 📁 Key File Paths
 
 | Path | Description |

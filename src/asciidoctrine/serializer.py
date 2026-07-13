@@ -1,5 +1,7 @@
 import io
-from typing import Any, Dict, List, Optional, Sequence
+
+from typing import Any
+
 from .nodes import Node, NodeVisitor
 
 
@@ -507,11 +509,11 @@ class AsciiDocSerializerVisitor(NodeVisitor):
                 self.visit(inline)
             self.write(f"\n{delim}\n")
 
-    def generic_visit(self, node: Node) -> None:
+    def generic_visit(self, node: Node, **kwargs: Any) -> Any:
         # Fallback if no specific visitor matches
         for collection in node.get_child_collections().values():
             for child in collection:
-                self.visit(child)
+                self.visit(child, **kwargs)
 
 
 def serialize_to_asciidoc(node: Node) -> str:

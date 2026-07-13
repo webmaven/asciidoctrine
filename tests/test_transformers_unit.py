@@ -1,7 +1,7 @@
 import pytest
 from lark import Token
 
-from asciidoctrine.nodes import Node, Text
+from asciidoctrine.nodes import Document, Node, NodeTransformer, Paragraph, Span, Text
 from asciidoctrine.transformers.block_transformer import BlockTransformer
 
 
@@ -73,7 +73,8 @@ def test_set_location_from_children_with_newline(transformer):
 
 
 # NodeTransformer TDD Tests (Issue #73)
-from asciidoctrine.nodes import NodeTransformer, Document, Paragraph, Span
+
+
 
 
 class WordReplacer(NodeTransformer):

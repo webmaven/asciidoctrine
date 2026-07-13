@@ -37,9 +37,9 @@ from .nodes import (
     Video,
 )
 from .preprocessor import Preprocessor
+from .transformers.base_transformer import LocationDict
 from .transformers.block_transformer import BlockTransformer
 from .transformers.inline_transformer import InlineTransformer
-from .transformers.base_transformer import LocationDict
 
 Children = PyList[Any]
 Transformed = Union[Node, Any, Dict[str, Any], PyList[Any], str]

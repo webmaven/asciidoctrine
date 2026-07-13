@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, Iterator, Optional, Sequence, cast
 from typing import List as PyList
-import re
 
 """
 Custom Abstract Syntax Tree (AST) for AsciiDoc parsing.
@@ -112,6 +112,8 @@ class Document(BlockNode):
         self.type = "block"
         self.blocks: PyList[Node] = list(blocks) if blocks else []
         self.header: Optional[Header] = None
+        self.had_trailing_newline: bool = True
+        self.line_ending: str = "\n"
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize document with header and resolved attributes."""

@@ -6,8 +6,8 @@ from .lark_parser import parse_to_ast
 from .nodes import (
     Document,
     Node,
-    NodeVisitor,
     NodeTransformer,
+    NodeVisitor,
     Paragraph,
     Section,
     Text,

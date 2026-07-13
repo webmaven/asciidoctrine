@@ -1,4 +1,3 @@
-import pytest
 from asciidoctrine.nodes import Listing, Literal, Text
 
 

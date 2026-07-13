@@ -64,9 +64,9 @@ class ASGResolver:
             if key in asg and isinstance(asg[key], list):
                 # 1. Group contiguous attribute_entry children into "attributes" blocks
                 grouped_children = []
-                current_group = []
+                current_group: list[dict[str, Any]] = []
 
-                def flush_group():
+                def flush_group() -> None:
                     if not current_group:
                         return
                     group_attrs = {}

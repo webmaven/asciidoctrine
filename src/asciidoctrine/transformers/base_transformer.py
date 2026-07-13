@@ -1,11 +1,14 @@
-from typing import Any, Dict, List as PyList
+from typing import Any, Optional
+from typing import List as PyList
+
 from lark import Token
 
 
-class LocationDict(dict):
+class LocationDict(dict[str, Any]):
     """A dictionary subclass that can hold location coordinates."""
+    location: Optional[PyList[dict[str, Any]]]
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.location = None
 

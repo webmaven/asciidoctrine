@@ -16,8 +16,6 @@ from ..nodes import (
     Span,
     Text,
 )
-
-
 from .base_transformer import BaseTransformer
 
 
@@ -111,23 +109,23 @@ class InlineTransformer(BaseTransformer):
 
     @v_args(meta=True)
     def bold_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
-        return self.text_content(meta, children)
+        return cast(PyList[Node], self.text_content(meta, children))
 
     @v_args(meta=True)
     def italic_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
-        return self.text_content(meta, children)
+        return cast(PyList[Node], self.text_content(meta, children))
 
     @v_args(meta=True)
     def marked_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
-        return self.text_content(meta, children)
+        return cast(PyList[Node], self.text_content(meta, children))
 
     @v_args(meta=True)
     def superscript_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
-        return self.text_content(meta, children)
+        return cast(PyList[Node], self.text_content(meta, children))
 
     @v_args(meta=True)
     def subscript_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
-        return self.text_content(meta, children)
+        return cast(PyList[Node], self.text_content(meta, children))
 
     @v_args(meta=True)
     def bold(self, meta: Any, children: PyList[Any]) -> Span:

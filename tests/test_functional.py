@@ -1,3 +1,5 @@
+import os
+import re
 import pytest
 
 try:
@@ -8,12 +10,26 @@ except ImportError:
     HAS_PYODIDE = False
 
 
+def _get_wheel_name():
+    try:
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        pyproject_path = os.path.join(base_dir, "pyproject.toml")
+        with open(pyproject_path, "r", encoding="utf-8") as f:
+            content = f.read()
+            match = re.search(r'version\s*=\s*["\']([^"\']+)["\']', content)
+            if match:
+                return f"asciidoctrine-{match.group(1)}-py3-none-any.whl"
+    except Exception:
+        pass
+    return "asciidoctrine-0.1.0-py3-none-any.whl"
+
+
 def run_if_pyodide(func):
     if HAS_PYODIDE:
         return run_in_pyodide(
             packages=[
                 "lark-1.3.1-py3-none-any.whl",
-                "asciidoctrine-0.1.0-py3-none-any.whl",
+                _get_wheel_name(),
             ]
         )(func)
     return pytest.mark.skip(reason="pytest-pyodide not installed")(func)
