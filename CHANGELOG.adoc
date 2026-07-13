@@ -3,6 +3,15 @@
 
 All notable changes to this project will be documented in this file.
 
+== link:https://pypi.org/project/asciidoctrine/0.1.0a6/[0.1.0a6] - 2026-07-12
+
+=== Added
+* **Pre-Release Verification Checklist**: Added a comprehensive step-by-step developer and automation release checklist inside `AGENTS.md` to prevent formatting, type-safety, and wheel-matching regressions in future releases.
+
+=== Fixed
+* **Strict Type Safety compliance**: Fully resolved all strict static analysis and typing errors under Mypy, specifically adding proper generic type annotations on `LocationDict` and initializing properties dynamically assigned on `Document`.
+* **Standardized Import Sorting and Formatting**: Cleaned up internal imports and resolved layout lints to achieve 100% style compliance with Ruff formatters and linters.
+
 == link:https://pypi.org/project/asciidoctrine/0.1.0a5/[0.1.0a5] - 2026-07-12
 
 === Fixed
