@@ -44,32 +44,36 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="feature-matrix.html">AsciiDoc Feature Matrix</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#id2">0.1.0a6 - 2026-07-12</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">0.1.0a7 - 2026-07-13</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id3">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id4">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id5">0.1.0a5 - 2026-07-12</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id4">0.1.0a6 - 2026-07-12</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id5">Added</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id6">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id7">0.1.0a4 - 2026-07-12</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id8">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id9">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id7">0.1.0a5 - 2026-07-12</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id8">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id10">0.1.0a3 - 2026-07-11</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id11">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id12">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id9">0.1.0a4 - 2026-07-12</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id10">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id11">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id13">0.1.0a2 - 2026-07-07</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id14">Added</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id12">0.1.0a3 - 2026-07-11</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id13">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id14">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id15">0.1.0a1 - 2026-07-07</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id15">0.1.0a2 - 2026-07-07</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id16">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id17">Fixed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id17">0.1.0a1 - 2026-07-07</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id18">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id19">Fixed</a></li>
 </ul>
 </li>
 </ul>
@@ -104,25 +108,48 @@
 <h1>Changelog<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>All notable changes to this project will be documented in this file.</p>
 <section id="id2">
-<h2><a class="reference external" href="https://pypi.org/project/asciidoctrine/0.1.0a6/">0.1.0a6</a> - 2026-07-12<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
+<h2><a class="reference external" href="https://pypi.org/project/asciidoctrine/0.1.0a7/">0.1.0a7</a> - 2026-07-13<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <section id="id3">
 <h3>Added<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Footnotes and Named Footnoterefs Support</strong>:</p>
+<ul>
+<li><p><strong>EBNF Grammar &amp; AST Transformation</strong>: Added complete, prioritized EBNF grammar rules in `grammar.lark<code class="docutils literal notranslate"> <span class="pre">for</span> <span class="pre">standard</span> <span class="pre">auto-numbered</span> </code><a class="footnote-reference brackets" href="#fn-1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a><code class="docutils literal notranslate"><span class="pre">,</span> <span class="pre">named</span> <span class="pre">definitions</span> </code><a class="footnote-reference brackets" href="#fn-id" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a><code class="docutils literal notranslate"><span class="pre">,</span> <span class="pre">and</span> <span class="pre">subsequent</span> <span class="pre">references</span> </code><a class="footnote-reference brackets" href="#fn-id" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>`. Implemented strict coordinate tracking and resolved bracket/comma lexer conflicts.</p></li>
+</ul>
+</li>
+<li><p><strong>Docutils/Sphinx Rendering</strong>: Developed dynamic footnote rendering inside <code class="docutils literal notranslate"><span class="pre">DocutilsRenderer</span></code> to collect definitions, auto-number them, render them as aligned label/body pairs, and position footnote tables elegantly at the bottom of the output document.</p></li>
+<li><p><strong>Lossless AST Serialization</strong>: Added full round-trip formatting inside <code class="docutils literal notranslate"><span class="pre">AsciiDocSerializerVisitor</span></code> to preserve footnotes and definitions with exact character accuracy.</p></li>
+<li><p><strong>TCK Conformance Tests</strong>: Authored and integrated two complete local TCK specification tests inside <code class="docutils literal notranslate"><span class="pre">vendor/asciidoc-tck/</span></code> and <code class="docutils literal notranslate"><span class="pre">tests/tck_harness/</span></code> for auto-numbered and named footnote macros.</p></li>
+<li><p><strong>Expanded Feature Matrix Audit</strong>:</p>
+<ul>
+<li><p>Cross-referenced <code class="docutils literal notranslate"><span class="pre">FEATURE_MATRIX.adoc</span></code> with the 1,748-line official specification <code class="docutils literal notranslate"><span class="pre">outline.adoc</span></code> to add <strong>10 new feature rows</strong> tracking specification progress, Peggy prototyping, TCK status, and explicit support levels (including checklists, block/inline passthroughs, TOC macro, and autolinks).</p></li>
+</ul>
+</li>
+<li><p><strong>Developer Experience (DX) Error Handling Roadmap</strong>:</p></li>
+<li><p>Created a detailed architectural feature design (Issue #78) for strict diagnostics (visual carets), forgiving puppet-driven error recovery, and a formatting linter.</p></li>
+</ul>
+</section>
+</section>
+<section id="id4">
+<h2><a class="reference external" href="https://pypi.org/project/asciidoctrine/0.1.0a6/">0.1.0a6</a> - 2026-07-12<a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
+<section id="id5">
+<h3>Added<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Pre-Release Verification Checklist</strong>: Added a comprehensive step-by-step developer and automation release checklist inside <code class="docutils literal notranslate"><span class="pre">AGENTS.md</span></code> to prevent formatting, type-safety, and wheel-matching regressions in future releases.</p></li>
 </ul>
 </section>
-<section id="id4">
-<h3>Fixed<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<section id="id6">
+<h3>Fixed<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Strict Type Safety compliance</strong>: Fully resolved all strict static analysis and typing errors under Mypy, specifically adding proper generic type annotations on <code class="docutils literal notranslate"><span class="pre">LocationDict</span></code> and initializing properties dynamically assigned on <code class="docutils literal notranslate"><span class="pre">Document</span></code>.</p></li>
 <li><p><strong>Standardized Import Sorting and Formatting</strong>: Cleaned up internal imports and resolved layout lints to achieve 100% style compliance with Ruff formatters and linters.</p></li>
 </ul>
 </section>
 </section>
-<section id="id5">
-<h2><a class="reference external" href="https://pypi.org/project/asciidoctrine/0.1.0a5/">0.1.0a5</a> - 2026-07-12<a class="headerlink" href="#id5" title="Link to this heading"></a></h2>
-<section id="id6">
-<h3>Fixed<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<section id="id7">
+<h2><a class="reference external" href="https://pypi.org/project/asciidoctrine/0.1.0a5/">0.1.0a5</a> - 2026-07-12<a class="headerlink" href="#id7" title="Link to this heading"></a></h2>
+<section id="id8">
+<h3>Fixed<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Earley Parser Description List Term Grouping</strong>: Corrected parsing priorities of nested lists to natively prefer grouping multiple consecutive terms under a single description list item (resolving TCK compliance failures on multi-term definitions).</p></li>
 <li><p><strong>Block ASG Conformance</strong>: Implemented recursive block-level attribute cleaning inside the ASG Resolver to filter out syntactic positional/style keys (like <code class="docutils literal notranslate"><span class="pre">'1'</span></code>, <code class="docutils literal notranslate"><span class="pre">'positional'</span></code>, and <code class="docutils literal notranslate"><span class="pre">'style'</span></code>) from resolved block-level metadata, achieving 100% compliant and clean ASG output for all blocks including <code class="docutils literal notranslate"><span class="pre">Stem</span></code> and <code class="docutils literal notranslate"><span class="pre">Verse</span></code>.</p></li>
@@ -130,17 +157,17 @@
 </ul>
 </section>
 </section>
-<section id="id7">
-<h2><a class="reference external" href="https://pypi.org/project/asciidoctrine/0.1.0a4/">0.1.0a4</a> - 2026-07-12<a class="headerlink" href="#id7" title="Link to this heading"></a></h2>
-<section id="id8">
-<h3>Added<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<section id="id9">
+<h2><a class="reference external" href="https://pypi.org/project/asciidoctrine/0.1.0a4/">0.1.0a4</a> - 2026-07-12<a class="headerlink" href="#id9" title="Link to this heading"></a></h2>
+<section id="id10">
+<h3>Added<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Native macOS Browser Automation Support</strong>: Established global and project-scoped developer instructions (<code class="docutils literal notranslate"><span class="pre">AGENTS.md</span></code>) and customized skills to natively execute high-fidelity Playwright/Selenium browser previews and layout audits on macOS.</p></li>
 <li><p><strong>Refructured Sphinx Documentation Landing Page</strong>: Redesigned <code class="docutils literal notranslate"><span class="pre">docs/index.adoc</span></code> as a clean, polished onboarding guide, removing internal-only engineering blueprints to provide a professional, user-focused documentation site.</p></li>
 </ul>
 </section>
-<section id="id9">
-<h3>Fixed<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<section id="id11">
+<h3>Fixed<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Delimiter Token-Splitting and Block Swallowing (Issue #76)</strong>: Integrated strict lookahead/lookbehind boundaries on <code class="docutils literal notranslate"><span class="pre">OPEN_BLOCK_DELIM</span></code> to prevent Lark’s dynamic lexer from splitting thematic breaks (<code class="docutils literal notranslate"><span class="pre">---</span></code>) or listing delimiters (<code class="docutils literal notranslate"><span class="pre">----</span></code>) under Earley parser predictions, guaranteeing sections are never swallowed inside open blocks.</p></li>
 <li><p><strong>High-Performance Thematic Break Matching</strong>: Optimized <code class="docutils literal notranslate"><span class="pre">THEMATIC_BREAK_MARKER</span></code> by removing slow, backtracking regex lookbehinds (<code class="docutils literal notranslate"><span class="pre">(?&lt;!...)</span></code>) in favor of lookahead-only patterns, resulting in massive performance gains across large files.</p></li>
@@ -151,10 +178,10 @@
 </ul>
 </section>
 </section>
-<section id="id10">
-<h2><a class="reference external" href="https://pypi.org/project/asciidoctrine/0.1.0a3/">0.1.0a3</a> - 2026-07-11<a class="headerlink" href="#id10" title="Link to this heading"></a></h2>
-<section id="id11">
-<h3>Added<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
+<section id="id12">
+<h2><a class="reference external" href="https://pypi.org/project/asciidoctrine/0.1.0a3/">0.1.0a3</a> - 2026-07-11<a class="headerlink" href="#id12" title="Link to this heading"></a></h2>
+<section id="id13">
+<h3>Added<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Native AsciiDoc Serializer</strong> (Issue #74): Created <code class="docutils literal notranslate"><span class="pre">AsciiDocSerializerVisitor</span></code> and the public <code class="docutils literal notranslate"><span class="pre">serialize_to_asciidoc()</span></code> function to serialize any unresolved AST back into standard, clean, valid AsciiDoc source.</p></li>
 <li><p><strong>NodeTransformer Class</strong> (Issue #73): Introduced <code class="docutils literal notranslate"><span class="pre">NodeTransformer</span></code> to facilitate programmatic AST/ASG modification, replacement, pruning, and expansion.</p></li>
@@ -162,18 +189,18 @@
 <li><p><strong>Expanded Functional &amp; Unit Tests</strong>: Added regression tests for <code class="docutils literal notranslate"><span class="pre">NodeTransformer</span></code>, <code class="docutils literal notranslate"><span class="pre">serialize_to_asciidoc</span></code> under unit suites and Pyodide functional test setups.</p></li>
 </ul>
 </section>
-<section id="id12">
-<h3>Fixed<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<section id="id14">
+<h3>Fixed<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Consecutive Block Attributes Merging</strong> (Issue #72): Resolved a structural Lark Earley ambiguity by lowering the priority of attribute and anchor rules, allowing consecutive metadata lines (e.g. <code class="docutils literal notranslate"><span class="pre">[.role]\n[source,python]</span></code>) to merge correctly.</p></li>
 <li><p><strong>Positional Attributes Parsing</strong> (Issue #71): Corrected parsing of mixed shorthand, named, and positional attributes without early return collisions.</p></li>
 </ul>
 </section>
 </section>
-<section id="id13">
-<h2><a class="reference external" href="https://pypi.org/project/asciidoctrine/0.1.0a2/">0.1.0a2</a> - 2026-07-07<a class="headerlink" href="#id13" title="Link to this heading"></a></h2>
-<section id="id14">
-<h3>Added<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
+<section id="id15">
+<h2><a class="reference external" href="https://pypi.org/project/asciidoctrine/0.1.0a2/">0.1.0a2</a> - 2026-07-07<a class="headerlink" href="#id15" title="Link to this heading"></a></h2>
+<section id="id16">
+<h3>Added<a class="headerlink" href="#id16" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Nested &amp; Mixed Description Lists</strong>: Complete parsing and ASG structure mapping of recursive definition/description lists.</p></li>
 <li><p><strong>Advanced Table Cell Formatting</strong>: Full support for inline cell options, colspans, rowspans, text alignment patterns, and cell style operators.</p></li>
@@ -183,10 +210,10 @@
 </ul>
 </section>
 </section>
-<section id="id15">
-<h2><a class="reference external" href="https://pypi.org/project/asciidoctrine/0.1.0a1/">0.1.0a1</a> - 2026-07-07<a class="headerlink" href="#id15" title="Link to this heading"></a></h2>
-<section id="id16">
-<h3>Added<a class="headerlink" href="#id16" title="Link to this heading"></a></h3>
+<section id="id17">
+<h2><a class="reference external" href="https://pypi.org/project/asciidoctrine/0.1.0a1/">0.1.0a1</a> - 2026-07-07<a class="headerlink" href="#id17" title="Link to this heading"></a></h2>
+<section id="id18">
+<h3>Added<a class="headerlink" href="#id18" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Initial Release</strong>: Published and packaged the baseline AsciiDoc parser.</p></li>
 <li><p><strong>Structured AST</strong>: Migration from dictionary-based AST to class-based node objects in <code class="docutils literal notranslate"><span class="pre">nodes.py</span></code>.</p></li>
@@ -201,8 +228,8 @@
 <li><p><strong>Example Blocks</strong>: Support for <code class="docutils literal notranslate"><span class="pre">====</span></code> delimited example blocks.</p></li>
 </ul>
 </section>
-<section id="id17">
-<h3>Fixed<a class="headerlink" href="#id17" title="Link to this heading"></a></h3>
+<section id="id19">
+<h3>Fixed<a class="headerlink" href="#id19" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Resolved <code class="docutils literal notranslate"><span class="pre">ast</span></code> module naming conflict.</p></li>
 <li><p>Fixed list marker ambiguity in recursive grammar rules.</p></li>
@@ -210,6 +237,16 @@
 </section>
 </section>
 </section>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="fn-1" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
+<p>text</p>
+</aside>
+<aside class="footnote brackets" id="fn-id" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
+<p>text</p>
+</aside>
+</aside>
 
 
            </div>
