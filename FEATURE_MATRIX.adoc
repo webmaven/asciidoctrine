@@ -230,7 +230,7 @@ AsciiDoctrine Support::
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-include-directive[Outline]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-preprocessor.pegjs[Peggy Preprocessor]
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/[TCK Covered]
-| link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
+| link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/preprocessor.py[Fully Supported]
 
 | *Callout Lists*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-callout-lists[Outline]

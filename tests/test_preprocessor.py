@@ -87,6 +87,113 @@ class PreprocessorTest(unittest.TestCase):
             str(context.exception),
         )
 
+    def test_include_with_leveloffset_relative(self):
+        # Create a file with heading titles
+        with open(os.path.join(self.base_dir, "headings.adoc"), "w") as f:
+            f.write("= Title\n\n== Section 1\n\n=== Section 1.1")
+
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+
+        # Test shift up (+1)
+        source = "include::headings.adoc[leveloffset=+1]"
+        processed = preprocessor.process(source)
+        expected = "== Title\n\n=== Section 1\n\n==== Section 1.1"
+        self.assertEqual(processed.strip(), expected.strip())
+
+        # Test shift down (-1)
+        source = "include::headings.adoc[leveloffset=-1]"
+        processed = preprocessor.process(source)
+        expected = "Title\n\n= Section 1\n\n== Section 1.1"
+        self.assertEqual(processed.strip(), expected.strip())
+
+    def test_include_with_leveloffset_absolute(self):
+        with open(os.path.join(self.base_dir, "headings.adoc"), "w") as f:
+            f.write("= Title\n\n== Section 1")
+
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        source = "include::headings.adoc[leveloffset=2]"
+        processed = preprocessor.process(source)
+        # Shifted by +2
+        expected = "=== Title\n\n==== Section 1"
+        self.assertEqual(processed.strip(), expected.strip())
+
+    def test_include_with_lines_single_range(self):
+        with open(os.path.join(self.base_dir, "lines.txt"), "w") as f:
+            f.write("Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n")
+
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        source = "include::lines.txt[lines=2..4]"
+        processed = preprocessor.process(source)
+        expected = "Line 2\nLine 3\nLine 4"
+        self.assertEqual(processed.strip(), expected.strip())
+
+    def test_include_with_lines_multiple_ranges(self):
+        with open(os.path.join(self.base_dir, "lines.txt"), "w") as f:
+            f.write("Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n")
+
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+
+        # Semicolon separated
+        source = "include::lines.txt[lines=1..2;4..5]"
+        processed = preprocessor.process(source)
+        expected = "Line 1\nLine 2\nLine 4\nLine 5"
+        self.assertEqual(processed.strip(), expected.strip())
+
+        # Comma separated (quoted)
+        source = 'include::lines.txt[lines="1..2,4..5"]'
+        processed = preprocessor.process(source)
+        expected = "Line 1\nLine 2\nLine 4\nLine 5"
+        self.assertEqual(processed.strip(), expected.strip())
+
+    def test_include_with_tag(self):
+        with open(os.path.join(self.base_dir, "tagged.txt"), "w") as f:
+            f.write(
+                "Before tag\n// tag::snippet[]\nInside 1\nInside 2\n// end::snippet[]\nAfter tag\n"
+            )
+
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        source = "include::tagged.txt[tag=snippet]"
+        processed = preprocessor.process(source)
+        expected = "Inside 1\nInside 2"
+        self.assertEqual(processed.strip(), expected.strip())
+
+    def test_include_with_tags(self):
+        with open(os.path.join(self.base_dir, "tagged_multiple.txt"), "w") as f:
+            f.write(
+                "Before\n"
+                "// tag::first[]\n"
+                "One\n"
+                "// end::first[]\n"
+                "Middle\n"
+                "// tag::second[]\n"
+                "Two\n"
+                "// end::second[]\n"
+                "After\n"
+            )
+
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        source = "include::tagged_multiple.txt[tags=first;second]"
+        processed = preprocessor.process(source)
+        expected = "One\nTwo"
+        self.assertEqual(processed.strip(), expected.strip())
+
+    def test_include_with_combined_attributes(self):
+        with open(os.path.join(self.base_dir, "combined.adoc"), "w") as f:
+            f.write(
+                "= Main Title\n"
+                "// tag::content[]\n"
+                "== Subtitle\n"
+                "Paragraph\n"
+                "// end::content[]\n"
+                "Other content\n"
+            )
+
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        source = "include::combined.adoc[tag=content,leveloffset=+1]"
+        processed = preprocessor.process(source)
+        expected = "=== Subtitle\nParagraph"
+        self.assertEqual(processed.strip(), expected.strip())
+
 
 if __name__ == "__main__":
     unittest.main()
