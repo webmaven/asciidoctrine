@@ -2,7 +2,7 @@
 AsciiDoctrine: Pure-Python AsciiDoc parser library using Lark.
 """
 
-from .lark_parser import parse_to_ast
+from .lark_parser import AsciiDocSyntaxError, parse_to_ast
 from .nodes import (
     Document,
     Node,
@@ -18,6 +18,7 @@ __version__ = "0.1.0a8"
 
 __all__ = [
     "parse_to_ast",
+    "AsciiDocSyntaxError",
     "serialize_to_asciidoc",
     "Node",
     "Document",

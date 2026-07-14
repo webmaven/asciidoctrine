@@ -4,6 +4,8 @@ from lark import Token
 from asciidoctrine.nodes import Document, Node, NodeTransformer, Paragraph, Span, Text
 from asciidoctrine.transformers.block_transformer import BlockTransformer
 
+pytestmark = pytest.mark.unit
+
 
 class MockTransformer(BlockTransformer):
     pass
@@ -155,3 +157,50 @@ def test_node_transformer_expand_node():
     assert len(doc.blocks) == 2
     assert doc.blocks[0].inlines[0].value == "First part"
     assert doc.blocks[1].inlines[0].value == "Second part"
+
+
+def test_table_span_both(transformer):
+    cols = Token("COLS", "3")
+    rows = Token("ROWS", "2")
+    assert transformer.span_both(cols, rows) == {"colspan": 3, "rowspan": 2}
+    assert transformer.span_both(None, rows) == {"colspan": 1, "rowspan": 2}
+
+
+def test_table_span_cols(transformer):
+    cols = Token("COLS", "4")
+    assert transformer.span_cols(cols) == {"colspan": 4}
+
+
+def test_table_multiplier(transformer):
+    mult = Token("MULTIPLIER", "5")
+    assert transformer.multiplier(mult) == {"multiplier": 5}
+
+
+def test_table_align_both(transformer):
+    horiz = Token("ALIGN", "^")
+    vert = Token("VALIGN", ".^")
+    assert transformer.align_both(horiz, vert) == {
+        "align": "center",
+        "valign": "middle",
+    }
+    assert transformer.align_both(horiz, None) == {"align": "center"}
+
+
+def test_table_align_vert(transformer):
+    vert = Token("VALIGN", ".>")
+    assert transformer.align_vert(vert) == {"valign": "bottom"}
+
+
+def test_table_cell_spec(transformer):
+    children = [
+        {"colspan": 2, "rowspan": 3},
+        {"align": "center", "valign": "middle"},
+        Token("STYLE_SPEC", "s"),
+    ]
+    assert transformer.table_cell_spec(children) == {
+        "colspan": 2,
+        "rowspan": 3,
+        "align": "center",
+        "valign": "middle",
+        "style": "s",
+    }

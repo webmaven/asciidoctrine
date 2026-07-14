@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional, Tuple, Union, cast
 from typing import List as PyList
 
 from lark import Discard, Lark, Token, Transformer, v_args
+from lark.exceptions import UnexpectedInput
 
 from .attributes import resolve_node_to_string
 from .nodes import (
@@ -40,6 +41,23 @@ from .preprocessor import Preprocessor
 from .transformers.base_transformer import LocationDict
 from .transformers.block_transformer import BlockTransformer
 from .transformers.inline_transformer import InlineTransformer
+
+
+class AsciiDocSyntaxError(ValueError):
+    """Raised when AsciiDoc source parsing encounters a syntax error."""
+
+    def __init__(
+        self,
+        message: str,
+        line: Optional[int] = None,
+        column: Optional[int] = None,
+        context: Optional[str] = None,
+    ):
+        super().__init__(message)
+        self.line = line
+        self.column = column
+        self.context = context
+
 
 Children = PyList[Any]
 Transformed = Union[Node, Any, Dict[str, Any], PyList[Any], str]
@@ -654,12 +672,21 @@ def parse_to_ast(
         ambiguity="resolve",
         propagate_positions=True,
     )
-    tree = parser.parse(processed_source)
+    try:
+        tree = parser.parse(processed_source)
+    except UnexpectedInput as e:
+        context = e.get_context(processed_source)
+        message = f"Syntax error at line {e.line}, column {e.column}.\n{context}"
+        raise AsciiDocSyntaxError(
+            message, line=e.line, column=e.column, context=context
+        ) from e
     ast_root = AsciiDocTransformer().transform(tree)
     if not isinstance(ast_root, Document):
         raise TypeError("Parsing did not return a Document node.")
     ast_root.had_trailing_newline = had_trailing_newline
     ast_root.line_ending = line_ending
+    ast_root.is_preprocessed = preprocessor.is_preprocessed
+    ast_root.included_files = sorted(list(preprocessor.included_files_set))
     return ast_root
 
 
@@ -684,7 +711,14 @@ def parse_inlines(
             ambiguity="resolve",
             propagate_positions=True,
         )
-    tree = _INLINE_PARSER.parse(source)
+    try:
+        tree = _INLINE_PARSER.parse(source)
+    except UnexpectedInput as e:
+        context = e.get_context(source)
+        message = f"Syntax error at line {e.line}, column {e.column}.\n{context}"
+        raise AsciiDocSyntaxError(
+            message, line=e.line, column=e.column, context=context
+        ) from e
     result = AsciiDocTransformer().transform(tree)
     if isinstance(result, list):
         return result

@@ -10,7 +10,8 @@ v0.1.0
 :source-highlighter: highlight.js
 
 image:https://img.shields.io/badge/License-Apache_2.0-blue.svg[License, link=https://opensource.org/licenses/Apache-2.0]
-image:https://img.shields.io/badge/python-3.9+-blue.svg[Python Version]
+image:https://img.shields.io/badge/python-3.10--3.14-blue.svg[Python Version]
+image:https://img.shields.io/badge/coverage-82%25-green.svg[Coverage, link=https://github.com/webmaven/asciidoctrine/actions/workflows/ci.yml]
 image:https://img.shields.io/badge/status-alpha-orange.svg[Development Status]
 image:https://img.shields.io/badge/docs-GitHub_Pages-blue[Documentation, link=https://webmaven.github.io/asciidoctrine/]
 
@@ -95,9 +96,11 @@ resolver = ASGResolver(ast)
 asg = resolver.resolve(ast)
 
 # Iterate through sections in the ASG blocks list
-for block in asg.blocks:
-    if block.name == "section":
-        title_text = "".join(node.value for node in block.title.inlines if node.name == "text")
+for block in asg.get("blocks", []):
+    if block.get("name") == "section":
+        # The title is a list of inline nodes in the ASG schema
+        title_nodes = block.get("title", [])
+        title_text = "".join(node.get("value", "") for node in title_nodes if node.get("name") == "text")
         print(f"Found section: {title_text}")
 ----
 

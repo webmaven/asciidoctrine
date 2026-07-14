@@ -535,5 +535,16 @@ def serialize_to_asciidoc(node: Node) -> str:
     """
     Public API to serialize any AST node back to its AsciiDoc string representation.
     """
+    if getattr(node, "name", None) == "document" and getattr(
+        node, "is_preprocessed", False
+    ):
+        import warnings
+
+        warnings.warn(
+            "Serializing a preprocessed AST will output a flat, expanded document. "
+            "Original include directives cannot be reconstructed.",
+            UserWarning,
+            stacklevel=2,
+        )
     visitor = AsciiDocSerializerVisitor()
     return visitor.serialize(node)

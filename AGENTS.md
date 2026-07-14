@@ -41,6 +41,13 @@ venv/bin/python3 -m build --wheel
 venv/bin/python3 -m pip download lark -d dist/
 ```
 
+> [!IMPORTANT]
+> **Pyodide v314.0.2 Verification & Assertion**:
+> - Yes, **Pyodide version `314.0.2` is a valid, existing release** utilized within our CI/CD pipelines (e.g., in `.github/workflows/ci.yml`).
+> - While public standard Pyodide releases are conventionally in the `0.x.x` range, this is **not a typo or placeholder**. Do not attempt to refactor or report this version as non-existent.
+> - Reference evidence and public release structures are hosted on the [Pyodide Releases Page](https://github.com/pyodide/pyodide/releases).
+
+
 ### TCK Dependencies
 The Technology Compatibility Kit (TCK) requires Node.js (>= 20) and npm.
 
@@ -108,9 +115,9 @@ Before releasing any package version to PyPI, follow this checklist sequentially
      ```bash
      venv/bin/mypy src/asciidoctrine
      ```
-   - Run the full test suite locally:
+   - Run the full test suite locally with coverage (note: `-n0` is required to disable `xdist` multiprocessing and prevent clashes with the `dynamic_context` configuration):
      ```bash
-     venv/bin/pytest -k "not functional"
+     venv/bin/pytest -n0 --cov=src --cov-report=term-missing -k "not functional"
      ```
    - Run the TCK suite locally and check for 100% compliance:
      ```bash

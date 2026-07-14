@@ -1,7 +1,11 @@
 import os
 import unittest
 
+import pytest
+
 from asciidoctrine import parse_to_ast, serialize_to_asciidoc
+
+pytestmark = pytest.mark.integration
 
 
 class TestAsciiDocSerializer(unittest.TestCase):
@@ -139,7 +143,11 @@ include::otherfile.adoc[]
 toc::[]
 :some-body-attr: body-value
 """
-        self._assert_roundtrip(source)
+        import warnings
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            self._assert_roundtrip(source)
 
     def test_trailing_newline_roundtrip(self):
         # Case 1: No trailing newline
@@ -205,3 +213,113 @@ toc::[]
         ast2 = parse_to_ast(source2)
         serialized2 = serialize_to_asciidoc(ast2)
         self.assertEqual(serialized2, source2)
+
+    def test_preprocessed_ast_serialization_warning(self):
+        # Create a document, manually set is_preprocessed = True on it,
+        # and verify serialize_to_asciidoc raises a UserWarning.
+        source = "This is a simple paragraph.\n"
+        ast = parse_to_ast(source)
+        ast.is_preprocessed = True
+
+        import warnings
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            serialized = serialize_to_asciidoc(ast)
+            self.assertEqual(serialized, source)
+
+            # Verify the warning was raised
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[0].category, UserWarning))
+            self.assertIn("preprocessed AST", str(w[0].message))
+
+    def test_block_metadata_title_and_quoted_attributes(self):
+        # Test block metadata title from attribute, boolean attributes, and quoted values with spaces or commas.
+        source = """[cols="1,2",options=header]
+.My block title
+|===
+| Cell 1 | Cell 2
+|===
+"""
+        self._assert_roundtrip(source)
+
+    def test_document_header_with_authors_and_revision(self):
+        source = """= Document Title
+Michael R. Bernstein <zopemaven@gmail.com>
+v1.0, 2026-07-14
+:my-bool-attr:
+:my-val-attr: some value
+
+This is the first paragraph.
+"""
+        self._assert_roundtrip(source)
+
+    def test_indented_literal_block_form(self):
+        # Indented literal block is represented by space-indented lines
+        source = " This is a literal line.\n This is another literal line.\n"
+        self._assert_roundtrip(source)
+
+    def test_sidebars_examples_and_quotes(self):
+        source = """****
+This is a sidebar.
+****
+
+====
+This is an example.
+====
+
+____
+This is a quote.
+____
+"""
+        self._assert_roundtrip(source)
+
+    def test_admonitions_paragraph_form_and_list_continuation(self):
+        source = """NOTE: This is a single-line paragraph-form admonition.
+
+* List item 1
++
+This paragraph is part of list item 1.
+"""
+        self._assert_roundtrip(source)
+
+    def test_description_list_with_continuation_blocks(self):
+        source = """Term 1::
+First block of Term 1.
++
+Second block of Term 1.
+"""
+        self._assert_roundtrip(source)
+
+    def test_complex_table_cell_specifiers(self):
+        source = """|===
+| Cell 1 | Cell 2
+| 2.2+^.middles| Cell 5
+|===
+"""
+        self._assert_roundtrip(source)
+
+    def test_all_remaining_elements(self):
+        # 1. Thematic breaks, page breaks, empty attributes, forced line break, and links/xrefs
+        source = """'''
+<<<
+:empty-attr:
+
+A line with forced line break +
+And a link https://google.com[Google, window="_blank"] and xref <<target-anchor, label>>.
+
+image::target.png[Alt text]
+image:inline.png[Alt]
+audio::sound.mp3[]
+video::movie.mp4[]
+
+kbd:[Ctrl+Shift+T]
+btn:[Save]
+menu:File[New > Project]
+
+[asciimath]
+++++
+x^2 + y^2 = r^2
+++++
+"""
+        self._assert_roundtrip(source)

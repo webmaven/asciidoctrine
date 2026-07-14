@@ -89,7 +89,7 @@ ATTR_LIST_CONTENT: /[^\]]+/
 
 inline_attribute_list: "[" [ATTR_LIST_CONTENT] "]"
 
-anchor.1: "[[" WORD "]]" _NEWLINE
+anchor.15: "[[" WORD "]]" _NEWLINE
 
 // Tables
 table.50: TABLE_DELIM _NEWLINE (table_cell | _NEWLINE)* TABLE_DELIM _NEWLINE?
@@ -154,12 +154,15 @@ page_break: "<<<" _NEWLINE
 text_content: inline_element+
 
 attribute_reference.2: LBRACE ATTR_NAME RBRACE
-?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
+
+?base_inline: attribute_reference | inline_attribute_list | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | BACKTICK | LT | GT | PLUS
+
+?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | marked | superscript | subscript | footnote | footnoteref | base_inline | RSQB | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
 
 footnote_text_content: footnote_inline_element+
-?footnote_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | BACKTICK | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
+?footnote_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | marked | superscript | subscript | footnote | footnoteref | base_inline | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
 
-inline_break: " +"
+inline_break: INLINE_BREAK
 inline_kbd.10: "kbd:[" ATTR_LIST_CONTENT "]"
 inline_button.10: "btn:[" ATTR_LIST_CONTENT "]"
 inline_menu.10: "menu:" WORD "[" [ATTR_LIST_CONTENT] "]"
@@ -170,12 +173,12 @@ inline_latexmath: "latexmath:[" [ATTR_LIST_CONTENT] "]"
 
 block_macro.50: WORD "::" [TARGET] [LSQB] [ATTR_LIST_CONTENT] [RSQB] _NEWLINE
 
-inline_image: "image:" TARGET inline_attribute_list
-icon_inline: "icon:" TARGET inline_attribute_list
+inline_image.10: "image:" TARGET inline_attribute_list
+icon_inline.10: "icon:" TARGET inline_attribute_list
 
-inline_anchor: "[[" text_content "]]" | "anchor:" TARGET inline_attribute_list
-inline_xref: "<<" text_content ">>" | "xref:" TARGET inline_attribute_list
-inline_bibref: "[[[" text_content "]]]"
+inline_anchor.10: "[[" text_content "]]" | "anchor:" TARGET inline_attribute_list
+inline_xref.10: "<<" text_content ">>" | "xref:" TARGET inline_attribute_list
+inline_bibref.12: "[[[" text_content "]]]"
 inline_link.10: "link:" (TARGET | URI) inline_attribute_list | URI inline_attribute_list
 
 URI.3: /(https?|ftp|file|irc):\/\/[^\[\n ]+/ | /mailto:[^\[\n ]+/
@@ -208,19 +211,19 @@ double_quoted: "\"`" text_content "`\""
 single_quoted: "'`" text_content "`'"
 
 bold_content: bold_inline_element+
-?bold_inline_element: unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
+?bold_inline_element: unconstrained_italic | italic | unconstrained_monospace | monospace | marked | superscript | subscript | footnote | footnoteref | base_inline | RSQB | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
 
 italic_content: italic_inline_element+
-?italic_inline_element: unconstrained_bold | bold | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK | ASTERISK | CIRCUMFLEX | TILDE | HASH
+?italic_inline_element: unconstrained_bold | bold | unconstrained_monospace | monospace | marked | superscript | subscript | footnote | footnoteref | base_inline | RSQB | ASTERISK | CIRCUMFLEX | TILDE | HASH
 
 marked_content: marked_inline_element+
-?marked_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE
+?marked_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | superscript | subscript | footnote | footnoteref | base_inline | RSQB | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE
 
 superscript_content: superscript_inline_element+
-?superscript_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK | ASTERISK | UNDERSCORE | TILDE | HASH
+?superscript_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | marked | subscript | footnote | footnoteref | base_inline | RSQB | ASTERISK | UNDERSCORE | TILDE | HASH
 
 subscript_content: subscript_inline_element+
-?subscript_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | RSQB | BACKTICK | ASTERISK | UNDERSCORE | CIRCUMFLEX | HASH
+?subscript_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | marked | superscript | footnote | footnoteref | base_inline | RSQB | ASTERISK | UNDERSCORE | CIRCUMFLEX | HASH
 
 
 // --- Terminals ---
@@ -262,7 +265,7 @@ THEMATIC_BREAK_MARKER.5: /'{3,}|\*{3}(?!\*)|\*{5,}|-{3}(?!-)|-{5,}|(_ _ _)+|(\* 
 LISTING_CONTENT: /(.+?)(?=\n-{4,})/s
 LITERAL_CONTENT: /(.+?)(?=\n\.{4,})/s
 PASSTHROUGH_CONTENT: /(.+?)(?=\n\+{4,})/s
-TABLE_CELL.20: /\|(.*?)(?=(?:(?<!\\)(?:(?:(?:[0-9]+)?(?:\.[0-9]+)?\+|[0-9]+\*)(?:[<>^]|\.[<>^]|[<>^]\.[<>^])?[adehlms]?|(?:[<>^]|\.[<>^]|[<>^]\.[<>^])[adehlms]?|[adehlms])?\|(?!===))|\|===)/s
+TABLE_CELL.20: /\|(.*?)(?=(?:(?<!\\)(?:[0-9.+\*]*[<>^.]*[adehlms]?)\|(?!===))|\|===)/s
 
 
 
@@ -272,7 +275,7 @@ WHITESPACE: _WS+
 NUMBER: /[0-9]+/
 ATTR_NAME: /[a-zA-Z0-9_\-]+/
 FN_ID: /[a-zA-Z0-9_\-]+/
-WORD: /[^ \t\n*_`=\[\]{}:]+/  // Word characters (not whitespace or markup)
+WORD: /[^ \t\n*_`=\[\]{}:<>+]+/  // Word characters (not whitespace or markup)
 LBRACE: "{"
 RBRACE: "}"
 LSQB: "["
@@ -285,5 +288,9 @@ CIRCUMFLEX: "^"
 TILDE: "~"
 HASH: "#"
 COLON: /:(?!:)/
+LT: "<"
+GT: ">"
+PLUS: "+"
+INLINE_BREAK.15: " +"
 
 // %ignore WHITESPACE

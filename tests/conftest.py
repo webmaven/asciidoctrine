@@ -43,3 +43,15 @@ def get_all_doctest_examples() -> List[Tuple[str, str]]:
             examples.append((example_id, example_content))
 
     return examples
+
+
+def pytest_configure(config):
+    """Clean up stale TCK cache and lock files at the start of a session on the controller process."""
+    is_worker = hasattr(config, "workerinput")
+    if not is_worker:
+        for path in ["tests/.tck_cache.json", "tests/.tck_cache.lock"]:
+            if os.path.exists(path):
+                try:
+                    os.remove(path)
+                except Exception:
+                    pass

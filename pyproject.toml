@@ -10,7 +10,7 @@ authors = [
 ]
 description = "A high-performance, pure-Python AsciiDoc parser based on Lark."
 readme = { file = "README.adoc", content-type = "text/plain" }
-requires-python = ">=3.14"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: Apache Software License",
@@ -27,7 +27,7 @@ dependencies = [
 "Documentation" = "https://webmaven.github.io/asciidoctrine/"
 
 [project.optional-dependencies]
-test = ["pytest", "ruff", "mypy", "docutils", "types-docutils", "sphinx", "pytest-pyodide", "playwright"]
+test = ["pytest", "ruff", "mypy", "docutils", "types-docutils", "sphinx", "pytest-pyodide", "playwright", "pytest-cov", "pytest-xdist"]
 docs = ["sphinx", "sphinx-rtd-theme"]
 
 [tool.setuptools.package-data]
@@ -36,11 +36,16 @@ asciidoctrine = ["grammar.lark"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+addopts = "-n auto"
 norecursedirs = ["vendor", "venv", ".git", "docs"]
+markers = [
+    "unit: Fast, isolated unit tests for core module logic.",
+    "integration: Integration tests exercising full parsing, ASG transformations, and serialization.",
+]
 
 [tool.ruff]
 line-length = 88
-target-version = "py39"
+target-version = "py310"
 exclude = ["vendor", "venv", ".git"]
 
 [tool.ruff.lint]
@@ -59,3 +64,6 @@ strict = true
 packages = ["asciidoctrine"]
 mypy_path = "src"
 ignore_missing_imports = true
+
+[tool.coverage.run]
+dynamic_context = "test_function"

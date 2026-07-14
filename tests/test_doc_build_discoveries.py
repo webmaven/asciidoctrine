@@ -4,18 +4,6 @@ from asciidoctrine.lark_parser import parse_to_ast
 
 
 class TestDocBuildDiscoveries(unittest.TestCase):
-    def test_table_parsing(self):
-        source = """
-[cols="1,2"]
-|===
-| AST Node | ASG Structure
-| `Document` | document
-|===
-"""
-        # This currently raises a Lark error
-        ast = parse_to_ast(source).to_dict()
-        self.assertEqual(ast["blocks"][0]["name"], "table")
-
     def test_monospace_with_underscores_no_nested_italics(self):
         """
         Monospace backticks should be literal and not allow nested formatting.

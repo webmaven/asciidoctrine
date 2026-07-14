@@ -81,3 +81,15 @@ debug_*.py
 
 # Local Agent Configurations
 .agents/
+
+# Test temporary fixtures
+temp_fixtures*
+tests/temp_fixtures*
+
+# Scratch directories
+scratch/
+scratch_sphinx/
+
+# TCK caches
+.tck_cache.json
+tests/.tck_cache.json

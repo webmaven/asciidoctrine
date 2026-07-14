@@ -1,35 +1,88 @@
 import glob
+import json
 import os
-import re
 import subprocess
 import sys
+import time
 
 import pytest
 
 
 @pytest.fixture(scope="session")
 def tck_output():
-    """Runs the TCK and returns (stdout, stderr, returncode)."""
-    tck_dir = os.path.join("vendor", "asciidoc-tck")
-    node_modules = os.path.join(tck_dir, "node_modules")
+    """Runs the TCK once per session and caches output in a temporary file for xdist workers."""
+    cache_file = os.path.join("tests", ".tck_cache.json")
+    lock_file = os.path.join("tests", ".tck_cache.lock")
 
-    # Ensure TCK is initialized
-    if not os.path.exists(node_modules):
-        subprocess.run(["npm", "ci"], cwd=tck_dir, check=True)
+    # 1. Check if cache already exists (subsequent workers or runs)
+    if os.path.exists(cache_file):
+        try:
+            with open(cache_file, "r") as f:
+                data = json.load(f)
+                return data["stdout"], data["stderr"], data["returncode"]
+        except Exception:
+            pass
 
-    # Run TCK directly via node
-    harness_path = os.path.join(tck_dir, "harness", "bin", "asciidoc-tck.js")
-    if "COV_CORE_SOURCE" in os.environ or "COVERAGE_RUN" in os.environ:
-        adapter_cmd = (
-            "coverage run --parallel-mode --source=src/asciidoctrine bin/tck-adapter.py"
-        )
-    else:
-        adapter_cmd = f"{sys.executable} bin/tck-adapter.py"
+    # 2. Try to acquire the exclusive creation lock
+    acquired_lock = False
+    try:
+        with open(lock_file, "x") as f:
+            f.write(str(os.getpid()))
+        acquired_lock = True
+    except FileExistsError:
+        # Another worker is running the TCK. Wait for the cache file to be written.
+        for _ in range(600):  # Wait up to 60 seconds
+            if os.path.exists(cache_file):
+                try:
+                    with open(cache_file, "r") as f:
+                        data = json.load(f)
+                        return data["stdout"], data["stderr"], data["returncode"]
+                except Exception:
+                    pass
+            time.sleep(0.1)
 
-    cmd = ["node", harness_path, "cli", "--adapter-command", adapter_cmd]
+    # 3. If we acquired the lock (or wait timed out), we run the TCK
+    try:
+        tck_dir = os.path.join("vendor", "asciidoc-tck")
+        node_modules = os.path.join(tck_dir, "node_modules")
 
-    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
-    return result.stdout, result.stderr, result.returncode
+        # Ensure TCK is initialized
+        if not os.path.exists(node_modules):
+            subprocess.run(["npm", "ci"], cwd=tck_dir, check=True)
+
+        # Run TCK via our custom native JSON runner
+        run_tck_script = os.path.join("bin", "run-tck-json.mjs")
+        if "COV_CORE_SOURCE" in os.environ or "COVERAGE_RUN" in os.environ:
+            adapter_cmd = "coverage run --parallel-mode --source=src/asciidoctrine bin/tck-adapter.py"
+        else:
+            adapter_cmd = f"{sys.executable} bin/tck-adapter.py"
+
+        cmd = ["node", run_tck_script, adapter_cmd]
+
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
+
+        # Save cache atomically
+        temp_cache_file = cache_file + f".tmp.{os.getpid()}"
+        with open(temp_cache_file, "w") as f:
+            json.dump(
+                {
+                    "stdout": result.stdout,
+                    "stderr": result.stderr,
+                    "returncode": result.returncode,
+                },
+                f,
+            )
+        os.replace(temp_cache_file, cache_file)
+
+        return result.stdout, result.stderr, result.returncode
+
+    finally:
+        # 4. Clean up lock file if we were the owner
+        if acquired_lock:
+            try:
+                os.remove(lock_file)
+            except Exception:
+                pass
 
 
 def get_tck_tests():
@@ -45,64 +98,6 @@ def get_known_failures():
         return set()
     with open(failures_file, "r") as f:
         return {line.strip() for line in f if line.strip()}
-
-
-def parse_tck_failures(stdout):
-    """Parses TCK spec output and returns a list of failed test paths."""
-    failed_tests = []
-    stack = []
-    # Test names that are actually suites in the spec reporter
-    suites = {
-        "tests",
-        "block",
-        "inline",
-        "header",
-        "listing",
-        "paragraph",
-        "document",
-        "list",
-        "unordered",
-        "section",
-        "sidebar",
-        "span",
-        "strong",
-        "no-markup",
-        "description",
-        "literal",
-        "admonition",
-        "open",
-        "quote",
-        "stem",
-        "verse",
-    }
-
-    for line in stdout.splitlines():
-        line_clean = re.sub(r"\x1b\[[0-9;]*m", "", line)
-        if not line_clean.strip():
-            continue
-
-        if "failing tests:" in line_clean:
-            break
-
-        indent = len(line_clean) - len(line_clean.lstrip())
-        level = indent // 2
-        content = line_clean.strip()
-
-        if content.startswith("▶"):
-            name = content[2:].split("(")[0].strip()
-            if name != "tests":
-                # level 1 is 'block' or 'inline', level 2 is 'admonition' etc.
-                stack = stack[: level - 1]
-                stack.append(name)
-        elif content.startswith("✖"):
-            name = content[2:].split("(")[0].strip()
-            if name not in suites:
-                # This is a leaf test failure
-                filename = name.replace(" ", "-") + "-input.adoc"
-                full_rel_path = os.path.join(*stack, filename)
-                failed_tests.append(full_rel_path)
-
-    return failed_tests
 
 
 def get_parametrized_tests():
@@ -122,8 +117,19 @@ def get_parametrized_tests():
     return params
 
 
-@pytest.mark.parametrize("adoc_path", get_parametrized_tests())
-def test_tck(adoc_path, tck_output):
+@pytest.fixture(scope="session")
+def tck_failures(tck_output):
+    """Loads the TCK JSON output once per session and returns a set of failed test names."""
     stdout, stderr, returncode = tck_output
-    failed_tests = parse_tck_failures(stdout)
-    assert adoc_path not in failed_tests, f"TCK test failed: {adoc_path}"
+    try:
+        data = json.loads(stdout)
+        return {f["name"] for f in data.get("failures", [])}
+    except Exception:
+        # Fallback to empty set in case of loading error
+        return set()
+
+
+@pytest.mark.parametrize("adoc_path", get_parametrized_tests())
+def test_tck(adoc_path, tck_failures):
+    tck_name = adoc_path.replace("-input.adoc", "").replace("\\", "/")
+    assert tck_name not in tck_failures, f"TCK test failed: {adoc_path}"

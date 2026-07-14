@@ -4,7 +4,11 @@ Tests for inline-level parsing in AsciiDoc.
 
 import unittest
 
+import pytest
+
 from asciidoctrine.lark_parser import parse_to_ast
+
+pytestmark = pytest.mark.integration
 
 
 class TestInlines(unittest.TestCase):
@@ -52,12 +56,30 @@ class TestInlines(unittest.TestCase):
         names = [n["name"] for n in content_nodes]
         self.assertEqual(names.count("span"), 2)
 
-    def test_attribute_substitution(self):
-        source = ":author: Michael\n\nHello {author}!\n"
-        ast = self._strip_locations(parse_to_ast(source).to_dict())
-        paragraph = ast["blocks"][1]
-        text_node = paragraph["inlines"][0]
-        self.assertEqual(text_node["value"], "Hello Michael!")
+    def test_attribute_substitutions_parameterized(self):
+        cases = [
+            (
+                ":author: Michael\n\nHello {author}!\n",
+                1,
+                "Hello Michael!",
+            ),
+            (
+                ":project: AsciiDoc\n:tool: {project}Parser\n\nThis is {tool}.\n",
+                2,
+                "This is AsciiDocParser.",
+            ),
+            (
+                ":a: 1\n:b: {a}{a}\n:c: {b}{b}\n\nResult is {c}.\n",
+                3,
+                "Result is 1111.",
+            ),
+        ]
+        for source, block_idx, expected in cases:
+            with self.subTest(expected=expected):
+                ast = self._strip_locations(parse_to_ast(source).to_dict())
+                paragraph = ast["blocks"][block_idx]
+                text_node = paragraph["inlines"][0]
+                self.assertEqual(text_node["value"], expected)
 
     def test_attribute_substitution_not_found(self):
         source = "Hello {unknown}!\n"
@@ -73,25 +95,12 @@ class TestInlines(unittest.TestCase):
         actual_title = "".join([n["value"] for n in section["title"]])
         self.assertEqual(actual_title, "AsciiDocParser Documentation")
 
-    def test_attribute_substitution_nested(self):
-        source = ":project: AsciiDoc\n:tool: {project}Parser\n\nThis is {tool}.\n"
-        ast = self._strip_locations(parse_to_ast(source).to_dict())
-        paragraph = ast["blocks"][2]
-        text_node = paragraph["inlines"][0]
-        self.assertEqual(text_node["value"], "This is AsciiDocParser.")
-
     def test_attribute_with_inline_formatting(self):
         source = ":author: *Jane* _Smith_\n\nHello {author}!\n"
         ast = self._strip_locations(parse_to_ast(source).to_dict())
         paragraph = ast["blocks"][1]
         self.assertEqual(paragraph["inlines"][1]["name"], "span")
         self.assertEqual(paragraph["inlines"][1]["inlines"][0]["value"], "Jane")
-
-    def test_deeply_nested_attribute_substitution(self):
-        source = ":a: 1\n:b: {a}{a}\n:c: {b}{b}\n\nResult is {c}.\n"
-        ast = self._strip_locations(parse_to_ast(source).to_dict())
-        paragraph = ast["blocks"][3]
-        self.assertEqual(paragraph["inlines"][0]["value"], "Result is 1111.")
 
     def test_recursive_attribute_substitution(self):
         source = (
@@ -105,42 +114,55 @@ class TestInlines(unittest.TestCase):
         text_node = title_node[0]
         self.assertEqual(text_node["value"], "Cool Project Docs")
 
-    def test_inline_link_macro(self):
-        source = "link:path/to/home.html[Go to Home]\n"
-        ast = self._strip_locations(parse_to_ast(source).to_dict())
-        paragraph = ast["blocks"][0]
-        link_node = paragraph["inlines"][0]
-        self.assertEqual(link_node["name"], "ref")
-        self.assertEqual(link_node["variant"], "link")
-        self.assertEqual(link_node["target"], "path/to/home.html")
-        self.assertEqual(link_node["inlines"][0]["value"], "Go to Home")
+    def test_inline_links_parameterized(self):
+        cases = [
+            (
+                "link:path/to/home.html[Go to Home]\n",
+                "path/to/home.html",
+                "Go to Home",
+                None,
+                None,
+            ),
+            (
+                "https://example.com[example domain]\n",
+                "https://example.com",
+                "example domain",
+                None,
+                None,
+            ),
+            (
+                "https://example.com[_example only_]\n",
+                "https://example.com",
+                "example only",
+                "emphasis",
+                None,
+            ),
+            (
+                "https://example.com[example domain^]\n",
+                "https://example.com",
+                "example domain",
+                None,
+                "_blank",
+            ),
+        ]
+        for source, target, text, nested_variant, window in cases:
+            with self.subTest(source=source):
+                ast = self._strip_locations(parse_to_ast(source).to_dict())
+                link_node = ast["blocks"][0]["inlines"][0]
+                self.assertEqual(link_node["name"], "ref")
+                self.assertEqual(link_node["variant"], "link")
+                self.assertEqual(link_node["target"], target)
 
-    def test_inline_url_macro(self):
-        source = "https://example.com[example domain]\n"
-        ast = self._strip_locations(parse_to_ast(source).to_dict())
-        paragraph = ast["blocks"][0]
-        link_node = paragraph["inlines"][0]
-        self.assertEqual(link_node["name"], "ref")
-        self.assertEqual(link_node["variant"], "link")
-        self.assertEqual(link_node["target"], "https://example.com")
-        self.assertEqual(link_node["inlines"][0]["value"], "example domain")
+                if nested_variant:
+                    nested = link_node["inlines"][0]
+                    self.assertEqual(nested["name"], "span")
+                    self.assertEqual(nested["variant"], nested_variant)
+                    self.assertEqual(nested["inlines"][0]["value"], text)
+                else:
+                    self.assertEqual(link_node["inlines"][0]["value"], text)
 
-    def test_inline_link_with_nested_formatting(self):
-        source = "https://example.com[_example only_]\n"
-        ast = self._strip_locations(parse_to_ast(source).to_dict())
-        paragraph = ast["blocks"][0]
-        link_node = paragraph["inlines"][0]
-        self.assertEqual(link_node["inlines"][0]["name"], "span")
-        self.assertEqual(link_node["inlines"][0]["variant"], "emphasis")
-        self.assertEqual(link_node["inlines"][0]["inlines"][0]["value"], "example only")
-
-    def test_inline_link_with_window_caret(self):
-        source = "https://example.com[example domain^]\n"
-        ast = self._strip_locations(parse_to_ast(source).to_dict())
-        paragraph = ast["blocks"][0]
-        link_node = paragraph["inlines"][0]
-        self.assertEqual(link_node["attributes"]["window"], "_blank")
-        self.assertEqual(link_node["inlines"][0]["value"], "example domain")
+                if window:
+                    self.assertEqual(link_node["attributes"]["window"], window)
 
     def test_experimental_macros_standalone(self):
         # Test standalone kbd
@@ -178,6 +200,78 @@ class TestInlines(unittest.TestCase):
         self.assertEqual(inlines[3]["name"], "button")
         self.assertEqual(inlines[3]["value"], "Submit")
         self.assertEqual(inlines[4]["value"], " inline macro test.")
+
+    def test_additional_inline_macros(self):
+        # 1. Icon inline macro
+        icon_ast = self._strip_locations(
+            parse_to_ast("This is icon:heart[role=red] icon.").to_dict()
+        )
+        self.assertEqual(icon_ast["blocks"][0]["inlines"][1]["name"], "icon")
+        self.assertEqual(icon_ast["blocks"][0]["inlines"][1]["target"], "heart")
+
+        # 2. Inline anchor
+        anchor_ast1 = self._strip_locations(
+            parse_to_ast("This is [[my-target]] anchor.").to_dict()
+        )
+        self.assertEqual(anchor_ast1["blocks"][0]["inlines"][1]["name"], "ref")
+        self.assertEqual(anchor_ast1["blocks"][0]["inlines"][1]["variant"], "anchor")
+        self.assertEqual(anchor_ast1["blocks"][0]["inlines"][1]["target"], "my-target")
+
+        # anchor:my-target[] form anchor
+        anchor_ast2 = self._strip_locations(
+            parse_to_ast("This is anchor:my-target[] anchor.").to_dict()
+        )
+        self.assertEqual(anchor_ast2["blocks"][0]["inlines"][1]["name"], "ref")
+        self.assertEqual(anchor_ast2["blocks"][0]["inlines"][1]["variant"], "anchor")
+        self.assertEqual(anchor_ast2["blocks"][0]["inlines"][1]["target"], "my-target")
+
+        # 3. Inline xref
+        xref_ast1 = self._strip_locations(parse_to_ast("See <<my-target>>.").to_dict())
+        self.assertEqual(xref_ast1["blocks"][0]["inlines"][1]["name"], "ref")
+        self.assertEqual(xref_ast1["blocks"][0]["inlines"][1]["variant"], "xref")
+        self.assertEqual(xref_ast1["blocks"][0]["inlines"][1]["target"], "my-target")
+
+        xref_ast2 = self._strip_locations(
+            parse_to_ast("See <<my-target,My Label>>.").to_dict()
+        )
+        self.assertEqual(xref_ast2["blocks"][0]["inlines"][1]["name"], "ref")
+        self.assertEqual(xref_ast2["blocks"][0]["inlines"][1]["variant"], "xref")
+        self.assertEqual(xref_ast2["blocks"][0]["inlines"][1]["target"], "my-target")
+
+        # 4. Inline link
+        link_ast = self._strip_locations(
+            parse_to_ast("Go to https://google.com[Google].").to_dict()
+        )
+        self.assertEqual(link_ast["blocks"][0]["inlines"][1]["name"], "ref")
+        self.assertEqual(link_ast["blocks"][0]["inlines"][1]["variant"], "link")
+        self.assertEqual(
+            link_ast["blocks"][0]["inlines"][1]["target"], "https://google.com"
+        )
+
+        # 5. Bibliography reference
+        bibref_ast = self._strip_locations(parse_to_ast("Ref [[[my-bib]]].").to_dict())
+        self.assertEqual(bibref_ast["blocks"][0]["inlines"][1]["name"], "ref")
+        self.assertEqual(bibref_ast["blocks"][0]["inlines"][1]["variant"], "bibref")
+        self.assertEqual(bibref_ast["blocks"][0]["inlines"][1]["target"], "my-bib")
+
+        # 6. Forced line break
+        break_ast = self._strip_locations(
+            parse_to_ast("Line one +\nLine two.\n").to_dict()
+        )
+        self.assertEqual(break_ast["blocks"][0]["inlines"][1]["name"], "break")
+
+        # 7. Inline STEM / asciimath / latexmath
+        math_ast1 = self._strip_locations(parse_to_ast("asciimath:[x^2]").to_dict())
+        self.assertEqual(math_ast1["blocks"][0]["inlines"][0]["name"], "stem")
+        self.assertEqual(math_ast1["blocks"][0]["inlines"][0]["variant"], "asciimath")
+        self.assertEqual(math_ast1["blocks"][0]["inlines"][0]["value"], "x^2")
+
+        math_ast2 = self._strip_locations(
+            parse_to_ast("latexmath:[e^{i\\pi}]").to_dict()
+        )
+        self.assertEqual(math_ast2["blocks"][0]["inlines"][0]["name"], "stem")
+        self.assertEqual(math_ast2["blocks"][0]["inlines"][0]["variant"], "latexmath")
+        self.assertEqual(math_ast2["blocks"][0]["inlines"][0]["value"], "e^{i\\pi}")
 
 
 if __name__ == "__main__":

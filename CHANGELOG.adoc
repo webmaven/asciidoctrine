@@ -3,19 +3,28 @@
 
 All notable changes to this project will be documented in this file.
 
-== link:https://pypi.org/project/asciidoctrine/0.1.0a8/[0.1.0a8] - 2026-07-14
+== link:https://pypi.org/project/asciidoctrine/0.1.0a8/[0.1.0a8] - Unreleased
 
 === Added
-* **High-Performance Parameterized Includes in Preprocessor (Issue #79)**:
-  - **Procedural Stream Preprocessor**: Completely updated the Preprocessor in `src/asciidoctrine/preprocessor.py` to support parameterized includes (`leveloffset`, `lines`, `tag`, `tags`) using an immutable, procedural top-to-bottom stream-filtering state machine.
-  - **C-Level Substring Short-Circuit Optimization**: Implemented highly optimized short-circuiting (`":" not in line`) running entirely in compiled C to bypass dynamic interpreter loop overhead for over 95% of standard document lines, achieving blazing fast performance.
+* **Parser Error Handling (Issue #78)**:
+  - Replaced raw Lark parsing exceptions with a structured user-facing `AsciiDocSyntaxError` compiler error, detailing line and column numbers alongside highlighted caret indicators.
+* **Programmatic TCK JSON Runner**:
+  - Replaced fragile log-regex parsing in `tests/test_tck.py` with a lightweight Node.js event-driven runner (`bin/run-tck-json.mjs`) that consumes the native TCK stream, boosting test speed and reliability.
+* **Parameterized Includes in Preprocessor (Issue #79)**:
+  - **Procedural Stream Preprocessor**: Updated the Preprocessor in `src/asciidoctrine/preprocessor.py` to support parameterized includes (`leveloffset`, `lines`, `tag`, `tags`) using an immutable, procedural top-to-bottom stream-filtering state machine.
+  - **C-Level Substring Short-Circuit Optimization**: Implemented optimized short-circuiting (`":" not in line`) running in compiled C to bypass dynamic interpreter loop overhead for over 95% of standard document lines, increasing performance.
   - **Stateful Include Filtering**:
     * **`leveloffset` Shifting**: Shifts relative (e.g. `+1`, `-1`) and absolute (e.g. `2`) section heading levels inside includes.
     * **`lines` Slicing**: Slices single (`1..5`), multiple (`1..2;4..5` or `"1..2,4..5"`), and open-ended (`5..`) line ranges.
-    * **`tag`/`tags` Filtering**: Extracts marked regions of code blocks while elegantly stripping tag boundary comment lines (e.g., `// tag::name[]`) from the output stream.
-  - **Comprehensive Test Harness**: Authored extensive unit tests verifying individual and combined preprocessor attributes under a strict Red/Green TDD framework, resulting in 100% test suite and TCK compliance.
-
+    * **`tag`/`tags` Filtering**: Extracts marked regions of code blocks while stripping tag boundary comment lines (e.g., `// tag::name[]`) from the output stream.
+  - **Comprehensive Test Harness**: Authored unit tests verifying individual and combined preprocessor attributes under a strict Red/Green TDD framework, resulting in 100% test suite and TCK compliance.
 === Fixed
+* **Dynamic Sphinx Versioning (Issue #3.C)**:
+  - Replaced hardcoded version strings in `docs/conf.py` with dynamic metadata-driven package version lookup using `importlib.metadata`.
+* **Unified Python Target Versions (Issue #3.C)**:
+  - Aligned and unified Python target constraints across `pyproject.toml` (requires-python `>=3.10`), Ruff (`py310`), and Mypy (`3.12`) configurations.
+* **O(N) Table Cell Parsing Regex (Issue #6)**:
+  - Replaced nested table cell lookaheads in `grammar.lark` with a sequential, flat non-backtracking lookahead pattern to eliminate exponential backtracking risks.
 * **Experimental Inline Macros Parsing Bug (Issue #80)**:
   * **EBNF Grammar Priority Adjustment**: Assigned explicit priority of `.10` to `inline_kbd`, `inline_button`, and `inline_menu` grammar rules in `grammar.lark`. This resolves the greedy priority conflicts in Lark's Earley parsing engine when experimental macros are embedded inside standard prose sentences, preventing them from being flattened into generic standard text nodes.
   * **TCK & Integration Tests**: Added comprehensive test cases ensuring standalone and paragraph-embedded experimental macro syntax parses cleanly with 100% compliance across both local unit tests and the Technology Compatibility Kit (TCK) suite.

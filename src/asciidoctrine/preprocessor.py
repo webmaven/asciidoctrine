@@ -4,11 +4,18 @@ Preprocessor for AsciiDoc source, handling directives like include::.
 
 import os
 import re
+import warnings
 from typing import Optional, Set
 
 
 class PreprocessorError(Exception):
     """Custom exception for preprocessor errors."""
+
+    pass
+
+
+class PreprocessorWarning(UserWarning):
+    """Warning category for fragile preprocessor constructs."""
 
     pass
 
@@ -29,6 +36,11 @@ class Preprocessor:
         self.base_dir = os.path.abspath(base_dir) if base_dir else os.getcwd()
         self.safe_mode = safe_mode
         self.include_regex = re.compile(r"^include::([^\[]+)\[(.*)\]\s*$")
+        self.delimiter_regex = re.compile(
+            r"^\s*(?:-{4,}|\.{4,}|\+{4,}|={4,}|\*{4,}|_{4,}|-{2}|\|===)\s*$"
+        )
+        self.is_preprocessed = False
+        self.included_files_set: set[str] = set()
 
     def _parse_attributes(self, attr_str: str) -> dict[str, str]:
         """
@@ -81,6 +93,14 @@ class Preprocessor:
                     attrs[chunk] = ""
         return attrs
 
+    def _update_delimiter_stack(self, line: str, delimiter_stack: list[str]) -> None:
+        line_strip = line.strip()
+        if self.delimiter_regex.match(line_strip):
+            if delimiter_stack and delimiter_stack[-1] == line_strip:
+                delimiter_stack.pop()
+            else:
+                delimiter_stack.append(line_strip)
+
     def process(self, source: str) -> str:
         """
         Main entry point for processing the source text.
@@ -89,23 +109,28 @@ class Preprocessor:
         Returns:
             str: The source text with `include::` directives replaced by file content.
         """
-        return self._process_source(source, self.base_dir, set())
+        self.is_preprocessed = False
+        self.included_files_set.clear()
+        return self._process_source(source, self.base_dir, set(), [])
 
     def _process_source(
-        self, source: str, current_dir: str, included_files: Set[str]
+        self,
+        source: str,
+        current_dir: str,
+        included_files: Set[str],
+        delimiter_stack: list[str],
     ) -> str:
         """
         Recursively processes source text, handling includes.
         """
         processed_lines = []
         for line in source.splitlines(True):
-            # 1. C-Level No-Colon Short-Circuit
-            if ":" not in line:
-                processed_lines.append(line)
-                continue
+            match = None
+            if ":" in line:
+                match = self.include_regex.match(line.rstrip())
 
-            match = self.include_regex.match(line.rstrip())
             if match:
+                self.is_preprocessed = True
                 include_path = match.group(1).strip()
                 attr_str = match.group(2).strip()
 
@@ -138,6 +163,8 @@ class Preprocessor:
 
                 with open(target_file_path, "r", encoding="utf-8") as f:
                     content_to_include = f.read()
+
+                self.included_files_set.add(target_file_path)
 
                 # Parse and resolve include attributes
                 attrs = self._parse_attributes(attr_str)
@@ -240,14 +267,25 @@ class Preprocessor:
 
                 new_current_dir = os.path.dirname(target_file_path)
 
+                initial_depth = len(delimiter_stack)
+
                 processed_content = self._process_source(
-                    content_to_include, new_current_dir, included_files
+                    content_to_include, new_current_dir, included_files, delimiter_stack
                 )
+
+                if len(delimiter_stack) != initial_depth:
+                    warnings.warn(
+                        f"Include file '{include_path}' has unbalanced block delimiters. "
+                        "Block delimiters should not be opened or closed across file boundaries.",
+                        PreprocessorWarning,
+                        stacklevel=2,
+                    )
 
                 included_files.remove(target_file_path)
 
                 processed_lines.append(processed_content)
             else:
+                self._update_delimiter_stack(line, delimiter_stack)
                 processed_lines.append(line)
 
         return "".join(processed_lines)

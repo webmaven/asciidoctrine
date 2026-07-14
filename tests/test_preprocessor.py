@@ -3,17 +3,21 @@ Tests for the AsciiDoc preprocessor.
 """
 
 import os
-import shutil
+import tempfile
 import unittest
 
+import pytest
+
 from asciidoctrine.preprocessor import Preprocessor, PreprocessorError
+
+pytestmark = pytest.mark.unit
 
 
 class PreprocessorTest(unittest.TestCase):
     def setUp(self):
-        # Create a temporary directory for test fixtures
-        self.base_dir = os.path.join(os.path.dirname(__file__), "temp_fixtures")
-        os.makedirs(self.base_dir, exist_ok=True)
+        # Create a temporary directory for test fixtures using tempfile.TemporaryDirectory
+        self._temp_dir_obj = tempfile.TemporaryDirectory()
+        self.base_dir = self._temp_dir_obj.name
 
         # Create some sample files
         with open(os.path.join(self.base_dir, "main.adoc"), "w") as f:
@@ -36,17 +40,15 @@ class PreprocessorTest(unittest.TestCase):
             f.write("Circular B\ninclude::circular_a.adoc[]")
 
         # For security tests
-        self.outside_dir = os.path.join(os.path.dirname(__file__), "outside_fixtures")
-        os.makedirs(self.outside_dir, exist_ok=True)
+        self._outside_dir_obj = tempfile.TemporaryDirectory()
+        self.outside_dir = self._outside_dir_obj.name
         with open(os.path.join(self.outside_dir, "secret.adoc"), "w") as f:
             f.write("This is a secret file.")
 
     def tearDown(self):
         # Clean up the temporary directories
-        if os.path.exists(self.base_dir):
-            shutil.rmtree(self.base_dir)
-        if os.path.exists(self.outside_dir):
-            shutil.rmtree(self.outside_dir)
+        self._temp_dir_obj.cleanup()
+        self._outside_dir_obj.cleanup()
 
     def test_basic_include(self):
         preprocessor = Preprocessor(base_dir=self.base_dir)
@@ -193,6 +195,103 @@ class PreprocessorTest(unittest.TestCase):
         processed = preprocessor.process(source)
         expected = "=== Subtitle\nParagraph"
         self.assertEqual(processed.strip(), expected.strip())
+
+    def test_unbalanced_block_delimiter_warning(self):
+        # Create a child include file that opens a listing block with ---- but never closes it.
+        with open(os.path.join(self.base_dir, "unbalanced.adoc"), "w") as f:
+            f.write("Some text\n----\nListing text\n")
+
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        source = "include::unbalanced.adoc[]"
+
+        import warnings
+
+        from asciidoctrine.preprocessor import PreprocessorWarning
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            processed = preprocessor.process(source)
+            # Ensure the preprocessor ran to completion despite the warning
+            self.assertIn("Some text\n----\nListing text", processed)
+
+            # Verify that the PreprocessorWarning was raised
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[0].category, PreprocessorWarning))
+            self.assertIn("unbalanced block delimiters", str(w[0].message))
+
+    def test_balanced_block_delimiters_no_warning(self):
+        # Create a child include file that cleanly opens and closes a listing block.
+        with open(os.path.join(self.base_dir, "balanced.adoc"), "w") as f:
+            f.write("Some text\n----\nListing text\n----\n")
+
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        source = "include::balanced.adoc[]"
+
+        import warnings
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            processed = preprocessor.process(source)
+            self.assertIn("Some text\n----\nListing text\n----", processed)
+
+            # Verify that no warnings were raised
+            self.assertEqual(len(w), 0)
+
+    def test_parse_attributes_edge_cases(self):
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        # 1. Single quotes inside and double quotes
+        attrs = preprocessor._parse_attributes(
+            "title='single quote',author=\"Double Quote\""
+        )
+        self.assertEqual(attrs.get("title"), "single quote")
+        self.assertEqual(attrs.get("author"), "Double Quote")
+
+        # 2. Empty attribute chunks
+        attrs = preprocessor._parse_attributes(",,tag=snippet,,")
+        self.assertEqual(attrs.get("tag"), "snippet")
+
+        # 3. Attribute key with no value
+        attrs = preprocessor._parse_attributes("some_option")
+        self.assertIn("some_option", attrs)
+        self.assertEqual(attrs.get("some_option"), "")
+
+    def test_unfiltered_tag_stripping(self):
+        # When tag/end comments are present in an include, but no tag/tags attribute is provided,
+        # those comment tag lines must be automatically stripped out of the output.
+        with open(os.path.join(self.base_dir, "tagged_comments.adoc"), "w") as f:
+            f.write("Start\n// tag::my-tag[]\nMiddle\n// end::my-tag[]\nEnd\n")
+
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        source = "include::tagged_comments.adoc[]"
+        processed = preprocessor.process(source)
+        expected = "Start\nMiddle\nEnd"
+        self.assertEqual(processed.strip(), expected.strip())
+
+    def test_lines_slicing_edge_cases(self):
+        with open(os.path.join(self.base_dir, "many_lines.txt"), "w") as f:
+            f.write("Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n")
+
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+
+        # 1. Empty lines slices (semicolons/commas with no value in between)
+        source = 'include::many_lines.txt[lines="1..2;;4..5"]'
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "Line 1\nLine 2\nLine 4\nLine 5")
+
+        # 2. Slices with single lines (e.g. lines="1,3,5")
+        source = 'include::many_lines.txt[lines="1,3,5"]'
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "Line 1\nLine 3\nLine 5")
+
+        # 3. Handling invalid line entries (e.g., abc) cleanly by raising ValueError and ignoring them
+        source = 'include::many_lines.txt[lines="1..2,abc,4..5"]'
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "Line 1\nLine 2\nLine 4\nLine 5")
+
+        # 4. Slices with no end value (e.g., lines="3..")
+        source = 'include::many_lines.txt[lines="3.."]'
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "Line 3\nLine 4\nLine 5")
 
 
 if __name__ == "__main__":

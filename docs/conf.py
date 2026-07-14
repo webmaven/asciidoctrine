@@ -3,12 +3,17 @@ import sys
 
 sys.path.insert(0, os.path.abspath("../src"))
 
+from importlib.metadata import version as get_version
+
 # -- Project information -----------------------------------------------------
 
 project = "AsciiDoctrine"
 copyright = "2026, Michael R. Bernstein"
 author = "Michael R. Bernstein"
-release = "0.1.0"
+try:
+    release = get_version("asciidoctrine")
+except Exception:
+    release = "0.1.0a8"
 
 # -- General configuration ---------------------------------------------------
 

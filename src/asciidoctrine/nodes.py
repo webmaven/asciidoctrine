@@ -114,6 +114,8 @@ class Document(BlockNode):
         self.header: Optional[Header] = None
         self.had_trailing_newline: bool = True
         self.line_ending: str = "\n"
+        self.is_preprocessed: bool = False
+        self.included_files: PyList[str] = []
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize document with header and resolved attributes."""
@@ -996,6 +998,18 @@ class AttributeEntry(BlockNode):
         self.type = "block"
         self.attribute_name = name
         self.value = value
+
+
+class Attributes(BlockNode):
+    """A resolved semantic block grouping contiguous attribute_entry declarations."""
+
+    _should_serialize_attributes = True
+
+    def __init__(self, attributes: Dict[str, Any]):
+        super().__init__()
+        self.name = "attributes"
+        self.type = "block"
+        self.attributes = attributes
 
 
 class Include(BlockNode):

@@ -98,6 +98,8 @@ jobs:
         coverage run --parallel-mode --source=src/asciidoctrine -m pytest tests/test_tck.py
 
     - name: Run DocTest Parsing with Coverage
+      env:
+        RUN_DOCTESTS: "1"
       run: |
         coverage run --parallel-mode --source=src/asciidoctrine -m pytest tests/test_doctest_parsing.py
 
