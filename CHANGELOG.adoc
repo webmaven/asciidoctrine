@@ -3,6 +3,13 @@
 
 All notable changes to this project will be documented in this file.
 
+== link:https://pypi.org/project/asciidoctrine/0.1.0a8/[0.1.0a8] - 2026-07-13
+
+=== Fixed
+* **Experimental Inline Macros Parsing Bug (Issue #80)**:
+  * **EBNF Grammar Priority Adjustment**: Assigned explicit priority of `.10` to `inline_kbd`, `inline_button`, and `inline_menu` grammar rules in `grammar.lark`. This resolves the greedy priority conflicts in Lark's Earley parsing engine when experimental macros are embedded inside standard prose sentences, preventing them from being flattened into generic standard text nodes.
+  * **TCK & Integration Tests**: Added comprehensive test cases ensuring standalone and paragraph-embedded experimental macro syntax parses cleanly with 100% compliance across both local unit tests and the Technology Compatibility Kit (TCK) suite.
+
 == link:https://pypi.org/project/asciidoctrine/0.1.0a7/[0.1.0a7] - 2026-07-13
 
 === Added

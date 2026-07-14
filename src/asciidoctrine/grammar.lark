@@ -160,9 +160,9 @@ footnote_text_content: footnote_inline_element+
 ?footnote_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | attribute_reference | inline_attribute_list | marked | superscript | subscript | footnote | footnoteref | double_quoted | single_quoted | inline_image | icon_inline | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | BACKTICK | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
 
 inline_break: " +"
-inline_kbd: "kbd:[" ATTR_LIST_CONTENT "]"
-inline_button: "btn:[" ATTR_LIST_CONTENT "]"
-inline_menu: "menu:" WORD "[" [ATTR_LIST_CONTENT] "]"
+inline_kbd.10: "kbd:[" ATTR_LIST_CONTENT "]"
+inline_button.10: "btn:[" ATTR_LIST_CONTENT "]"
+inline_menu.10: "menu:" WORD "[" [ATTR_LIST_CONTENT] "]"
 inline_callout: "<" NUMBER ">"
 inline_stem: "stem:[" [ATTR_LIST_CONTENT] "]"
 inline_asciimath: "asciimath:[" [ATTR_LIST_CONTENT] "]"

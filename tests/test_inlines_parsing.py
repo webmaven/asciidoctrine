@@ -142,6 +142,43 @@ class TestInlines(unittest.TestCase):
         self.assertEqual(link_node["attributes"]["window"], "_blank")
         self.assertEqual(link_node["inlines"][0]["value"], "example domain")
 
+    def test_experimental_macros_standalone(self):
+        # Test standalone kbd
+        kbd_ast = self._strip_locations(parse_to_ast("kbd:[Ctrl+C]").to_dict())
+        self.assertEqual(kbd_ast["blocks"][0]["inlines"][0]["name"], "kbd")
+        self.assertEqual(kbd_ast["blocks"][0]["inlines"][0]["value"], ["Ctrl", "C"])
+
+        # Test standalone btn
+        btn_ast = self._strip_locations(parse_to_ast("btn:[Submit]").to_dict())
+        self.assertEqual(btn_ast["blocks"][0]["inlines"][0]["name"], "button")
+        self.assertEqual(btn_ast["blocks"][0]["inlines"][0]["value"], "Submit")
+
+        # Test standalone menu
+        menu_ast = self._strip_locations(parse_to_ast("menu:File[Save]").to_dict())
+        self.assertEqual(menu_ast["blocks"][0]["inlines"][0]["name"], "menu")
+        self.assertEqual(menu_ast["blocks"][0]["inlines"][0]["menu"], "File")
+        self.assertEqual(menu_ast["blocks"][0]["inlines"][0]["items"], ["Save"])
+
+    def test_experimental_macros_embedded_in_paragraph(self):
+        source = "This is a kbd:[Ctrl+C] and btn:[Submit] inline macro test.\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        inlines = ast["blocks"][0]["inlines"]
+
+        # If parsed correctly, we should have 5 inline nodes:
+        # 1. Text("This is a ")
+        # 2. Kbd(["Ctrl", "C"])
+        # 3. Text(" and ")
+        # 4. Button("Submit")
+        # 5. Text(" inline macro test.")
+        self.assertEqual(len(inlines), 5)
+        self.assertEqual(inlines[0]["value"], "This is a ")
+        self.assertEqual(inlines[1]["name"], "kbd")
+        self.assertEqual(inlines[1]["value"], ["Ctrl", "C"])
+        self.assertEqual(inlines[2]["value"], " and ")
+        self.assertEqual(inlines[3]["name"], "button")
+        self.assertEqual(inlines[3]["value"], "Submit")
+        self.assertEqual(inlines[4]["value"], " inline macro test.")
+
 
 if __name__ == "__main__":
     unittest.main()

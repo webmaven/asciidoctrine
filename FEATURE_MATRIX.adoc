@@ -187,7 +187,7 @@ AsciiDoctrine Support::
 | *Footnotes*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-footnote-macro[Outline]
 | -
-| -
+| link:https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/inline/footnote[Draft]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Index Terms*
