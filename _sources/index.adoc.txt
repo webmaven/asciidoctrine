@@ -64,9 +64,11 @@ resolver = ASGResolver(ast)
 asg = resolver.resolve(ast)
 
 # Iterate through sections in the ASG blocks list
-for block in asg.blocks:
-    if block.name == "section":
-        title_text = "".join(node.value for node in block.title.inlines if node.name == "text")
+for block in asg.get("blocks", []):
+    if block.get("name") == "section":
+        # The title is a list of inline nodes in the ASG schema
+        title_nodes = block.get("title", [])
+        title_text = "".join(node.get("value", "") for node in title_nodes if node.get("name") == "text")
         print(f"Found section: {title_text}")
 ----
 

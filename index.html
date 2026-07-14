@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AsciiDoctrine Documentation &mdash; AsciiDoctrine 0.1.0 documentation</title>
+  <title>AsciiDoctrine Documentation &mdash; AsciiDoctrine 0.1.0a8 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/documentation_options.js?v=ce5e50ae"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -123,9 +123,11 @@
 <span class="n">asg</span> <span class="o">=</span> <span class="n">resolver</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">ast</span><span class="p">)</span>
 
 <span class="c1"># Iterate through sections in the ASG blocks list</span>
-<span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">asg</span><span class="o">.</span><span class="n">blocks</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;section&quot;</span><span class="p">:</span>
-        <span class="n">title_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">block</span><span class="o">.</span><span class="n">title</span><span class="o">.</span><span class="n">inlines</span> <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;text&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">asg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;blocks&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+    <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;section&quot;</span><span class="p">:</span>
+        <span class="c1"># The title is a list of inline nodes in the ASG schema</span>
+        <span class="n">title_nodes</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">title_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">title_nodes</span> <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;text&quot;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found section: </span><span class="si">{</span><span class="n">title_text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
