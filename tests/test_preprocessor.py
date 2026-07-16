@@ -89,6 +89,48 @@ class PreprocessorTest(unittest.TestCase):
             str(context.exception),
         )
 
+    def test_security_sibling_directory_traversal(self):
+        # Create a sibling directory to base_dir
+        sibling_dir = self.base_dir + "_sibling"
+        os.makedirs(sibling_dir, exist_ok=True)
+        secret_file = os.path.join(sibling_dir, "secret.adoc")
+        try:
+            with open(secret_file, "w") as f:
+                f.write("sensitive content")
+
+            # Formulate include path relative to base_dir pointing to sibling_dir
+            relative_path = os.path.join(
+                "..", os.path.basename(sibling_dir), "secret.adoc"
+            )
+
+            preprocessor = Preprocessor(base_dir=self.base_dir)
+            source = f"include::{relative_path}[]"
+            with self.assertRaises(PreprocessorError) as context:
+                preprocessor.process(source)
+            self.assertIn(
+                "attempts to access files outside the base directory",
+                str(context.exception),
+            )
+        finally:
+            if os.path.exists(secret_file):
+                os.remove(secret_file)
+            if os.path.exists(sibling_dir):
+                os.rmdir(sibling_dir)
+
+    def test_security_commonpath_value_error(self):
+        from unittest.mock import patch
+
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        source = "include::paragraph.adoc[]"
+
+        with patch("os.path.commonpath", side_effect=ValueError("mocked ValueError")):
+            with self.assertRaises(PreprocessorError) as context:
+                preprocessor.process(source)
+            self.assertIn(
+                "attempts to access files outside the base directory",
+                str(context.exception),
+            )
+
     def test_include_with_leveloffset_relative(self):
         # Create a file with heading titles
         with open(os.path.join(self.base_dir, "headings.adoc"), "w") as f:
