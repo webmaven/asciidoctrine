@@ -72,11 +72,117 @@ class PreprocessorTest(unittest.TestCase):
         self.assertIn("Include file not found", str(context.exception))
 
     def test_circular_include(self):
+        from asciidoctrine.preprocessor import CircularIncludeError
+
         preprocessor = Preprocessor(base_dir=self.base_dir)
         source = "include::circular_a.adoc[]"
-        with self.assertRaises(PreprocessorError) as context:
+        with self.assertRaises(CircularIncludeError) as context:
             preprocessor.process(source)
-        self.assertIn("Circular include detected", str(context.exception))
+
+        err_str = str(context.exception)
+        self.assertIn(
+            "Circular include detected: circular_a.adoc -> circular_b.adoc -> circular_a.adoc",
+            err_str,
+        )
+
+        # Assert location info and carets are present for both files in the loop
+        self.assertIn('File "circular_a.adoc", line 2:', err_str)
+        self.assertIn("include::circular_b.adoc[]", err_str)
+        self.assertIn("^~~~~~~~~~~~~~~~~~~~~~~~~~", err_str)
+
+        self.assertIn('File "circular_b.adoc", line 2:', err_str)
+        self.assertIn("include::circular_a.adoc[]", err_str)
+        self.assertIn("^~~~~~~~~~~~~~~~~~~~~~~~~~", err_str)
+
+    def test_multiple_sibling_includes(self):
+        # Create helper file
+        helper_path = os.path.join(self.base_dir, "helper.adoc")
+        with open(helper_path, "w") as f:
+            f.write("helper content\n")
+
+        # Create main file with two inclusions of helper
+        main_path = os.path.join(self.base_dir, "multi_sibling.adoc")
+        with open(main_path, "w") as f:
+            f.write("include::helper.adoc[]\ninclude::helper.adoc[]")
+
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        source = "include::multi_sibling.adoc[]"
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "helper content\nhelper content")
+
+    def test_complex_tangle_circular_includes(self):
+        from asciidoctrine.preprocessor import CircularIncludeError
+
+        # Create a three-file tangle with mutual includes
+        with open(os.path.join(self.base_dir, "tangle_a.adoc"), "w") as f:
+            f.write("include::tangle_b.adoc[]\ninclude::tangle_c.adoc[]")
+        with open(os.path.join(self.base_dir, "tangle_b.adoc"), "w") as f:
+            f.write("include::tangle_c.adoc[]\ninclude::tangle_a.adoc[]")
+        with open(os.path.join(self.base_dir, "tangle_c.adoc"), "w") as f:
+            f.write("include::tangle_a.adoc[]\ninclude::tangle_b.adoc[]")
+
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        source = "include::tangle_a.adoc[]"
+        with self.assertRaises(CircularIncludeError) as context:
+            preprocessor.process(source)
+
+        err_str = str(context.exception)
+        # Assert that the cyclic loop trace is captured
+        self.assertIn(
+            "Circular include detected: tangle_a.adoc -> tangle_b.adoc -> tangle_c.adoc -> tangle_a.adoc",
+            err_str,
+        )
+
+        # Assert all mutual includes across all three files in the cycle are listed
+        self.assertIn('File "tangle_a.adoc", line 1:', err_str)
+        self.assertIn("include::tangle_b.adoc[]", err_str)
+        self.assertIn("^~~~~~~~~~~~~~~~~~~~~~~~", err_str)
+        self.assertIn('File "tangle_a.adoc", line 2:', err_str)
+        self.assertIn("include::tangle_c.adoc[]", err_str)
+        self.assertIn("^~~~~~~~~~~~~~~~~~~~~~~~", err_str)
+
+        self.assertIn('File "tangle_b.adoc", line 1:', err_str)
+        self.assertIn("include::tangle_c.adoc[]", err_str)
+        self.assertIn("^~~~~~~~~~~~~~~~~~~~~~~~", err_str)
+        self.assertIn('File "tangle_b.adoc", line 2:', err_str)
+        self.assertIn("include::tangle_a.adoc[]", err_str)
+        self.assertIn("^~~~~~~~~~~~~~~~~~~~~~~~", err_str)
+
+        self.assertIn('File "tangle_c.adoc", line 1:', err_str)
+        self.assertIn("include::tangle_a.adoc[]", err_str)
+        self.assertIn("^~~~~~~~~~~~~~~~~~~~~~~~", err_str)
+        self.assertIn('File "tangle_c.adoc", line 2:', err_str)
+        self.assertIn("include::tangle_b.adoc[]", err_str)
+        self.assertIn("^~~~~~~~~~~~~~~~~~~~~~~~", err_str)
+
+    def test_circular_include_file_read_failure(self):
+        from unittest.mock import patch
+
+        from asciidoctrine.preprocessor import CircularIncludeError
+
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        source = "include::circular_a.adoc[]"
+
+        # Mock open so that when circular_b.adoc is opened during static scanning, it raises OSError
+        original_open = open
+        open_counts = {}
+
+        def side_effect(file, *args, **kwargs):
+            file_str = str(file)
+            if "circular_b.adoc" in file_str and args and args[0] == "r":
+                open_counts[file_str] = open_counts.get(file_str, 0) + 1
+                if open_counts[file_str] > 1:
+                    raise OSError("Simulated read failure during static scan")
+            return original_open(file, *args, **kwargs)
+
+        with patch("builtins.open", side_effect):
+            with self.assertRaises(CircularIncludeError) as context:
+                preprocessor.process(source)
+
+        err_str = str(context.exception)
+        # Assert that circular_a.adoc's include is still shown, but circular_b.adoc's is skipped due to read failure
+        self.assertIn('File "circular_a.adoc", line 2:', err_str)
+        self.assertNotIn('File "circular_b.adoc", line 2:', err_str)
 
     def test_security_path_traversal(self):
         preprocessor = Preprocessor(base_dir=self.base_dir)

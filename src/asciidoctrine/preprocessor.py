@@ -5,11 +5,17 @@ Preprocessor for AsciiDoc source, handling directives like include::.
 import os
 import re
 import warnings
-from typing import Optional, Set
+from typing import Optional
 
 
 class PreprocessorError(Exception):
     """Custom exception for preprocessor errors."""
+
+    pass
+
+
+class CircularIncludeError(PreprocessorError):
+    """Custom exception for circular inclusion loops in the preprocessor."""
 
     pass
 
@@ -111,20 +117,23 @@ class Preprocessor:
         """
         self.is_preprocessed = False
         self.included_files_set.clear()
-        return self._process_source(source, self.base_dir, set(), [])
+        return self._process_source(source, "<root>", [], [])
 
     def _process_source(
         self,
         source: str,
-        current_dir: str,
-        included_files: Set[str],
+        current_file: str,
+        include_stack: list[tuple[str, int, str]],
         delimiter_stack: list[str],
     ) -> str:
         """
         Recursively processes source text, handling includes.
         """
+        current_dir = (
+            os.path.dirname(current_file) if current_file != "<root>" else self.base_dir
+        )
         processed_lines = []
-        for line in source.splitlines(True):
+        for line_num, line in enumerate(source.splitlines(True), start=1):
             match = None
             if ":" in line:
                 match = self.include_regex.match(line.rstrip())
@@ -158,11 +167,75 @@ class Preprocessor:
                         f"Include file not found: {target_file_path}"
                     )
 
-                if target_file_path in included_files:
-                    raise PreprocessorError(
-                        f"Circular include detected: '{target_file_path}' "
-                        "is already being included."
+                # Check if target_file_path is already in the include stack
+                start_idx = next(
+                    (
+                        i
+                        for i, item in enumerate(include_stack)
+                        if item[0] == target_file_path
+                    ),
+                    None,
+                )
+
+                if start_idx is not None:
+                    cycle_items = include_stack[start_idx:]
+                    # All absolute file paths involved in the cycle (including current_file and target)
+                    cycle_files = {item[0] for item in cycle_items} | {
+                        target_file_path,
+                        current_file,
+                    }
+                    real_cycle_files = {f for f in cycle_files if os.path.isfile(f)}
+
+                    # Convert paths to base_dir-relative strings for the main error header
+                    cycle_paths = [
+                        os.path.relpath(item[0], self.base_dir)
+                        if item[0] != "<root>"
+                        else "<root>"
+                        for item in cycle_items
+                    ]
+                    current_rel = (
+                        os.path.relpath(current_file, self.base_dir)
+                        if current_file != "<root>"
+                        else "<root>"
                     )
+                    target_rel = os.path.relpath(target_file_path, self.base_dir)
+                    trace_str = " -> ".join(cycle_paths + [current_rel, target_rel])
+
+                    # Statically scan all cycle files to list all mutual includes between them
+                    diagnostic_lines = []
+                    for file_path in sorted(real_cycle_files):
+                        rel_file = os.path.relpath(file_path, self.base_dir)
+                        file_dir = os.path.dirname(file_path)
+
+                        try:
+                            with open(file_path, "r", encoding="utf-8") as f_obj:
+                                file_lines = f_obj.readlines()
+                        except Exception:
+                            continue
+
+                        for idx, line_raw in enumerate(file_lines, start=1):
+                            line_text = line_raw.rstrip()
+                            if ":" in line_raw:
+                                m = self.include_regex.match(line_text)
+                                if m:
+                                    inc_path = m.group(1).strip()
+                                    abs_inc = os.path.abspath(
+                                        os.path.join(file_dir, inc_path)
+                                    )
+                                    if abs_inc in real_cycle_files:
+                                        caret_line = "^" + "~" * (len(line_text) - 1)
+                                        diagnostic_lines.append(
+                                            f'File "{rel_file}", line {idx}:\n'
+                                            f"    {line_text}\n"
+                                            f"    {caret_line}"
+                                        )
+
+                    detailed_diagnostics = "\n\n".join(diagnostic_lines)
+                    error_msg = (
+                        f"Circular include detected: {trace_str}\n\n"
+                        f"{detailed_diagnostics}"
+                    )
+                    raise CircularIncludeError(error_msg)
 
                 with open(target_file_path, "r", encoding="utf-8") as f:
                     content_to_include = f.read()
@@ -266,14 +339,13 @@ class Preprocessor:
 
                 content_to_include = "".join(lines_to_keep)
 
-                included_files.add(target_file_path)
-
-                new_current_dir = os.path.dirname(target_file_path)
-
                 initial_depth = len(delimiter_stack)
 
                 processed_content = self._process_source(
-                    content_to_include, new_current_dir, included_files, delimiter_stack
+                    content_to_include,
+                    target_file_path,
+                    include_stack + [(current_file, line_num, line.rstrip())],
+                    delimiter_stack,
                 )
 
                 if len(delimiter_stack) != initial_depth:
@@ -283,8 +355,6 @@ class Preprocessor:
                         PreprocessorWarning,
                         stacklevel=2,
                     )
-
-                included_files.remove(target_file_path)
 
                 processed_lines.append(processed_content)
             else:

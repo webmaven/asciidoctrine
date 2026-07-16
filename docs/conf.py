@@ -19,7 +19,7 @@ except Exception:
 
 extensions = [
     "sphinx_rtd_theme",
-    "asciidoctrine.sphinx_ext",
+    "sphinx_asciidoctrine",
     "sphinx.ext.githubpages",
 ]
 
