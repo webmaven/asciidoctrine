@@ -8,6 +8,97 @@ AsciiDoctrine is designed from the ground up to provide a structured, type-safe 
 
 ---
 
+== Installation & Setup
+
+Install the `asciidoctrine` package using `pip`:
+
+[source,bash]
+----
+pip install asciidoctrine
+----
+
+---
+
+== Quick Start
+
+AsciiDoctrine implements a two-pass resolution pipeline. First, parse the raw source to a syntax-level AST. Then, resolve the AST to a semantic, queryable Abstract Semantic Graph (ASG):
+
+[source,python]
+----
+from asciidoctrine import parse_to_ast
+from asciidoctrine.resolver import ASGResolver
+
+source = """
+== Section Title
+This is a *bold* word in a paragraph.
+"""
+
+# 1. Parse raw source to syntax-level AST
+ast = parse_to_ast(source)
+
+# 2. Resolve to semantic ASG (resolves attributes, includes, and filters comments)
+resolver = ASGResolver(ast)
+asg = resolver.resolve(ast)
+
+# Iterate through sections in the ASG blocks list
+for block in asg.get("blocks", []):
+    if block.get("name") == "section":
+        # The title is a list of inline nodes in the ASG schema
+        title_nodes = block.get("title", [])
+        title_text = "".join(node.get("value", "") for node in title_nodes if node.get("name") == "text")
+        print(f"Found section: {title_text}")
+----
+
+---
+
+== ASG Representation
+
+Calling `asg.to_dict()` yields a structured, spec-compliant representation matching the official AsciiDoc Language ASG schema:
+
+[source,json]
+----
+{
+  "name": "document",
+  "type": "block",
+  "blocks": [
+    {
+      "name": "section",
+      "type": "block",
+      "level": 1,
+      "title": {
+        "name": "title",
+        "type": "inline",
+        "inlines": [
+          { "name": "text", "type": "string", "value": "Section Title" }
+        ]
+      },
+      "blocks": [
+        {
+          "name": "paragraph",
+          "type": "block",
+          "inlines": [
+            { "name": "text", "type": "string", "value": "This is a " },
+            {
+              "name": "span",
+              "type": "inline",
+              "variant": "strong",
+              "form": "constrained",
+              "inlines": [
+                { "name": "text", "type": "string", "value": "bold" }
+              ]
+            },
+            { "name": "text", "type": "string", "value": " word in a paragraph." }
+          ]
+        }
+      ]
+    }
+  ],
+  "attributes": {}
+}
+----
+
+---
+
 == Features
 
 * **Lark-based Grammar**: Pure-Python parsing using standard EBNF syntax.
@@ -74,95 +165,6 @@ contributing
 changelog
 apidocs/index
 --
-
----
-
-== Installation & Setup
-
-Install the `asciidoctrine` package using `pip`:
-
-[source,bash]
-----
-pip install asciidoctrine
-----
-
----
-
-== Quick Start
-
-AsciiDoctrine implements a two-pass resolution pipeline. First, parse the raw source to a syntax-level AST. Then, resolve the AST to a semantic, queryable Abstract Semantic Graph (ASG):
-
-[source,python]
-----
-from asciidoctrine import parse_to_ast
-from asciidoctrine.resolver import ASGResolver
-
-source = """
-== Section Title
-This is a *bold* word in a paragraph.
-"""
-
-# 1. Parse raw source to syntax-level AST
-ast = parse_to_ast(source)
-
-# 2. Resolve to semantic ASG (resolves attributes, includes, and filters comments)
-resolver = ASGResolver(ast)
-asg = resolver.resolve(ast)
-
-# Iterate through sections in the ASG blocks list
-for block in asg.get("blocks", []):
-    if block.get("name") == "section":
-        # The title is a list of inline nodes in the ASG schema
-        title_nodes = block.get("title", [])
-        title_text = "".join(node.get("value", "") for node in title_nodes if node.get("name") == "text")
-        print(f"Found section: {title_text}")
-----
-
-=== ASG Representation
-
-Calling `asg.to_dict()` yields a structured, spec-compliant representation matching the official AsciiDoc Language ASG schema:
-
-[source,json]
-----
-{
-  "name": "document",
-  "type": "block",
-  "blocks": [
-    {
-      "name": "section",
-      "type": "block",
-      "level": 1,
-      "title": {
-        "name": "title",
-        "type": "inline",
-        "inlines": [
-          { "name": "text", "type": "string", "value": "Section Title" }
-        ]
-      },
-      "blocks": [
-        {
-          "name": "paragraph",
-          "type": "block",
-          "inlines": [
-            { "name": "text", "type": "string", "value": "This is a " },
-            {
-              "name": "span",
-              "type": "inline",
-              "variant": "strong",
-              "form": "constrained",
-              "inlines": [
-                { "name": "text", "type": "string", "value": "bold" }
-              ]
-            },
-            { "name": "text", "type": "string", "value": " word in a paragraph." }
-          ]
-        }
-      ]
-    }
-  ],
-  "attributes": {}
-}
-----
 
 ---
 
