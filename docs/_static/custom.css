@@ -1,0 +1,56 @@
+/* Custom styles to override Read the Docs theme with a premium dark green theme */
+
+/* Sidebar search background and header */
+.wy-side-nav-search {
+    background-color: #1b4332 !important;
+}
+
+/* Sidebar active / current list items */
+.wy-menu-vertical li.current a {
+    color: #1b4332;
+}
+.wy-menu-vertical li.current li.current > a {
+    background-color: #e8f5e9 !important;
+    border-right: 4px solid #2d6a4f;
+    color: #1b4332 !important;
+}
+.wy-menu-vertical li.current a:hover {
+    background-color: #f1fbf1 !important;
+}
+
+/* Global Link Colors */
+a, a:visited {
+    color: #2d6a4f !important;
+    text-decoration: none;
+}
+a:hover, a:active {
+    color: #1b4332 !important;
+    text-decoration: underline;
+}
+
+/* Top bar navigation breadcrumbs */
+.wy-breadcrumbs li a {
+    color: #2d6a4f !important;
+}
+.wy-breadcrumbs li a:hover {
+    color: #1b4332 !important;
+}
+
+/* Buttons and primary color highlights */
+.btn-neutral {
+    background-color: #e8f5e9 !important;
+    color: #1b4332 !important;
+    border-color: #c8e6c9 !important;
+}
+.btn-neutral:hover {
+    background-color: #c8e6c9 !important;
+    color: #1b4332 !important;
+}
+
+/* Admonition blocks (Note, Tip, Important, Warning, Caution override to green borders) */
+.admonition.note, .admonition.todo {
+    border-left-color: #2d6a4f !important;
+}
+.admonition.note .admonition-title, .admonition.todo .admonition-title {
+    background-color: #2d6a4f !important;
+}
