@@ -6,7 +6,7 @@
 }
 
 /* Sidebar overall navigation text contrast & accessibility */
-.wy-menu-vertical a {
+.wy-menu-vertical a, .wy-menu-vertical a:visited {
     color: #e2e8f0 !important; /* High-contrast light slate/white text on dark background */
 }
 .wy-menu-vertical a:hover {
