@@ -5,32 +5,80 @@
     background-color: #1b4332 !important;
 }
 
-/* Sidebar overall navigation text contrast & accessibility */
-.wy-menu-vertical a, .wy-menu-vertical a:visited {
-    color: #e2e8f0 !important; /* High-contrast light slate/white text on dark background */
-}
-.wy-menu-vertical a:hover {
+/* Sidebar header title/link at the top of the sidebar */
+.wy-side-nav-search > a, 
+.wy-side-nav-search > a:visited,
+.wy-side-nav-search .icon-home {
     color: #ffffff !important;
-    background-color: #2d6a4f !important; /* Deep forest green hover highlight */
+}
+.wy-side-nav-search > a:hover {
+    color: #e8f5e9 !important;
+    background-color: transparent !important;
 }
 
-/* Sidebar active/current parent section headers */
-.wy-menu-vertical li.current > a {
-    color: #ffffff !important;
-    font-weight: bold;
-    background-color: #204c35 !important; /* Dark forest green background for the active section */
+/* 
+ * Sidebar vertical menu - general and unselected links at all levels 
+ */
+.wy-menu-vertical a,
+.wy-menu-vertical a:visited,
+.wy-menu-vertical li a,
+.wy-menu-vertical li a:visited {
+    color: #e2e8f0 !important; /* High-contrast light slate/white */
+    background-color: transparent !important;
+    font-weight: normal !important;
 }
 
-/* Sidebar nested active/selected leaf items (on light background) */
-.wy-menu-vertical li.current li.current > a {
+/* Hover state for any unselected sidebar links */
+.wy-menu-vertical a:hover,
+.wy-menu-vertical li a:hover {
+    color: #ffffff !important;
+    background-color: #2d6a4f !important; /* Premium dark forest green hover highlight */
+}
+
+/* 
+ * Active section parent / ancestor navigation links (expanded path)
+ */
+.wy-menu-vertical li.current > a:not(.current),
+.wy-menu-vertical li.current > a:not(.current):visited {
+    color: #ffffff !important;
+    font-weight: bold !important;
+    background-color: #204c35 !important; /* Rich subtle dark forest background */
+}
+
+/* 
+ * The actual currently active page link (The Leaf!)
+ */
+.wy-menu-vertical li.toctree-l1 > a.current,
+.wy-menu-vertical li.toctree-l1 > a.current:visited {
     background-color: #e8f5e9 !important;
-    border-right: 4px solid #2d6a4f;
-    color: #1b4332 !important; /* Dark forest green text for high readability on light green */
-    font-weight: normal;
+    border-right: 4px solid #2d6a4f !important;
+    color: #1b4332 !important; /* Premium dark green text for perfect readability on light green */
+    font-weight: bold !important;
 }
-.wy-menu-vertical li.current li.current > a:hover {
+.wy-menu-vertical li.toctree-l1 > a.current:hover {
     background-color: #c8e6c9 !important;
     color: #112d1b !important;
+}
+
+/* 
+ * Nested sub-page section headers (same page anchors)
+ */
+.wy-menu-vertical li.toctree-l2 a.current,
+.wy-menu-vertical li.toctree-l2 a.current:visited,
+.wy-menu-vertical li.toctree-l3 a.current,
+.wy-menu-vertical li.toctree-l3 a.current:visited,
+.wy-menu-vertical li.toctree-l4 a.current,
+.wy-menu-vertical li.toctree-l4 a.current:visited {
+    background-color: #f1f8f3 !important; /* Lighter background for nested page anchors */
+    border-right: 3px solid #2d6a4f !important;
+    color: #2d6a4f !important; /* Forest green text */
+    font-weight: normal !important;
+}
+.wy-menu-vertical li.toctree-l2 a.current:hover,
+.wy-menu-vertical li.toctree-l3 a.current:hover,
+.wy-menu-vertical li.toctree-l4 a.current:hover {
+    background-color: #e8f5e9 !important;
+    color: #1b4332 !important;
 }
 
 /* Global Link Colors */
