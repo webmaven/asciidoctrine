@@ -556,6 +556,88 @@ print("test")
         self.assertEqual(err.context, "mock_context_info")
         self.assertIn("Syntax error at line 5, column 10", str(err))
 
+    def test_inline_colons_not_dlist(self):
+        source = "A node representing an `include::` directive.\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        expected_ast = {
+            "name": "document",
+            "type": "block",
+            "blocks": [
+                {
+                    "name": "paragraph",
+                    "type": "block",
+                    "inlines": [
+                        {
+                            "name": "text",
+                            "type": "string",
+                            "value": "A node representing an ",
+                        },
+                        {
+                            "name": "span",
+                            "type": "inline",
+                            "variant": "code",
+                            "form": "constrained",
+                            "inlines": [
+                                {"name": "text", "type": "string", "value": "include::"}
+                            ],
+                        },
+                        {"name": "text", "type": "string", "value": " directive."},
+                    ],
+                }
+            ],
+        }
+        self.assertEqual(ast, expected_ast)
+
+    def test_open_blocks_parsing(self):
+        import warnings
+
+        # 1. Legacy open block
+        legacy_source = "--\nLegacy open block content.\n--\n"
+        with self.assertWarns(DeprecationWarning):
+            legacy_ast = parse_to_ast(legacy_source).to_dict()
+        self.assertEqual(legacy_ast["blocks"][0]["name"], "open")
+        self.assertEqual(legacy_ast["blocks"][0]["delimiter"], "--")
+        self.assertEqual(legacy_ast["blocks"][0]["blocks"][0]["name"], "paragraph")
+
+        # 2. Standard SDR-1 open block (4 tildes)
+        standard_source = "~~~~\nStandard open block content.\n~~~~\n"
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            standard_ast = parse_to_ast(standard_source).to_dict()
+            deprecation_warnings = [
+                warn
+                for warning in w
+                if (warn := getattr(warning, "message", warning))
+                and issubclass(warning.category, DeprecationWarning)
+            ]
+            self.assertEqual(len(deprecation_warnings), 0)
+        self.assertEqual(standard_ast["blocks"][0]["name"], "open")
+        self.assertEqual(standard_ast["blocks"][0]["delimiter"], "~~~~")
+
+        # 3. Long SDR-1 open block (7 tildes)
+        long_source = "~~~~~~~\nLong open block.\n~~~~~~~\n"
+        long_ast = parse_to_ast(long_source).to_dict()
+        self.assertEqual(long_ast["blocks"][0]["name"], "open")
+        self.assertEqual(long_ast["blocks"][0]["delimiter"], "~~~~~~~")
+
+        # 4. Nested open blocks of varying length
+        nested_source = "~~~~~~\n~~~~\nNested content\n~~~~\n~~~~~~\n"
+        nested_ast = parse_to_ast(nested_source).to_dict()
+        self.assertEqual(nested_ast["blocks"][0]["name"], "open")
+        self.assertEqual(nested_ast["blocks"][0]["delimiter"], "~~~~~~")
+        inner_open = nested_ast["blocks"][0]["blocks"][0]
+        self.assertEqual(inner_open["name"], "open")
+        self.assertEqual(inner_open["delimiter"], "~~~~")
+        self.assertEqual(inner_open["blocks"][0]["name"], "paragraph")
+
+        # 5. Nesting legacy inside standard and vice-versa
+        mixed_nest_source = "~~~~\n--\nMixed nesting\n--\n~~~~\n"
+        mixed_nest_ast = parse_to_ast(mixed_nest_source).to_dict()
+        self.assertEqual(mixed_nest_ast["blocks"][0]["name"], "open")
+        self.assertEqual(mixed_nest_ast["blocks"][0]["delimiter"], "~~~~")
+        self.assertEqual(mixed_nest_ast["blocks"][0]["blocks"][0]["name"], "open")
+        self.assertEqual(mixed_nest_ast["blocks"][0]["blocks"][0]["delimiter"], "--")
+
 
 if __name__ == "__main__":
     unittest.main()
