@@ -5,17 +5,32 @@
     background-color: #1b4332 !important;
 }
 
-/* Sidebar active / current list items */
-.wy-menu-vertical li.current a {
-    color: #1b4332;
+/* Sidebar overall navigation text contrast & accessibility */
+.wy-menu-vertical a {
+    color: #e2e8f0 !important; /* High-contrast light slate/white text on dark background */
 }
+.wy-menu-vertical a:hover {
+    color: #ffffff !important;
+    background-color: #2d6a4f !important; /* Deep forest green hover highlight */
+}
+
+/* Sidebar active/current parent section headers */
+.wy-menu-vertical li.current > a {
+    color: #ffffff !important;
+    font-weight: bold;
+    background-color: #204c35 !important; /* Dark forest green background for the active section */
+}
+
+/* Sidebar nested active/selected leaf items (on light background) */
 .wy-menu-vertical li.current li.current > a {
     background-color: #e8f5e9 !important;
     border-right: 4px solid #2d6a4f;
-    color: #1b4332 !important;
+    color: #1b4332 !important; /* Dark forest green text for high readability on light green */
+    font-weight: normal;
 }
-.wy-menu-vertical li.current a:hover {
-    background-color: #f1fbf1 !important;
+.wy-menu-vertical li.current li.current > a:hover {
+    background-color: #c8e6c9 !important;
+    color: #112d1b !important;
 }
 
 /* Global Link Colors */
