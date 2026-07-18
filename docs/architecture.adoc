@@ -1,0 +1,78 @@
+= Architecture & Design
+Michael R. Bernstein <zopemaven@gmail.com>
+v0.1.0
+:idprefix:
+:idseparator: -
+:sectanchors:
+:sectlinks:
+
+This document provides a deep dive into the design and architectural choices behind **AsciiDoctrine**. It is intended for both advanced users and core package contributors.
+
+---
+
+== The Multi-Pass Compilation Pipeline
+
+AsciiDoc is a context-sensitive, highly complex markup language. Unlike simpler markup formats like Markdown, correctly resolving AsciiDoc requires knowing document-wide context. For example, attributes defined anywhere in a document can substitute values in earlier or later paragraphs, and include files must be fetched and spliced before block-level formatting is resolved.
+
+To handle this complexity reliably, AsciiDoctrine processes input source code through a sequence of distinct, decoupled compiler passes:
+
+[source,mermaid]
+....
+graph TD
+    Source[Raw AsciiDoc Source] --> Pre[1. Preprocessor Pass]
+    Pre --> Lark[2. Earley Parsing Pass]
+    Lark --> CST[Lark CST Tree]
+    CST --> Trans[3. AST Transformation Pass]
+    Trans --> AST[Syntactic AST Nodes]
+    AST --> Resolv[4. Semantic ASG Pass]
+    Resolv --> ASG[Resolved ASG Structure]
+....
+
+1. **Preprocessor Pass**: Scans for include directives and circular references, loading external files safely.
+2. **Earley Parsing Pass**: Feeds standardized lines into the Lark parsing engine to produce a raw Concrete Syntax Tree (CST).
+3. **AST Transformation Pass**: Converts the complex, nested Lark CST into structured, typed Python AST nodes defined in `nodes.py`.
+4. **Semantic ASG Pass**: Traverses the AST to perform attribute substitution, filter out comments/entries, and resolve structural constraints, yielding the final Abstract Semantic Graph (ASG).
+
+---
+
+== AST vs. ASG Separation
+
+A key design choice in AsciiDoctrine is the strict architectural boundary between the **Abstract Syntax Tree (AST)** and the **Abstract Semantic Graph (ASG)**.
+
+=== 1. Abstract Syntax Tree (AST)
+* **Goal**: Capture exact syntax-level structures.
+* **Nodes**: Created by `parse_to_ast()`.
+* **State**: Retains elements that do not affect final document semantics but are crucial for formatting or developer tools. For example, it retains standalone `:name: value` (`attribute_entry`) nodes and raw `#` / `////` comment blocks.
+* **Line Coordinates**: Highly precise, matching the exact physical positions of characters in the original text file.
+
+=== 2. Abstract Semantic Graph (ASG)
+* **Goal**: Represent the resolved, semantic meaning of the document, aligned with the official AsciiDoc ASG JSON schema.
+* **Nodes**: Produced by `ASGResolver.resolve(ast)`.
+* **State**: Standalone `attribute_entry` and `comment` nodes are **consumed and filtered out** of the block list. Their values are resolved and compiled into a unified `attributes` dictionary at the root of the Document.
+* **Resolution**: All inline text containing `{name}` attribute references is dynamically substituted with their resolved semantic string values.
+
+---
+
+== Lark and the Earley Parsing Engine
+
+AsciiDoc contains numerous syntactic ambiguities (for example, whether `*` represents a bullet list item or the start of a bold text span). Standard LALR(1) or LL(k) parsers cannot parse AsciiDoc without massive lexer hacks or context-sensitive workarounds.
+
+AsciiDoctrine uses **Lark** configured with the **Earley parsing algorithm**.
+
+* **Why Earley?** Earley is a chart-parsing algorithm that parses all context-free grammars. It handles ambiguities gracefully by evaluating all matching parse trees in parallel.
+* **Tie-Breaking via Priorities**: When multiple rules match the same source lines (e.g., `toc::[]` matches both a block macro and a description list item), Lark uses rule-level and terminal-level priorities to break ties.
+* **Performance Optimizations**:
+  * All input files are pre-normalized to Unix line endings (`\n`) to streamline regex lookaheads.
+  * Structural block rules are assigned high priorities (e.g., `table.10`) while general formatting inline rules are given moderate priorities to prevent greedy asterisks from "stealing" list markers.
+
+---
+
+== Location Tracking
+
+For compiler-style diagnostic messages and static analysis tools, knowing the precise coordinates of parsed elements is vital.
+
+AsciiDoctrine implements **inclusive source coordinate tracking** on all transformed nodes:
+
+* **Leaf Tokens**: Leaf terminals (like strings or identifiers) get coordinate ranges directly from the Lark lexer's `meta` attributes.
+* **Polymorphic Propagation**: As nodes are transformed, parent blocks calculate their overall start and end line/column coordinates dynamically using a specialized helper method `_set_location_from_children()`.
+* **Accuracy**: The coordinates reflect the exact lines in the source, where `start_column` is 1-indexed and `end_column` is inclusive (`end_column - 1`).
