@@ -8,9 +8,19 @@ AsciiDoctrine is designed from the ground up to provide a structured, type-safe 
 
 ---
 
+== Key Capabilities
+
+* **Full TCK Compliance**: 100% compliant with the official AsciiDoc Technology Compatibility Kit (TCK).
+* **Lark-based Parser**: Pure-Python parsing using standard EBNF syntax and the powerful Earley chart-parsing engine.
+* **Two-Pass ASG Resolution**: Advanced resolver pipeline that substituting attributes, processes include files, and filters comments.
+* **Precise Coordinate Tracking**: Inclusive start and end line/column coordinate ranges derived from leaf tokens and propagated up the AST.
+* **Sphinx Integration**: Natively authors document content in AsciiDoc and compiles it using standard Sphinx extensions.
+
+---
+
 == Installation & Setup
 
-Install the `asciidoctrine` package using `pip`:
+Install the stable, released package from link:https://pypi.org/project/asciidoctrine/[PyPI] using `pip`:
 
 [source,bash]
 ----
@@ -99,18 +109,30 @@ Calling `asg.to_dict()` yields a structured, spec-compliant representation match
 
 ---
 
-== Features
+== Project Guides
 
-* **Lark-based Grammar**: Pure-Python parsing using standard EBNF syntax.
-* **Semantic AST/ASG Convergence**: A type-safe representation aligned directly with the official Language ASG schema.
-* **Two-Pass Resolution**: Centralized semantic resolution pass for attribute substitutions, include processing, and comment filtering.
-* **Advanced Location Tracking**: Highly accurate, child-derived start and end line coordinates on block nodes.
-* **Sphinx Integration**: Full extension support allowing you to author documentation in AsciiDoc and build it natively using Sphinx.
-* **TCK Compliance**: Robust test suite matching the official AsciiDoc Technology Compatibility Kit.
+Explore detailed design and usage documentation for library users and developers:
+
+[toctree]
+--
+architecture
+how-to-custom-renderer
+feature-matrix
+contributing
+changelog
+apidocs/index
+--
+
+* link:architecture.html[Architecture & Design Guide]: The parser pipeline, Earley algorithm details, and location tracking mechanics.
+* link:how-to-custom-renderer.html[Custom ASG Renderer Tutorial]: Walkthrough and fully executable Python implementation of a custom Markdown converter.
+* link:feature-matrix.html[Feature Matrix]: Complete comparison of supported language features, specification documents, and test coverage.
+* link:contributing.html[Contributor's Guide]: Virtualenv setup, Pytest protocols, Mypy type checks, and pre-release packaging verification checklists.
 
 ---
 
-== Motivation
+== Under the Hood
+
+=== Motivation
 
 The Python ecosystem has long lacked a modern, maintainable, and specification-compliant AsciiDoc parser. Existing tools are often port-based or rely on regex-heavy implementations that struggle with the complex, context-sensitive nature of AsciiDoc.
 
@@ -120,9 +142,7 @@ AsciiDoctrine is built from the ground up to provide:
 2. **First-Class AST**: A structured, type-safe Abstract Syntax Tree that makes building renderers and static analysis tools a breeze.
 3. **Performance**: Leveraging the Lark parsing engine for efficient processing of large documents.
 
----
-
-== Architecture
+=== Parser Pipeline Architecture
 
 The parser operates in a multi-pass pipeline to handle the inherent complexity of AsciiDoc:
 
@@ -140,31 +160,11 @@ graph LR
 * **AST (Abstract Syntax Tree)**: Represented in `nodes.py`, this is a structural tree of the document elements.
 * **ASG (Abstract Semantic Graph)**: The final resolved state where attributes, cross-references, and includes are fully processed.
 
-For a deeper dive into the parser's design, see the link:architecture.html[Architecture & Design Guide].
-
----
-
-== Technical Choices
+=== Technical Choices
 
 * **Lark Parsing Engine**: We use Lark because it supports multiple parsing algorithms (Earley, LALR) and has an experimental PEG mode. This allows us to handle the context-sensitive nature of AsciiDoc without the maintenance nightmare of large regex collections.
 * **Two-Pass Pipeline**: Handling attributes and includes requires knowing the state of the whole document. Our multi-pass approach ensures that we can resolve semantic details (like cross-references) correctly.
 * **Pure Python**: Zero C-extensions means easy installation on all platforms including Pyodide and WebAssembly.
-
----
-
-== Project Guides
-
-The following table of contents provides reference information for library users and developers:
-
-[toctree]
---
-architecture
-how-to-custom-renderer
-feature-matrix
-contributing
-changelog
-apidocs/index
---
 
 ---
 

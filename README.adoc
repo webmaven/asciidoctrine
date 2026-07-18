@@ -55,6 +55,13 @@ graph LR
 
 == Installation & Setup
 
+End-users can install the official, stable release of AsciiDoctrine from link:https://pypi.org/project/asciidoctrine/[PyPI]:
+
+[source,bash]
+----
+pip install asciidoctrine
+----
+
 For developers and contributors, the recommended "happy path" is to set up a local virtual environment and install AsciiDoctrine in editable development mode:
 
 [source,bash]
@@ -205,7 +212,7 @@ Run the official TCK test suite with:
 
 == Self-Hosted Documentation
 
-This project's documentation is authored entirely in AsciiDoc, compiled using Sphinx along with our own self-hosted `asciidoctrine.sphinx_ext` plugin, and published online at link:https://webmaven.github.io/asciidoctrine/[https://webmaven.github.io/asciidoctrine/]!
+This project's documentation is authored entirely in AsciiDoc, compiled using Sphinx along with the dedicated `sphinx_asciidoctrine` plugin, and published online at link:https://webmaven.github.io/asciidoctrine/[https://webmaven.github.io/asciidoctrine/]!
 
 Build and view the documentation locally:
 [source,bash]
