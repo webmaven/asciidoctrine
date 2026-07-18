@@ -43,7 +43,7 @@ AsciiDoctrine Support::
 | *Document Structure (Preamble)*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-document-structure[Outline]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
-| link:https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/block/document[Draft]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/document/[TCK Covered]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Paragraphs*
@@ -76,10 +76,16 @@ AsciiDoctrine Support::
 | link:https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/block/admonition[Draft]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
-| *Sidebars & Examples*
+| *Sidebar Blocks*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/block-content-model.adoc#user-content-compound-block[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/sidebar/[TCK Covered]
+| link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
+
+| *Example Blocks*
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/block-content-model.adoc#user-content-compound-block[Standardized]
+| link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
+| -
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Listing & Literal Blocks*
@@ -109,7 +115,7 @@ AsciiDoctrine Support::
 | *Tables*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/block-content-model.adoc#user-content-compound-block[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
-| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/[TCK Covered]
+| -
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Block Macros*
@@ -143,7 +149,7 @@ AsciiDoctrine Support::
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Open Blocks*
-| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/block-content-model.adoc#user-content-compound-block[Standardized]
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/merge_requests/57[Proposed]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/merge_requests/42[Proposed]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
@@ -223,13 +229,13 @@ AsciiDoctrine Support::
 | *Verbatim Block Callouts*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-callout-lists[Outline]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
-| link:https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/block/listing/[TCK Covered]
+| link:https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/block/listing/[Draft]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Include Directives*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-include-directive[Outline]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-preprocessor.pegjs[Peggy Preprocessor]
-| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/[TCK Covered]
+| -
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/preprocessor.py[Fully Supported]
 
 | *Callout Lists*
@@ -259,7 +265,7 @@ AsciiDoctrine Support::
 | *Block Table of Contents (TOC) Macro (`toc::[]`)*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-table-of-contents-macro[Outline]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
-| -
+| link:https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/block/document[Draft]
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Inline Cross-Reference Macros (`xref:...[]` or `<<...>>`)*
