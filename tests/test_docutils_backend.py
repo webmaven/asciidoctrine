@@ -644,3 +644,16 @@ def test_checklist_conversion():
     assert para2[0].astext() == "\u2611 "
     assert 'Checked item' in para2.astext()
 
+
+def test_floating_contentless_anchor_conversion():
+    source = "This is [[my-target]] anchor."
+    document = asciidoc_to_docutils(source)
+    para = document[0]
+    assert isinstance(para, nodes.paragraph)
+
+    # Check that a target node is inserted instead of reference node
+    target_node = para[1]
+    assert isinstance(target_node, nodes.target)
+    assert "my-target" in target_node["ids"]
+
+

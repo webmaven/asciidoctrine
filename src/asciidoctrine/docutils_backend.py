@@ -443,6 +443,11 @@ class DocutilsRenderer(NodeVisitor):
                 self.current_node += ref_node
             return
 
+        if node.variant == "anchor":
+            target_node = nodes.target('', '', ids=[node.target])
+            self.current_node += target_node
+            return
+
         # Handle cross-references and links
         link_node = nodes.reference()
 
