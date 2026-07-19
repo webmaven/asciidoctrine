@@ -6,21 +6,22 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AsciiDoc Feature Matrix &mdash; AsciiDoctrine 0.1.0a8 documentation</title>
+  <title>AsciiDoc Feature Matrix &mdash; AsciiDoctrine 0.1.0a9 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=1da06fa4" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=ce5e50ae"></script>
+      <script src="_static/documentation_options.js?v=6a26d4b7"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Changelog" href="changelog.html" />
-    <link rel="prev" title="AsciiDoctrine Documentation" href="index.html" /> 
+    <link rel="next" title="Contributor’s Guide" href="contributing.html" />
+    <link rel="prev" title="How-to: Custom ASG Renderer Tutorial" href="how-to-custom-renderer.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -43,12 +44,16 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture &amp; Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-custom-renderer.html">How-to: Custom ASG Renderer Tutorial</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">AsciiDoc Feature Matrix</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#id2">Status Legend</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#id3">Feature Matrix</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributor’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="apidocs/index.html">API Reference</a></li>
 </ul>
 
         </div>
@@ -126,7 +131,7 @@
 <tr class="row-even"><td><p><strong>Document Structure (Preamble)</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-document-structure">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
-<td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/block/document">Draft</a></p></td>
+<td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/document/">TCK Covered</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>Paragraphs</strong></p></td>
@@ -159,225 +164,227 @@
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/block/admonition">Draft</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Sidebars &amp; Examples</strong></p></td>
+<tr class="row-even"><td><p><strong>Sidebar Blocks</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/block-content-model.adoc#user-content-compound-block">Standardized</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/sidebar/">TCK Covered</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Listing &amp; Literal Blocks</strong></p></td>
+<tr class="row-odd"><td><p><strong>Example Blocks</strong></p></td>
+<td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/block-content-model.adoc#user-content-compound-block">Standardized</a></p></td>
+<td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
+<td><p>-</p></td>
+<td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Listing &amp; Literal Blocks</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/literal-block.adoc">Standardized</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/listing/">TCK Covered</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Description Lists</strong></p></td>
+<tr class="row-odd"><td><p><strong>Description Lists</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/description-list.adoc">Standardized</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/block/description">Draft</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Unordered Lists</strong></p></td>
+<tr class="row-even"><td><p><strong>Unordered Lists</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/block-content-model.adoc#user-content-compound-block">Standardized</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/list/unordered/">TCK Covered</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Ordered Lists</strong></p></td>
+<tr class="row-odd"><td><p><strong>Ordered Lists</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/block-content-model.adoc#user-content-compound-block">Standardized</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p>-</p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Tables</strong></p></td>
+<tr class="row-even"><td><p><strong>Tables</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/block-content-model.adoc#user-content-compound-block">Standardized</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
-<td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/">TCK Covered</a></p></td>
+<td><p>-</p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Block Macros</strong></p></td>
+<tr class="row-odd"><td><p><strong>Block Macros</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/block-macro.adoc">Standardized</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/block/document">Draft</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Video Macros</strong></p></td>
+<tr class="row-even"><td><p><strong>Video Macros</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-video-macro">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p>-</p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Audio Macros</strong></p></td>
+<tr class="row-odd"><td><p><strong>Audio Macros</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-audio-macro">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p>-</p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Page Breaks</strong></p></td>
+<tr class="row-even"><td><p><strong>Page Breaks</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-page-break-macro">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p>-</p></td>
-<td><p>Partially Supported <a class="footnote-reference brackets" href="#fn-1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p></td>
+<td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Thematic Breaks / Horizontal Rules</strong></p></td>
+<tr class="row-odd"><td><p><strong>Thematic Breaks / Horizontal Rules</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-thematic-break-macro">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p>-</p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Open Blocks</strong></p></td>
-<td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/block-content-model.adoc#user-content-compound-block">Standardized</a></p></td>
+<tr class="row-even"><td><p><strong>Open Blocks</strong></p></td>
+<td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/merge_requests/57">Proposed</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/merge_requests/42">Proposed</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Quote Blocks</strong></p></td>
+<tr class="row-odd"><td><p><strong>Quote Blocks</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/block-content-model.adoc#user-content-compound-block">Standardized</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/block/quote">Draft</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Verse Blocks</strong></p></td>
+<tr class="row-even"><td><p><strong>Verse Blocks</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/block-content-model.adoc#user-content-compound-block">Standardized</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/block/verse">Draft</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Collapsible Blocks</strong></p></td>
+<tr class="row-odd"><td><p><strong>Collapsible Blocks</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-collapsible">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p>-</p></td>
-<td><p>Not Supported <a class="footnote-reference brackets" href="#fn-2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a></p></td>
+<td><p>Not Supported <a class="footnote-reference brackets" href="#fn-1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>STEM Blocks</strong></p></td>
+<tr class="row-even"><td><p><strong>STEM Blocks</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-delimited-blocks--structural-containers">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/block/stem">Draft</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Inline Images &amp; Icons</strong></p></td>
+<tr class="row-odd"><td><p><strong>Inline Images &amp; Icons</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-image-macro-inline">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs">Peggy Inlines</a></p></td>
 <td><p>-</p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Keyboard, Button &amp; Menu Macros</strong></p></td>
+<tr class="row-even"><td><p><strong>Keyboard, Button &amp; Menu Macros</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-button-macro">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs">Peggy Inlines</a></p></td>
 <td><p>-</p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Footnotes</strong></p></td>
+<tr class="row-odd"><td><p><strong>Footnotes</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-footnote-macro">Outline</a></p></td>
 <td><p>-</p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/inline/footnote">Draft</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Index Terms</strong></p></td>
+<tr class="row-even"><td><p><strong>Index Terms</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-index-term-macros">Outline</a></p></td>
+<td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs">Peggy Inlines</a></p></td>
+<td><p>-</p></td>
+<td><p>Not Supported <a class="footnote-reference brackets" href="#fn-2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Typographic Replacements</strong></p></td>
+<td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-typographic-replacements">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs">Peggy Inlines</a></p></td>
 <td><p>-</p></td>
 <td><p>Not Supported <a class="footnote-reference brackets" href="#fn-3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Typographic Replacements</strong></p></td>
-<td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-typographic-replacements">Outline</a></p></td>
-<td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs">Peggy Inlines</a></p></td>
-<td><p>-</p></td>
-<td><p>Not Supported <a class="footnote-reference brackets" href="#fn-4" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a></p></td>
-</tr>
-<tr class="row-odd"><td><p><strong>Floating Contentless Anchors</strong></p></td>
+<tr class="row-even"><td><p><strong>Floating Contentless Anchors</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-ids--reference-names">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs">Peggy Inlines</a></p></td>
 <td><p>-</p></td>
-<td><p>Partially Supported <a class="footnote-reference brackets" href="#fn-5" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a></p></td>
+<td><p>Partially Supported <a class="footnote-reference brackets" href="#fn-4" role="doc-noteref"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></a></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Conditional Preprocessor Directives</strong></p></td>
+<tr class="row-odd"><td><p><strong>Conditional Preprocessor Directives</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-conditional-directives">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-preprocessor.pegjs">Peggy Preprocessor</a></p></td>
 <td><p>-</p></td>
-<td><p>Not Supported <a class="footnote-reference brackets" href="#fn-6" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a></p></td>
+<td><p>Not Supported <a class="footnote-reference brackets" href="#fn-5" role="doc-noteref"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></a></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Comment Lines &amp; Blocks</strong></p></td>
+<tr class="row-even"><td><p><strong>Comment Lines &amp; Blocks</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-comments">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-preprocessor.pegjs">Peggy Preprocessor</a></p></td>
 <td><p>-</p></td>
-<td><p>Partially Supported <a class="footnote-reference brackets" href="#fn-7" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a></p></td>
+<td><p>Partially Supported <a class="footnote-reference brackets" href="#fn-6" role="doc-noteref"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></a></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Verbatim Block Callouts</strong></p></td>
+<tr class="row-odd"><td><p><strong>Verbatim Block Callouts</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-callout-lists">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
-<td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/block/listing/">TCK Covered</a></p></td>
+<td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/block/listing/">Draft</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Include Directives</strong></p></td>
+<tr class="row-even"><td><p><strong>Include Directives</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-include-directive">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-preprocessor.pegjs">Peggy Preprocessor</a></p></td>
-<td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/tree/main/tests/block/">TCK Covered</a></p></td>
+<td><p>-</p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/preprocessor.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Callout Lists</strong></p></td>
+<tr class="row-odd"><td><p><strong>Callout Lists</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-callout-lists">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p>-</p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Checklists</strong></p></td>
+<tr class="row-even"><td><p><strong>Checklists</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-checklists">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p>-</p></td>
-<td><p>Partially Supported <a class="footnote-reference brackets" href="#fn-8" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a></p></td>
+<td><p>Partially Supported <a class="footnote-reference brackets" href="#fn-7" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Block Passthroughs</strong></p></td>
+<tr class="row-odd"><td><p><strong>Block Passthroughs</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-passthroughs">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p>-</p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Inline Passthroughs (<code class="docutils literal notranslate"><span class="pre">pass:[...]</span></code> and <code class="docutils literal notranslate"><span class="pre">+++...+++</span></code>)</strong></p></td>
+<tr class="row-even"><td><p><strong>Inline Passthroughs (`...<code class="docutils literal notranslate"> <span class="pre">and</span> </code>...`)</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-passthroughs-1">Outline</a></p></td>
 <td><p>-</p></td>
 <td><p>-</p></td>
-<td><p>Not Supported <a class="footnote-reference brackets" href="#fn-9" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a></p></td>
+<td><p>Not Supported <a class="footnote-reference brackets" href="#fn-8" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a></p></td>
 </tr>
-<tr class="row-even"><td><dl class="simple">
-<dt>*Block Table of Contents (TOC) Macro (`toc</dt><dd><p>`)*</p>
-</dd>
-</dl>
-</td>
+<tr class="row-odd"><td><p><strong>Block Table of Contents (TOC) Macro (<code class="docutils literal notranslate"><span class="pre">toc::[]</span></code>)</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-table-of-contents-macro">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
-<td><p>-</p></td>
+<td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/block/document">Draft</a></p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Inline Cross-Reference Macros (`<a class="reference external" href="...">…</a><code class="docutils literal notranslate"> <span class="pre">or</span> </code><a class="reference external" href="...">…</a>`)</strong></p></td>
+<tr class="row-even"><td><p><strong>Inline Cross-Reference Macros (`<a class="reference external" href="...">…</a><code class="docutils literal notranslate"> <span class="pre">or</span> </code><a class="reference external" href="...">…</a>`)</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-cross-reference-macros">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs">Peggy Inlines</a></p></td>
 <td><p>-</p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Inline Attribute References (<code class="docutils literal notranslate"><span class="pre">{name}</span></code>)</strong></p></td>
+<tr class="row-odd"><td><p><strong>Inline Attribute References (<code class="docutils literal notranslate"><span class="pre">{name}</span></code>)</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-attribute-references">Outline</a></p></td>
 <td><p>-</p></td>
 <td><p>-</p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/resolver.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Autolinks (Implicit URLs and Emails)</strong></p></td>
+<tr class="row-even"><td><p><strong>Autolinks (Implicit URLs and Emails)</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-autolinks-urls-and-email-addresses">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs">Peggy Inlines</a></p></td>
 <td><p>-</p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Literal Paragraphs (Indented Lines)</strong></p></td>
+<tr class="row-odd"><td><p><strong>Literal Paragraphs (Indented Lines)</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-literal-paragraphs">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p>-</p></td>
 <td><p><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>Docinfo / Document Metadata</strong></p></td>
+<tr class="row-even"><td><p><strong>Docinfo / Document Metadata</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-docinfo">Outline</a></p></td>
 <td><p>-</p></td>
 <td><p>-</p></td>
-<td><p>Not Supported <a class="footnote-reference brackets" href="#fn-10" role="doc-noteref"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></a></p></td>
+<td><p>Not Supported <a class="footnote-reference brackets" href="#fn-9" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a></p></td>
 </tr>
 </tbody>
 </table>
@@ -386,7 +393,7 @@
 <aside class="footnote-list brackets">
 <aside class="footnote brackets" id="fn-1" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
-<p>Parsed into<br/>PageBreak+ AST node, but behaves as a no-op in the Docutils/Sphinx renderer backend.</p>
+<p>No parsing rules or AST representation exist.</p>
 </aside>
 <aside class="footnote brackets" id="fn-2" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></span>
@@ -394,34 +401,30 @@
 </aside>
 <aside class="footnote brackets" id="fn-3" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></span>
-<p>No parsing rules or AST representation exist.</p>
+<p>Not parsed directly into AST structure; managed outside the parser context.</p>
 </aside>
 <aside class="footnote brackets" id="fn-4" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>4<span class="fn-bracket">]</span></span>
-<p>Not parsed directly into AST structure; managed outside the parser context.</p>
+<p>Parsed into standard<br/>Ref(variant=”anchor”)+ AST nodes, but falls back to generic link reference nodes in the Docutils backend.</p>
 </aside>
 <aside class="footnote brackets" id="fn-5" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>5<span class="fn-bracket">]</span></span>
-<p>Parsed into standard<br/>Ref(variant=”anchor”)+ AST nodes, but falls back to generic link reference nodes in the Docutils backend.</p>
+<p>No preprocessor-level conditional filtering is implemented yet.</p>
 </aside>
 <aside class="footnote brackets" id="fn-6" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>6<span class="fn-bracket">]</span></span>
-<p>No preprocessor-level conditional filtering is implemented yet.</p>
+<p>Line comments are fully parsed and supported, but delimited comment blocks<br/>////+ are not.</p>
 </aside>
 <aside class="footnote brackets" id="fn-7" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></span>
-<p>Line comments are fully parsed and supported, but delimited comment blocks<br/>////+ are not.</p>
+<p>Parsed and checkbox state is stored in the AST node, but checkboxes are not rendered as distinct checkbox widgets in the Docutils/Sphinx renderer backend.</p>
 </aside>
 <aside class="footnote brackets" id="fn-8" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></span>
-<p>Parsed and checkbox state is stored in the AST node, but checkboxes are not rendered as distinct checkbox widgets in the Docutils/Sphinx renderer backend.</p>
+<p>No parsing rules or AST representation exist for inline passthrough macros or delimiters.</p>
 </aside>
 <aside class="footnote brackets" id="fn-9" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></span>
-<p>No parsing rules or AST representation exist for inline passthrough macros or delimiters.</p>
-</aside>
-<aside class="footnote brackets" id="fn-10" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></span>
 <p>No docinfo parsing or layout integration exists.</p>
 </aside>
 </aside>
@@ -430,8 +433,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="AsciiDoctrine Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="changelog.html" class="btn btn-neutral float-right" title="Changelog" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="how-to-custom-renderer.html" class="btn btn-neutral float-left" title="How-to: Custom ASG Renderer Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="contributing.html" class="btn btn-neutral float-right" title="Contributor’s Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

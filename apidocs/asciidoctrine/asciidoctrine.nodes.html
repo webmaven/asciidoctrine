@@ -1,0 +1,1089 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>asciidoctrine.nodes &mdash; AsciiDoctrine 0.1.0a9 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=1da06fa4" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=6a26d4b7"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="asciidoctrine.attributes" href="asciidoctrine.attributes.html" />
+    <link rel="prev" title="asciidoctrine.preprocessor" href="asciidoctrine.preprocessor.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            AsciiDoctrine
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../architecture.html">Architecture &amp; Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../how-to-custom-renderer.html">How-to: Custom ASG Renderer Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../feature-matrix.html">AsciiDoc Feature Matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributor’s Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="asciidoctrine.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine</span></code></a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="asciidoctrine.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.lark_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.docutils_backend.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.docutils_backend</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.serializer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.serializer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.resolver.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.resolver</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.preprocessor.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.preprocessor</span></code></a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.attributes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.attributes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="asciidoctrine.html#package-contents">Package Contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">AsciiDoctrine</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">API Reference</a></li>
+          <li class="breadcrumb-item"><a href="asciidoctrine.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine</span></code></a></li>
+      <li class="breadcrumb-item active"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/apidocs/asciidoctrine/asciidoctrine.nodes.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-asciidoctrine.nodes">
+<span id="asciidoctrine-nodes"></span><h1><a class="reference internal" href="#module-asciidoctrine.nodes" title="asciidoctrine.nodes"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a><a class="headerlink" href="#module-asciidoctrine.nodes" title="Link to this heading"></a></h1>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h3>
+<table class="autosummary longtable docutils align-left">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Node</span></code></a></p></td>
+<td><p>Base class for all AST nodes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.InlineNode" title="asciidoctrine.nodes.InlineNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">InlineNode</span></code></a></p></td>
+<td><p>A base class for nodes that represent inline content, such as text formatting.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockNode</span></code></a></p></td>
+<td><p>A base class for nodes that represent block-level content, such as
+paragraphs or lists.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Document" title="asciidoctrine.nodes.Document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Document</span></code></a></p></td>
+<td><p>The root node of the entire AsciiDoc document AST.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Title" title="asciidoctrine.nodes.Title"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Title</span></code></a></p></td>
+<td><p>Represents the title of a document or a section.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Author" title="asciidoctrine.nodes.Author"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Author</span></code></a></p></td>
+<td><p>Represents an author entry in the document header.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Revision" title="asciidoctrine.nodes.Revision"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Revision</span></code></a></p></td>
+<td><p>Represents a revision entry in the document header.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.FloatingTitle" title="asciidoctrine.nodes.FloatingTitle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FloatingTitle</span></code></a></p></td>
+<td><p>Represents a discrete or floating title that does not start a section.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Header" title="asciidoctrine.nodes.Header"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Header</span></code></a></p></td>
+<td><p>A container for the document’s header metadata.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Section" title="asciidoctrine.nodes.Section"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Section</span></code></a></p></td>
+<td><p>Represents a structural section of the document.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Paragraph" title="asciidoctrine.nodes.Paragraph"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Paragraph</span></code></a></p></td>
+<td><p>A block-level node representing a paragraph of text.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Text" title="asciidoctrine.nodes.Text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Text</span></code></a></p></td>
+<td><p>A leaf node representing a segment of plain text.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Break" title="asciidoctrine.nodes.Break"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Break</span></code></a></p></td>
+<td><p>An inline node representing a hard line break.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.InlinePassthrough" title="asciidoctrine.nodes.InlinePassthrough"><code class="xref py py-obj docutils literal notranslate"><span class="pre">InlinePassthrough</span></code></a></p></td>
+<td><p>An inline node representing raw passthrough text.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Kbd" title="asciidoctrine.nodes.Kbd"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Kbd</span></code></a></p></td>
+<td><p>An inline node for a keyboard shortcut.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Button" title="asciidoctrine.nodes.Button"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Button</span></code></a></p></td>
+<td><p>An inline node for a UI button.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Menu" title="asciidoctrine.nodes.Menu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Menu</span></code></a></p></td>
+<td><p>An inline node for a UI menu selection.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Callout" title="asciidoctrine.nodes.Callout"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Callout</span></code></a></p></td>
+<td><p>An inline node representing a callout (e.g., &lt;1&gt;).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.InlineStem" title="asciidoctrine.nodes.InlineStem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">InlineStem</span></code></a></p></td>
+<td><p>An inline node for mathematical expressions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.CalloutList" title="asciidoctrine.nodes.CalloutList"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CalloutList</span></code></a></p></td>
+<td><p>A block node representing a list of callout descriptions.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.CalloutListItem" title="asciidoctrine.nodes.CalloutListItem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CalloutListItem</span></code></a></p></td>
+<td><p>A node representing a single item in a callout list.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Span" title="asciidoctrine.nodes.Span"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Span</span></code></a></p></td>
+<td><p>An inline node for formatted text (bold, italic, code).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Ref" title="asciidoctrine.nodes.Ref"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Ref</span></code></a></p></td>
+<td><p>An inline node for a hyperlink or cross-reference.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Image" title="asciidoctrine.nodes.Image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Image</span></code></a></p></td>
+<td><p>A block or inline node for an image directive.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Audio" title="asciidoctrine.nodes.Audio"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Audio</span></code></a></p></td>
+<td><p>A block node for an audio macro.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Video" title="asciidoctrine.nodes.Video"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Video</span></code></a></p></td>
+<td><p>A block node for a video macro.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.List" title="asciidoctrine.nodes.List"><code class="xref py py-obj docutils literal notranslate"><span class="pre">List</span></code></a></p></td>
+<td><p>A block node representing a list (ordered or unordered).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.ListItem" title="asciidoctrine.nodes.ListItem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ListItem</span></code></a></p></td>
+<td><p>A node representing a single item within a list. It can contain blocks.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.DescriptionList" title="asciidoctrine.nodes.DescriptionList"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DescriptionList</span></code></a></p></td>
+<td><p>A block node representing a description list (term-definition pairs).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.DescriptionListItem" title="asciidoctrine.nodes.DescriptionListItem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DescriptionListItem</span></code></a></p></td>
+<td><p>A node representing a single term-description pair within a description list.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.DescriptionListTerm" title="asciidoctrine.nodes.DescriptionListTerm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DescriptionListTerm</span></code></a></p></td>
+<td><p>A node representing the term part of a description list item.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.VerbatimBlockMixin" title="asciidoctrine.nodes.VerbatimBlockMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VerbatimBlockMixin</span></code></a></p></td>
+<td><p>Mixin class for blocks containing verbatim text/code with callouts (e.g., Listing, Literal).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Listing" title="asciidoctrine.nodes.Listing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Listing</span></code></a></p></td>
+<td><p>A block for preformatted text, typically used for code listings.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Literal" title="asciidoctrine.nodes.Literal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a></p></td>
+<td><p>A block for literal text, often used for computer output.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Passthrough" title="asciidoctrine.nodes.Passthrough"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Passthrough</span></code></a></p></td>
+<td><p>A block for content that should be passed through without processing.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Comment" title="asciidoctrine.nodes.Comment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Comment</span></code></a></p></td>
+<td><p>A delimited comment block.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Stem" title="asciidoctrine.nodes.Stem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Stem</span></code></a></p></td>
+<td><p>A block for mathematical expressions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Example" title="asciidoctrine.nodes.Example"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Example</span></code></a></p></td>
+<td><p>A block for content that should be rendered as an example.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Quote" title="asciidoctrine.nodes.Quote"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Quote</span></code></a></p></td>
+<td><p>A block representing a quotation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Admonition" title="asciidoctrine.nodes.Admonition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Admonition</span></code></a></p></td>
+<td><p>A block for admonitions like NOTE, TIP, IMPORTANT, etc.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Sidebar" title="asciidoctrine.nodes.Sidebar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Sidebar</span></code></a></p></td>
+<td><p>A block for content that is separate from the main flow of text.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Verse" title="asciidoctrine.nodes.Verse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Verse</span></code></a></p></td>
+<td><p>A block for content that should be rendered as a verse.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Open" title="asciidoctrine.nodes.Open"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Open</span></code></a></p></td>
+<td><p>A block for content that is an anonymous container.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Table" title="asciidoctrine.nodes.Table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Table</span></code></a></p></td>
+<td><p>A node representing a table.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.TableRow" title="asciidoctrine.nodes.TableRow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TableRow</span></code></a></p></td>
+<td><p>A node representing a single row in a table.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.TableCell" title="asciidoctrine.nodes.TableCell"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TableCell</span></code></a></p></td>
+<td><p>A node representing a single cell in a table row.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.ThematicBreak" title="asciidoctrine.nodes.ThematicBreak"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ThematicBreak</span></code></a></p></td>
+<td><p>Represents a horizontal rule or thematic break (—, <code class="docutils literal notranslate"><span class="pre">`***`</span></code>, ‘’’).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.PageBreak" title="asciidoctrine.nodes.PageBreak"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PageBreak</span></code></a></p></td>
+<td><p>Represents a page break (&lt;&lt;&lt;).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.AttributeEntry" title="asciidoctrine.nodes.AttributeEntry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AttributeEntry</span></code></a></p></td>
+<td><p>A node representing an attribute declaration in the document header.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Attributes" title="asciidoctrine.nodes.Attributes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Attributes</span></code></a></p></td>
+<td><p>A resolved semantic block grouping contiguous attribute_entry declarations.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Include" title="asciidoctrine.nodes.Include"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Include</span></code></a></p></td>
+<td><p>A node representing an <code class="docutils literal notranslate"><span class="pre">include::</span></code> directive.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Toc" title="asciidoctrine.nodes.Toc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Toc</span></code></a></p></td>
+<td><p>A node representing a table of contents macro (toc::[]).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.NodeVisitor" title="asciidoctrine.nodes.NodeVisitor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NodeVisitor</span></code></a></p></td>
+<td><p>A base class for implementing the visitor pattern to traverse the AST.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.NodeTransformer" title="asciidoctrine.nodes.NodeTransformer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NodeTransformer</span></code></a></p></td>
+<td><p>A base class for implementing the transformer pattern to modify/rewrite the AST.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="data">
+<h3>Data<a class="headerlink" href="#data" title="Link to this heading"></a></h3>
+<table class="autosummary longtable docutils align-left">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.CALLOUT_RE" title="asciidoctrine.nodes.CALLOUT_RE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CALLOUT_RE</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.HTML_BARE_CALLOUT_RE" title="asciidoctrine.nodes.HTML_BARE_CALLOUT_RE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HTML_BARE_CALLOUT_RE</span></code></a></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="api">
+<h3>API<a class="headerlink" href="#api" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Node">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">children</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Node" title="Link to this definition"></a></dt>
+<dd><p>Base class for all AST nodes.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Node._should_serialize_attributes">
+<span class="sig-name descname"><span class="pre">_should_serialize_attributes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#asciidoctrine.nodes.Node._should_serialize_attributes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Node.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">child</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Node.append" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Node.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Node.get_child_collections" title="Link to this definition"></a></dt>
+<dd><p>Return a mapping of collection names to lists of child nodes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Node.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Node.to_dict" title="Link to this definition"></a></dt>
+<dd><p>Serialize to ASG-compatible dictionary.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Node.walk">
+<span class="sig-name descname"><span class="pre">walk</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Node.walk" title="Link to this definition"></a></dt>
+<dd><p>Walk the AST, yielding each node.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.InlineNode">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">InlineNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">children</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.InlineNode" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.Node</span></code></a></p>
+<p>A base class for nodes that represent inline content, such as text formatting.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.InlineNode.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">child</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.InlineNode.append" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.BlockNode">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">BlockNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">children</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.BlockNode" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.Node</span></code></a></p>
+<p>A base class for nodes that represent block-level content, such as
+paragraphs or lists.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.BlockNode.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">child</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.BlockNode.append" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Document">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Document" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>The root node of the entire AsciiDoc document AST.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Document._should_serialize_attributes">
+<span class="sig-name descname"><span class="pre">_should_serialize_attributes</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#asciidoctrine.nodes.Document._should_serialize_attributes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Document.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Document.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Document.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Document.to_dict" title="Link to this definition"></a></dt>
+<dd><p>Serialize document with header and resolved attributes.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Title">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inlines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Title" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.InlineNode" title="asciidoctrine.nodes.InlineNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.InlineNode</span></code></a></p>
+<p>Represents the title of a document or a section.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Title.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Title.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Title.to_list">
+<span class="sig-name descname"><span class="pre">to_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Title.to_list" title="Link to this definition"></a></dt>
+<dd><p>Return the list of serialized inlines.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Author">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Author</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inlines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Author" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.InlineNode" title="asciidoctrine.nodes.InlineNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.InlineNode</span></code></a></p>
+<p>Represents an author entry in the document header.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Author.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Author.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Revision">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Revision</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inlines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Revision" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>Represents a revision entry in the document header.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Revision.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Revision.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Revision.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">child</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Revision.append" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.FloatingTitle">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">FloatingTitle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.nodes.Title" title="asciidoctrine.nodes.Title"><span class="pre">asciidoctrine.nodes.Title</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.FloatingTitle" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>Represents a discrete or floating title that does not start a section.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.FloatingTitle.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.FloatingTitle.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Header">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Title" title="asciidoctrine.nodes.Title"><span class="pre">asciidoctrine.nodes.Title</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">authors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Author" title="asciidoctrine.nodes.Author"><span class="pre">asciidoctrine.nodes.Author</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">revision</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Revision" title="asciidoctrine.nodes.Revision"><span class="pre">asciidoctrine.nodes.Revision</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Header" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.Node</span></code></a></p>
+<p>A container for the document’s header metadata.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Header._should_serialize_attributes">
+<span class="sig-name descname"><span class="pre">_should_serialize_attributes</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#asciidoctrine.nodes.Header._should_serialize_attributes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Header.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Header.to_dict" title="Link to this definition"></a></dt>
+<dd><p>Serialize header metadata.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Section">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.nodes.Title" title="asciidoctrine.nodes.Title"><span class="pre">asciidoctrine.nodes.Title</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Section" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>Represents a structural section of the document.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Section.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Section.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Paragraph">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Paragraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inlines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Paragraph" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A block-level node representing a paragraph of text.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Paragraph.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Paragraph.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Paragraph.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">child</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Paragraph.append" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Text">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Text" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.InlineNode" title="asciidoctrine.nodes.InlineNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.InlineNode</span></code></a></p>
+<p>A leaf node representing a segment of plain text.</p>
+<p class="rubric">Initialization</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Break">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Break</span></span><a class="headerlink" href="#asciidoctrine.nodes.Break" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.InlineNode" title="asciidoctrine.nodes.InlineNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.InlineNode</span></code></a></p>
+<p>An inline node representing a hard line break.</p>
+<p class="rubric">Initialization</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.InlinePassthrough">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">InlinePassthrough</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inlines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.InlinePassthrough" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.InlineNode" title="asciidoctrine.nodes.InlineNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.InlineNode</span></code></a></p>
+<p>An inline node representing raw passthrough text.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.InlinePassthrough.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.InlinePassthrough.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Kbd">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Kbd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Kbd" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.InlineNode" title="asciidoctrine.nodes.InlineNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.InlineNode</span></code></a></p>
+<p>An inline node for a keyboard shortcut.</p>
+<p class="rubric">Initialization</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Button">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Button</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Button" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.InlineNode" title="asciidoctrine.nodes.InlineNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.InlineNode</span></code></a></p>
+<p>An inline node for a UI button.</p>
+<p class="rubric">Initialization</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Menu">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Menu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">menu</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">items</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Menu" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.InlineNode" title="asciidoctrine.nodes.InlineNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.InlineNode</span></code></a></p>
+<p>An inline node for a UI menu selection.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Menu.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Menu.to_dict" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Callout">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Callout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Callout" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.InlineNode" title="asciidoctrine.nodes.InlineNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.InlineNode</span></code></a></p>
+<p>An inline node representing a callout (e.g., &lt;1&gt;).</p>
+<p class="rubric">Initialization</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.InlineStem">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">InlineStem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.InlineStem" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.InlineNode" title="asciidoctrine.nodes.InlineNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.InlineNode</span></code></a></p>
+<p>An inline node for mathematical expressions.</p>
+<p class="rubric">Initialization</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.CalloutList">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">CalloutList</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.CalloutListItem" title="asciidoctrine.nodes.CalloutListItem"><span class="pre">asciidoctrine.nodes.CalloutListItem</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.CalloutList" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A block node representing a list of callout descriptions.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.CalloutList.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.CalloutList.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.CalloutList.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">child</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.CalloutList.append" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.CalloutListItem">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">CalloutListItem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">principal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.CalloutListItem" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A node representing a single item in a callout list.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.CalloutListItem.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.CalloutListItem.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Span">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Span</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inlines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'constrained'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Span" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.InlineNode" title="asciidoctrine.nodes.InlineNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.InlineNode</span></code></a></p>
+<p>An inline node for formatted text (bold, italic, code).</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Span.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Span.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Ref">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inlines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Ref" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.InlineNode" title="asciidoctrine.nodes.InlineNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.InlineNode</span></code></a></p>
+<p>An inline node for a hyperlink or cross-reference.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Ref.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Ref.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Image">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'macro'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'block'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Image" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A block or inline node for an image directive.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Image._should_serialize_attributes">
+<span class="sig-name descname"><span class="pre">_should_serialize_attributes</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#asciidoctrine.nodes.Image._should_serialize_attributes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Audio">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Audio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Audio" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A block node for an audio macro.</p>
+<p class="rubric">Initialization</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Video">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Video</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Video" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A block node for a video macro.</p>
+<p class="rubric">Initialization</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.List">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">List</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">items</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.ListItem" title="asciidoctrine.nodes.ListItem"><span class="pre">asciidoctrine.nodes.ListItem</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.List" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A block node representing a list (ordered or unordered).</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.List.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.List.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.List.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">child</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.List.append" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.ListItem">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">ListItem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">marker</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">principal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checked</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.ListItem" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A node representing a single item within a list. It can contain blocks.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.ListItem.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.ListItem.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.DescriptionList">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">DescriptionList</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.DescriptionListItem" title="asciidoctrine.nodes.DescriptionListItem"><span class="pre">asciidoctrine.nodes.DescriptionListItem</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.DescriptionList" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A block node representing a description list (term-definition pairs).</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.DescriptionList.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.DescriptionList.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.DescriptionList.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">child</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.DescriptionList.append" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.DescriptionListItem">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">DescriptionListItem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">terms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.DescriptionListTerm" title="asciidoctrine.nodes.DescriptionListTerm"><span class="pre">asciidoctrine.nodes.DescriptionListTerm</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.DescriptionListItem" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A node representing a single term-description pair within a description list.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.DescriptionListItem.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.DescriptionListItem.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.DescriptionListTerm">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">DescriptionListTerm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inlines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.DescriptionListTerm" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.InlineNode" title="asciidoctrine.nodes.InlineNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.InlineNode</span></code></a></p>
+<p>A node representing the term part of a description list item.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.DescriptionListTerm.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.DescriptionListTerm.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.CALLOUT_RE">
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">CALLOUT_RE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'compile(...)'</span></span><a class="headerlink" href="#asciidoctrine.nodes.CALLOUT_RE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.HTML_BARE_CALLOUT_RE">
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">HTML_BARE_CALLOUT_RE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'compile(...)'</span></span><a class="headerlink" href="#asciidoctrine.nodes.HTML_BARE_CALLOUT_RE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.VerbatimBlockMixin">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">VerbatimBlockMixin</span></span><a class="headerlink" href="#asciidoctrine.nodes.VerbatimBlockMixin" title="Link to this definition"></a></dt>
+<dd><p>Mixin class for blocks containing verbatim text/code with callouts (e.g., Listing, Literal).</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.VerbatimBlockMixin.code">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">code</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#asciidoctrine.nodes.VerbatimBlockMixin.code" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.VerbatimBlockMixin.stripped_code">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">stripped_code</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#asciidoctrine.nodes.VerbatimBlockMixin.stripped_code" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.VerbatimBlockMixin.callouts">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">callouts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.VerbatimBlockMixin.callouts" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Listing">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Listing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inlines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'----'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Listing" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.VerbatimBlockMixin" title="asciidoctrine.nodes.VerbatimBlockMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.VerbatimBlockMixin</span></code></a>, <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A block for preformatted text, typically used for code listings.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Listing.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Listing.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Listing.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">child</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Listing.append" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Listing.id">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Listing.id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Listing.language">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">language</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Listing.language" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Listing.style">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">style</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Listing.style" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Listing.listing_title">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">listing_title</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Listing.listing_title" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Literal">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Literal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inlines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'delimited'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Literal" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.VerbatimBlockMixin" title="asciidoctrine.nodes.VerbatimBlockMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.VerbatimBlockMixin</span></code></a>, <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A block for literal text, often used for computer output.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Literal.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Literal.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Literal.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">child</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Literal.append" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Passthrough">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Passthrough</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inlines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'++++'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Passthrough" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A block for content that should be passed through without processing.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Passthrough.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Passthrough.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Comment">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Comment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'////'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Comment" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A delimited comment block.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Comment.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Comment.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Stem">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Stem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inlines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Stem" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A block for mathematical expressions.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Stem.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Stem.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Example">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Example</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'===='</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Example" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A block for content that should be rendered as an example.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Example.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Example.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Quote">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Quote</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'____'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Quote" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A block representing a quotation.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Quote.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Quote.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Admonition">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Admonition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'===='</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Admonition" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A block for admonitions like NOTE, TIP, IMPORTANT, etc.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Admonition.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Admonition.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Sidebar">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Sidebar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'****'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Sidebar" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A block for content that is separate from the main flow of text.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Sidebar.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Sidebar.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Verse">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Verse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Verse" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A block for content that should be rendered as a verse.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Verse.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Verse.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Open">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'--'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Open" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A block for content that is an anonymous container.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Open.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Open.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Table">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.TableRow" title="asciidoctrine.nodes.TableRow"><span class="pre">asciidoctrine.nodes.TableRow</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Table" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A node representing a table.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Table.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Table.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Table.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">child</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.Table.append" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.TableRow">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">TableRow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cells</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.TableCell" title="asciidoctrine.nodes.TableCell"><span class="pre">asciidoctrine.nodes.TableCell</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.TableRow" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.Node</span></code></a></p>
+<p>A node representing a single row in a table.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.TableRow.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.TableRow.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.TableRow.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">child</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.TableRow.append" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.TableCell">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">TableCell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.TableCell" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A node representing a single cell in a table row.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.TableCell.get_child_collections">
+<span class="sig-name descname"><span class="pre">get_child_collections</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.nodes.TableCell.get_child_collections" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.ThematicBreak">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">ThematicBreak</span></span><a class="headerlink" href="#asciidoctrine.nodes.ThematicBreak" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>Represents a horizontal rule or thematic break (—, <code class="docutils literal notranslate"><span class="pre">`***`</span></code>, ‘’’).</p>
+<p class="rubric">Initialization</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.PageBreak">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">PageBreak</span></span><a class="headerlink" href="#asciidoctrine.nodes.PageBreak" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>Represents a page break (&lt;&lt;&lt;).</p>
+<p class="rubric">Initialization</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.AttributeEntry">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">AttributeEntry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.AttributeEntry" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A node representing an attribute declaration in the document header.</p>
+<p class="rubric">Initialization</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Attributes">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Attributes" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A resolved semantic block grouping contiguous attribute_entry declarations.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Attributes._should_serialize_attributes">
+<span class="sig-name descname"><span class="pre">_should_serialize_attributes</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#asciidoctrine.nodes.Attributes._should_serialize_attributes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Include">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Include</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Include" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A node representing an <code class="docutils literal notranslate"><span class="pre">include::</span></code> directive.</p>
+<p class="rubric">Initialization</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Toc">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Toc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Toc" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
+<p>A node representing a table of contents macro (toc::[]).</p>
+<p class="rubric">Initialization</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.NodeVisitor">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">NodeVisitor</span></span><a class="headerlink" href="#asciidoctrine.nodes.NodeVisitor" title="Link to this definition"></a></dt>
+<dd><p>A base class for implementing the visitor pattern to traverse the AST.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.NodeVisitor.visit">
+<span class="sig-name descname"><span class="pre">visit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.NodeVisitor.visit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.NodeVisitor.generic_visit">
+<span class="sig-name descname"><span class="pre">generic_visit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.NodeVisitor.generic_visit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.NodeTransformer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">NodeTransformer</span></span><a class="headerlink" href="#asciidoctrine.nodes.NodeTransformer" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.NodeVisitor" title="asciidoctrine.nodes.NodeVisitor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.NodeVisitor</span></code></a></p>
+<p>A base class for implementing the transformer pattern to modify/rewrite the AST.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.NodeTransformer.generic_visit">
+<span class="sig-name descname"><span class="pre">generic_visit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></span><a class="headerlink" href="#asciidoctrine.nodes.NodeTransformer.generic_visit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="asciidoctrine.preprocessor.html" class="btn btn-neutral float-left" title="asciidoctrine.preprocessor" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="asciidoctrine.attributes.html" class="btn btn-neutral float-right" title="asciidoctrine.attributes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Michael R. Bernstein.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

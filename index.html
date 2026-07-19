@@ -6,20 +6,21 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AsciiDoctrine Documentation &mdash; AsciiDoctrine 0.1.0a8 documentation</title>
+  <title>AsciiDoctrine Documentation &mdash; AsciiDoctrine 0.1.0a9 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=1da06fa4" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=ce5e50ae"></script>
+      <script src="_static/documentation_options.js?v=6a26d4b7"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="AsciiDoc Feature Matrix" href="feature-matrix.html" /> 
+    <link rel="next" title="Architecture &amp; Design" href="architecture.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -42,8 +43,12 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture &amp; Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how-to-custom-renderer.html">How-to: Custom ASG Renderer Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="feature-matrix.html">AsciiDoc Feature Matrix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributor’s Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="apidocs/index.html">API Reference</a></li>
 </ul>
 
         </div>
@@ -72,40 +77,31 @@
              
   <section id="id1">
 <h1>AsciiDoctrine Documentation<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
-<p>Welcome to the official documentation for <strong>AsciiDoctrine</strong>, a modern, specification-compliant AsciiDoc parser for Python.</p>
-<p>AsciiDoctrine is designed from the ground up to provide a structured, type-safe representation of AsciiDoc documents, perfect for building renderers, static site generators, and custom documentation tools.</p>
+<p>Welcome to the official documentation for <strong>AsciiDoctrine</strong>, a native Python implementation of the AsciiDoc Language Specification.</p>
+<p>AsciiDoctrine is designed to provide a structured, type-safe representation of AsciiDoc documents, perfect for building custom renderers, IDE plugins, and static site generator backends.</p>
 <hr class="docutils" />
 <section id="id2">
-<h2>Features<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
+<h2>Key Capabilities<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><strong>Lark-based Grammar</strong>: Pure-Python parsing using standard EBNF syntax.</p></li>
-<li><p><strong>Semantic AST/ASG Convergence</strong>: A type-safe representation aligned directly with the official Language ASG schema.</p></li>
-<li><p><strong>Two-Pass Resolution</strong>: Centralized semantic resolution pass for attribute substitutions, include processing, and comment filtering.</p></li>
-<li><p><strong>Advanced Location Tracking</strong>: Highly accurate, child-derived start and end line coordinates on block nodes.</p></li>
-<li><p><strong>Sphinx Integration</strong>: Full extension support allowing you to author documentation in AsciiDoc and build it natively using Sphinx.</p></li>
-<li><p><strong>TCK Compliance</strong>: Robust test suite matching the official AsciiDoc Technology Compatibility Kit.</p></li>
+<li><p><strong>TCK Validation</strong>: Ensures standard-compliant rendering by validating its pipeline against the official AsciiDoc Technology Compatibility Kit (TCK) test suites.</p></li>
+<li><p><strong>Precise Source Coordinate Mapping</strong>: Enables robust IDE integrations, precise diagnostic errors, and syntactical formatting tools by attaching optional line and column coordinates to every structural block and inline element.</p></li>
+<li><p><strong>Attribute and Macro Resolution</strong>: Implements standard AsciiDoc dynamic attribute substitutions, conditional preprocessor passes, multi-file includes, and block/inline macros.</p></li>
+<li><p><strong>Docutils &amp; Sphinx Power</strong>: Integrates cleanly with the Python documentation ecosystem by compiling AsciiDoc files natively into the Docutils component tree.</p></li>
+<li><p><strong>Wasm and Pyodide Portability</strong>: Runs seamlessly inside browsers and serverless sandboxes via pure-Python, zero-native-dependency Pyodide builds.</p></li>
 </ul>
+<p>This documentation is itself authored in AsciiDoc and compiled using <code class="docutils literal notranslate"><span class="pre">sphinx-asciidoctrine</span></code>, a custom Sphinx extension built on top of AsciiDoctrine. You can view its source and integrate it into your own project via the <a class="reference external" href="https://github.com/webmaven/sphinx-asciidoctrine">sphinx-asciidoctrine repository</a>.</p>
 </section>
 <hr class="docutils" />
 <section id="id3">
-<h2>Project Documents<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
-<p>The following table of contents provides reference information for library users:</p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="feature-matrix.html">AsciiDoc Feature Matrix</a></li>
-<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
-</ul>
-</section>
-<hr class="docutils" />
-<section id="id4">
-<h2>Installation &amp; Setup<a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
-<p>Install the <code class="docutils literal notranslate"><span class="pre">asciidoctrine</span></code> package using <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
+<h2>Installation &amp; Setup<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
+<p>Install the stable, released package from <a class="reference external" href="https://pypi.org/project/asciidoctrine/">PyPI</a> using <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
 <div class="bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">asciidoctrine</span>
 </pre></div>
 </div>
 </section>
 <hr class="docutils" />
-<section id="id5">
-<h2>Quick Start<a class="headerlink" href="#id5" title="Link to this heading"></a></h2>
+<section id="id4">
+<h2>Quick Start<a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
 <p>AsciiDoctrine implements a two-pass resolution pipeline. First, parse the raw source to a syntax-level AST. Then, resolve the AST to a semantic, queryable Abstract Semantic Graph (ASG):</p>
 <div class="python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_to_ast</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.resolver</span><span class="w"> </span><span class="kn">import</span> <span class="n">ASGResolver</span>
@@ -133,26 +129,154 @@
 </div>
 </section>
 <hr class="docutils" />
+<section id="id5">
+<h2>ASG Representation<a class="headerlink" href="#id5" title="Link to this heading"></a></h2>
+<p>Calling <code class="docutils literal notranslate"><span class="pre">asg.to_dict()</span></code> yields a structured, spec-compliant representation matching the official AsciiDoc Language ASG schema:</p>
+<div class="json highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;document&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;block&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;blocks&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;section&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;block&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+      <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;title&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;inline&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;inlines&quot;</span><span class="p">:</span> <span class="p">[</span>
+          <span class="p">{</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Section Title&quot;</span> <span class="p">}</span>
+        <span class="p">]</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;blocks&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;paragraph&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;block&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;inlines&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;This is a &quot;</span> <span class="p">},</span>
+            <span class="p">{</span>
+              <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;span&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;inline&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;variant&quot;</span><span class="p">:</span> <span class="s2">&quot;strong&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;form&quot;</span><span class="p">:</span> <span class="s2">&quot;constrained&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;inlines&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;bold&quot;</span> <span class="p">}</span>
+              <span class="p">]</span>
+            <span class="p">},</span>
+            <span class="p">{</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot; word in a paragraph.&quot;</span> <span class="p">}</span>
+          <span class="p">]</span>
+        <span class="p">}</span>
+      <span class="p">]</span>
+    <span class="p">}</span>
+  <span class="p">],</span>
+  <span class="s2">&quot;attributes&quot;</span><span class="p">:</span> <span class="p">{}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
 <section id="id6">
-<h2>Sphinx Extension Integration<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
-<p>AsciiDoctrine comes with built-in Sphinx support, allowing you to author your documentation natively in AsciiDoc using the .adoc or .asciidoc extensions.</p>
+<h2>Project Guides<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
+<p>Explore detailed design and usage documentation for library users and developers:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="architecture.html">Architecture &amp; Design Guide</a>: The parser pipeline, Earley algorithm details, and location tracking mechanics.</p></li>
+<li><p><a class="reference external" href="how-to-custom-renderer.html">Custom ASG Renderer Tutorial</a>: Walkthrough and fully executable Python implementation of a custom Markdown converter.</p></li>
+<li><p><a class="reference external" href="feature-matrix.html">Feature Matrix</a>: Complete comparison of supported language features, specification documents, and test coverage.</p></li>
+<li><p><a class="reference external" href="contributing.html">Contributor’s Guide</a>: Virtualenv setup, Pytest protocols, Mypy type checks, and pre-release packaging verification checklists.</p></li>
+</ul>
+</section>
+<hr class="docutils" />
 <section id="id7">
-<h3>1. Enable the Extension<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
-<p>Add <code class="docutils literal notranslate"><span class="pre">&quot;asciidoctrine.sphinx_ext&quot;</span></code> to the <code class="docutils literal notranslate"><span class="pre">extensions</span></code> list in your Sphinx <code class="docutils literal notranslate"><span class="pre">conf.py</span></code>:</p>
-<div class="python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># conf.py</span>
-<span class="n">extensions</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;asciidoctrine.sphinx_ext&quot;</span><span class="p">,</span>
-<span class="p">]</span>
-</pre></div>
-</div>
+<h2>Motivation<a class="headerlink" href="#id7" title="Link to this heading"></a></h2>
+<p>The Python ecosystem has long lacked a modern, maintainable, and specification-compliant AsciiDoc parser. Historically, AsciiDoc was defined entirely by its implementations (originally the Python-based <code class="docutils literal notranslate"><span class="pre">asciidoc.py</span></code>, and later the Ruby-based <code class="docutils literal notranslate"><span class="pre">Asciidoctor</span></code>). This lack of a formal specification made developing third-party tooling—such as IDE plugins, formatters, and custom translators—extremely fragile and prone to compatibility drift.</p>
+<p>With the working group at the Eclipse Foundation actively standardizing the AsciiDoc Language and providing an authoritative Technology Compatibility Kit (TCK), building a native, robust Python implementation became both possible and necessary. </p>
+<p>Rather than relying on brittle, regex-heavy line-by-line parsing models that struggle with context-sensitive nested blocks, AsciiDoctrine implements a formal context-free grammar parsed via <strong>Lark’s Earley parsing engine</strong>. This formal parsing approach guarantees:</p>
+<ol class="simple">
+<li><p><strong>Strict Spec Alignment</strong>: Flawless validation against the official AsciiDoc specification using the TCK test suites.</p></li>
+<li><p><strong>Rich AST Construction</strong>: A complete, type-safe Abstract Syntax Tree (AST) representing every structural block and inline element, which makes writing custom renderers or compilers straightforward.</p></li>
+<li><p><strong>Inclusive Location Coordinates</strong>: Precise tracking of source-to-AST bounding box coordinates (inclusive start/end line and column numbers), providing the foundation for professional IDE support and linting diagnostics.</p></li>
+</ol>
 </section>
+<hr class="docutils" />
 <section id="id8">
-<h3>2. Configure Document Suffixes<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
-<p>The extension automatically registers <code class="docutils literal notranslate"><span class="pre">.adoc</span></code> and <code class="docutils literal notranslate"><span class="pre">.asciidoc</span></code> source files. You can author your index or any sub-page in AsciiDoc and run standard Sphinx build commands:</p>
-<div class="bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sphinx</span><span class="o">-</span><span class="n">build</span> <span class="o">-</span><span class="n">b</span> <span class="n">html</span> <span class="n">docs</span><span class="o">/</span> <span class="n">docs</span><span class="o">/</span><span class="n">_build</span><span class="o">/</span><span class="n">html</span>
+<h2>Under the Hood<a class="headerlink" href="#id8" title="Link to this heading"></a></h2>
+<section id="id9">
+<h3>Parser Pipeline Architecture<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<p>The parser operates in a multi-pass pipeline to handle the inherent complexity of AsciiDoc, while supporting complete, lossless round-trip serialization back to source:</p>
+<div class="text highlight-default notranslate"><div class="highlight"><pre><span></span>           <span class="o">+---------------------------------+</span>
+           <span class="o">|</span>          <span class="n">Raw</span> <span class="n">Source</span>             <span class="o">|&lt;---------------+</span>
+           <span class="o">+---------------------------------+</span>                <span class="o">|</span>
+                            <span class="o">|</span>                                 <span class="o">|</span>
+                            <span class="o">|</span>  <span class="p">[</span><span class="n">Preprocessed</span> <span class="n">LF</span><span class="o">/</span><span class="n">includes</span><span class="p">]</span>     <span class="o">|</span>
+                            <span class="n">v</span>                                 <span class="o">|</span>
+           <span class="o">+---------------------------------+</span>                <span class="o">|</span>
+           <span class="o">|</span>        <span class="n">Lark</span> <span class="n">Parser</span> <span class="n">Engine</span>       <span class="o">|</span>                <span class="o">|</span>  <span class="p">[</span><span class="n">Serializer</span><span class="p">]</span>
+           <span class="o">+---------------------------------+</span>                <span class="o">|</span>
+                            <span class="o">|</span>                                 <span class="o">|</span>
+                            <span class="o">|</span>  <span class="p">[</span><span class="n">Concrete</span> <span class="n">Syntax</span> <span class="n">Tree</span><span class="p">]</span>         <span class="o">|</span>
+                            <span class="n">v</span>                                 <span class="o">|</span>
+           <span class="o">+---------------------------------+</span>                <span class="o">|</span>
+           <span class="o">|</span>        <span class="n">CST</span> <span class="n">Transformer</span>          <span class="o">|</span>                <span class="o">|</span>
+           <span class="o">+---------------------------------+</span>                <span class="o">|</span>
+                            <span class="o">|</span>                                 <span class="o">|</span>
+                            <span class="o">|</span>  <span class="p">[</span><span class="n">Abstract</span> <span class="n">Syntax</span> <span class="n">Tree</span> <span class="p">(</span><span class="n">AST</span><span class="p">)]</span><span class="o">---+</span>
+                            <span class="n">v</span>
+           <span class="o">+---------------------------------+</span>
+           <span class="o">|</span>       <span class="n">ASG</span> <span class="n">Semantic</span> <span class="n">Resolver</span>     <span class="o">|</span>
+           <span class="o">+---------------------------------+</span>
+                            <span class="o">|</span>
+                            <span class="o">|</span>  <span class="p">[</span><span class="n">Abstract</span> <span class="n">Semantic</span> <span class="n">Graph</span> <span class="p">(</span><span class="n">ASG</span><span class="p">)]</span>
+                            <span class="n">v</span>
+           <span class="o">+---------------------------------+</span>
+           <span class="o">|</span>       <span class="n">Publishing</span> <span class="n">Backends</span>       <span class="o">|</span>
+           <span class="o">+---------------------------------+</span>
 </pre></div>
 </div>
+<ul class="simple">
+<li><p><strong>AST (Abstract Syntax Tree)</strong>: Represented in <code class="docutils literal notranslate"><span class="pre">nodes.py</span></code>, this is a structural tree of the document elements.</p></li>
+<li><p><strong>ASG (Abstract Semantic Graph)</strong>: The final resolved state where attributes, cross-references, and includes are fully processed.</p></li>
+</ul>
 </section>
+</section>
+<hr class="docutils" />
+<section id="id10">
+<h2>Roadmap to Syntax Parity<a class="headerlink" href="#id10" title="Link to this heading"></a></h2>
+<p>The path to 1:1 syntactic specification compliance is tracked through the following phases:</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Phase</p></td>
+<td><p>Focus</p></td>
+<td><p>Status</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>0</strong></p></td>
+<td><p><strong>Foundations</strong>: PEG grammar, structured AST, and TCK harness.</p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>1</strong></p></td>
+<td><p><strong>Advanced Blocks</strong>: Admonitions ✅, Sidebars ✅, Source blocks ✅, and Example blocks ✅.</p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>2</strong></p></td>
+<td><p><strong>Document Infra</strong>: Headers ✅, attributes ✅, and includes ✅.</p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>3</strong></p></td>
+<td><p><strong>Tables &amp; Description Lists</strong>: Nested/mixed description lists and advanced table cell alignments/spans.</p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>4</strong></p></td>
+<td><p><strong>Testing &amp; Developer Experience</strong>: Code block attributes, callout stripping, and precise source location coordinate tracking.</p></td>
+<td><p>✅</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>5</strong></p></td>
+<td><p><strong>Static Site Generator Support</strong>: Auto-slugified section IDs, TOC outline extraction, and cross-references.</p></td>
+<td><p>⏳</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>6</strong></p></td>
+<td><p><strong>Sphinx Extension Support</strong>: Metadata alignment, complete node renderer visitor auditing, and Pygments styling.</p></td>
+<td><p>⏳</p></td>
+</tr>
+</tbody>
+</table>
 </section>
 </section>
 
@@ -160,7 +284,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="feature-matrix.html" class="btn btn-neutral float-right" title="AsciiDoc Feature Matrix" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="architecture.html" class="btn btn-neutral float-right" title="Architecture &amp; Design" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

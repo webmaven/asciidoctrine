@@ -1,0 +1,188 @@
+= How-to: Custom ASG Renderer Tutorial
+Michael R. Bernstein <zopemaven@gmail.com>
+v0.1.0
+:idprefix:
+:idseparator: -
+:sectanchors:
+:sectlinks:
+
+This tutorial demonstrates how to traverse and render the resolved Abstract Semantic Graph (ASG) produced by **AsciiDoctrine**. We will build a complete, object-oriented **Markdown Renderer** from scratch using Python.
+
+---
+
+== Understanding the ASG Structure
+
+Once you resolve a parsed AST using the `ASGResolver`, you can generate a standard python dictionary representation of the ASG by calling `asg.to_dict()`. 
+
+The dictionary follows a highly structured, semantic schema matching the official AsciiDoc Language Specification:
+
+* **Blocks**: Document, Section, Paragraph, Listing, and List elements have a `"type": "block"` key, and they contain child blocks in a `"blocks"` list or child items in an `"items"` list.
+* **Inlines**: Text, Span (bold, italic, code), and Ref (links) elements have a `"type": "inline"` (or `"type": "string"`) key, and contain child inlines under an `"inlines"` list.
+
+---
+
+== Step-by-Step: Writing a Markdown Renderer
+
+A clean way to write a custom renderer is to use a **Visitor Pattern**. We will create a `MarkdownRenderer` class with a `render(node)` dispatch method that maps node names (`document`, `paragraph`, `section`, `span`, `text`) to corresponding `render_<name>` methods.
+
+=== The Complete Renderer Implementation
+
+Below is the complete, self-contained, and executable Python code for the Markdown renderer:
+
+[source,python]
+----
+import sys
+from typing import Dict, List, Any
+from asciidoctrine import parse_to_ast
+from asciidoctrine.resolver import ASGResolver
+
+class MarkdownRenderer:
+    """
+    A custom visitor class that traverses an AsciiDoctrine ASG dictionary
+    and compiles it into standard Markdown.
+    """
+
+    def render(self, node: Dict[str, Any]) -> str:
+        if not node:
+            return ""
+
+        node_name = node.get("name", "")
+        # Dynamically dispatch to render_<node_name> if it exists
+        method_name = f"render_{node_name}"
+        visitor = getattr(self, method_name, self.generic_render)
+        return visitor(node)
+
+    def generic_render(self, node: Dict[str, Any]) -> str:
+        # Fallback for unhandled nodes: render child blocks if present
+        result = []
+        for block in node.get("blocks", []):
+            result.append(self.render(block))
+        return "\n\n".join(result)
+
+    def render_document(self, node: Dict[str, Any]) -> str:
+        # Render all children blocks in the document
+        blocks = [self.render(b) for b in node.get("blocks", [])]
+        return "\n\n".join(b for b in blocks if b)
+
+    def render_section(self, node: Dict[str, Any]) -> str:
+        # ASG sections have a "level" integer and a "title" list of inline nodes
+        level = node.get("level", 1)
+        # Markdown headings use '#' prefixes matching the level
+        header_prefix = "#" * level
+
+        # Render the section title inlines
+        title_inlines = node.get("title", [])
+        title_text = "".join(self.render(inline) for inline in title_inlines)
+
+        # Render child blocks of this section
+        child_blocks = [self.render(b) for b in node.get("blocks", [])]
+        rendered_children = "\n\n".join(b for b in child_blocks if b)
+
+        return f"{header_prefix} {title_text}\n\n{rendered_children}".strip()
+
+    def render_paragraph(self, node: Dict[str, Any]) -> str:
+        # Render all inline children inside the paragraph
+        inlines = [self.render(i) for i in node.get("inlines", [])]
+        return "".join(inlines)
+
+    def render_text(self, node: Dict[str, Any]) -> str:
+        # Simple leaf text node
+        return node.get("value", "")
+
+    def render_span(self, node: Dict[str, Any]) -> str:
+        # Spans represent formatting wraps like bold, italic, or monospace
+        variant = node.get("variant", "text")
+        inlines = [self.render(i) for i in node.get("inlines", [])]
+        content = "".join(inlines)
+
+        if variant == "strong":
+            return f"**{content}**"
+        elif variant == "emphasis":
+            return f"*{content}*"
+        elif variant == "code":
+            return f"`{content}`"
+        return content
+
+    def render_listing(self, node: Dict[str, Any]) -> str:
+        # Listing/source block representation
+        lang = node.get("attributes", {}).get("language", "")
+        # Listing contents are list of inline text nodes
+        inlines = [self.render(i) for i in node.get("inlines", [])]
+        code_content = "".join(inlines).strip()
+        return f"```{lang}\n{code_content}\n```"
+
+    def render_list(self, node: Dict[str, Any]) -> str:
+        # Unordered or ordered list container
+        variant = node.get("variant", "unordered")
+        items = [self.render_list_item(item, variant, i) for i, item in enumerate(node.get("items", []))]
+        return "\n".join(items)
+
+    def render_list_item(self, item: Dict[str, Any], variant: str, index: int) -> str:
+        # Render principal text content of list item
+        principal_nodes = item.get("principal", [])
+        principal_text = "".join(self.render(p) for principal_nodes in principal_nodes for p in (principal_nodes if isinstance(principal_nodes, list) else [principal_nodes]))
+        
+        # Render any nested sub-blocks inside list item
+        sub_blocks = [self.render(b) for b in item.get("blocks", [])]
+        rendered_sub = "\n  ".join(b for b in sub_blocks if b)
+        
+        prefix = "1." if variant == "ordered" else "*"
+        item_text = f"{prefix} {principal_text}"
+        if rendered_sub:
+            item_text += f"\n  {rendered_sub}"
+        return item_text
+----
+
+---
+
+== Running and Verifying
+
+To verify that the renderer works, you can parse a sample AsciiDoc document, resolve it, and feed the dictionary into the `MarkdownRenderer`:
+
+[source,python]
+----
+# Define a sample AsciiDoc source string
+asciidoc_source = """
+= Sample Document
+:author: Jane Doe
+
+== Overview
+This is a *bold* word and a `monospace` term in a paragraph.
+
+=== Syntax Parity List
+* Admonitions
+* Open blocks
+* Advanced tables
+"""
+
+# 1. Parse & Resolve
+ast = parse_to_ast(asciidoc_source)
+resolver = ASGResolver(ast)
+asg = resolver.resolve(ast)
+
+# 2. Convert to dictionary representation
+asg_dict = asg.to_dict()
+
+# 3. Instantiate and execute the custom renderer
+renderer = MarkdownRenderer()
+markdown_output = renderer.render(asg_dict)
+
+print("Generated Markdown:")
+print("-------------------")
+print(markdown_output)
+----
+
+Expected Output:
+
+[source,markdown]
+----
+# Overview
+
+This is a **bold** word and a `monospace` term in a paragraph.
+
+## Syntax Parity List
+
+* Admonitions
+* Open blocks
+* Advanced tables
+----

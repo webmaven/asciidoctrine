@@ -2,38 +2,27 @@
 Michael R. Bernstein <zopemaven@gmail.com>
 v0.1.0
 
-Welcome to the official documentation for **AsciiDoctrine**, a modern, specification-compliant AsciiDoc parser for Python.
+Welcome to the official documentation for *AsciiDoctrine*, a native Python implementation of the AsciiDoc Language Specification.
 
-AsciiDoctrine is designed from the ground up to provide a structured, type-safe representation of AsciiDoc documents, perfect for building renderers, static site generators, and custom documentation tools.
-
----
-
-== Features
-
-* **Lark-based Grammar**: Pure-Python parsing using standard EBNF syntax.
-* **Semantic AST/ASG Convergence**: A type-safe representation aligned directly with the official Language ASG schema.
-* **Two-Pass Resolution**: Centralized semantic resolution pass for attribute substitutions, include processing, and comment filtering.
-* **Advanced Location Tracking**: Highly accurate, child-derived start and end line coordinates on block nodes.
-* **Sphinx Integration**: Full extension support allowing you to author documentation in AsciiDoc and build it natively using Sphinx.
-* **TCK Compliance**: Robust test suite matching the official AsciiDoc Technology Compatibility Kit.
+AsciiDoctrine is designed to provide a structured, type-safe representation of AsciiDoc documents, perfect for building custom renderers, IDE plugins, and static site generator backends.
 
 ---
 
-== Project Documents
+== Key Capabilities
 
-The following table of contents provides reference information for library users:
+* *TCK Validation*: Ensures standard-compliant rendering by validating its pipeline against the official AsciiDoc Technology Compatibility Kit (TCK) test suites.
+* *Precise Source Coordinate Mapping*: Enables robust IDE integrations, precise diagnostic errors, and syntactical formatting tools by attaching optional line and column coordinates to every structural block and inline element.
+* *Attribute and Macro Resolution*: Implements standard AsciiDoc dynamic attribute substitutions, conditional preprocessor passes, multi-file includes, and block/inline macros.
+* *Docutils & Sphinx Power*: Integrates cleanly with the Python documentation ecosystem by compiling AsciiDoc files natively into the Docutils component tree.
+* *Wasm and Pyodide Portability*: Runs seamlessly inside browsers and serverless sandboxes via pure-Python, zero-native-dependency Pyodide builds.
 
-[toctree]
---
-feature-matrix
-changelog
---
+This documentation is itself authored in AsciiDoc and compiled using `sphinx-asciidoctrine`, a custom Sphinx extension built on top of AsciiDoctrine. You can view its source and integrate it into your own project via the https://github.com/webmaven/sphinx-asciidoctrine[sphinx-asciidoctrine repository].
 
 ---
 
 == Installation & Setup
 
-Install the `asciidoctrine` package using `pip`:
+Install the stable, released package from https://pypi.org/project/asciidoctrine/[PyPI] using `pip`:
 
 [source,bash]
 ----
@@ -74,25 +63,144 @@ for block in asg.get("blocks", []):
 
 ---
 
-== Sphinx Extension Integration
+== ASG Representation
 
-AsciiDoctrine comes with built-in Sphinx support, allowing you to author your documentation natively in AsciiDoc using the .adoc or .asciidoc extensions.
+Calling `asg.to_dict()` yields a structured, spec-compliant representation matching the official AsciiDoc Language ASG schema:
 
-=== 1. Enable the Extension
-Add `"asciidoctrine.sphinx_ext"` to the `extensions` list in your Sphinx `conf.py`:
-
-[source,python]
+[source,json]
 ----
-# conf.py
-extensions = [
-    "asciidoctrine.sphinx_ext",
-]
+{
+  "name": "document",
+  "type": "block",
+  "blocks": [
+    {
+      "name": "section",
+      "type": "block",
+      "level": 1,
+      "title": {
+        "name": "title",
+        "type": "inline",
+        "inlines": [
+          { "name": "text", "type": "string", "value": "Section Title" }
+        ]
+      },
+      "blocks": [
+        {
+          "name": "paragraph",
+          "type": "block",
+          "inlines": [
+            { "name": "text", "type": "string", "value": "This is a " },
+            {
+              "name": "span",
+              "type": "inline",
+              "variant": "strong",
+              "form": "constrained",
+              "inlines": [
+                { "name": "text", "type": "string", "value": "bold" }
+              ]
+            },
+            { "name": "text", "type": "string", "value": " word in a paragraph." }
+          ]
+        }
+      ]
+    }
+  ],
+  "attributes": {}
+}
 ----
 
-=== 2. Configure Document Suffixes
-The extension automatically registers `.adoc` and `.asciidoc` source files. You can author your index or any sub-page in AsciiDoc and run standard Sphinx build commands:
+---
 
-[source,bash]
+== Project Guides
+
+Explore detailed design and usage documentation for library users and developers:
+
+[toctree, %hidden]
+--
+architecture
+how-to-custom-renderer
+feature-matrix
+contributing
+changelog
+apidocs/index
+--
+
+* link:architecture.html[Architecture & Design Guide]: The parser pipeline, Earley algorithm details, and location tracking mechanics.
+* link:how-to-custom-renderer.html[Custom ASG Renderer Tutorial]: Walkthrough and fully executable Python implementation of a custom Markdown converter.
+* link:feature-matrix.html[Feature Matrix]: Complete comparison of supported language features, specification documents, and test coverage.
+* link:contributing.html[Contributor's Guide]: Virtualenv setup, Pytest protocols, Mypy type checks, and pre-release packaging verification checklists.
+
+---
+
+== Motivation
+
+The Python ecosystem has long lacked a modern, maintainable, and specification-compliant AsciiDoc parser. Historically, AsciiDoc was defined entirely by its implementations (originally the Python-based `asciidoc.py`, and later the Ruby-based `Asciidoctor`). This lack of a formal specification made developing third-party tooling—such as IDE plugins, formatters, and custom translators—extremely fragile and prone to compatibility drift.
+
+With the working group at the Eclipse Foundation actively standardizing the AsciiDoc Language and providing an authoritative Technology Compatibility Kit (TCK), building a native, robust Python implementation became both possible and necessary. 
+
+Rather than relying on brittle, regex-heavy line-by-line parsing models that struggle with context-sensitive nested blocks, AsciiDoctrine implements a formal context-free grammar parsed via *Lark's Earley parsing engine*. This formal parsing approach guarantees:
+
+1. *Strict Spec Alignment*: Flawless validation against the official AsciiDoc specification using the TCK test suites.
+2. *Rich AST Construction*: A complete, type-safe Abstract Syntax Tree (AST) representing every structural block and inline element, which makes writing custom renderers or compilers straightforward.
+3. *Inclusive Location Coordinates*: Precise tracking of source-to-AST bounding box coordinates (inclusive start/end line and column numbers), providing the foundation for professional IDE support and linting diagnostics.
+
+---
+
+== Under the Hood
+
+=== Parser Pipeline Architecture
+
+The parser operates in a multi-pass pipeline to handle the inherent complexity of AsciiDoc, while supporting complete, lossless round-trip serialization back to source:
+
+[source,text]
 ----
-sphinx-build -b html docs/ docs/_build/html
+           +---------------------------------+
+           |          Raw Source             |<---------------+
+           +---------------------------------+                |
+                            |                                 |
+                            |  [Preprocessed LF/includes]     |
+                            v                                 |
+           +---------------------------------+                |
+           |        Lark Parser Engine       |                |  [Serializer]
+           +---------------------------------+                |
+                            |                                 |
+                            |  [Concrete Syntax Tree]         |
+                            v                                 |
+           +---------------------------------+                |
+           |        CST Transformer          |                |
+           +---------------------------------+                |
+                            |                                 |
+                            |  [Abstract Syntax Tree (AST)]---+
+                            v
+           +---------------------------------+
+           |       ASG Semantic Resolver     |
+           +---------------------------------+
+                            |
+                            |  [Abstract Semantic Graph (ASG)]
+                            v
+           +---------------------------------+
+           |       Publishing Backends       |
+           +---------------------------------+
 ----
+
+* *AST (Abstract Syntax Tree)*: Represented in `nodes.py`, this is a structural tree of the document elements.
+* *ASG (Abstract Semantic Graph)*: The final resolved state where attributes, cross-references, and includes are fully processed.
+
+---
+
+== Roadmap to Syntax Parity
+
+The path to 1:1 syntactic specification compliance is tracked through the following phases:
+
+[cols="1,3,1"]
+|===
+| Phase | Focus | Status
+
+| *0* | *Foundations*: PEG grammar, structured AST, and TCK harness. | ✅
+| *1* | *Advanced Blocks*: Admonitions ✅, Sidebars ✅, Source blocks ✅, and Example blocks ✅. | ✅
+| *2* | *Document Infra*: Headers ✅, attributes ✅, and includes ✅. | ✅
+| *3* | *Tables & Description Lists*: Nested/mixed description lists and advanced table cell alignments/spans. | ✅
+| *4* | *Testing & Developer Experience*: Code block attributes, callout stripping, and precise source location coordinate tracking. | ✅
+| *5* | *Static Site Generator Support*: Auto-slugified section IDs, TOC outline extraction, and cross-references. | ⏳
+| *6* | *Sphinx Extension Support*: Metadata alignment, complete node renderer visitor auditing, and Pygments styling. | ⏳
+|===

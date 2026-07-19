@@ -1,0 +1,128 @@
+= Contributor's Guide
+Michael R. Bernstein <zopemaven@gmail.com>
+v0.1.0
+:idprefix:
+:idseparator: -
+:sectanchors:
+:sectlinks:
+
+Welcome to the **AsciiDoctrine** developer community! This guide outlines the development environment setup, testing protocols, code quality standards, and package release verification checklist.
+
+---
+
+== Local Development Setup
+
+To establish a reproducible environment, setup a Python 3.10+ virtualenv and install the package in editable mode along with its test and documentation dependencies:
+
+[source,bash]
+----
+# 1. Clone the repository
+git clone https://github.com/webmaven/asciidoctrine.git
+cd asciidoctrine
+
+# 2. Initialize virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# 3. Install in editable development mode
+pip install -e ".[test,docs]"
+----
+
+---
+
+== Testing Protocols
+
+We employ a multi-layered testing strategy to guarantee complete syntactic and semantic compatibility with the AsciiDoc specification.
+
+=== 1. Local Pytest Runner
+We use standard `pytest` to run our unit and integration tests.
+
+[source,bash]
+----
+# Run all stable tests
+pytest -k "not functional"
+
+# Run tests with terminal coverage report
+pytest --cov=src --cov-report=term-missing -k "not functional"
+----
+
+=== 2. Technology Compatibility Kit (TCK)
+The official TCK is the authoritative conformance suite for the AsciiDoc language specification.
+
+[source,bash]
+----
+# Run the complete TCK test runner
+./run-tck.sh
+----
+
+To view a summary of passed and failed TCK categories:
+[source,bash]
+----
+./run-tck-coverage.sh
+----
+
+=== 3. Standard and Draft TCK Paths
+* **Official TCK**: Located inside `vendor/asciidoc-tck/tests/block/`. These are official specification-aligned tests.
+* **Draft Harness**: Located inside `tests/tck_harness/tests/block/`. These cover new drafts or upcoming syntactic extensions before they are officially accepted upstream.
+
+---
+
+== Code Quality & Typing Standards
+
+We strictly enforce consistent code styling and strong static types across the codebase.
+
+=== 1. Linting & Formatting with Ruff
+We use Ruff as our fast, all-in-one Python linter and formatter.
+
+[source,bash]
+----
+# Verify code formatting
+ruff format --check .
+
+# Automatically apply formatting
+ruff format .
+
+# Check for lint rules and import orders
+ruff check .
+
+# Automatically apply lint fixes
+ruff check --fix .
+----
+
+=== 2. Strict Type Safety with Mypy
+Our type checker runs in strict mode to guarantee compile-time safety and catch structural mismatches early.
+
+[source,bash]
+----
+# Run strict static type checking
+mypy src/asciidoctrine
+----
+
+---
+
+== Pre-Release Verification Checklist
+
+Before releasing any package version to PyPI, follow this sequential checklist to prevent regressions, formatting lints, and setup failures:
+
+1. **Local Test & Lint Execution**:
+   - Ensure Ruff linter and formatter are completely happy.
+   - Ensure the Mypy strict type-checker passes cleanly.
+   - Run the full test suite locally with coverage (using `-n0` to disable multi-processing clashes):
+     ```bash
+     pytest -n0 --cov=src --cov-report=term-missing -k "not functional"
+     ```
+   - Run the TCK suite locally and check for 100% compliance.
+
+2. **Verify Version Coherence**:
+   - Verify that the exact target version is aligned in `pyproject.toml` (under `version = "..."`).
+   - Verify that the exact same string matches `__version__ = "..."` inside `src/asciidoctrine/__init__.py`.
+   - Ensure the new release section is documented at the top of `CHANGELOG.adoc`.
+
+3. **Verify Documentation and Sandboxes**:
+   - Rebuild HTML documentation locally to ensure zero errors:
+     ```bash
+     sphinx-build -a -E -b html docs docs/_build/html
+     ```
+
+4. **Verify GHA Status on main**:
+   - Push release branches to GitHub and verify that **all GitHub Actions jobs** (including Pyodide runs, document builders, and linters) succeed cleanly with a green checkmark before creating the PyPI release.
