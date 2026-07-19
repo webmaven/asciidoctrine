@@ -484,6 +484,59 @@ inner
             self.assertTrue(issubclass(w[0].category, PreprocessorWarning))
             self.assertIn("same-length", str(w[0].message).lower())
 
+    def test_is_metadata_relative_paths_no_warning(self) -> None:
+        # Relative file or command paths starting with ./ or ../ or Windows counterparts
+        # inside verbatim blocks should not be mistaken as metadata/block titles
+        # and should not trigger false same-length nesting warnings on block close.
+        source = """[source,bash]
+----
+./run-tck.sh
+../run-tck-coverage.sh
+.\\run.bat
+----"""
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            preprocessor.process(source)
+            self.assertEqual(len(w), 0)
+
+    def test_block_title_is_metadata_edge_cases(self) -> None:
+        # Test various edge cases for what should be recognized as block metadata vs what should be ignored.
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+
+        # 1. A valid block title inside verbatim block preceding a same-length delimiter
+        # SHOULD trigger a warning because it resembles a nested block opening.
+        source_with_warning = """----
+.Valid Title
+----
+print("inner")
+----
+----"""
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            preprocessor.process(source_with_warning)
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[0].category, PreprocessorWarning))
+            self.assertIn("same-length", str(w[0].message).lower())
+
+        # 2. File paths, decimal points, spaces, and single/multiple dots inside verbatim block
+        # preceding a same-length delimiter should NOT trigger any warnings.
+        source_no_warning = """----
+./file.sh
+../dir/file.py
+.\\windows.bat
+..\\windows_parent\\run
+. 
+.
+..
+...
+----"""
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            preprocessor.process(source_no_warning)
+            self.assertEqual(len(w), 0)
+
     def test_preprocess_directives_bypass(self) -> None:
         # Create a child include file that would be included if processed.
         with open(os.path.join(self.base_dir, "to_include.adoc"), "w") as f:

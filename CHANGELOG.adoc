@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
   - Implemented the new standard variable-length tilde-based open block delimiter form (`~~~~`, `~~~~~`, `~~~~~~`, and long `~{7,}`).
   - Supported recursive multi-level open block nesting by varying delimiter lengths.
   - Maintained 100% backward compatibility for the legacy two-hyphen (`--`) open block delimiter form.
-  - Restructured and updated the official TCK open block test suite (organizing into `containing-paragraph` and `legacy-delimiter` tests) in alignment with MR feedback.
+  - Restructured and updated the draft TCK open block test suite (organizing into `containing-paragraph` and `legacy-delimiter` tests) in `tests/tck_harness/` in alignment with MR feedback.
   - Developed a comprehensive unit test suite in `tests/test_inline_transformer_unit.py` testing 100% of all logical bodies, branching conditions, error fallbacks, and attribute substitutions in `InlineTransformer` (including math stems, keyboard macros, and split target-window link parsers).
   - Boosted `inline_transformer.py` coverage from 53% to 69%.
 * **High-Fidelity Cyclic Include Loop Diagnostics**:

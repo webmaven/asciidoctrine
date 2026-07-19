@@ -407,7 +407,11 @@ class Preprocessor:
                 return True
             if l_strip.startswith("[") and l_strip.endswith("]"):
                 return True
-            if l_strip.startswith(".") and not re.match(r"^\.{4,}$", l_strip):
+            if (
+                l_strip.startswith(".")
+                and not re.match(r"^\.[\s\./\\]", l_strip)
+                and not re.match(r"^\.{4,}$", l_strip)
+            ):
                 return True
             return False
 
