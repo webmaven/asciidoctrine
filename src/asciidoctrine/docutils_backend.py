@@ -243,7 +243,6 @@ class DocutilsRenderer(NodeVisitor):
         old_parent += list_node
         self.current_node = old_parent
 
-
     def visit_table(self, node: Table) -> None:
         table = nodes.table()
         # Find max cols correctly based on sum of colspans
@@ -330,7 +329,6 @@ class DocutilsRenderer(NodeVisitor):
 
         old_parent += item
         self.current_node = old_parent
-
 
     def visit_descriptionlist(self, node: DescriptionList) -> None:
         list_node = nodes.definition_list()
@@ -444,7 +442,7 @@ class DocutilsRenderer(NodeVisitor):
             return
 
         if node.variant == "anchor":
-            target_node = nodes.target('', '', ids=[node.target])
+            target_node = nodes.target("", "", ids=[node.target])
             self.current_node += target_node
             return
 

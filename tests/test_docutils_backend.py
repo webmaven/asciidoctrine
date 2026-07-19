@@ -633,7 +633,7 @@ def test_checklist_conversion():
     para1 = item1[0]
     assert isinstance(para1, nodes.paragraph)
     assert para1[0].astext() == "\u2610 "
-    assert 'Unchecked item' in para1.astext()
+    assert "Unchecked item" in para1.astext()
 
     # Second item (checked)
     item2 = blist[1]
@@ -642,7 +642,7 @@ def test_checklist_conversion():
     para2 = item2[0]
     assert isinstance(para2, nodes.paragraph)
     assert para2[0].astext() == "\u2611 "
-    assert 'Checked item' in para2.astext()
+    assert "Checked item" in para2.astext()
 
 
 def test_floating_contentless_anchor_conversion():
@@ -655,5 +655,3 @@ def test_floating_contentless_anchor_conversion():
     target_node = para[1]
     assert isinstance(target_node, nodes.target)
     assert "my-target" in target_node["ids"]
-
-
