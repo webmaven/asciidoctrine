@@ -231,12 +231,18 @@ class DocutilsRenderer(NodeVisitor):
         else:
             list_node = nodes.bullet_list()
 
+        # Add classes if this list is a checklist
+        if any(getattr(item, "checked", None) is not None for item in node.items):
+            list_node["classes"].append("checklist")
+            list_node["classes"].append("task-list")
+
         old_parent = self.current_node
         self.current_node = list_node
         for item in node.items:
             self.visit(item)
         old_parent += list_node
         self.current_node = old_parent
+
 
     def visit_table(self, node: Table) -> None:
         table = nodes.table()
@@ -302,19 +308,29 @@ class DocutilsRenderer(NodeVisitor):
         old_parent = self.current_node
         self.current_node = item
 
+        checkbox_text = None
+        if node.checked is not None:
+            item["classes"].append("task-list-item")
+            checkbox_text = "\u2611 " if node.checked else "\u2610 "
+
         if node.principal:
             para = nodes.paragraph()
             self.current_node = para
+            if checkbox_text is not None:
+                para += nodes.Text(checkbox_text)
             for inline in node.principal:
                 self.visit(inline)
             item += para
             self.current_node = item
+        elif checkbox_text is not None:
+            item += nodes.paragraph("", checkbox_text)
 
         for block in node.blocks:
             self.visit(block)
 
         old_parent += item
         self.current_node = old_parent
+
 
     def visit_descriptionlist(self, node: DescriptionList) -> None:
         list_node = nodes.definition_list()

@@ -614,3 +614,33 @@ def test_docutils_backend_additional_coverage():
     toc_node_docutils = renderer.document[0]
     assert isinstance(toc_node_docutils, dnodes.topic)
     assert toc_node_docutils[0].astext() == "Custom TOC Title"
+
+
+def test_checklist_conversion():
+    source = """* [ ] Unchecked item
+* [x] Checked item
+"""
+    document = asciidoc_to_docutils(source)
+    blist = document[0]
+    assert isinstance(blist, nodes.bullet_list)
+    assert "checklist" in blist["classes"]
+    assert "task-list" in blist["classes"]
+
+    # First item (unchecked)
+    item1 = blist[0]
+    assert isinstance(item1, nodes.list_item)
+    assert "task-list-item" in item1["classes"]
+    para1 = item1[0]
+    assert isinstance(para1, nodes.paragraph)
+    assert para1[0].astext() == "\u2610 "
+    assert 'Unchecked item' in para1.astext()
+
+    # Second item (checked)
+    item2 = blist[1]
+    assert isinstance(item2, nodes.list_item)
+    assert "task-list-item" in item2["classes"]
+    para2 = item2[0]
+    assert isinstance(para2, nodes.paragraph)
+    assert para2[0].astext() == "\u2611 "
+    assert 'Checked item' in para2.astext()
+
