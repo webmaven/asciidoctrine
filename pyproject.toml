@@ -28,7 +28,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest", "ruff", "mypy", "docutils", "types-docutils", "sphinx", "pytest-pyodide", "playwright", "pytest-cov", "pytest-xdist"]
-docs = ["sphinx", "sphinx-rtd-theme", "sphinx-asciidoctrine"]
+docs = ["sphinx", "sphinx-rtd-theme", "sphinx-asciidoctrine", "sphinx-autodoc2"]
 
 [tool.setuptools.package-data]
 asciidoctrine = ["grammar.lark"]
