@@ -223,3 +223,394 @@ def test_footnote_rendering_conversion():
     assert fn_body_named["ids"] == ["fn-my-custom-id"]
     assert fn_body_named[0].astext() == "1"
     assert fn_body_named[1].astext() == "Named footnote content"
+
+
+def test_floating_title_and_break_conversion():
+    # Floating title
+    from docutils.utils import new_document
+
+    from asciidoctrine.docutils_backend import DocutilsRenderer
+    from asciidoctrine.nodes import FloatingTitle, Text, Title
+
+    doc = new_document("<string>")
+    renderer = DocutilsRenderer(doc)
+    node = FloatingTitle(level=2, title=Title(inlines=[Text("Floating Title Text")]))
+    renderer.visit(node)
+
+    rubric = doc[0]
+    assert isinstance(rubric, nodes.rubric)
+    assert rubric.astext() == "Floating Title Text"
+    assert "level-2" in rubric["classes"]
+
+    # Line break
+    source = "First line +\nSecond line"
+    document = asciidoc_to_docutils(source)
+    para = document[0]
+    assert isinstance(para, nodes.paragraph)
+    assert len(para.children) == 3  # Text, raw, Text
+    assert isinstance(para.children[1], nodes.raw)
+    assert para.children[1].astext() == "<br/>"
+
+
+def test_special_inline_macros_conversion():
+    source = (
+        "Press kbd:[Ctrl+Alt+Del] or btn:[Save] or select menu:File[New > Project]."
+    )
+    document = asciidoc_to_docutils(source)
+    para = document[0]
+    assert isinstance(para, nodes.paragraph)
+
+    inline_children = para.children
+    kbd_node = next(
+        c
+        for c in inline_children
+        if isinstance(c, nodes.inline) and "kbd" in c["classes"]
+    )
+    assert kbd_node.astext() == "Ctrl+Alt+Del"
+
+    btn_node = next(
+        c
+        for c in inline_children
+        if isinstance(c, nodes.inline) and "button" in c["classes"]
+    )
+    assert btn_node.astext() == "Save"
+
+    menu_node = next(
+        c
+        for c in inline_children
+        if isinstance(c, nodes.inline) and "menu" in c["classes"]
+    )
+    assert menu_node.astext() == "File > New > Project"
+
+
+def test_callout_list_conversion():
+    source = """
+[source,python]
+----
+print("hello") # <1>
+----
+<1> Prints hello.
+"""
+    document = asciidoc_to_docutils(source)
+    # listing block and callout list
+    assert len(document) == 2
+    clist = document[1]
+    assert isinstance(clist, nodes.enumerated_list)
+    assert "callout" in clist["classes"]
+    item = clist[0]
+    assert isinstance(item, nodes.list_item)
+    assert "Prints hello." in item.astext()
+
+
+def test_spans_subscript_superscript_conversion():
+    source = "H ~2~ O and E = mc ^2^ and regular text."
+    document = asciidoc_to_docutils(source)
+    para = document[0]
+    assert isinstance(para, nodes.paragraph)
+
+    sub = next(c for c in para.children if isinstance(c, nodes.subscript))
+    assert sub.astext() == "2"
+
+    sup = next(c for c in para.children if isinstance(c, nodes.superscript))
+    assert sup.astext() == "2"
+
+
+def test_table_alignment_and_style_conversion():
+    # Alignment and spans in tables
+    source = """
+[cols="3"]
+|===
+^.>s| Cell 1
+<.<e| Cell 2
+m| Cell 3
+|===
+"""
+    document = asciidoc_to_docutils(source)
+    table = document[0]
+    assert isinstance(table, nodes.table)
+
+    tgroup = table[0]
+    tbody = tgroup[-1]
+    row = tbody[0]
+
+    cell1 = row[0]
+    assert cell1["align"] == "center"
+    assert cell1["valign"] == "bottom"
+    assert isinstance(cell1[0][0], nodes.strong)  # style 's' wraps in strong
+
+    cell2 = row[1]
+    assert cell2["align"] == "left"
+    assert cell2["valign"] == "top"
+    assert isinstance(cell2[0][0], nodes.emphasis)  # style 'e' wraps in emphasis
+
+    cell3 = row[2]
+    assert isinstance(cell3[0][0], nodes.literal)  # style 'm' wraps in literal
+
+
+def test_ref_xref_and_links_conversion():
+    # Link
+    source_link = "Go to link:https://google.com[Google]."
+    doc_link = asciidoc_to_docutils(source_link)
+    para_link = doc_link[0]
+    ref = next(c for c in para_link.children if isinstance(c, nodes.reference))
+    assert ref["refuri"] == "https://google.com"
+
+    # Xref without extension
+    source_xref1 = "See xref:another-doc[Other Doc]."
+    doc_xref1 = asciidoc_to_docutils(source_xref1)
+    para_xref1 = doc_xref1[0]
+    ref_xref1 = next(c for c in para_xref1.children if isinstance(c, nodes.reference))
+    assert ref_xref1["refuri"] == "another-doc.html"
+
+    # Xref with .adoc extension
+    source_xref2 = "See xref:sub/another-doc.adoc[Other]."
+    doc_xref2 = asciidoc_to_docutils(source_xref2)
+    para_xref2 = doc_xref2[0]
+    ref_xref2 = next(c for c in para_xref2.children if isinstance(c, nodes.reference))
+    assert ref_xref2["refuri"] == "sub/another-doc.html"
+
+    # Referencing footnoteref with target that doesn't exist yet
+    source_fn = "Reference footnoteref:[non-existent] first."
+    doc_fn = asciidoc_to_docutils(source_fn)
+    # This should auto-create a blank paragraph footnote body
+    assert len(doc_fn) == 2
+    fn_body = doc_fn[1]
+    assert isinstance(fn_body, nodes.footnote)
+    assert fn_body["ids"] == ["fn-non-existent"]
+
+
+def test_passthrough_stem_and_media_conversion():
+    # Stem
+    source_stem = "An inline stem:[E = mc^2] math equation."
+    doc_stem = asciidoc_to_docutils(source_stem)
+    para_stem = doc_stem[0]
+    math_node = next(c for c in para_stem.children if isinstance(c, nodes.math))
+    assert math_node.astext() == "E = mc^2"
+    assert "asciimath" in math_node["classes"]
+
+    # Stem Block
+    source_stem_block = "[stem]\n++++\nx^2 + y^2 = z^2\n++++"
+    doc_stem_block = asciidoc_to_docutils(source_stem_block)
+    math_block = doc_stem_block[0]
+    assert isinstance(math_block, nodes.math_block)
+    assert "x^2 + y^2 = z^2" in math_block.astext()
+
+    # Image
+    source_img = "image::logo.png[Alt Logo]"
+    doc_img = asciidoc_to_docutils(source_img)
+    img_node = doc_img[0]
+    assert isinstance(img_node, nodes.image)
+    assert img_node["uri"] == "logo.png"
+    assert img_node["alt"] == "Alt Logo"
+
+    # Audio & Video
+    source_media = "audio::track.mp3[]\n\nvideo::clip.mp4[]"
+    doc_media = asciidoc_to_docutils(source_media)
+    audio_node = doc_media[0]
+    video_node = doc_media[1]
+    assert isinstance(audio_node, nodes.raw)
+    assert "track.mp3" in audio_node.astext()
+    assert isinstance(video_node, nodes.raw)
+    assert "clip.mp4" in video_node.astext()
+
+    # Passthrough
+    source_pass = "++++\n<div id='raw'>passthrough</div>\n++++"
+    doc_pass = asciidoc_to_docutils(source_pass)
+    pass_node = doc_pass[0]
+    assert isinstance(pass_node, nodes.raw)
+    assert "passthrough" in pass_node.astext()
+
+
+def test_sidebar_and_toc_conversion():
+    source_sidebar = """
+.Sidebar Title
+****
+This is a sidebar block.
+****
+"""
+    doc_sidebar = asciidoc_to_docutils(source_sidebar)
+    sidebar_node = doc_sidebar[0]
+    assert isinstance(sidebar_node, nodes.sidebar)
+    assert sidebar_node[0].astext() == "Sidebar Title"
+    assert sidebar_node[1].astext() == "This is a sidebar block."
+
+    # Toc macro
+    source_toc = "toc::[]"
+    doc_toc = asciidoc_to_docutils(source_toc)
+    toc_node = doc_toc[0]
+    assert isinstance(toc_node, nodes.topic)
+    assert "contents" in toc_node["classes"]
+
+
+def test_open_block_and_toctree_conversion():
+    source_open = """
+--
+This is an open block paragraph.
+--
+"""
+    doc_open = asciidoc_to_docutils(source_open)
+    container_node = doc_open[0]
+    assert isinstance(container_node, nodes.container)
+    assert container_node[0].astext() == "This is an open block paragraph."
+
+    # Sphinx toctree
+    source_toctree = """
+[style=toctree,maxdepth=2,caption="My Table of Contents"]
+--
+intro
+installation
+usage
+--
+"""
+    doc_toctree = asciidoc_to_docutils(source_toctree)
+    toctree_node = doc_toctree[0]
+    from sphinx import addnodes
+
+    assert isinstance(toctree_node, addnodes.toctree)
+    assert toctree_node["maxdepth"] == 2
+    assert toctree_node["caption"] == "My Table of Contents"
+    assert "intro" in toctree_node["includefiles"]
+
+
+def test_thematic_break_conversion():
+    source = "Paragraph 1\n\n'''\n\nParagraph 2"
+    document = asciidoc_to_docutils(source)
+    assert len(document) == 3
+    assert isinstance(document[1], nodes.transition)
+
+
+def test_asciidoc_to_docutils_fallbacks():
+    # Test setting fallback when get_default_settings is not available
+    # We patch docutils.frontend to emulate get_default_settings missing
+    from unittest.mock import patch
+
+    with patch("docutils.frontend.get_default_settings", side_effect=ImportError):
+        # This will trigger the OptionParser fallback
+        doc = asciidoc_to_docutils("Some paragraph")
+        assert isinstance(doc, nodes.document)
+        assert doc[0].astext() == "Some paragraph"
+
+
+def test_docutils_backend_additional_coverage():
+    import docutils.nodes as dnodes
+
+    from asciidoctrine.docutils_backend import DocutilsRenderer
+    from asciidoctrine.nodes import (
+        Callout,
+        DescriptionListTerm,
+        Paragraph,
+        Table,
+        TableCell,
+        TableRow,
+        Text,
+    )
+
+    # 1. Section with custom id (Line 95)
+    doc_id = asciidoc_to_docutils("[#custom-sec-id]\n== My Section")
+    sec_node = doc_id[0]
+    assert "custom-sec-id" in sec_node["ids"]
+
+    # 2. Ordered list (Line 231)
+    doc_ordered = asciidoc_to_docutils("1. First\n2. Second")
+    ol_node = doc_ordered[0]
+    assert isinstance(ol_node, dnodes.enumerated_list)
+
+    # 3. ListItem and CalloutListItem blocks visitor (Line 200)
+    from asciidoctrine.nodes import CalloutListItem, ListItem, Sidebar
+
+    renderer = DocutilsRenderer(dnodes.document(None, None))
+    li_node_ast = ListItem(
+        marker="*",
+        principal=[Text(value="Principal Text")],
+        blocks=[Sidebar(blocks=[Paragraph(inlines=[Text(value="Nested block")])])],
+    )
+    renderer.visit(li_node_ast)
+    li_node_docutils = renderer.document[0]
+    assert len(li_node_docutils) == 2
+
+    # Also test CalloutListItem to cover line 200
+    renderer = DocutilsRenderer(dnodes.document(None, None))
+    co_li_node_ast = CalloutListItem(
+        number=1,
+        principal=[Text(value="Callout Principal Text")],
+        blocks=[Sidebar(blocks=[Paragraph(inlines=[Text(value="Nested block")])])],
+    )
+    renderer.visit(co_li_node_ast)
+    co_li_node_docutils = renderer.document[0]
+    assert len(co_li_node_docutils) == 2
+
+    # 4. Visit Callout (Line 206-208)
+    renderer = DocutilsRenderer(dnodes.document(None, None))
+    callout_node = Callout(number=1)
+    renderer.visit(callout_node)
+    assert len(renderer.document) == 1
+    assert "callout" in renderer.document[0]["classes"]
+
+    # 5. Visit Table with max_cols = 0 -> 1 (Line 251)
+    renderer = DocutilsRenderer(dnodes.document(None, None))
+    table_node = Table(rows=[TableRow(cells=[])])
+    renderer.visit(table_node)
+    # Should not crash, creates colspec with max_cols = 1
+
+    # 6. Visit TableCell with rowspan (Line 282)
+    renderer = DocutilsRenderer(dnodes.document(None, None))
+    cell_node = TableCell(blocks=[Paragraph(inlines=[Text(value="Cell")])])
+    cell_node.rowspan = 3
+    row_node = TableRow(cells=[cell_node])
+    table_node2 = Table(rows=[row_node])
+    renderer.visit(table_node2)
+    # In docutils: table -> tgroup -> tbody -> row -> entry
+    entry_node = renderer.document[0][0][1][0][0]
+    assert entry_node["morerows"] == 2
+
+    # 7. DescriptionListTerm without parent (Line 356)
+    renderer = DocutilsRenderer(dnodes.document(None, None))
+    term_node = DescriptionListTerm(inlines=[Text(value="Term")])
+    renderer.visit(term_node)
+    assert renderer.document[0].astext() == "Term"
+
+    # 8. Visit Ref with absolute URL (Line 447)
+    from asciidoctrine.nodes import Ref
+
+    renderer = DocutilsRenderer(dnodes.document(None, None))
+    ref_node_ast = Ref(target="https://google.com", variant="other")
+    renderer.visit(ref_node_ast)
+    ref_node_docutils = renderer.document[0]
+    assert isinstance(ref_node_docutils, dnodes.reference)
+    assert ref_node_docutils["refuri"] == "https://google.com"
+
+    # 9. Visit Quote (Line 511-517)
+    doc_quote = asciidoc_to_docutils(
+        "[quote, Author, Title]\n____\nThis is a quote.\n____"
+    )
+    quote_node = doc_quote[0]
+    assert isinstance(quote_node, dnodes.block_quote)
+
+    # 10. Visit Verse (Line 521-528)
+    doc_verse = asciidoc_to_docutils(
+        "[verse, Author, Title]\n____\nThis is a verse.\n____"
+    )
+    verse_node = doc_verse[0]
+    assert isinstance(verse_node, dnodes.block_quote)
+    assert "verse" in verse_node["classes"]
+
+    # 11. Visit Open with Sphinx ImportError (Lines 556-558)
+    import sys
+
+    sys.modules["sphinx"] = None
+    try:
+        doc_no_sphinx = asciidoc_to_docutils("[style=toctree]\n--\nintro\n--")
+        assert isinstance(doc_no_sphinx[0], dnodes.container)
+    finally:
+        del sys.modules["sphinx"]
+
+    # 12. Visit Toc with title (Line 574)
+    from asciidoctrine.nodes import Toc
+
+    renderer = DocutilsRenderer(dnodes.document(None, None))
+    toc_node_ast = Toc()
+    toc_node_ast.attributes["title"] = "Custom TOC Title"
+    renderer.visit(toc_node_ast)
+    toc_node_docutils = renderer.document[0]
+    assert isinstance(toc_node_docutils, dnodes.topic)
+    assert toc_node_docutils[0].astext() == "Custom TOC Title"

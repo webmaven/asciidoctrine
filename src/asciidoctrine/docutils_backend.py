@@ -5,7 +5,6 @@ Converts the AsciiDoc AST to a Docutils document tree.
 from typing import Any, Optional, Union
 
 from docutils import nodes
-from docutils.frontend import OptionParser
 from docutils.utils import new_document
 
 from .nodes import (
@@ -463,13 +462,19 @@ class DocutilsRenderer(NodeVisitor):
         self.current_node += literal
 
     def visit_passthrough(self, node: Passthrough) -> None:
-        content = "".join(
-            [getattr(n, "value", "") for n in node.inlines if hasattr(n, "value")]
-        )
+        if hasattr(node, "value") and node.value is not None:
+            content = node.value
+        else:
+            content = "".join(
+                [getattr(n, "value", "") for n in node.inlines if hasattr(n, "value")]
+            )
         # Using raw node for passthrough
         self.current_node += nodes.raw("", content, format="html")
 
     def visit_stem(self, node: Stem) -> None:
+        if isinstance(node, InlineStem):
+            self.visit_inlinestem(node)
+            return
         content = "".join(
             [getattr(n, "value", "") for n in node.inlines if hasattr(n, "value")]
         )
@@ -532,6 +537,11 @@ class DocutilsRenderer(NodeVisitor):
                 toctree = addnodes.toctree()
                 toctree["maxdepth"] = int(node.attributes.get("maxdepth", 1))
                 toctree["caption"] = node.attributes.get("caption")
+                toctree["hidden"] = (
+                    "hidden" in node.attributes
+                    or "%hidden" in node.attributes
+                    or "hidden" in node.attributes.get("options", "").split(",")
+                )
 
                 # In our AST, toctree links are likely in paragraphs inside the block
                 entries = []
@@ -601,6 +611,27 @@ class DocutilsRenderer(NodeVisitor):
         old_parent += sb
         self.current_node = old_parent
 
+    def visit_header(self, node: Any) -> None:
+        pass
+
+    def visit_author(self, node: Any) -> None:
+        self.generic_visit(node)
+
+    def visit_revision(self, node: Any) -> None:
+        self.generic_visit(node)
+
+    def visit_page_break(self, node: Any) -> None:
+        self.current_node += nodes.raw("", "<!-- page break -->", format="html")
+
+    def visit_attribute_entry(self, node: Any) -> None:
+        pass
+
+    def visit_attributes(self, node: Any) -> None:
+        pass
+
+    def visit_include(self, node: Any) -> None:
+        pass
+
 
 def asciidoc_to_docutils(source: str, base_dir: Optional[str] = None) -> nodes.document:
     """
@@ -615,6 +646,8 @@ def asciidoc_to_docutils(source: str, base_dir: Optional[str] = None) -> nodes.d
 
         settings = get_default_settings()
     except ImportError:
+        from docutils.frontend import OptionParser
+
         settings = OptionParser(components=()).get_default_values()
     document = new_document("<string>", settings=settings)
 

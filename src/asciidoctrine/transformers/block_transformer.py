@@ -8,6 +8,7 @@ from ..nodes import (
     BlockNode,
     CalloutList,
     CalloutListItem,
+    Comment,
     DescriptionList,
     DescriptionListItem,
     DescriptionListTerm,
@@ -460,6 +461,127 @@ class BlockTransformer(BaseTransformer):
         return cast(Passthrough, self._set_location_from_children(pass_node, children))
 
     @v_args(meta=True)
+    def outer_listing_block(self, meta: Any, children: PyList[Any]) -> Listing:
+        content = ""
+        attributes: Dict[str, Any] = {}
+        content_token = None
+        start_token = None
+
+        for c in children:
+            if isinstance(c, dict):
+                attributes = c
+            elif isinstance(c, Token) and c.type == "OUTER_LISTING_START":
+                start_token = c
+            elif isinstance(c, Token) and c.type == "OUTER_LISTING_CONTENT":
+                content = c.value
+                content_token = c
+
+        delimiter = "----"
+        if start_token:
+            import re
+
+            m = re.search(r"_(\d+)--$", start_token.value)
+            if m:
+                delimiter = "-" * int(m.group(1))
+
+        text_node = Text(content)
+        if content_token:
+            self._set_location_from_children(text_node, [content_token])
+        listing = Listing(
+            inlines=[text_node], attributes=attributes, delimiter=delimiter
+        )
+        return cast(Listing, self._set_location_from_children(listing, children))
+
+    @v_args(meta=True)
+    def outer_literal_block(self, meta: Any, children: PyList[Any]) -> Literal:
+        content = ""
+        attributes: Dict[str, Any] = {}
+        content_token = None
+        start_token = None
+
+        for c in children:
+            if isinstance(c, dict):
+                attributes = c
+            elif isinstance(c, Token) and c.type == "OUTER_LITERAL_START":
+                start_token = c
+            elif isinstance(c, Token) and c.type == "OUTER_LITERAL_CONTENT":
+                content = c.value
+                content_token = c
+
+        delimiter = "...."
+        if start_token:
+            import re
+
+            m = re.search(r"_(\d+)--$", start_token.value)
+            if m:
+                delimiter = "." * int(m.group(1))
+
+        text_node = Text(content)
+        if content_token:
+            self._set_location_from_children(text_node, [content_token])
+        literal = Literal(
+            inlines=[text_node], attributes=attributes, delimiter=delimiter
+        )
+        return cast(Literal, self._set_location_from_children(literal, children))
+
+    @v_args(meta=True)
+    def outer_passthrough_block(self, meta: Any, children: PyList[Any]) -> Passthrough:
+        content = ""
+        attributes: Dict[str, Any] = {}
+        content_token = None
+        start_token = None
+
+        for c in children:
+            if isinstance(c, dict):
+                attributes = c
+            elif isinstance(c, Token) and c.type == "OUTER_PASSTHROUGH_START":
+                start_token = c
+            elif isinstance(c, Token) and c.type == "OUTER_PASSTHROUGH_CONTENT":
+                content = c.value
+                content_token = c
+
+        delimiter = "++++"
+        if start_token:
+            import re
+
+            m = re.search(r"_(\d+)--$", start_token.value)
+            if m:
+                delimiter = "+" * int(m.group(1))
+
+        text_node = Text(content)
+        if content_token:
+            self._set_location_from_children(text_node, [content_token])
+        pass_node = Passthrough(
+            inlines=[text_node], attributes=attributes, delimiter=delimiter
+        )
+        return cast(Passthrough, self._set_location_from_children(pass_node, children))
+
+    @v_args(meta=True)
+    def outer_comment_block(self, meta: Any, children: PyList[Any]) -> Comment:
+        content = ""
+        attributes: Dict[str, Any] = {}
+        start_token = None
+
+        for c in children:
+            if isinstance(c, dict):
+                attributes = c
+            elif isinstance(c, Token) and c.type == "OUTER_COMMENT_START":
+                start_token = c
+            elif isinstance(c, Token) and c.type == "OUTER_COMMENT_CONTENT":
+                content = c.value
+
+        delimiter = "////"
+        if start_token:
+            import re
+
+            m = re.search(r"_(\d+)--$", start_token.value)
+            if m:
+                delimiter = "/" * int(m.group(1))
+
+        comment = Comment(value=content, attributes=attributes, delimiter=delimiter)
+        return cast(Comment, self._set_location_from_children(comment, children))
+
+    @v_args(meta=True)
     def admonition(self, meta: Any, children: PyList[Any]) -> Admonition:
         return cast(Admonition, children[0])
 
@@ -546,10 +668,71 @@ class BlockTransformer(BaseTransformer):
 
     @v_args(meta=True)
     def open_block(self, meta: Any, children: PyList[Any]) -> Open:
+        return cast(Open, children[0])
+
+    @v_args(meta=True)
+    def open_block_legacy(self, meta: Any, children: PyList[Any]) -> Open:
+        import warnings
+
+        warnings.warn(
+            "The legacy '--' open block delimiter is deprecated. Use '~~~~' (or longer) tilde delimiters instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return cast(
+            Open,
+            self._set_location_from_children(
+                self._build_open_block(children), children
+            ),
+        )
+
+    @v_args(meta=True)
+    def open_block_4(self, meta: Any, children: PyList[Any]) -> Open:
+        return cast(
+            Open,
+            self._set_location_from_children(
+                self._build_open_block(children), children
+            ),
+        )
+
+    @v_args(meta=True)
+    def open_block_5(self, meta: Any, children: PyList[Any]) -> Open:
+        return cast(
+            Open,
+            self._set_location_from_children(
+                self._build_open_block(children), children
+            ),
+        )
+
+    @v_args(meta=True)
+    def open_block_6(self, meta: Any, children: PyList[Any]) -> Open:
+        return cast(
+            Open,
+            self._set_location_from_children(
+                self._build_open_block(children), children
+            ),
+        )
+
+    @v_args(meta=True)
+    def open_block_long(self, meta: Any, children: PyList[Any]) -> Open:
+        return cast(
+            Open,
+            self._set_location_from_children(
+                self._build_open_block(children), children
+            ),
+        )
+
+    def _build_open_block(self, children: PyList[Any]) -> Open:
+        delims = [
+            c
+            for c in children
+            if isinstance(c, Token)
+            and (c.type == "OPEN_BLOCK_DELIM" or c.type.startswith("OPEN_BLOCK_DELIM_"))
+        ]
         blocks = [c for c in children if isinstance(c, BlockNode)]
         merged_inner = self._merge_consecutive_lists(blocks)
-        open_node = Open(blocks=merged_inner)
-        return cast(Open, self._set_location_from_children(open_node, children))
+        delimiter = delims[0].value if delims else "--"
+        return Open(blocks=merged_inner, delimiter=delimiter)
 
     def _build_sidebar(self, children: PyList[Any]) -> Sidebar:
         delims = [

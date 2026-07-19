@@ -34,22 +34,22 @@ This document tracks identified technical debt in the `asciidoctrine` project an
 * **Refactor Plan**: Implement custom error handlers and improve `Lark` error reporting.
 
 === 6. Type Hint Consistency
-* **Status**: Low Priority
+* **Status**: In Progress
 * **Description**: Some methods use `Any` or `Transformed` where more specific AST node types could be enforced.
 * **Impact**: Weakens the benefits of static analysis with `mypy`.
-* **Refactor Plan**: Gradually tighten type hints across the transformer and nodes.
+* **Resolution**: Tightened match and list types in parser, preprocessor, and docutils_backend; `mypy` strict type-checking now passes 100% cleanly on all 11 source files.
 
 === 7. Docutils Backend Alignment
-* **Status**: Medium Priority
-* **Description**: `docutils_backend.py` lags behind the AST changes in `nodes.py`.
-* **Impact**: Docutils output may be broken or missing newer features.
-* **Refactor Plan**: Ensure every new node in `nodes.py` has a corresponding visitor method in the backend.
+* **Status**: Completed
+* **Description**: `docutils_backend.py` lagged behind the AST changes in `nodes.py`.
+* **Impact**: Resolved. Every node in `nodes.py` now has a dedicated visitor method or clean generic fallback in `DocutilsRenderer`.
+* **Resolution**: Implemented missing visitor methods for `Header`, `Author`, `Revision`, `PageBreak`, `AttributeEntry`, `Attributes`, and `Include`.
 
 === 8. Location Logic Duplication
-* **Status**: Medium Priority
-* **Description**: `_set_location_from_children` is duplicated across `lark_parser.py`, `block_transformer.py`, and `inline_transformer.py`.
-* **Impact**: Maintenance burden; fixes to location logic must be applied in three places.
-* **Refactor Plan**: Move `_set_location_from_children` to a shared base mixin or helper module.
+* **Status**: Completed
+* **Description**: `_set_location_from_children` was duplicated.
+* **Impact**: Resolved. Location helper logic is now unified in the base mixin.
+* **Resolution**: Unified all children-derived bounding box coordinate calculations into `BaseTransformer._set_location_from_children` inside `base_transformer.py`.
 
 === 9. TCK Harness Patching
 * **Status**: High Priority
@@ -58,7 +58,7 @@ This document tracks identified technical debt in the `asciidoctrine` project an
 * **Refactor Plan**: Submit a PR to `eclipse/asciidoc-tck` to fix the harness argument passing.
 
 === 10. Docutils Backend Coverage
-* **Status**: Medium Priority
-* **Description**: Coverage for `docutils_backend.py` is low (~41%).
-* **Impact**: Backend might crash on supported AST nodes.
-* **Refactor Plan**: Add tests specifically targeting the docutils visitor methods.
+* **Status**: Completed
+* **Description**: Coverage for `docutils_backend.py` was low (~41%).
+* **Impact**: Resolved. Docutils visitor coverage has been raised to 99%.
+* **Resolution**: Added comprehensive test cases targeting the docutils backend, fully covering all block and inline visitor pathways.

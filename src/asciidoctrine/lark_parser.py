@@ -18,6 +18,7 @@ from .nodes import (
     FloatingTitle,
     Header,
     Image,
+    Include,
     Node,
     Open,
     PageBreak,
@@ -572,9 +573,17 @@ class AsciiDocTransformer(
     def block_macro(self, meta: Any, children: Children) -> BlockNode:
         name = str(children[0].value).lower()
         target = str(children[1].value) if len(children) > 1 and children[1] else ""
-        attrs = (
-            children[2] if len(children) > 2 and isinstance(children[2], dict) else {}
+        attrs = {}
+        attr_token = next(
+            (
+                c
+                for c in children
+                if isinstance(c, Token) and c.type == "attribute_content"
+            ),
+            None,
         )
+        if attr_token is not None:
+            attrs = self.attribute_list(meta, [attr_token])
 
         block: BlockNode
         if name == "image":
@@ -585,6 +594,9 @@ class AsciiDocTransformer(
                 block.attributes["alt"] = block.attributes.pop("style")
         elif name == "toc":
             block = Toc(target=target, attributes=attrs)
+        elif name == "include":
+            block = Include(filename=target)
+            block.attributes.update(attrs)
         elif name == "audio":
             block = Audio(target=target, attributes=attrs)
         elif name == "video":
@@ -641,6 +653,7 @@ def parse_to_ast(
     grammar_file: str = DEFAULT_GRAMMAR,
     base_dir: Optional[str] = None,
     safe_mode: bool = True,
+    preprocess_directives: bool = True,
 ) -> Document:
     # Detect if the original document preferred Windows CRLF or standard Unix LF
     # by checking if the very first newline sequence in the file is \r\n
@@ -660,7 +673,9 @@ def parse_to_ast(
     if source and not source.endswith("\n"):
         source += "\n"
 
-    preprocessor = Preprocessor(base_dir, safe_mode=safe_mode)
+    preprocessor = Preprocessor(
+        base_dir, safe_mode=safe_mode, preprocess_directives=preprocess_directives
+    )
     processed_source = preprocessor.process(source)
 
     with open(grammar_file, "r") as f:

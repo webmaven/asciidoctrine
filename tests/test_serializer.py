@@ -323,3 +323,51 @@ x^2 + y^2 = r^2
 ++++
 """
         self._assert_roundtrip(source)
+
+    def test_roundtrip_with_preprocess_directives_bypass(self):
+        # When preprocess_directives=False is used, include directives remain in the AST
+        # as normal paragraphs or other elements, and round-trip successfully.
+        # Meanwhile, nested verbatim blocks parse perfectly and round-trip safely.
+        source = """include::otherfile.adoc[]
+
+[source,asciidoc]
+-----
+[source,python]
+----
+print("inner")
+----
+-----
+"""
+        # Parse with preprocess_directives=False
+        ast_original = parse_to_ast(source, preprocess_directives=False)
+        self.assertFalse(ast_original.is_preprocessed)
+
+        # Serialize
+        serialized = serialize_to_asciidoc(ast_original)
+
+        expected = """include::otherfile.adoc[]
+
+[source, asciidoc]
+-----
+[source,python]
+----
+print("inner")
+----
+-----
+"""
+        self.assertEqual(serialized, expected)
+
+    def test_inline_passthroughs_serialization(self):
+        source1 = "This contains pass:[_raw_text_] inside.\n"
+        self._assert_roundtrip(source1)
+
+        source2 = "This contains +++<b>bold HTML</b>+++ inside.\n"
+        self._assert_roundtrip(source2)
+
+    def test_delimited_comments_serialization(self):
+        source = """////
+This is a comment block.
+It should roundtrip.
+////
+"""
+        self._assert_roundtrip(source)

@@ -8,6 +8,7 @@ from ..nodes import (
     Button,
     Callout,
     Image,
+    InlinePassthrough,
     InlineStem,
     Kbd,
     Menu,
@@ -200,12 +201,14 @@ class InlineTransformer(BaseTransformer):
 
     @v_args(meta=True)
     def superscript(self, meta: Any, children: PyList[Any]) -> Span:
-        span = Span(variant="superscript", inlines=children[0] if children else [])
+        content = [c for c in children if isinstance(c, list)]
+        span = Span(variant="superscript", inlines=content[0] if content else [])
         return cast(Span, self._set_location_from_children(span, children))
 
     @v_args(meta=True)
     def subscript(self, meta: Any, children: PyList[Any]) -> Span:
-        span = Span(variant="subscript", inlines=children[0] if children else [])
+        content = [c for c in children if isinstance(c, list)]
+        span = Span(variant="subscript", inlines=content[0] if content else [])
         return cast(Span, self._set_location_from_children(span, children))
 
     @v_args(meta=True)
@@ -397,3 +400,21 @@ class InlineTransformer(BaseTransformer):
         content = str(children[0].value) if children and children[0] else ""
         stem = InlineStem(variant="latexmath", value=content)
         return cast(InlineStem, self._set_location_from_children(stem, children))
+
+    @v_args(meta=True)
+    def inline_pass_macro(self, meta: Any, children: PyList[Any]) -> InlinePassthrough:
+        content = str(children[0].value) if children and children[0] else ""
+        pass_node = InlinePassthrough(value=content)
+        pass_node.form = "macro"
+        return cast(
+            InlinePassthrough, self._set_location_from_children(pass_node, children)
+        )
+
+    @v_args(meta=True)
+    def inline_triple_plus(self, meta: Any, children: PyList[Any]) -> InlinePassthrough:
+        content = str(children[0].value) if children and children[0] else ""
+        pass_node = InlinePassthrough(value=content)
+        pass_node.form = "triple_plus"
+        return cast(
+            InlinePassthrough, self._set_location_from_children(pass_node, children)
+        )

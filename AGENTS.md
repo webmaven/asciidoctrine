@@ -265,8 +265,21 @@ To produce a TCK-compliant Resolved Abstract Semantic Graph (ASG), the internal 
 - **What Didn't Work**: Setting a high priority on the structural `table` rule itself (e.g. `table.50`) only helps if the input is successfully tokenized. It did not prevent the lexer from mis-tokenizing cell text.
 - **Solution**:
   1. Assigned an explicit priority of `.20` to the `TABLE_CELL` terminal rule in `grammar.lark`. This is higher than `.10` (for `inline_link`) and `.3` (for `URI`), ensuring the entire cell content is cleanly swallowed as a single `TABLE_CELL` token.
-  2. Assigned a priority of `.30` to `TABLE_DELIM` to ensure it wins over `TABLE_CELL` when starting/ending a table.
+### 6. Code Listing Block vs. Nested Inline Formatting Priorities in Earley Parser
+- **Problem**: When a delimited `listing_block` (such as `----` containing source code) contained many lines with formatting characters like backticks (`` ` ``), underscores (`_`), or asterisks (`*`), the block was parsed as dozens of individual `paragraph` and `literal` blocks instead of a single cohesive `listing_block`.
+- **Cause**: Because the Earley algorithm maximizes the sum of priorities of all nodes in a parsed tree, a tree where the content is split into many separate `paragraph` and `literal` blocks containing numerous high-priority inline style nodes (like `monospace.10` for backticks, `bold.2`, or `italic.2`) achieves a significantly higher total priority score than a single simple `listing_block` rule (originally with priority `50`) that parses the entire interior as a single flat `LISTING_CONTENT` terminal.
+- **What Didn't Work**: Writing the content with fewer formatting characters worked, but realistic code snippets with a standard density of backticks, underscores, or inline spans inevitably triggered the priority flip, breaking parser robustness on complex files.
+### 7. Verbatim Block Nesting Support via Stateful Preprocessor & Reconstructor
+- **Problem**: When a listing block, literal block, or passthrough block contained nested blocks of the same or different delimiter lengths, Lark's parser failed to isolate them correctly, often matching the nested delimiter as the end of the outer block and breaking the document structure.
+- **Cause**: Standard EBNF regexes cannot easily resolve arbitrary same-line or stateful nested block boundaries without full semantic states, which standard lexers do not track.
+- **What Didn't Work**: Attempting to write complex context-sensitive grammar rules inside `grammar.lark` introduced massive Earley ambiguity and parsing overhead, and broke normal block boundaries.
+- **Solution**:
+  1. **Stateful Preprocessor Translation**: Added a fast line-by-line state machine inside `preprocessor.py` that tracks the outermost `in_verbatim` state and rewrites only the outer opening and closing delimiters to unique synthetic tags (e.g. `--ASCIIDOCTRINE_OUTER_LISTING_START_N--`, where `N` is the original length of the delimiter). This shields and preserves all nested delimiters inside as raw content.
+  2. **High-Priority Synthetic Rules**: Integrated these synthetic markers into `grammar.lark` as dedicated high-priority rules and terminals.
+  3. **AST Reconstructor**: Added matching visitor methods in `block_transformer.py` to extract the length `N` from the start token, reconstruct standard delimiters, and cleanly construct standard `Listing`, `Literal`, and `Passthrough` AST nodes, ensuring seamless compatibility with downsteam components.
+  4. **Stateful Same-Length Warning**: Tracked `metadata_pending` inside verbatim blocks during preprocessing. If a same-length delimiter is encountered and was immediately preceded by attributes, a `PreprocessorWarning` is raised to notify the author of this specification violation.
 
 ## 🤖 Subagent & Model Routing Strategy
 
 *   **Standing Instruction**: For all coding and coding-adjacent tasks, use your judgement to decide when a lower-power model would be appropriate and run that in a subagent.
+

@@ -273,6 +273,24 @@ class TestInlines(unittest.TestCase):
         self.assertEqual(math_ast2["blocks"][0]["inlines"][0]["variant"], "latexmath")
         self.assertEqual(math_ast2["blocks"][0]["inlines"][0]["value"], "e^{i\\pi}")
 
+    def test_inline_passthroughs(self):
+        # 1. Test pass:[] macro
+        ast_pass = self._strip_locations(parse_to_ast("pass:[_not_italic_]").to_dict())
+        node_pass = ast_pass["blocks"][0]["inlines"][0]
+        self.assertEqual(node_pass["name"], "passthrough")
+        self.assertEqual(node_pass["type"], "inline")
+        self.assertEqual(node_pass["value"], "_not_italic_")
+        # Ensure no nested styling span is parsed
+        self.assertNotIn("inlines", node_pass)
+
+        # 2. Test triple plus +++
+        ast_plus = self._strip_locations(parse_to_ast("+++<b>html</b>+++").to_dict())
+        node_plus = ast_plus["blocks"][0]["inlines"][0]
+        self.assertEqual(node_plus["name"], "passthrough")
+        self.assertEqual(node_plus["type"], "inline")
+        self.assertEqual(node_plus["value"], "<b>html</b>")
+        self.assertNotIn("inlines", node_plus)
+
 
 if __name__ == "__main__":
     unittest.main()

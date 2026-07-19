@@ -638,6 +638,194 @@ print("test")
         self.assertEqual(mixed_nest_ast["blocks"][0]["blocks"][0]["name"], "open")
         self.assertEqual(mixed_nest_ast["blocks"][0]["blocks"][0]["delimiter"], "--")
 
+    def test_complex_code_listing_block(self):
+        """
+        Verify that a listing block containing complex python code with backticks,
+        underscores, and asterisks is parsed as a single listing block,
+        and is NOT split into normal paragraph/literal blocks.
+        """
+        source = """[source,python]
+----
+import sys
+from typing import Dict, List, Any
+from asciidoctrine import parse_to_ast
+from asciidoctrine.resolver import ASGResolver
+
+class MarkdownRenderer:
+    \"\"\"
+    A custom visitor class that traverses an AsciiDoctrine ASG dictionary
+    and compiles it into standard Markdown.
+    \"\"\"
+
+    def render(self, node: Dict[str, Any]) -> str:
+        if not node:
+            return ""
+
+        node_name = node.get("name", "")
+        # Dynamically dispatch to render_<node_name> if it exists
+        method_name = f"render_{node_name}"
+        visitor = getattr(self, method_name, self.generic_render)
+        return visitor(node)
+
+    def generic_render(self, node: Dict[str, Any]) -> str:
+        # Fallback for unhandled nodes: render child blocks if present
+        result = []
+        for block in node.get("blocks", []):
+            result.append(self.render(block))
+        return "\\n\\n".join(result)
+
+    def render_document(self, node: Dict[str, Any]) -> str:
+        # Render all children blocks in the document
+        blocks = [self.render(b) for b in node.get("blocks", [])]
+        return "\\n\\n".join(b for b in blocks if b)
+
+    def render_section(self, node: Dict[str, Any]) -> str:
+        # ASG sections have a "level" integer and a "title" list of inline nodes
+        level = node.get("level", 1)
+        # Markdown headings use '#' prefixes matching the level
+        header_prefix = "#" * level
+
+        # Render the section title inlines
+        title_inlines = node.get("title", [])
+        title_text = "".join(self.render(inline) for inline in title_inlines)
+
+        # Render child blocks of this section
+        child_blocks = [self.render(b) for b in node.get("blocks", [])]
+        rendered_children = "\\n\\n".join(b for b in child_blocks if b)
+
+        return f"{header_prefix} {title_text}\\n\\n{rendered_children}".strip()
+
+    def render_paragraph(self, node: Dict[str, Any]) -> str:
+        # Render all inline children inside the paragraph
+        inlines = [self.render(i) for i in node.get("inlines", [])]
+        return "".join(inlines)
+
+    def render_text(self, node: Dict[str, Any]) -> str:
+        # Simple leaf text node
+        return node.get("value", "")
+
+    def render_span(self, node: Dict[str, Any]) -> str:
+        # Spans represent formatting wraps like bold, italic, or monospace
+        variant = node.get("variant", "text")
+        inlines = [self.render(i) for i in node.get("inlines", [])]
+        content = "".join(inlines)
+
+        if variant == "strong":
+            return f"**{content}**"
+        elif variant == "emphasis":
+            return f"*{content}*"
+        elif variant == "code":
+            return f"`{content}`"
+        return content
+
+    def render_listing(self, node: Dict[str, Any]) -> str:
+        # Listing/source block representation
+        lang = node.get("attributes", {}).get("language", "")
+        # Listing contents are list of inline text nodes
+        inlines = [self.render(i) for i in node.get("inlines", [])]
+        code_content = "".join(inlines).strip()
+        return f"```{lang}\\n{code_content}\\n```"
+
+    def render_list(self, node: Dict[str, Any]) -> str:
+        # Unordered or ordered list container
+        variant = node.get("variant", "unordered")
+        items = [self.render_list_item(item, variant, i) for i, item in enumerate(node.get("items", []))]
+        return "\\n".join(items)
+
+    def render_list_item(self, item: Dict[str, Any], variant: str, index: int) -> str:
+        # Render principal text content of list item
+        principal_nodes = item.get("principal", [])
+        principal_text = "".join(self.render(p) for principal_nodes in principal_nodes for p in (principal_nodes if isinstance(principal_nodes, list) else [principal_nodes]))
+        
+        # Render any nested sub-blocks inside list item
+        sub_blocks = [self.render(b) for b in item.get("blocks", [])]
+        rendered_sub = "\\n  ".join(b for b in sub_blocks if b)
+        
+        prefix = "1." if variant == "ordered" else "*"
+        item_text = f"{prefix} {principal_text}"
+        if rendered_sub:
+            item_text += f"\\n  {rendered_sub}"
+        return item_text
+----
+"""
+        ast = parse_to_ast(source).to_dict()
+        self.assertEqual(len(ast["blocks"]), 1)
+        block = ast["blocks"][0]
+        self.assertEqual(block["name"], "listing")
+        self.assertEqual(block["form"], "delimited")
+        self.assertEqual(block["attributes"]["language"], "python")
+
+    def test_nested_listing_different_lengths(self) -> None:
+        source = """[source,asciidoc]
+-----
+[source,python]
+----
+print("inner")
+----
+-----"""
+        ast = parse_to_ast(source).to_dict()
+        self.assertEqual(len(ast["blocks"]), 1)
+        block = ast["blocks"][0]
+        self.assertEqual(block["name"], "listing")
+        self.assertEqual(block["attributes"]["style"], "source")
+        self.assertEqual(block["attributes"]["language"], "asciidoc")
+        self.assertEqual(block["delimiter"], "-----")
+        self.assertIn(
+            '[source,python]\n----\nprint("inner")\n----', block["inlines"][0]["value"]
+        )
+
+    def test_nested_literal_different_lengths(self) -> None:
+        source = """[style=literal]
+.....
+[style=another]
+....
+inner literal
+....
+....."""
+        ast = parse_to_ast(source).to_dict()
+        self.assertEqual(len(ast["blocks"]), 1)
+        block = ast["blocks"][0]
+        self.assertEqual(block["name"], "literal")
+        self.assertEqual(block["delimiter"], ".....")
+        self.assertIn(
+            "[style=another]\n....\ninner literal\n....", block["inlines"][0]["value"]
+        )
+
+    def test_nested_passthrough_different_lengths(self) -> None:
+        source = """+++++
+++++
+inner passthrough
+++++
++++++"""
+        ast = parse_to_ast(source).to_dict()
+        self.assertEqual(len(ast["blocks"]), 1)
+        block = ast["blocks"][0]
+        self.assertEqual(block["name"], "passthrough")
+        self.assertEqual(block["delimiter"], "+++++")
+        self.assertIn("++++\ninner passthrough\n++++", block["inlines"][0]["value"])
+
+    def test_delimited_comments(self) -> None:
+        # 1. Basic parsing
+        source = """////
+This is a comment.
+It should be parsed.
+////"""
+        doc = parse_to_ast(source)
+        ast = doc.to_dict()
+        self.assertEqual(len(ast["blocks"]), 1)
+        comment_block = ast["blocks"][0]
+        self.assertEqual(comment_block["name"], "comment")
+        self.assertEqual(comment_block["type"], "block")
+        self.assertEqual(
+            comment_block["value"], "This is a comment.\nIt should be parsed."
+        )
+
+        # 2. ASG resolution (comments should be filtered out)
+        from asciidoctrine.resolver import ASGResolver
+
+        resolved_ast = ASGResolver(doc).resolve(doc)
+        self.assertEqual(len(resolved_ast["blocks"]), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -305,6 +305,27 @@ class Break(InlineNode):
         self.type = "inline"
 
 
+class InlinePassthrough(InlineNode):
+    """An inline node representing raw passthrough text."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {}
+
+    def __init__(
+        self,
+        value: str,
+        inlines: Optional[Sequence[Node]] = None,
+        attributes: Optional[Dict[str, Any]] = None,
+    ):
+        super().__init__()
+        self.name = "passthrough"
+        self.type = "inline"
+        self.value = value
+        self.inlines: PyList[Node] = list(inlines) if inlines else []
+        self.attributes = attributes or {}
+        self.form: Optional[str] = None
+
+
 class Kbd(InlineNode):
     """An inline node for a keyboard shortcut."""
 
@@ -787,6 +808,26 @@ class Passthrough(BlockNode):
         self.attributes = attributes or {}
 
 
+class Comment(BlockNode):
+    """A delimited comment block."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {}
+
+    def __init__(
+        self,
+        value: str,
+        delimiter: str = "////",
+        attributes: Optional[Dict[str, Any]] = None,
+    ):
+        super().__init__()
+        self.name = "comment"
+        self.type = "block"
+        self.value = value
+        self.delimiter = delimiter
+        self.attributes = attributes or {}
+
+
 class Stem(BlockNode):
     """A block for mathematical expressions."""
 
@@ -972,7 +1013,7 @@ class TableCell(BlockNode):
 
 
 class ThematicBreak(BlockNode):
-    """Represents a horizontal rule or thematic break (---, ***, ''')."""
+    """Represents a horizontal rule or thematic break (---, ``***``, ''')."""
 
     def __init__(self) -> None:
         super().__init__()

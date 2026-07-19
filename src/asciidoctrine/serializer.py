@@ -199,6 +199,16 @@ class AsciiDocSerializerVisitor(NodeVisitor):
             for line in code.splitlines():
                 self.write(f" {line}\n")
 
+    def visit_comment(self, node: Node) -> None:
+        self.write_block_metadata(node)
+        delim = getattr(node, "delimiter", "////")
+        self.write(f"{delim}\n")
+        value = getattr(node, "value", "")
+        self.write(value)
+        if value and not value.endswith("\n"):
+            self.write("\n")
+        self.write(f"{delim}\n")
+
     def visit_sidebar(self, node: Node) -> None:
         self.write_block_metadata(node)
         delim = getattr(node, "delimiter", "****")
@@ -520,6 +530,24 @@ class AsciiDocSerializerVisitor(NodeVisitor):
             delim = getattr(node, "delimiter", "++++")
             self.write(f"{delim}\n")
             # Inside block stem content is represented in inlines
+            for inline in getattr(node, "inlines", []):
+                self.visit(inline)
+            self.write(f"\n{delim}\n")
+
+    def visit_passthrough(self, node: Node) -> None:
+        node_type = getattr(node, "type", "block")
+        if node_type == "inline":
+            form = getattr(node, "form", "macro")
+            val = getattr(node, "value", "")
+            if form == "triple_plus":
+                self.write(f"+++{val}+++")
+            else:
+                self.write(f"pass:[{val}]")
+        else:
+            # Block passthrough
+            self.write_block_metadata(node)
+            delim = getattr(node, "delimiter", "++++")
+            self.write(f"{delim}\n")
             for inline in getattr(node, "inlines", []):
                 self.visit(inline)
             self.write(f"\n{delim}\n")

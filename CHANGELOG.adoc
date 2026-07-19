@@ -3,7 +3,55 @@
 
 All notable changes to this project will be documented in this file.
 
-== link:https://pypi.org/project/asciidoctrine/0.1.0a8/[0.1.0a8] - Unreleased
+== link:https://pypi.org/project/asciidoctrine/0.1.0a9/[0.1.0a9] - 2026-07-19
+
+=== Added
+* **Full Eclipse AsciiDoc SDR-1 Open Block Support**:
+  - Implemented the new standard variable-length tilde-based open block delimiter form (`~~~~`, `~~~~~`, `~~~~~~`, and long `~{7,}`).
+  - Supported recursive multi-level open block nesting by varying delimiter lengths.
+  - Maintained 100% backward compatibility for the legacy two-hyphen (`--`) open block delimiter form.
+  - Restructured and updated the official TCK open block test suite (organizing into `containing-paragraph` and `legacy-delimiter` tests) in alignment with MR feedback.
+  - Developed a comprehensive unit test suite in `tests/test_inline_transformer_unit.py` testing 100% of all logical bodies, branching conditions, error fallbacks, and attribute substitutions in `InlineTransformer` (including math stems, keyboard macros, and split target-window link parsers).
+  - Boosted `inline_transformer.py` coverage from 53% to 69%.
+* **High-Fidelity Cyclic Include Loop Diagnostics**:
+  - Implemented stateful `include_stack` tracking of inclusion paths (including file paths, relative base directories, line numbers, and line text) during preprocessing (Issue #82).
+  - Developed a static cycle scanner that detects mutual inclusion loops and prints elegant compiler-grade diagnostic reports with visual caret highlights and source strings.
+* **Component-Aware Path Traversal Protections**:
+  - Implemented safe commonpath-based boundary checks under `safe_mode` in `preprocessor.py` to prevent directory traversal and secure sibling folders (Issue #83).
+* **Enhanced Docutils/Sphinx Rendering**:
+  - Integrated native `%hidden` and `options="hidden"` attribute-mapping on `toctree` block open macros, converting them directly to Sphinx `addnodes.toctree(hidden=True)` to prevent redundant/duplicated visual index lists.
+  - Implemented missing AST node visitor methods in `DocutilsRenderer`, supporting `Header`, `Author`, `Revision`, `PageBreak`, `AttributeEntry`, `Attributes`, and `Include` to ensure smooth rendering and zero compilation crashes.
+* **Upgraded Page Breaks Support**:
+  - Upgraded Page Breaks status to Fully Supported in the Feature Matrix, natively translating `PageBreak` AST nodes into explicit `<!-- page break -->` raw HTML markers in the Docutils renderer backend.
+* **Comprehensive AST and ASG Nodes Unit Tests**:
+  - Developed a comprehensive unit test suite in `tests/test_nodes_unit.py` systematically instantiating, verifying, and serializing all `Node` subclasses, coordinate tracking, custom appends, and properties.
+  - Verified verbatim-block properties (`code`, `stripped_code`, `callouts`) matching automated, manual, and bare HTML callout regex styles under Unix and Windows line endings.
+  - Boosted `nodes.py` coverage from 62% to 68%, elevating overall codebase test coverage to 70%.
+* **93%+ Docutils Backend Test Coverage**:
+  - Expanded `tests/test_docutils_backend.py` with comprehensive integration tests targeting section layouts, inline stems/math, block stems, audio/video raw embeds, image alternate text, table cell specifier alignments, and styles.
+  - Boosted `docutils_backend.py` statement coverage to 93%.
+
+=== Fixed
+* **Non-Destructive Lookahead-Based Description List Grammar**:
+  - Refactored description list markers (`DLIST_MARKER_2` through `DLIST_MARKER_5`) in `grammar.lark` using regex positive lookaheads (`(?=[ \t\n]|$)`) to prevent greedily matching inline double-colons (`::`) inside standard paragraph text (Issue #72 sibling).
+  - Simplified the `COLON` terminal to a literal `":"` to allow multiple consecutive colons to cleanly parse as individual colon text nodes.
+* **PyPI Dependency Upgrades and Workaround Reversion**:
+  - Migrated to stable PyPI releases of `sphinx-asciidoctrine==0.1.0a1` and `asciidocstring==0.1.0a5` (which natively handles blank lines between definition list items).
+  - Reverted the temporary preprocessor single-line docstring workaround back to a standard multi-line description list.
+* **Inline Stem Parsing Priorities**:
+  - Added explicit `.10` priority suffixes to `inline_stem`, `inline_asciimath`, and `inline_latexmath` rules in `grammar.lark` to prevent Earley parser ambiguity where preceding text caused them to be incorrectly evaluated as nested plain text sequences.
+* **Block Macro Attribute Parsers**:
+  - Fixed attributes parsing for block macros (such as `image::`, `audio::`, and `video::`) in `lark_parser.py`'s `block_macro` by dynamically scanning children for any transformed `attribute_content` token, ensuring alternate text (`alt`) and custom properties are correctly parsed and populated on AST block nodes.
+* **100% Preprocessor Test Coverage**:
+  - Reached 100% statement and branch coverage in `preprocessor.py` by pruning unused/redundant legacy paths and adding extensive unit testing of defensive edge-case pathways.
+* **Robust Multi-Level Open Block Nesting**:
+  - Added full test coverage for mixed standard (tilde-based) and legacy (hyphen-based) open block structures to ensure compatibility and robustness under extreme nested conditions.
+* **Visual Identity & Theme Overhaul**:
+  - Re-themed the documentation to a premium forest-green dark color scheme and customized the RTD sidebar with multi-level sub-navigation line legibility, hover styles, and link color states.
+  - Redesigned ASCII compiler pipeline flowcharts in `docs/index.adoc` and `docs/architecture.adoc` to cleanly illustrate the bidirectional AST-to-source serialization capability of the compiler.
+  - Standardized all documentation formatting on spec-compliant single-asterisk bold spans (`*text*`), resolving visual discrepancies and anomalies caused by unconstrained double-asterisks (`**text**`).
+
+== link:https://pypi.org/project/asciidoctrine/0.1.0a8/[0.1.0a8] - 2026-07-16
 
 === Added
 * **Parser Error Handling (Issue #78)**:
@@ -18,6 +66,9 @@ All notable changes to this project will be documented in this file.
     * **`lines` Slicing**: Slices single (`1..5`), multiple (`1..2;4..5` or `"1..2,4..5"`), and open-ended (`5..`) line ranges.
     * **`tag`/`tags` Filtering**: Extracts marked regions of code blocks while stripping tag boundary comment lines (e.g., `// tag::name[]`) from the output stream.
   - **Comprehensive Test Harness**: Authored unit tests verifying individual and combined preprocessor attributes under a strict Red/Green TDD framework, resulting in 100% test suite and TCK compliance.
+* **High-Fidelity Cyclic Include Loop Diagnostics (Issue #82)**:
+  - Implemented metadata-enriched `include_stack` to track inclusion paths including line numbers and line text.
+  - Implemented an on-loop static cycle scanner that reads on-disk files and builds an elegant compiler-grade diagnostic report listing all mutual includes in a loop simultaneously, complete with raw source strings and caret highlights.
 === Fixed
 * **Dynamic Sphinx Versioning (Issue #3.C)**:
   - Replaced hardcoded version strings in `docs/conf.py` with dynamic metadata-driven package version lookup using `importlib.metadata`.
@@ -28,6 +79,10 @@ All notable changes to this project will be documented in this file.
 * **Experimental Inline Macros Parsing Bug (Issue #80)**:
   * **EBNF Grammar Priority Adjustment**: Assigned explicit priority of `.10` to `inline_kbd`, `inline_button`, and `inline_menu` grammar rules in `grammar.lark`. This resolves the greedy priority conflicts in Lark's Earley parsing engine when experimental macros are embedded inside standard prose sentences, preventing them from being flattened into generic standard text nodes.
   * **TCK & Integration Tests**: Added comprehensive test cases ensuring standalone and paragraph-embedded experimental macro syntax parses cleanly with 100% compliance across both local unit tests and the Technology Compatibility Kit (TCK) suite.
+* **Secure Directory Traversal Guard (Issue #83)**:
+  - Replaced prefix-based boundary checking with component-aware `os.path.commonpath` checks under `safe_mode` to secure sibling directories from path traversal vulnerabilities.
+* **Pytest Recursion Exclusions (Issue #84)**:
+  - Configured `norecursedirs` inside `pyproject.toml` to exclude `tests/include_fixtures`, preventing pytest and `asciidoctest` from scanning test inclusion files.
 
 == link:https://pypi.org/project/asciidoctrine/0.1.0a7/[0.1.0a7] - 2026-07-13
 

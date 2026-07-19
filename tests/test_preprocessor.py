@@ -5,10 +5,15 @@ Tests for the AsciiDoc preprocessor.
 import os
 import tempfile
 import unittest
+import warnings
 
 import pytest
 
-from asciidoctrine.preprocessor import Preprocessor, PreprocessorError
+from asciidoctrine.preprocessor import (
+    Preprocessor,
+    PreprocessorError,
+    PreprocessorWarning,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -360,7 +365,10 @@ class PreprocessorTest(unittest.TestCase):
             warnings.simplefilter("always")
             processed = preprocessor.process(source)
             # Ensure the preprocessor ran to completion despite the warning
-            self.assertIn("Some text\n----\nListing text", processed)
+            self.assertIn(
+                "Some text\n--ASCIIDOCTRINE_OUTER_LISTING_START_4--\nListing text",
+                processed,
+            )
 
             # Verify that the PreprocessorWarning was raised
             self.assertEqual(len(w), 1)
@@ -380,7 +388,10 @@ class PreprocessorTest(unittest.TestCase):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             processed = preprocessor.process(source)
-            self.assertIn("Some text\n----\nListing text\n----", processed)
+            self.assertIn(
+                "Some text\n--ASCIIDOCTRINE_OUTER_LISTING_START_4--\nListing text\n--ASCIIDOCTRINE_OUTER_LISTING_END_4--",
+                processed,
+            )
 
             # Verify that no warnings were raised
             self.assertEqual(len(w), 0)
@@ -440,6 +451,247 @@ class PreprocessorTest(unittest.TestCase):
         source = 'include::many_lines.txt[lines="3.."]'
         processed = preprocessor.process(source)
         self.assertEqual(processed.strip(), "Line 3\nLine 4\nLine 5")
+
+    def test_same_length_listing_nesting_warning(self) -> None:
+        source = """----
+[source,python]
+----
+print("inner")
+----
+----"""
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            preprocessor.process(source)
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[0].category, PreprocessorWarning))
+            self.assertIn("same-length", str(w[0].message).lower())
+
+    def test_same_length_literal_nesting_warning(self) -> None:
+        source = """....
+[style=literal]
+....
+inner
+....
+...."""
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            preprocessor.process(source)
+            self.assertEqual(len(w), 1)
+            self.assertTrue(issubclass(w[0].category, PreprocessorWarning))
+            self.assertIn("same-length", str(w[0].message).lower())
+
+    def test_preprocess_directives_bypass(self) -> None:
+        # Create a child include file that would be included if processed.
+        with open(os.path.join(self.base_dir, "to_include.adoc"), "w") as f:
+            f.write("Included text")
+
+        source = "include::to_include.adoc[]\n\n----\nListing text\n----\n"
+
+        # When preprocess_directives=False, the include directive should NOT be processed/replaced.
+        # But standard outer listing block translation should still occur.
+        preprocessor = Preprocessor(base_dir=self.base_dir, preprocess_directives=False)
+        processed = preprocessor.process(source)
+
+        self.assertIn("include::to_include.adoc[]", processed)
+        self.assertNotIn("Included text", processed)
+        self.assertIn(
+            "--ASCIIDOCTRINE_OUTER_LISTING_START_4--\nListing text\n--ASCIIDOCTRINE_OUTER_LISTING_END_4--",
+            processed,
+        )
+
+    def test_ifdef_defined(self):
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        preprocessor.attributes = {"show-content": "true"}
+        source = "ifdef::show-content[]\nThis text should be visible.\nendif::[]"
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "This text should be visible.")
+
+    def test_ifdef_undefined(self):
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        preprocessor.attributes = {}
+        source = "ifdef::show-content[]\nThis text should not be visible.\nendif::[]"
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "")
+
+    def test_ifdef_and_operator(self):
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        preprocessor.attributes = {"attr-a": "yes", "attr-b": "yes"}
+        source = "ifdef::attr-a+attr-b[]\nVisible.\nendif::[]"
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "Visible.")
+
+        # One missing
+        preprocessor.attributes = {"attr-a": "yes"}
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "")
+
+    def test_ifdef_or_operator(self):
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        preprocessor.attributes = {"attr-a": "yes"}
+        source = "ifdef::attr-a,attr-b[]\nVisible.\nendif::[]"
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "Visible.")
+
+        # Neither present
+        preprocessor.attributes = {}
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "")
+
+    def test_ifdef_negation(self):
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        preprocessor.attributes = {}
+        source = "ifdef::!hidden-content[]\nVisible when not hidden.\nendif::[]"
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "Visible when not hidden.")
+
+        # Hidden defined
+        preprocessor.attributes = {"hidden-content": ""}
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "")
+
+    def test_ifndef(self):
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        preprocessor.attributes = {}
+        source = (
+            "ifndef::some-attr[]\nVisible because some-attr is NOT defined.\nendif::[]"
+        )
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "Visible because some-attr is NOT defined.")
+
+        # Defined
+        preprocessor.attributes = {"some-attr": ""}
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "")
+
+    def test_ifdef_single_line_shorthand(self):
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        preprocessor.attributes = {"show-it": "true"}
+        source = "ifdef::show-it[This is single line text.]\nThis is always visible."
+        processed = preprocessor.process(source)
+        self.assertEqual(
+            processed.strip(), "This is single line text.\nThis is always visible."
+        )
+
+        # Undefined
+        preprocessor.attributes = {}
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "This is always visible.")
+
+    def test_dynamic_attribute_definition(self):
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        source = (
+            ":my-dynamic-attr: hello\n"
+            "ifdef::my-dynamic-attr[]\n"
+            "Parsed dynamically.\n"
+            "endif::[]\n"
+            ":!my-dynamic-attr:\n"
+            "ifdef::my-dynamic-attr[]\n"
+            "Should not be parsed now.\n"
+            "endif::[]"
+        )
+        processed = preprocessor.process(source)
+        # Note: Attribute declarations themselves are preserved or kept as-is,
+        # but the conditional blocks are evaluated.
+        # Wait, does the preprocessor output the attribute declarations?
+        # Yes, attribute entries can remain for the parser/resolver, or be stripped.
+        # But wait! In standard AsciiDoc, attribute declarations on their own line are kept
+        # in the output so the AST can parse them as attribute_entry nodes.
+        # So we expect the output to preserve the attribute declarations.
+        expected = ":my-dynamic-attr: hello\nParsed dynamically.\n:!my-dynamic-attr:"
+        self.assertEqual(processed.strip(), expected.strip())
+
+    def test_nested_ifdefs(self):
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        preprocessor.attributes = {"outer": "", "inner": ""}
+        source = (
+            "ifdef::outer[]\n"
+            "Outer visible.\n"
+            "ifdef::inner[]\n"
+            "Inner visible.\n"
+            "endif::[]\n"
+            "Outer still visible.\n"
+            "endif::[]"
+        )
+        processed = preprocessor.process(source)
+        expected = "Outer visible.\nInner visible.\nOuter still visible."
+        self.assertEqual(processed.strip(), expected.strip())
+
+        # Inner disabled
+        preprocessor.attributes = {"outer": ""}
+        processed = preprocessor.process(source)
+        expected = "Outer visible.\nOuter still visible."
+        self.assertEqual(processed.strip(), expected.strip())
+
+    def test_empty_condition_evaluation(self):
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        # Empty condition inside ifdef or ifndef
+        source = "ifdef::[]\nInside empty ifdef block.\nendif::[]"
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "")
+
+    def test_shorthand_ifndef_parsing(self):
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        preprocessor.attributes = {}
+        # ifndef with shorthand body
+        source = "ifndef::unset_attr[shorthand text for unset]"
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "shorthand text for unset")
+
+        # ifndef with shorthand body where attribute IS set
+        preprocessor.attributes = {"unset_attr": "value"}
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "")
+
+    def test_alternate_attribute_deletion(self):
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        source = (
+            ":my_attr: hello\n"
+            "ifdef::my_attr[]\n"
+            "Visible 1\n"
+            "endif::[]\n"
+            ":my_attr!:\n"
+            "ifdef::my_attr[]\n"
+            "Visible 2\n"
+            "endif::[]"
+        )
+        processed = preprocessor.process(source)
+        expected = ":my_attr: hello\nVisible 1\n:my_attr!:"
+        self.assertEqual(processed.strip(), expected.strip())
+
+    def test_include_inside_verbatim_block(self):
+        # Create a file to include
+        included_file = os.path.join(self.base_dir, "to_include.adoc")
+        with open(included_file, "w") as f:
+            f.write("content inside included file\n")
+
+        try:
+            preprocessor = Preprocessor(base_dir=self.base_dir)
+            source = "----\ninclude::to_include.adoc[]\n----"
+            processed = preprocessor.process(source)
+            expected = (
+                "--ASCIIDOCTRINE_OUTER_LISTING_START_4--\n"
+                "content inside included file\n"
+                "--ASCIIDOCTRINE_OUTER_LISTING_END_4--"
+            )
+            self.assertEqual(processed.strip(), expected.strip())
+        finally:
+            if os.path.exists(included_file):
+                os.remove(included_file)
+
+    def test_include_security_inside_verbatim_block(self):
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        # Attempt traversal include inside verbatim block
+        source = "----\ninclude::../outside_fixtures/secret.adoc[]\n----"
+        with self.assertRaises(PreprocessorError) as context:
+            preprocessor.process(source)
+        self.assertIn(
+            "attempts to access files outside the base directory",
+            str(context.exception),
+        )
 
 
 if __name__ == "__main__":
