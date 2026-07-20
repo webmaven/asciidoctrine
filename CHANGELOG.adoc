@@ -19,6 +19,12 @@ All notable changes to this project will be documented in this file.
 * **API Documentation**:
   - Generated complete API reference stubs for all core system modules.
 
+=== Changed
+* **Stricter Parsing & Post-AST Syntax Auditor**:
+  - Implemented an advanced `ASTSyntaxAuditor` node visitor that acts as a post-parsing syntax validation engine.
+  - Transitioned from an ad-hoc hybrid preprocessor validation layer to a structured, post-AST semantic checker, guaranteeing much stricter and faster compliance checks.
+  - Enabled precise, coordinate-correct syntax error tracking (mapping errors directly back to the physical source file and line) across multi-level include files.
+
 === Fixed
 * **Strict Type Safety**:
   - Resolved dynamic attribute typing error on `Node` objects to achieve 100% type safety compliance under Mypy's strict configuration.
