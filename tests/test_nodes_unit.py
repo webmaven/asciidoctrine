@@ -14,6 +14,7 @@ from asciidoctrine.nodes import (
     Callout,
     CalloutList,
     CalloutListItem,
+    Collapsible,
     DescriptionList,
     DescriptionListItem,
     DescriptionListTerm,
@@ -22,6 +23,7 @@ from asciidoctrine.nodes import (
     FloatingTitle,
     Header,
     Image,
+    IndexTerm,
     InlineNode,
     InlineStem,
     Kbd,
@@ -444,6 +446,34 @@ class TestNodesUnit(unittest.TestCase):
         pb = PageBreak()
         self.assertEqual(pb.name, "page_break")
         self.assertEqual(pb.type, "block")
+
+    def test_collapsible_and_index_term(self):
+        # Collapsible Block Node
+        coll = Collapsible(
+            title=Title([Text("Summary")]),
+            blocks=[Paragraph([Text("Detail content")])],
+            attributes={"options": "collapsible"}
+        )
+        self.assertEqual(coll.name, "collapsible")
+        self.assertEqual(coll.type, "block")
+        self.assertEqual(coll.get_child_collections(), {"blocks": coll.blocks})
+        d_coll = coll.to_dict()
+        self.assertEqual(d_coll["name"], "collapsible")
+        self.assertEqual(d_coll["type"], "block")
+        self.assertEqual(d_coll["attributes"], {"options": "collapsible"})
+        self.assertIn("title", d_coll)
+        self.assertEqual(len(d_coll["blocks"]), 1)
+
+        # IndexTerm Inline Node
+        idx = IndexTerm(terms=["primary", "secondary"], variant="macro")
+        self.assertEqual(idx.name, "indexterm")
+        self.assertEqual(idx.type, "inline")
+        self.assertEqual(idx.get_child_collections(), {"inlines": idx.inlines})
+        d_idx = idx.to_dict()
+        self.assertEqual(d_idx["name"], "indexterm")
+        self.assertEqual(d_idx["type"], "inline")
+        self.assertEqual(d_idx["terms"], ["primary", "secondary"])
+        self.assertEqual(d_idx["variant"], "macro")
 
 
 if __name__ == "__main__":
