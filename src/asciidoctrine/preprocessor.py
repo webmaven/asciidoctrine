@@ -380,7 +380,17 @@ class Preprocessor:
         """
         self.is_preprocessed = False
         self.included_files_set.clear()
+        self.line_map = {}
+        self._global_line_counter = 1
         return self._process_source(source, "<root>", [], [], None, None)
+
+    def _record_line(self, file_path: str, line_num: int) -> None:
+        if not hasattr(self, "line_map"):
+            self.line_map = {}
+        if not hasattr(self, "_global_line_counter"):
+            self._global_line_counter = 1
+        self.line_map[self._global_line_counter] = (file_path, line_num)
+        self._global_line_counter += 1
 
     def _process_source(
         self,
@@ -442,6 +452,7 @@ class Preprocessor:
                             eval_res = self._evaluate_condition(cond_str)
                             if eval_res:
                                 newline = "\n" if line.endswith("\n") else ""
+                                self._record_line(current_file, line_num)
                                 processed_lines.append(body_str + newline)
                     continue
 
@@ -460,6 +471,7 @@ class Preprocessor:
                             eval_res = not self._evaluate_condition(cond_str)
                             if eval_res:
                                 newline = "\n" if line.endswith("\n") else ""
+                                self._record_line(current_file, line_num)
                                 processed_lines.append(body_str + newline)
                     continue
 
@@ -488,6 +500,7 @@ class Preprocessor:
                 metadata_pending = False
             elif in_verbatim is None and is_metadata(line_strip):
                 metadata_pending = True
+                self._record_line(current_file, line_num)
                 processed_lines.append(line)
                 continue
 
@@ -516,6 +529,7 @@ class Preprocessor:
                     metadata_pending = False
                     if delimiter_stack and delimiter_stack[-1] == line_strip:
                         delimiter_stack.pop()
+                    self._record_line(current_file, line_num)
                     processed_lines.append(line)
                     continue
                 else:
@@ -544,6 +558,7 @@ class Preprocessor:
                             metadata_pending = True
                         else:
                             metadata_pending = False
+                        self._record_line(current_file, line_num)
                         processed_lines.append(line)
                     continue
 
@@ -554,6 +569,7 @@ class Preprocessor:
                 expected_closer = line_strip
                 delimiter_stack.append(line_strip)
                 metadata_pending = False
+                self._record_line(current_file, line_num)
                 processed_lines.append(line)
                 continue
             elif is_literal_delim:
@@ -562,6 +578,7 @@ class Preprocessor:
                 expected_closer = line_strip
                 delimiter_stack.append(line_strip)
                 metadata_pending = False
+                self._record_line(current_file, line_num)
                 processed_lines.append(line)
                 continue
             elif is_passthrough_delim:
@@ -570,6 +587,7 @@ class Preprocessor:
                 expected_closer = line_strip
                 delimiter_stack.append(line_strip)
                 metadata_pending = False
+                self._record_line(current_file, line_num)
                 processed_lines.append(line)
                 continue
             elif is_comment_delim:
@@ -578,12 +596,14 @@ class Preprocessor:
                 expected_closer = line_strip
                 delimiter_stack.append(line_strip)
                 metadata_pending = False
+                self._record_line(current_file, line_num)
                 processed_lines.append(line)
                 continue
             elif self.delimiter_regex.match(line_strip):
                 # Other delimiters (e.g. ====, ****)
                 self._update_delimiter_stack(line_strip, delimiter_stack)
                 metadata_pending = False
+                self._record_line(current_file, line_num)
                 processed_lines.append(line)
             else:
                 # Normal line
@@ -605,6 +625,7 @@ class Preprocessor:
                     )
                     processed_lines.append(processed_content)
                 else:
+                    self._record_line(current_file, line_num)
                     processed_lines.append(line)
 
         if current_file == "<root>":

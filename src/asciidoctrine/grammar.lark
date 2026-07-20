@@ -185,7 +185,8 @@ inline_latexmath.10: "latexmath:[" [ATTR_LIST_CONTENT] "]"
 inline_pass_macro.20: "pass:[" [PASS_MACRO_CONTENT] "]"
 inline_triple_plus.20: "+++" [PASS_TRIPLE_CONTENT] "+++"
 
-block_macro.50: WORD "::" [MACRO_TARGET] [LSQB] [ATTR_LIST_CONTENT] [RSQB] _NEWLINE
+block_macro.50: WORD "::" MACRO_TARGET [LSQB] [ATTR_LIST_CONTENT] [RSQB] _NEWLINE
+              | WORD "::" LSQB [ATTR_LIST_CONTENT] RSQB _NEWLINE
 
 inline_image.10: "image:" TARGET inline_attribute_list
 icon_inline.10: "icon:" TARGET inline_attribute_list
