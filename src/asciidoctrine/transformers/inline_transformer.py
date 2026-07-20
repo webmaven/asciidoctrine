@@ -339,6 +339,12 @@ class InlineTransformer(BaseTransformer):
         return cast(Ref, self._set_location_from_children(ref, children))
 
     @v_args(meta=True)
+    def bare_url_link(self, meta: Any, children: PyList[Any]) -> Ref:
+        target = str(children[0].value)
+        ref = Ref(variant="link", target=target.strip(), inlines=[])
+        return cast(Ref, self._set_location_from_children(ref, children))
+
+    @v_args(meta=True)
     def inline_bibref(self, meta: Any, children: PyList[Any]) -> Ref:
         nodes = children[0]
         target = "".join(

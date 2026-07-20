@@ -3,6 +3,28 @@
 
 All notable changes to this project will be documented in this file.
 
+== link:https://pypi.org/project/asciidoctrine/0.1.0a10/[0.1.0a10] - 2026-07-20
+
+=== Added
+* **Bare URL Links Support**:
+  - Added robust support for parsing, serializing, and rendering bare URL and mailto references (e.g., `https://google.com` or `mailto:zopemaven@gmail.com`) inside paragraphs and inlines.
+  - Handled proper Docutils rendering fallback and lossless AST round-trip serialization for bare URLs without trailing brackets `[]`.
+* **Multi-Block List Continuations (`+`)**:
+  - Implemented complete, native parsing and structural resolution for list continuation delimiters (`+`), enabling subsequent paragraphs, admonitions, and nested lists to attach seamlessly to parent list items.
+* **Architectural & Design Documentation**:
+  - Formally documented **Recursive Include Coordinate Mapping** and **Permissive Parsing & Error Recovery** pipelines in `docs/architecture.adoc`.
+* **AsciiDoc Language Specification & Feature Matrix**:
+  - Expanded `FEATURE_MATRIX.adoc` with **10 newly tracked language features** and linked them directly to Peggy prototyping grammars in the AsciiDoc Parsing Lab.
+  - Promoted several feature rows (such as Collapsible Blocks, STEM Blocks, Index Terms, Inline Anchors, Conditional Directives, Comment Blocks, Checklists, and List Continuations) to **Fully Supported**.
+* **API Documentation**:
+  - Generated complete API reference stubs for all core system modules.
+
+=== Fixed
+* **Strict Type Safety**:
+  - Resolved dynamic attribute typing error on `Node` objects to achieve 100% type safety compliance under Mypy's strict configuration.
+* **Technical Debt Pruning**:
+  - Marked resolved parser issues and documentation stubs as complete in `TECHNICAL-DEBT.adoc`.
+
 == link:https://pypi.org/project/asciidoctrine/0.1.0a9/[0.1.0a9] - 2026-07-19
 
 === Added

@@ -441,20 +441,24 @@ class AsciiDocSerializerVisitor(NodeVisitor):
                 or target.startswith("https://")
                 or target.startswith("mailto:")
             )
-            prefix = "" if has_scheme else "link:"
-            self.write(f"{prefix}{target}[")
-
-            label_parts = []
-            for child in getattr(node, "inlines", []):
-                # Temporary sub-visitor or check to serialize inner label inlines
-                label_parts.append(AsciiDocSerializerVisitor().serialize(child))
-            self.write("".join(label_parts))
-
-            # Optional other attributes
             attrs = getattr(node, "attributes", {}) or {}
-            if attrs.get("window") == "_blank":
-                self.write("^")
-            self.write("]")
+            inlines = getattr(node, "inlines", []) or []
+            if has_scheme and not inlines and not attrs:
+                self.write(target)
+            else:
+                prefix = "" if has_scheme else "link:"
+                self.write(f"{prefix}{target}[")
+
+                label_parts = []
+                for child in inlines:
+                    # Temporary sub-visitor or check to serialize inner label inlines
+                    label_parts.append(AsciiDocSerializerVisitor().serialize(child))
+                self.write("".join(label_parts))
+
+                # Optional other attributes
+                if attrs.get("window") == "_blank":
+                    self.write("^")
+                self.write("]")
         elif variant == "xref":
             self.write(f"<<{target}")
             label_parts = []

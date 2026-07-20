@@ -21,6 +21,10 @@ Classes
      - .. autodoc2-docstring:: asciidoctrine.lark_parser.AsciiDocTransformer
           :parser: sphinx_asciidoctrine.parser
           :summary:
+   * - :py:obj:`ASTSyntaxAuditor <asciidoctrine.lark_parser.ASTSyntaxAuditor>`
+     - .. autodoc2-docstring:: asciidoctrine.lark_parser.ASTSyntaxAuditor
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
 
 Functions
 ~~~~~~~~~
@@ -29,6 +33,30 @@ Functions
    :class: autosummary longtable
    :align: left
 
+   * - :py:obj:`is_continuation_paragraph <asciidoctrine.lark_parser.is_continuation_paragraph>`
+     - .. autodoc2-docstring:: asciidoctrine.lark_parser.is_continuation_paragraph
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
+   * - :py:obj:`find_deepest_active_list_item <asciidoctrine.lark_parser.find_deepest_active_list_item>`
+     - .. autodoc2-docstring:: asciidoctrine.lark_parser.find_deepest_active_list_item
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
+   * - :py:obj:`resolve_block_internals <asciidoctrine.lark_parser.resolve_block_internals>`
+     - .. autodoc2-docstring:: asciidoctrine.lark_parser.resolve_block_internals
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
+   * - :py:obj:`split_continuation_paragraph <asciidoctrine.lark_parser.split_continuation_paragraph>`
+     - .. autodoc2-docstring:: asciidoctrine.lark_parser.split_continuation_paragraph
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
+   * - :py:obj:`expand_joint_paragraphs <asciidoctrine.lark_parser.expand_joint_paragraphs>`
+     - .. autodoc2-docstring:: asciidoctrine.lark_parser.expand_joint_paragraphs
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
+   * - :py:obj:`resolve_list_continuations <asciidoctrine.lark_parser.resolve_list_continuations>`
+     - .. autodoc2-docstring:: asciidoctrine.lark_parser.resolve_list_continuations
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
    * - :py:obj:`parse_to_ast <asciidoctrine.lark_parser.parse_to_ast>`
      - .. autodoc2-docstring:: asciidoctrine.lark_parser.parse_to_ast
           :parser: sphinx_asciidoctrine.parser
@@ -65,7 +93,7 @@ Data
 API
 ~~~
 
-.. py:exception:: AsciiDocSyntaxError(message: str, line: typing.Optional[int] = None, column: typing.Optional[int] = None, context: typing.Optional[str] = None)
+.. py:exception:: AsciiDocSyntaxError(message: str, line: typing.Optional[int] = None, column: typing.Optional[int] = None, context: typing.Optional[str] = None, filepath: typing.Optional[str] = None)
    :canonical: asciidoctrine.lark_parser.AsciiDocSyntaxError
 
    Bases: :py:obj:`ValueError`
@@ -312,7 +340,80 @@ API
    .. autodoc2-docstring:: asciidoctrine.lark_parser.DEFAULT_GRAMMAR
       :parser: sphinx_asciidoctrine.parser
 
-.. py:function:: parse_to_ast(source: str, grammar_file: str = DEFAULT_GRAMMAR, base_dir: typing.Optional[str] = None, safe_mode: bool = True, preprocess_directives: bool = True) -> asciidoctrine.nodes.Document
+.. py:class:: ASTSyntaxAuditor(source_lines: typing.List[str], line_map: typing.Optional[typing.Dict[int, typing.Tuple[str, int]]] = None)
+   :canonical: asciidoctrine.lark_parser.ASTSyntaxAuditor
+
+   Bases: :py:obj:`asciidoctrine.nodes.NodeVisitor`
+
+   .. autodoc2-docstring:: asciidoctrine.lark_parser.ASTSyntaxAuditor
+      :parser: sphinx_asciidoctrine.parser
+
+   .. rubric:: Initialization
+
+   .. autodoc2-docstring:: asciidoctrine.lark_parser.ASTSyntaxAuditor.__init__
+      :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: _get_origin(line_idx: int) -> typing.Tuple[typing.Optional[str], int]
+      :canonical: asciidoctrine.lark_parser.ASTSyntaxAuditor._get_origin
+
+      .. autodoc2-docstring:: asciidoctrine.lark_parser.ASTSyntaxAuditor._get_origin
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: visit_paragraph(node: asciidoctrine.nodes.Node) -> None
+      :canonical: asciidoctrine.lark_parser.ASTSyntaxAuditor.visit_paragraph
+
+      .. autodoc2-docstring:: asciidoctrine.lark_parser.ASTSyntaxAuditor.visit_paragraph
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: visit_cell(node: asciidoctrine.nodes.Node) -> None
+      :canonical: asciidoctrine.lark_parser.ASTSyntaxAuditor.visit_cell
+
+      .. autodoc2-docstring:: asciidoctrine.lark_parser.ASTSyntaxAuditor.visit_cell
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: generic_visit(node: asciidoctrine.nodes.Node, **kwargs: typing.Any) -> typing.Any
+      :canonical: asciidoctrine.lark_parser.ASTSyntaxAuditor.generic_visit
+
+      .. autodoc2-docstring:: asciidoctrine.lark_parser.ASTSyntaxAuditor.generic_visit
+         :parser: sphinx_asciidoctrine.parser
+
+.. py:function:: is_continuation_paragraph(node: asciidoctrine.nodes.Node) -> bool
+   :canonical: asciidoctrine.lark_parser.is_continuation_paragraph
+
+   .. autodoc2-docstring:: asciidoctrine.lark_parser.is_continuation_paragraph
+      :parser: sphinx_asciidoctrine.parser
+
+.. py:function:: find_deepest_active_list_item(node: asciidoctrine.nodes.Node) -> typing.Optional[asciidoctrine.nodes.ListItem]
+   :canonical: asciidoctrine.lark_parser.find_deepest_active_list_item
+
+   .. autodoc2-docstring:: asciidoctrine.lark_parser.find_deepest_active_list_item
+      :parser: sphinx_asciidoctrine.parser
+
+.. py:function:: resolve_block_internals(block: asciidoctrine.nodes.Node) -> asciidoctrine.nodes.Node
+   :canonical: asciidoctrine.lark_parser.resolve_block_internals
+
+   .. autodoc2-docstring:: asciidoctrine.lark_parser.resolve_block_internals
+      :parser: sphinx_asciidoctrine.parser
+
+.. py:function:: split_continuation_paragraph(node: asciidoctrine.nodes.Node) -> typing.Optional[tuple[asciidoctrine.nodes.Paragraph, asciidoctrine.nodes.Paragraph]]
+   :canonical: asciidoctrine.lark_parser.split_continuation_paragraph
+
+   .. autodoc2-docstring:: asciidoctrine.lark_parser.split_continuation_paragraph
+      :parser: sphinx_asciidoctrine.parser
+
+.. py:function:: expand_joint_paragraphs(blocks: typing.List[asciidoctrine.nodes.Node]) -> typing.List[asciidoctrine.nodes.Node]
+   :canonical: asciidoctrine.lark_parser.expand_joint_paragraphs
+
+   .. autodoc2-docstring:: asciidoctrine.lark_parser.expand_joint_paragraphs
+      :parser: sphinx_asciidoctrine.parser
+
+.. py:function:: resolve_list_continuations(blocks: typing.List[asciidoctrine.nodes.Node]) -> typing.List[asciidoctrine.nodes.Node]
+   :canonical: asciidoctrine.lark_parser.resolve_list_continuations
+
+   .. autodoc2-docstring:: asciidoctrine.lark_parser.resolve_list_continuations
+      :parser: sphinx_asciidoctrine.parser
+
+.. py:function:: parse_to_ast(source: str, grammar_file: str = DEFAULT_GRAMMAR, base_dir: typing.Optional[str] = None, safe_mode: bool = True, preprocess_directives: bool = True, strict: bool = True) -> asciidoctrine.nodes.Document
    :canonical: asciidoctrine.lark_parser.parse_to_ast
 
    .. autodoc2-docstring:: asciidoctrine.lark_parser.parse_to_ast

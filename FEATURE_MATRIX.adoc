@@ -170,7 +170,7 @@ AsciiDoctrine Support::
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-collapsible[Outline]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
 | -
-| Not Supported footnote:[No parsing rules or AST representation exist.]
+| link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *STEM Blocks*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-delimited-blocks--structural-containers[Outline]
@@ -200,7 +200,7 @@ AsciiDoctrine Support::
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-index-term-macros[Outline]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs[Peggy Inlines]
 | -
-| Not Supported footnote:[No parsing rules or AST representation exist.]
+| link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
 | *Typographic Replacements*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-typographic-replacements[Outline]
@@ -212,19 +212,19 @@ AsciiDoctrine Support::
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-ids--reference-names[Outline]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs[Peggy Inlines]
 | -
-| Partially Supported footnote:[Parsed into standard +Ref(variant="anchor")+ AST nodes, but falls back to generic link reference nodes in the Docutils backend.]
+| link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/docutils_backend.py[Fully Supported]
 
 | *Conditional Preprocessor Directives*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-conditional-directives[Outline]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-preprocessor.pegjs[Peggy Preprocessor]
 | -
-| Not Supported footnote:[No preprocessor-level conditional filtering is implemented yet.]
+| link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/preprocessor.py[Fully Supported]
 
 | *Comment Lines & Blocks*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-comments[Outline]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-preprocessor.pegjs[Peggy Preprocessor]
 | -
-| Partially Supported footnote:[Line comments are fully parsed and supported, but delimited comment blocks +////+ are not.]
+| link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/preprocessor.py[Fully Supported]
 
 | *Verbatim Block Callouts*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-callout-lists[Outline]
@@ -248,7 +248,7 @@ AsciiDoctrine Support::
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-checklists[Outline]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
 | -
-| Partially Supported footnote:[Parsed and checkbox state is stored in the AST node, but checkboxes are not rendered as distinct checkbox widgets in the Docutils/Sphinx renderer backend.]
+| link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/docutils_backend.py[Fully Supported]
 
 | *Block Passthroughs*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-passthroughs[Outline]
@@ -297,4 +297,64 @@ AsciiDoctrine Support::
 | -
 | -
 | Not Supported footnote:[No docinfo parsing or layout integration exists.]
+
+| *Attribute Comparison Directive (`ifeval::[]`)*
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/directives/pages/conditionals.adoc[Outline]
+| -
+| -
+| Not Supported footnote:[No parsing rules or evaluation logic exists for +ifeval::+ in the preprocessor.]
+
+| *Include Tagged Regions (`tag=name`)*
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/directives/pages/include-tagged-regions.adoc[Outline]
+| -
+| -
+| link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/preprocessor.py[Fully Supported]
+
+| *Include Line Slicing (`lines=range`)*
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/directives/pages/include-lines.adoc[Outline]
+| -
+| -
+| link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/preprocessor.py[Fully Supported]
+
+| *Include Level Offset (`leveloffset=val`)*
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/directives/pages/include-with-leveloffset.adoc[Outline]
+| -
+| -
+| link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/preprocessor.py[Fully Supported]
+
+| *Span Roles & Attributes (`[role]#text#`)*
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/text/pages/text-span-built-in-roles.adoc[Standardized]
+| -
+| -
+| Not Supported footnote:[No span-level custom role or inline attribute parsing/AST support exists.]
+
+| *Smart Quotes & Typographic Apostrophes*
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/text/pages/quotation-marks-and-apostrophes.adoc[Outline]
+| -
+| -
+| Not Supported footnote:[Quotes and apostrophes are processed as raw literal characters.]
+
+| *Backslash Escaping (`\*not bold*`)*
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/subs/pages/prevent.adoc[Outline]
+| link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs#L171[Peggy Inlines]
+| -
+| Not Supported footnote:[Backslash escaping of formatting nodes and attribute references is not fully integrated.]
+
+| *Table Data Formats (CSV / TSV / DSV)*
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/tables/pages/data-format.adoc[Outline]
+| -
+| -
+| Not Supported footnote:[Delimited external format loading is not supported in the tables parser.]
+
+| *Nested Tables*
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/tables/pages/nested.adoc[Outline]
+| -
+| -
+| Not Supported footnote:[Tables nested within parent table cells are not parsed.]
+
+| *List Continuation (`+` multi-block delimiter)*
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/lists/pages/continuation.adoc[Outline]
+| link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs#L474[Peggy Blocks]
+| -
+| link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 |===

@@ -28,10 +28,9 @@ This document tracks identified technical debt in the `asciidoctrine` project an
 * **Resolution**: Partitioned into `test_blocks_parsing.py`, `test_inlines_parsing.py`, and `test_attributes.py`.
 
 === 5. Error Handling & Recovery
-* **Status**: Low Priority
+* **Status**: Completed
 * **Description**: The parser often provides opaque Earley parse errors without helpful context or line numbers.
-* **Impact**: Poor developer/user experience when dealing with invalid AsciiDoc.
-* **Refactor Plan**: Implement custom error handlers and improve `Lark` error reporting.
+* **Resolution**: Implemented recursive include line mapping (`Preprocessor.line_map`) to track coordinates across sub-files, integrated exact file-origin error reporting for Lark parser errors, added a post-parse `ASTSyntaxAuditor` to validate unclosed blocks and malformed elements, and introduced a flexible/permissive mode (`strict=False`) that degrades failures into paragraphs rather than crashing execution.
 
 === 6. Type Hint Consistency
 * **Status**: In Progress

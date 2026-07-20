@@ -20,6 +20,8 @@ from .nodes import (
     Header,
     Image,
     Include,
+    List,
+    ListItem,
     Node,
     NodeVisitor,
     Open,
@@ -881,6 +883,119 @@ class ASTSyntaxAuditor(NodeVisitor):
         return super().generic_visit(node, **kwargs)
 
 
+def is_continuation_paragraph(node: Node) -> bool:
+    if isinstance(node, Paragraph):
+        if len(node.inlines) == 1 and isinstance(node.inlines[0], Text):
+            return node.inlines[0].value.strip() == "+"
+    return False
+
+
+def find_deepest_active_list_item(node: Node) -> Optional[ListItem]:
+    if isinstance(node, ListItem):
+        if node.blocks:
+            nested = find_deepest_active_list_item(node.blocks[-1])
+            if nested is not None:
+                return nested
+        return node
+    elif isinstance(node, List):
+        if node.items:
+            return find_deepest_active_list_item(node.items[-1])
+    return None
+
+
+def resolve_block_internals(block: Node) -> Node:
+    if isinstance(block, List):
+        for item in block.items:
+            item.blocks = resolve_list_continuations(item.blocks)
+    elif isinstance(block, ListItem):
+        block.blocks = resolve_list_continuations(block.blocks)
+    else:
+        collections = block.get_child_collections()
+        if "blocks" in collections:
+            block.blocks = resolve_list_continuations(collections["blocks"])  # type: ignore[attr-defined]
+    return block
+
+
+def split_continuation_paragraph(node: Node) -> Optional[tuple[Paragraph, Paragraph]]:
+    if isinstance(node, Paragraph) and node.inlines:
+        first_inline = node.inlines[0]
+        if isinstance(first_inline, Text) and first_inline.value:
+            val = first_inline.value
+            if val.startswith("+\n"):
+                continuation_text = Text("+")
+                continuation_text.location = first_inline.location
+                continuation_p = Paragraph(inlines=[continuation_text])
+                continuation_p.location = node.location
+
+                remaining_val = val[2:]
+                remaining_text = Text(remaining_val)
+                remaining_text.location = first_inline.location
+
+                remaining_inlines = [remaining_text] + node.inlines[1:]
+                remaining_p = Paragraph(inlines=remaining_inlines)
+                remaining_p.location = node.location
+
+                return continuation_p, remaining_p
+    return None
+
+
+def expand_joint_paragraphs(blocks: PyList[Node]) -> PyList[Node]:
+    expanded: PyList[Node] = []
+    for block in blocks:
+        split_res = split_continuation_paragraph(block)
+        if split_res is not None:
+            continuation_p, remaining_p = split_res
+            expanded.append(continuation_p)
+            expanded.append(remaining_p)
+        else:
+            expanded.append(block)
+    return expanded
+
+
+def resolve_list_continuations(blocks: PyList[Node]) -> PyList[Node]:
+    blocks = expand_joint_paragraphs(blocks)
+    resolved: PyList[Node] = []
+    last_active_item: Optional[ListItem] = None
+
+    i = 0
+    while i < len(blocks):
+        block = blocks[i]
+
+        if is_continuation_paragraph(block):
+            if last_active_item is not None and i + 1 < len(blocks):
+                continued_block = blocks[i + 1]
+                continued_block = resolve_block_internals(continued_block)
+                last_active_item.blocks.append(continued_block)
+                i += 2
+                continue
+
+        block = resolve_block_internals(block)
+
+        if isinstance(block, List) and resolved and isinstance(resolved[-1], List):
+            if (
+                resolved[-1].variant == block.variant
+                and resolved[-1].marker == block.marker
+            ):
+                resolved[-1].items.extend(block.items)
+                deepest = find_deepest_active_list_item(resolved[-1])
+                if deepest is not None:
+                    last_active_item = deepest
+                i += 1
+                continue
+
+        if isinstance(block, List):
+            deepest = find_deepest_active_list_item(block)
+            if deepest is not None:
+                last_active_item = deepest
+        elif isinstance(block, ListItem):
+            last_active_item = find_deepest_active_list_item(block)
+
+        resolved.append(block)
+        i += 1
+
+    return resolved
+
+
 def parse_to_ast(
     source: str,
     grammar_file: str = DEFAULT_GRAMMAR,
@@ -951,6 +1066,7 @@ def parse_to_ast(
     ast_root = AsciiDocTransformer().transform(tree)
     if not isinstance(ast_root, Document):
         raise TypeError("Parsing did not return a Document node.")
+    ast_root.blocks = resolve_list_continuations(ast_root.blocks)
     ast_root.had_trailing_newline = had_trailing_newline
     ast_root.line_ending = line_ending
     ast_root.is_preprocessed = preprocessor.is_preprocessed

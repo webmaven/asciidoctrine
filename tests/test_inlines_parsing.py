@@ -330,6 +330,53 @@ class TestInlines(unittest.TestCase):
             it_node3["inlines"][0]["value"], "primary, secondary, tertiary"
         )
 
+    def test_bare_url_links(self) -> None:
+        # 1. Parse bare URL
+        ast = self._strip_locations(
+            parse_to_ast("Visit https://google.com for info.").to_dict()
+        )
+        p_inlines = ast["blocks"][0]["inlines"]
+        self.assertEqual(len(p_inlines), 3)
+        self.assertEqual(p_inlines[0]["value"], "Visit ")
+
+        link_node = p_inlines[1]
+        self.assertEqual(link_node["name"], "ref")
+        self.assertEqual(link_node["variant"], "link")
+        self.assertEqual(link_node["target"], "https://google.com")
+        self.assertEqual(link_node["inlines"], [])
+
+        self.assertEqual(p_inlines[2]["value"], " for info.")
+
+        # 2. Serialize bare URL
+        from asciidoctrine.serializer import AsciiDocSerializerVisitor
+
+        doc = parse_to_ast("Visit https://google.com for info.")
+        serialized = AsciiDocSerializerVisitor().serialize(doc)
+        self.assertEqual(serialized.strip(), "Visit https://google.com for info.")
+
+        # 3. Render to docutils
+        from asciidoctrine.docutils_backend import asciidoc_to_docutils
+
+        docutils_root = asciidoc_to_docutils("Visit https://google.com for info.")
+        # Search for reference node
+        import docutils.nodes as docutils_nodes
+
+        ref_nodes = list(docutils_root.findall(docutils_nodes.reference))
+        self.assertEqual(len(ref_nodes), 1)
+        self.assertEqual(ref_nodes[0]["refuri"], "https://google.com")
+        self.assertEqual(ref_nodes[0].astext(), "https://google.com")
+
+        # 4. Standard link with attributes takes priority over bare URL
+        ast2 = self._strip_locations(
+            parse_to_ast("Visit https://google.com[Google] today.").to_dict()
+        )
+        p_inlines2 = ast2["blocks"][0]["inlines"]
+        link_node2 = p_inlines2[1]
+        self.assertEqual(link_node2["name"], "ref")
+        self.assertEqual(link_node2["variant"], "link")
+        self.assertEqual(link_node2["target"], "https://google.com")
+        self.assertEqual(link_node2["inlines"][0]["value"], "Google")
+
 
 if __name__ == "__main__":
     unittest.main()

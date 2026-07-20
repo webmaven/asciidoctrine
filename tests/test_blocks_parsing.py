@@ -82,6 +82,55 @@ class TestBlocks(unittest.TestCase):
         self.assertEqual(ast["blocks"][0]["variant"], "ordered")
         self.assertEqual(len(ast["blocks"][0]["items"]), 3)
 
+    def test_list_continuation_parsing(self):
+        source = (
+            "* List item 1\n"
+            "+\n"
+            "This paragraph is continued under list item 1\n"
+            "+\n"
+            "This second paragraph is also continued!\n"
+            "* List item 2\n"
+            "** Nested list item 2a\n"
+            "+\n"
+            "This paragraph continues under 2a\n"
+        )
+        doc = parse_to_ast(source)
+        ast = doc.to_dict()
+
+        blocks = ast["blocks"]
+        self.assertEqual(len(blocks), 1)
+        self.assertEqual(blocks[0]["name"], "list")
+
+        items = blocks[0]["items"]
+        self.assertEqual(len(items), 2)
+
+        item1 = items[0]
+        self.assertEqual(len(item1["blocks"]), 2)
+        self.assertEqual(item1["blocks"][0]["name"], "paragraph")
+        self.assertEqual(
+            item1["blocks"][0]["inlines"][0]["value"],
+            "This paragraph is continued under list item 1",
+        )
+        self.assertEqual(item1["blocks"][1]["name"], "paragraph")
+        self.assertEqual(
+            item1["blocks"][1]["inlines"][0]["value"],
+            "This second paragraph is also continued!",
+        )
+
+        item2 = items[1]
+        self.assertEqual(len(item2["blocks"]), 1)
+        nested_list = item2["blocks"][0]
+        self.assertEqual(nested_list["name"], "list")
+        nested_item = nested_list["items"][0]
+        self.assertEqual(nested_item["marker"], "**")
+
+        self.assertEqual(len(nested_item["blocks"]), 1)
+        self.assertEqual(nested_item["blocks"][0]["name"], "paragraph")
+        self.assertEqual(
+            nested_item["blocks"][0]["inlines"][0]["value"],
+            "This paragraph continues under 2a",
+        )
+
     def test_source_block_attributes(self):
         source = "[source,python]\n----\ndef foo(): pass\n----\n"
         ast = parse_to_ast(source).to_dict()

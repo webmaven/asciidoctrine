@@ -468,8 +468,11 @@ class DocutilsRenderer(NodeVisitor):
 
         old_parent = self.current_node
         self.current_node = link_node
-        for inline in node.inlines:
-            self.visit(inline)
+        if node.inlines:
+            for inline in node.inlines:
+                self.visit(inline)
+        else:
+            self.current_node += nodes.Text(node.target)
         old_parent += link_node
         self.current_node = old_parent
 
