@@ -59,6 +59,7 @@ class Preprocessor:
         )
         self.is_preprocessed = False
         self.included_files_set: set[str] = set()
+        self.line_map: dict[int, tuple[str, int]] = {}
 
     def _parse_attributes(self, attr_str: str) -> dict[str, str]:
         """

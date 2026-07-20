@@ -24,3 +24,10 @@ repos:
         pass_filenames: false
         types: [python]
         stages: [manual] # Only run manually or in CI, too slow for commit hook
+
+      - id: run-doctests
+        name: Asciidoctor Doctests
+        entry: env RUN_DOCTESTS=1 venv/bin/pytest tests/test_doctest_parsing.py
+        language: system
+        pass_filenames: false
+        types: [python]

@@ -651,7 +651,7 @@ class AsciiDocTransformer(
             if target:
                 node.attributes["target"] = target
 
-        block.is_macro = True
+        block.is_macro = True  # type: ignore[attr-defined]
         return cast(BlockNode, self._set_location_from_children(block, children))
 
     @v_args(meta=True)
