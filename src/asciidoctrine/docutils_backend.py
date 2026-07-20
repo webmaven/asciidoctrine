@@ -15,12 +15,14 @@ from .nodes import (
     Callout,
     CalloutList,
     CalloutListItem,
+    Collapsible,
     DescriptionList,
     DescriptionListItem,
     DescriptionListTerm,
     Document,
     FloatingTitle,
     Image,
+    IndexTerm,
     InlineStem,
     Kbd,
     Listing,
@@ -650,6 +652,43 @@ class DocutilsRenderer(NodeVisitor):
 
     def visit_include(self, node: Any) -> None:
         pass
+
+    def visit_collapsible(self, node: Collapsible) -> None:
+        # Represent as a container with class 'collapsible'
+        container = nodes.container(classes=["collapsible"])
+        if node.title:
+            title_node = nodes.title()
+            old_parent_inner = self.current_node
+            self.current_node = title_node
+            self.visit(node.title)
+            container += title_node
+            self.current_node = old_parent_inner
+
+        old_parent = self.current_node
+        self.current_node = container
+        for block in node.blocks:
+            self.visit(block)
+        old_parent += container
+        self.current_node = old_parent
+
+    def visit_indexterm(self, node: IndexTerm) -> None:
+        try:
+            from sphinx import addnodes
+
+            # Define standard Sphinx index entry
+            # Tuples: (type, text, target, class, key)
+            entry_text = ", ".join(node.terms)
+            entry = ("single", entry_text, "", "", None)
+            idx = addnodes.index(entries=[entry])
+            self.current_node += idx
+        except ImportError:
+            # Sphinx not available, do not output index node
+            pass
+
+        if node.variant == "flow_double":
+            # For double parens, we also render the inline term text in-place
+            for inline in node.inlines:
+                self.visit(inline)
 
 
 def asciidoc_to_docutils(source: str, base_dir: Optional[str] = None) -> nodes.document:

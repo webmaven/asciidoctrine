@@ -13,6 +13,7 @@ from .nodes import (
     Audio,
     Author,
     BlockNode,
+    Collapsible,
     Document,
     Example,
     FloatingTitle,
@@ -394,6 +395,37 @@ class AsciiDocTransformer(
                     block.rows = new_rows
             except Exception:
                 pass
+
+        # Check if the block is collapsible
+        options = block.attributes.get("options", "")
+        is_collapsible = False
+        if isinstance(options, str):
+            is_collapsible = "collapsible" in [
+                opt.strip() for opt in options.split(",")
+            ]
+        elif isinstance(options, list):
+            opt_strings = []
+            for opt in options:
+                if hasattr(opt, "value"):
+                    opt_strings.append(opt.value)
+                else:
+                    opt_strings.append(str(opt))
+            is_collapsible = "collapsible" in opt_strings
+
+        style = block.attributes.get("style", "")
+        if isinstance(style, str) and style.lower() == "collapsible":
+            is_collapsible = True
+
+        if is_collapsible and isinstance(block, (Example, Open)):
+            blocks = block.blocks if hasattr(block, "blocks") else [block]
+            collapsible_block = Collapsible(
+                title=block.title,
+                blocks=blocks,
+                attributes=block.attributes,
+            )
+            collapsible_block.location = block.location
+            block = collapsible_block
+
         return cast(BlockNode, self._set_location_from_children(block, children))
 
     @v_args(meta=True)

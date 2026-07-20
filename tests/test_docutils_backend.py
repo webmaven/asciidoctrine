@@ -655,3 +655,44 @@ def test_floating_contentless_anchor_conversion():
     target_node = para[1]
     assert isinstance(target_node, nodes.target)
     assert "my-target" in target_node["ids"]
+
+
+def test_collapsible_block_conversion():
+    source = """.Summary Title
+[%collapsible]
+====
+This is collapsible.
+====
+"""
+    document = asciidoc_to_docutils(source)
+    container = document[0]
+    assert isinstance(container, nodes.container)
+    assert "collapsible" in container["classes"]
+    assert isinstance(container[0], nodes.title)
+    assert container[0].astext() == "Summary Title"
+    assert isinstance(container[1], nodes.paragraph)
+    assert container[1].astext() == "This is collapsible."
+
+
+def test_index_term_conversion():
+    # 1. Macro variant
+    source = "Some text indexterm:[primary, secondary, tertiary] rest of text."
+    document = asciidoc_to_docutils(source)
+    para = document[0]
+    assert isinstance(para, nodes.paragraph)
+    from sphinx import addnodes
+
+    idx = para[1]
+    assert isinstance(idx, addnodes.index)
+    assert idx["entries"][0][1] == "primary, secondary, tertiary"
+
+    # 2. Flow double variant (visible term)
+    source2 = "See ((single index entry)) inside paragraph."
+    document2 = asciidoc_to_docutils(source2)
+    para2 = document2[0]
+    # Check that nodes.index node is inserted, followed by the text inline
+    idx2 = para2[1]
+    assert isinstance(idx2, addnodes.index)
+    assert idx2["entries"][0][1] == "single index entry"
+    # The term should be outputted in-place as well
+    assert "single index entry" in para2.astext()
