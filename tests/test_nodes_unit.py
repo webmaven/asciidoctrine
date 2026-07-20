@@ -452,7 +452,7 @@ class TestNodesUnit(unittest.TestCase):
         coll = Collapsible(
             title=Title([Text("Summary")]),
             blocks=[Paragraph([Text("Detail content")])],
-            attributes={"options": "collapsible"}
+            attributes={"options": "collapsible"},
         )
         self.assertEqual(coll.name, "collapsible")
         self.assertEqual(coll.type, "block")

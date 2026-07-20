@@ -607,4 +607,8 @@ class Preprocessor:
                 else:
                     processed_lines.append(line)
 
+        if current_file == "<root>":
+            self.root_in_verbatim = in_verbatim
+            self.root_delimiter_stack = list(delimiter_stack)
+
         return "".join(processed_lines)

@@ -826,6 +826,34 @@ It should be parsed.
         resolved_ast = ASGResolver(doc).resolve(doc)
         self.assertEqual(len(resolved_ast["blocks"]), 0)
 
+    def test_collapsible_block(self) -> None:
+        source = """.Summary Title
+[%collapsible]
+====
+This content is collapsible.
+====
+"""
+        ast = parse_to_ast(source).to_dict()
+        self.assertEqual(len(ast["blocks"]), 1)
+        block = ast["blocks"][0]
+        self.assertEqual(block["name"], "collapsible")
+        self.assertEqual(block["type"], "block")
+        self.assertEqual(block["title"]["name"], "title")
+        self.assertEqual(block["title"]["inlines"][0]["value"], "Summary Title")
+        self.assertEqual(block["blocks"][0]["name"], "paragraph")
+        self.assertEqual(
+            block["blocks"][0]["inlines"][0]["value"], "This content is collapsible."
+        )
+
+        # Test alternative syntax: style="collapsible"
+        source2 = """[collapsible]
+====
+Alternative collapsible.
+====
+"""
+        ast2 = parse_to_ast(source2).to_dict()
+        self.assertEqual(ast2["blocks"][0]["name"], "collapsible")
+
 
 if __name__ == "__main__":
     unittest.main()

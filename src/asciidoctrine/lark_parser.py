@@ -680,12 +680,130 @@ class AsciiDocTransformer(
 DEFAULT_GRAMMAR = os.path.join(os.path.dirname(__file__), "grammar.lark")
 
 
+def _validate_strict(source: str) -> None:
+    """
+    Scans the source document line-by-line for syntax errors that would
+    otherwise be silently swallowed as paragraphs by Lark's context-aware Earley parser.
+    """
+    lines = source.splitlines()
+    in_table = False
+    for idx, line in enumerate(lines, start=1):
+        line_strip = line.strip()
+        if not line_strip:
+            continue
+
+        # Detect table boundary
+        if line_strip == "|===":
+            in_table = not in_table
+            continue
+
+        # 1. Malformed block attribute lists (unclosed or unbalanced brackets)
+        if line_strip.startswith("[") and not line_strip.startswith("[["):
+            open_brackets = line_strip.count("[")
+            close_brackets = line_strip.count("]")
+            if open_brackets != close_brackets:
+                raise AsciiDocSyntaxError(
+                    f"Syntax error: Malformed block attribute list (unbalanced brackets) at line {idx}.",
+                    line=idx,
+                    column=1,
+                    context=line,
+                )
+
+        # 2. Malformed block macros (e.g. image::logo.png with missing brackets)
+        if "::" in line_strip and "[" not in line_strip and "]" not in line_strip:
+            if not any(
+                line_strip.startswith(prefix)
+                for prefix in ["http://", "https://", "ftp://", "file://"]
+            ):
+                macro_match = re.match(
+                    r"^\s*([a-zA-Z0-9_-]+)::([^\s\[:]+)$", line_strip
+                )
+                if macro_match:
+                    raise AsciiDocSyntaxError(
+                        f"Syntax error: Malformed block macro '{macro_match.group(1)}::' (missing brackets) at line {idx}.",
+                        line=idx,
+                        column=len(line) - len(line.lstrip()) + 1,
+                        context=line,
+                    )
+
+        # 3. Malformed description lists (e.g. marker on its own with no term)
+        if re.match(r"^\s*(::+|;;)\s+", line_strip) or line_strip in (
+            "::",
+            ":::",
+            "::::",
+            ";;",
+        ):
+            raise AsciiDocSyntaxError(
+                f"Syntax error: Malformed description list marker (missing term) at line {idx}.",
+                line=idx,
+                column=1,
+                context=line,
+            )
+
+        # 5. Malformed inline anchors (unclosed [[)
+        if "[[" in line_strip and "]]" not in line_strip:
+            raise AsciiDocSyntaxError(
+                f"Syntax error: Unclosed inline anchor at line {idx}.",
+                line=idx,
+                column=line.find("[[") + 1,
+                context=line,
+            )
+
+        # 6. Unclosed inline footnotes
+        for fn_type in ("footnote:[", "footnoteref:["):
+            if fn_type in line_strip:
+                start_idx = line_strip.find(fn_type)
+                sub = line_strip[start_idx:]
+                open_cnt = 0
+                closed = False
+                for char in sub:
+                    if char == "[":
+                        open_cnt += 1
+                    elif char == "]":
+                        open_cnt -= 1
+                        if open_cnt == 0:
+                            closed = True
+                            break
+                if not closed:
+                    raise AsciiDocSyntaxError(
+                        f"Syntax error: Unclosed inline footnote at line {idx}.",
+                        line=idx,
+                        column=line.find(fn_type) + 1,
+                        context=line,
+                    )
+
+        # 7. Malformed table cell specifiers (e.g. |2.. Cell)
+        if in_table and line_strip.startswith("|") and line_strip != "|===":
+            spec_match = re.match(r"^\|([0-9.+\*]*[<>\^.]*[adehlms]?)\s", line_strip)
+            if spec_match:
+                spec_content = spec_match.group(1)
+                if spec_content:
+                    is_valid = True
+                    if ".." in spec_content:
+                        is_valid = False
+                    elif spec_content.endswith("."):
+                        is_valid = False
+                    elif any(c in spec_content for c in "0123456789.+*"):
+                        has_plus = "+" in spec_content
+                        has_star = "*" in spec_content
+                        if not (has_plus or has_star):
+                            is_valid = False
+                    if not is_valid:
+                        raise AsciiDocSyntaxError(
+                            f"Syntax error: Malformed table cell specifier '{spec_content}' at line {idx}.",
+                            line=idx,
+                            column=2,
+                            context=line,
+                        )
+
+
 def parse_to_ast(
     source: str,
     grammar_file: str = DEFAULT_GRAMMAR,
     base_dir: Optional[str] = None,
     safe_mode: bool = True,
     preprocess_directives: bool = True,
+    strict: bool = True,
 ) -> Document:
     # Detect if the original document preferred Windows CRLF or standard Unix LF
     # by checking if the very first newline sequence in the file is \r\n
@@ -709,6 +827,20 @@ def parse_to_ast(
         base_dir, safe_mode=safe_mode, preprocess_directives=preprocess_directives
     )
     processed_source = preprocessor.process(source)
+
+    if strict:
+        # Check for unclosed verbatim blocks
+        if getattr(preprocessor, "root_in_verbatim", None) is not None:
+            raise AsciiDocSyntaxError(
+                f"Syntax error: Unclosed verbatim block '{preprocessor.root_in_verbatim}'."
+            )
+        # Check for unclosed block delimiters
+        if getattr(preprocessor, "root_delimiter_stack", None):
+            raise AsciiDocSyntaxError(
+                f"Syntax error: Unclosed block delimiter '{preprocessor.root_delimiter_stack[-1]}'."
+            )
+        # Validate lines for inline/block markup syntax errors
+        _validate_strict(source)
 
     with open(grammar_file, "r") as f:
         grammar = f.read()

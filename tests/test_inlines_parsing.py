@@ -291,6 +291,45 @@ class TestInlines(unittest.TestCase):
         self.assertEqual(node_plus["value"], "<b>html</b>")
         self.assertNotIn("inlines", node_plus)
 
+    def test_indexterms_parsing(self) -> None:
+        # 1. Macro index term: indexterm:[primary,secondary,tertiary]
+        macro_ast = self._strip_locations(
+            parse_to_ast(
+                "Some text indexterm:[primary, secondary, tertiary] rest of text."
+            ).to_dict()
+        )
+        it_node = macro_ast["blocks"][0]["inlines"][1]
+        self.assertEqual(it_node["name"], "indexterm")
+        self.assertEqual(it_node["type"], "inline")
+        self.assertEqual(it_node["variant"], "macro")
+        self.assertEqual(it_node["terms"], ["primary", "secondary", "tertiary"])
+
+        # 2. Flow double index term: ((term))
+        double_ast = self._strip_locations(
+            parse_to_ast("See ((single index entry)) inside paragraph.").to_dict()
+        )
+        it_node2 = double_ast["blocks"][0]["inlines"][1]
+        self.assertEqual(it_node2["name"], "indexterm")
+        self.assertEqual(it_node2["type"], "inline")
+        self.assertEqual(it_node2["variant"], "flow_double")
+        self.assertEqual(it_node2["terms"], ["single index entry"])
+        self.assertEqual(it_node2["inlines"][0]["value"], "single index entry")
+
+        # 3. Flow triple index term: (((term1, term2)))
+        triple_ast = self._strip_locations(
+            parse_to_ast(
+                "See (((primary, secondary, tertiary))) nested inside flow."
+            ).to_dict()
+        )
+        it_node3 = triple_ast["blocks"][0]["inlines"][1]
+        self.assertEqual(it_node3["name"], "indexterm")
+        self.assertEqual(it_node3["type"], "inline")
+        self.assertEqual(it_node3["variant"], "flow_triple")
+        self.assertEqual(it_node3["terms"], ["primary", "secondary", "tertiary"])
+        self.assertEqual(
+            it_node3["inlines"][0]["value"], "primary, secondary, tertiary"
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

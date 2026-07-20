@@ -167,7 +167,7 @@ text_content: inline_element+
 
 attribute_reference.2: LBRACE ATTR_NAME RBRACE
 
-?base_inline: attribute_reference | inline_attribute_list | double_quoted | single_quoted | inline_image | icon_inline | inline_indexterm_macro | inline_indexterm_flow_triple | inline_indexterm_flow_double | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | inline_pass_macro | inline_triple_plus | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | BACKTICK | LT | GT | PLUS
+?base_inline: attribute_reference | inline_attribute_list | double_quoted | single_quoted | inline_image | icon_inline | inline_indexterm_macro | inline_indexterm_flow_triple | inline_indexterm_flow_double | inline_anchor | inline_xref | inline_bibref | inline_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | inline_pass_macro | inline_triple_plus | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | BACKTICK | LT | GT | PLUS | LPAR | RPAR
 
 ?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | marked | superscript | subscript | footnote | footnoteref | base_inline | RSQB | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
 
@@ -185,7 +185,7 @@ inline_latexmath.10: "latexmath:[" [ATTR_LIST_CONTENT] "]"
 inline_pass_macro.20: "pass:[" [PASS_MACRO_CONTENT] "]"
 inline_triple_plus.20: "+++" [PASS_TRIPLE_CONTENT] "+++"
 
-block_macro.50: WORD "::" [TARGET] [LSQB] [ATTR_LIST_CONTENT] [RSQB] _NEWLINE
+block_macro.50: WORD "::" [MACRO_TARGET] [LSQB] [ATTR_LIST_CONTENT] [RSQB] _NEWLINE
 
 inline_image.10: "image:" TARGET inline_attribute_list
 icon_inline.10: "icon:" TARGET inline_attribute_list
@@ -196,13 +196,14 @@ inline_bibref.12: "[[[" text_content "]]]"
 inline_link.10: "link:" (TARGET | URI) inline_attribute_list | URI inline_attribute_list
 
 URI.3: /(https?|ftp|file|irc):\/\/[^\[\n ]+/ | /mailto:[^\[\n ]+/
+MACRO_TARGET: /[^:\[\n ][^\[\n ]*/
 TARGET: /[^\[\n ]+/
 
 footnote.10: "footnote:" "[" footnote_text_content "]"
 footnoteref.10: "footnoteref:" "[" [FN_ID] ["," [WHITESPACE] footnote_text_content] "]"
 
 inline_indexterm_macro.20: "indexterm:[" [ATTR_LIST_CONTENT] "]"
-inline_indexterm_flow_triple.20: "(((" text_content ")))"
+inline_indexterm_flow_triple.30: "(((" text_content ")))"
 inline_indexterm_flow_double.20: "((" text_content "))"
 
 // Text that allows substitutions but NOT formatting (for now, simplistic)
@@ -315,7 +316,7 @@ WHITESPACE: _WS+
 NUMBER: /[0-9]+/
 ATTR_NAME: /[a-zA-Z0-9_\-]+/
 FN_ID: /[a-zA-Z0-9_\-]+/
-WORD: /[^ \t\n*_`=\[\]{}:<>+]+/  // Word characters (not whitespace or markup)
+WORD: /[^ \t\n*_`=\[\]{}:<>+()]+/  // Word characters (not whitespace or markup or parentheses)
 LBRACE: "{"
 RBRACE: "}"
 LSQB: "["
@@ -332,5 +333,7 @@ LT: "<"
 GT: ">"
 PLUS: "+"
 INLINE_BREAK.15: " +"
+LPAR: "("
+RPAR: ")"
 
 // %ignore WHITESPACE
