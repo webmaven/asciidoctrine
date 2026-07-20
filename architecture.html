@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Architecture &amp; Design &mdash; AsciiDoctrine 0.1.0a9 documentation</title>
+  <title>Architecture &amp; Design &mdash; AsciiDoctrine 0.1.0a10 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/custom.css?v=1da06fa4" />
@@ -14,7 +14,7 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=6a26d4b7"></script>
+      <script src="_static/documentation_options.js?v=becdc604"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -52,7 +52,11 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#id6">Lark and the Earley Parsing Engine</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id7">Location Tracking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id7">Location Tracking</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id8">Recursive Include Coordinate Mapping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">Permissive Parsing &amp; Error Recovery</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="how-to-custom-renderer.html">How-to: Custom ASG Renderer Tutorial</a></li>
@@ -180,6 +184,23 @@
 <li><p><strong>Polymorphic Propagation</strong>: As nodes are transformed, parent blocks calculate their overall start and end line/column coordinates dynamically using a specialized helper method <code class="docutils literal notranslate"><span class="pre">_set_location_from_children()</span></code>.</p></li>
 <li><p><strong>Accuracy</strong>: The coordinates reflect the exact lines in the source, where <code class="docutils literal notranslate"><span class="pre">start_column</span></code> is 1-indexed and <code class="docutils literal notranslate"><span class="pre">end_column</span></code> is inclusive (<code class="docutils literal notranslate"><span class="pre">end_column</span> <span class="pre">-</span> <span class="pre">1</span></code>).</p></li>
 </ul>
+<section id="id8">
+<h3>Recursive Include Coordinate Mapping<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<p>When a document recursively resolves <code class="docutils literal notranslate"><span class="pre">include::</span></code> directives, tracking AST nodes back to their original physical files can be challenging. AsciiDoctrine solves this by building an in-memory recursive coordinate map during the <code class="docutils literal notranslate"><span class="pre">Preprocessor</span></code> pass:</p>
+<ul class="simple">
+<li><p><strong>Position Mapping</strong>: Every consolidated, preprocessed line index is tracked and mapped back to its true <code class="docutils literal notranslate"><span class="pre">(file_path,</span> <span class="pre">original_line_number)</span></code> coordinate tuple inside the preprocessor’s <code class="docutils literal notranslate"><span class="pre">line_map</span></code>.</p></li>
+<li><p><strong>Lark Integration</strong>: If the Lark parser encounters an unexpected token or syntax error, the exception is caught, unpacked, and translated through the <code class="docutils literal notranslate"><span class="pre">line_map</span></code> to report the exact physical coordinates and filename of the syntax error (e.g., <code class="docutils literal notranslate"><span class="pre">Syntax</span> <span class="pre">error</span> <span class="pre">in</span> <span class="pre">included_fragment.adoc</span> <span class="pre">at</span> <span class="pre">line</span> <span class="pre">14</span></code>).</p></li>
+<li><p><strong>AST Syntax Auditing</strong>: An <code class="docutils literal notranslate"><span class="pre">ASTSyntaxAuditor</span></code> executes immediately after tree transformation. It performs post-parse structural validation (such as verifying unclosed delimited blocks, malformed inline elements, or mismatched macro brackets), tracing violations straight back to their exact sub-file origin coordinates via the line map.</p></li>
+</ul>
+</section>
+<section id="id9">
+<h3>Permissive Parsing &amp; Error Recovery<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<p>To support robust developer workflows, live-preview editors, and resilient compilation environments, the <code class="docutils literal notranslate"><span class="pre">parse_to_ast()</span></code> entry point supports a <code class="docutils literal notranslate"><span class="pre">strict</span></code> configuration flag:</p>
+<ul class="simple">
+<li><p><strong>Strict Mode (<code class="docutils literal notranslate"><span class="pre">strict=True</span></code>, default)</strong>: Any syntactic violation, unclosed block, or parser error throws a structured <code class="docutils literal notranslate"><span class="pre">AsciiDocSyntaxError</span></code> immediately to fail fast.</p></li>
+<li><p><strong>Permissive Mode (<code class="docutils literal notranslate"><span class="pre">strict=False</span></code>)</strong>: Syntactic or structural failures cleanly degrade into standard paragraph blocks containing the literal representation of the offending text instead of crashing execution. This ensures the parser can always compile incomplete or work-in-progress drafts.</p></li>
+</ul>
+</section>
 </section>
 </section>
 

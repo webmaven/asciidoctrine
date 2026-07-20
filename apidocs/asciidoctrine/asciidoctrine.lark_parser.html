@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>asciidoctrine.lark_parser &mdash; AsciiDoctrine 0.1.0a9 documentation</title>
+  <title>asciidoctrine.lark_parser &mdash; AsciiDoctrine 0.1.0a10 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=1da06fa4" />
@@ -14,7 +14,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=6a26d4b7"></script>
+      <script src="../../_static/documentation_options.js?v=becdc604"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/js/theme.js"></script>
@@ -117,6 +117,24 @@ that Lark’s permissive Earley parser falls back on (e.g. malformed paragraphs 
 <h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
 <table class="autosummary longtable docutils align-left">
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.is_continuation_paragraph" title="asciidoctrine.lark_parser.is_continuation_paragraph"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_continuation_paragraph</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.find_deepest_active_list_item" title="asciidoctrine.lark_parser.find_deepest_active_list_item"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_deepest_active_list_item</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.resolve_block_internals" title="asciidoctrine.lark_parser.resolve_block_internals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_block_internals</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.split_continuation_paragraph" title="asciidoctrine.lark_parser.split_continuation_paragraph"><code class="xref py py-obj docutils literal notranslate"><span class="pre">split_continuation_paragraph</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.expand_joint_paragraphs" title="asciidoctrine.lark_parser.expand_joint_paragraphs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">expand_joint_paragraphs</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.resolve_list_continuations" title="asciidoctrine.lark_parser.resolve_list_continuations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_list_continuations</span></code></a></p></td>
+<td></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.parse_to_ast" title="asciidoctrine.lark_parser.parse_to_ast"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_to_ast</span></code></a></p></td>
 <td></td>
 </tr>
@@ -374,6 +392,36 @@ that Lark’s permissive Earley parser falls back on (e.g. malformed paragraphs 
 <dd></dd></dl>
 
 </dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asciidoctrine.lark_parser.is_continuation_paragraph">
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">is_continuation_paragraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.is_continuation_paragraph" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asciidoctrine.lark_parser.find_deepest_active_list_item">
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">find_deepest_active_list_item</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.ListItem" title="asciidoctrine.nodes.ListItem"><span class="pre">asciidoctrine.nodes.ListItem</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.find_deepest_active_list_item" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asciidoctrine.lark_parser.resolve_block_internals">
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">resolve_block_internals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.resolve_block_internals" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asciidoctrine.lark_parser.split_continuation_paragraph">
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">split_continuation_paragraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Paragraph" title="asciidoctrine.nodes.Paragraph"><span class="pre">asciidoctrine.nodes.Paragraph</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Paragraph" title="asciidoctrine.nodes.Paragraph"><span class="pre">asciidoctrine.nodes.Paragraph</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.split_continuation_paragraph" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asciidoctrine.lark_parser.expand_joint_paragraphs">
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">expand_joint_paragraphs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.expand_joint_paragraphs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asciidoctrine.lark_parser.resolve_list_continuations">
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">resolve_list_continuations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.resolve_list_continuations" title="Link to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="asciidoctrine.lark_parser.parse_to_ast">

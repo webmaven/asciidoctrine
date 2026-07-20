@@ -96,3 +96,18 @@ AsciiDoctrine implements *inclusive source coordinate tracking* on all transform
 * *Leaf Tokens*: Leaf terminals (like strings or identifiers) get coordinate ranges directly from the Lark lexer's `meta` attributes.
 * *Polymorphic Propagation*: As nodes are transformed, parent blocks calculate their overall start and end line/column coordinates dynamically using a specialized helper method `_set_location_from_children()`.
 * *Accuracy*: The coordinates reflect the exact lines in the source, where `start_column` is 1-indexed and `end_column` is inclusive (`end_column - 1`).
+
+=== Recursive Include Coordinate Mapping
+
+When a document recursively resolves `include::` directives, tracking AST nodes back to their original physical files can be challenging. AsciiDoctrine solves this by building an in-memory recursive coordinate map during the `Preprocessor` pass:
+
+* *Position Mapping*: Every consolidated, preprocessed line index is tracked and mapped back to its true `(file_path, original_line_number)` coordinate tuple inside the preprocessor's `line_map`.
+* *Lark Integration*: If the Lark parser encounters an unexpected token or syntax error, the exception is caught, unpacked, and translated through the `line_map` to report the exact physical coordinates and filename of the syntax error (e.g., `Syntax error in included_fragment.adoc at line 14`).
+* *AST Syntax Auditing*: An `ASTSyntaxAuditor` executes immediately after tree transformation. It performs post-parse structural validation (such as verifying unclosed delimited blocks, malformed inline elements, or mismatched macro brackets), tracing violations straight back to their exact sub-file origin coordinates via the line map.
+
+=== Permissive Parsing & Error Recovery
+
+To support robust developer workflows, live-preview editors, and resilient compilation environments, the `parse_to_ast()` entry point supports a `strict` configuration flag:
+
+* *Strict Mode (`strict=True`, default)*: Any syntactic violation, unclosed block, or parser error throws a structured `AsciiDocSyntaxError` immediately to fail fast.
+* *Permissive Mode (`strict=False`)*: Syntactic or structural failures cleanly degrade into standard paragraph blocks containing the literal representation of the offending text instead of crashing execution. This ensures the parser can always compile incomplete or work-in-progress drafts.
