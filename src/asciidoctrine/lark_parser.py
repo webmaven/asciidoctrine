@@ -609,11 +609,7 @@ class AsciiDocTransformer(
         name = str(children[0].value).lower()
         target = ""
         target_token = next(
-            (
-                c
-                for c in children
-                if isinstance(c, Token) and c.type == "MACRO_TARGET"
-            ),
+            (c for c in children if isinstance(c, Token) and c.type == "MACRO_TARGET"),
             None,
         )
         if target_token is not None:
@@ -724,6 +720,7 @@ class ASTSyntaxAuditor(NodeVisitor):
             if hasattr(child, "value") and child.value is not None:
                 text_content += str(child.value)
             elif hasattr(child, "children"):
+
                 def get_text(n: Node) -> str:
                     t = ""
                     if hasattr(n, "value") and n.value is not None:
@@ -731,6 +728,7 @@ class ASTSyntaxAuditor(NodeVisitor):
                     for c in getattr(n, "children", []):
                         t += get_text(c)
                     return t
+
                 text_content += get_text(child)
 
         lines = text_content.splitlines()
@@ -838,7 +836,9 @@ class ASTSyntaxAuditor(NodeVisitor):
                 # Extract text starting at this cell's column
                 cell_text = line[col_idx - 1 :]
                 if cell_text.startswith("|") and cell_text != "|===":
-                    spec_match = re.match(r"^\|([0-9.+\*]*[<>\^.]*[adehlms]?)\s", cell_text)
+                    spec_match = re.match(
+                        r"^\|([0-9.+\*]*[<>\^.]*[adehlms]?)\s", cell_text
+                    )
                     if spec_match:
                         spec_content = spec_match.group(1)
                         if spec_content:
@@ -942,7 +942,11 @@ def parse_to_ast(
         if origin_file and origin_file != "<root>":
             message = f"Syntax error in {os.path.basename(origin_file)} at line {origin_line}, column {e.column}.\n{context}"
         raise AsciiDocSyntaxError(
-            message, line=origin_line, column=e.column, context=context, filepath=origin_file
+            message,
+            line=origin_line,
+            column=e.column,
+            context=context,
+            filepath=origin_file,
         ) from e
     ast_root = AsciiDocTransformer().transform(tree)
     if not isinstance(ast_root, Document):
