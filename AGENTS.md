@@ -277,7 +277,13 @@ To produce a TCK-compliant Resolved Abstract Semantic Graph (ASG), the internal 
   1. **Stateful Preprocessor Translation**: Added a fast line-by-line state machine inside `preprocessor.py` that tracks the outermost `in_verbatim` state and rewrites only the outer opening and closing delimiters to unique synthetic tags (e.g. `--ASCIIDOCTRINE_OUTER_LISTING_START_N--`, where `N` is the original length of the delimiter). This shields and preserves all nested delimiters inside as raw content.
   2. **High-Priority Synthetic Rules**: Integrated these synthetic markers into `grammar.lark` as dedicated high-priority rules and terminals.
   3. **AST Reconstructor**: Added matching visitor methods in `block_transformer.py` to extract the length `N` from the start token, reconstruct standard delimiters, and cleanly construct standard `Listing`, `Literal`, and `Passthrough` AST nodes, ensuring seamless compatibility with downsteam components.
-  4. **Stateful Same-Length Warning**: Tracked `metadata_pending` inside verbatim blocks during preprocessing. If a same-length delimiter is encountered and was immediately preceded by attributes, a `PreprocessorWarning` is raised to notify the author of this specification violation.
+### 8. Block Macro vs. Description List (DList) Bracket Discrimination
+- **Problem**: When a valid description list term (such as `About::` or `Asciidoctor::` on its own line) was parsed, it was mistakenly matched as a `block_macro` block in permissive mode instead of a description list term.
+- **Cause**: The `block_macro` rule in `grammar.lark` had optional brackets (`[LSQB]...[RSQB]`), meaning any `WORD::` line matched `block_macro` first. If brackets were made fully required, however, then permissive-mode bracket-less block macros like `image::logo.png` would fail to parse as macro blocks, parsing instead as standard paragraphs.
+- **Solution**: Split the grammar's `block_macro` rule into two distinct alternatives:
+  1. `WORD "::" MACRO_TARGET [LSQB] [ATTR_LIST_CONTENT] [RSQB] _NEWLINE`: This requires a target following the colons (e.g. `image::logo.png`), but keeps brackets optional to maintain robust permissive-mode fallback.
+  2. `WORD "::" LSQB [ATTR_LIST_CONTENT] RSQB _NEWLINE`: This has an empty target (no characters following colons) but strictly requires brackets (e.g. `toc::[]`).
+  This clean discrimination prevents raw term lines (such as `About::\n`) from ever matching `block_macro`, while retaining perfect support for both valid macros and bracket-less malformed macros.
 
 ## 🤖 Subagent & Model Routing Strategy
 

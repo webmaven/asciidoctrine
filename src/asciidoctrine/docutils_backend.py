@@ -15,12 +15,14 @@ from .nodes import (
     Callout,
     CalloutList,
     CalloutListItem,
+    Collapsible,
     DescriptionList,
     DescriptionListItem,
     DescriptionListTerm,
     Document,
     FloatingTitle,
     Image,
+    IndexTerm,
     InlineStem,
     Kbd,
     Listing,
@@ -231,6 +233,11 @@ class DocutilsRenderer(NodeVisitor):
         else:
             list_node = nodes.bullet_list()
 
+        # Add classes if this list is a checklist
+        if any(getattr(item, "checked", None) is not None for item in node.items):
+            list_node["classes"].append("checklist")
+            list_node["classes"].append("task-list")
+
         old_parent = self.current_node
         self.current_node = list_node
         for item in node.items:
@@ -302,13 +309,22 @@ class DocutilsRenderer(NodeVisitor):
         old_parent = self.current_node
         self.current_node = item
 
+        checkbox_text = None
+        if node.checked is not None:
+            item["classes"].append("task-list-item")
+            checkbox_text = "\u2611 " if node.checked else "\u2610 "
+
         if node.principal:
             para = nodes.paragraph()
             self.current_node = para
+            if checkbox_text is not None:
+                para += nodes.Text(checkbox_text)
             for inline in node.principal:
                 self.visit(inline)
             item += para
             self.current_node = item
+        elif checkbox_text is not None:
+            item += nodes.paragraph("", checkbox_text)
 
         for block in node.blocks:
             self.visit(block)
@@ -425,6 +441,11 @@ class DocutilsRenderer(NodeVisitor):
                 ref_node = nodes.footnote_reference(refid=docutils_id)
                 ref_node += nodes.Text(label)
                 self.current_node += ref_node
+            return
+
+        if node.variant == "anchor":
+            target_node = nodes.target("", "", ids=[node.target])
+            self.current_node += target_node
             return
 
         # Handle cross-references and links
@@ -631,6 +652,43 @@ class DocutilsRenderer(NodeVisitor):
 
     def visit_include(self, node: Any) -> None:
         pass
+
+    def visit_collapsible(self, node: Collapsible) -> None:
+        # Represent as a container with class 'collapsible'
+        container = nodes.container(classes=["collapsible"])
+        if node.title:
+            title_node = nodes.title()
+            old_parent_inner = self.current_node
+            self.current_node = title_node
+            self.visit(node.title)
+            container += title_node
+            self.current_node = old_parent_inner
+
+        old_parent = self.current_node
+        self.current_node = container
+        for block in node.blocks:
+            self.visit(block)
+        old_parent += container
+        self.current_node = old_parent
+
+    def visit_indexterm(self, node: IndexTerm) -> None:
+        try:
+            from sphinx import addnodes
+
+            # Define standard Sphinx index entry
+            # Tuples: (type, text, target, class, key)
+            entry_text = ", ".join(node.terms)
+            entry = ("single", entry_text, "", "", None)
+            idx = addnodes.index(entries=[entry])
+            self.current_node += idx
+        except ImportError:
+            # Sphinx not available, do not output index node
+            pass
+
+        if node.variant == "flow_double":
+            # For double parens, we also render the inline term text in-place
+            for inline in node.inlines:
+                self.visit(inline)
 
 
 def asciidoc_to_docutils(source: str, base_dir: Optional[str] = None) -> nodes.document:

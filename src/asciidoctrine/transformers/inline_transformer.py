@@ -8,6 +8,7 @@ from ..nodes import (
     Button,
     Callout,
     Image,
+    IndexTerm,
     InlinePassthrough,
     InlineStem,
     Kbd,
@@ -418,3 +419,38 @@ class InlineTransformer(BaseTransformer):
         return cast(
             InlinePassthrough, self._set_location_from_children(pass_node, children)
         )
+
+    @v_args(meta=True)
+    def inline_indexterm_macro(self, meta: Any, children: PyList[Any]) -> IndexTerm:
+        content = ""
+        if children and children[0] is not None:
+            content = str(children[0].value)
+        terms = [
+            t.strip().strip('"').strip("'") for t in content.split(",") if t.strip()
+        ]
+        indexterm = IndexTerm(terms=terms, variant="macro")
+        return cast(IndexTerm, self._set_location_from_children(indexterm, children))
+
+    @v_args(meta=True)
+    def inline_indexterm_flow_double(
+        self, meta: Any, children: PyList[Any]
+    ) -> IndexTerm:
+        nodes = children[0] if children else []
+        text_val = "".join(
+            [getattr(n, "value", "") for n in nodes if hasattr(n, "value")]
+        )
+        terms = [text_val.strip()] if text_val.strip() else []
+        indexterm = IndexTerm(terms=terms, variant="flow_double", inlines=nodes)
+        return cast(IndexTerm, self._set_location_from_children(indexterm, children))
+
+    @v_args(meta=True)
+    def inline_indexterm_flow_triple(
+        self, meta: Any, children: PyList[Any]
+    ) -> IndexTerm:
+        nodes = children[0] if children else []
+        text_val = "".join(
+            [getattr(n, "value", "") for n in nodes if hasattr(n, "value")]
+        )
+        terms = [t.strip() for t in text_val.split(",") if t.strip()]
+        indexterm = IndexTerm(terms=terms, variant="flow_triple", inlines=nodes)
+        return cast(IndexTerm, self._set_location_from_children(indexterm, children))

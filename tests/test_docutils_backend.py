@@ -614,3 +614,85 @@ def test_docutils_backend_additional_coverage():
     toc_node_docutils = renderer.document[0]
     assert isinstance(toc_node_docutils, dnodes.topic)
     assert toc_node_docutils[0].astext() == "Custom TOC Title"
+
+
+def test_checklist_conversion():
+    source = """* [ ] Unchecked item
+* [x] Checked item
+"""
+    document = asciidoc_to_docutils(source)
+    blist = document[0]
+    assert isinstance(blist, nodes.bullet_list)
+    assert "checklist" in blist["classes"]
+    assert "task-list" in blist["classes"]
+
+    # First item (unchecked)
+    item1 = blist[0]
+    assert isinstance(item1, nodes.list_item)
+    assert "task-list-item" in item1["classes"]
+    para1 = item1[0]
+    assert isinstance(para1, nodes.paragraph)
+    assert para1[0].astext() == "\u2610 "
+    assert "Unchecked item" in para1.astext()
+
+    # Second item (checked)
+    item2 = blist[1]
+    assert isinstance(item2, nodes.list_item)
+    assert "task-list-item" in item2["classes"]
+    para2 = item2[0]
+    assert isinstance(para2, nodes.paragraph)
+    assert para2[0].astext() == "\u2611 "
+    assert "Checked item" in para2.astext()
+
+
+def test_floating_contentless_anchor_conversion():
+    source = "This is [[my-target]] anchor."
+    document = asciidoc_to_docutils(source)
+    para = document[0]
+    assert isinstance(para, nodes.paragraph)
+
+    # Check that a target node is inserted instead of reference node
+    target_node = para[1]
+    assert isinstance(target_node, nodes.target)
+    assert "my-target" in target_node["ids"]
+
+
+def test_collapsible_block_conversion():
+    source = """.Summary Title
+[%collapsible]
+====
+This is collapsible.
+====
+"""
+    document = asciidoc_to_docutils(source)
+    container = document[0]
+    assert isinstance(container, nodes.container)
+    assert "collapsible" in container["classes"]
+    assert isinstance(container[0], nodes.title)
+    assert container[0].astext() == "Summary Title"
+    assert isinstance(container[1], nodes.paragraph)
+    assert container[1].astext() == "This is collapsible."
+
+
+def test_index_term_conversion():
+    # 1. Macro variant
+    source = "Some text indexterm:[primary, secondary, tertiary] rest of text."
+    document = asciidoc_to_docutils(source)
+    para = document[0]
+    assert isinstance(para, nodes.paragraph)
+    from sphinx import addnodes
+
+    idx = para[1]
+    assert isinstance(idx, addnodes.index)
+    assert idx["entries"][0][1] == "primary, secondary, tertiary"
+
+    # 2. Flow double variant (visible term)
+    source2 = "See ((single index entry)) inside paragraph."
+    document2 = asciidoc_to_docutils(source2)
+    para2 = document2[0]
+    # Check that nodes.index node is inserted, followed by the text inline
+    idx2 = para2[1]
+    assert isinstance(idx2, addnodes.index)
+    assert idx2["entries"][0][1] == "single index entry"
+    # The term should be outputted in-place as well
+    assert "single index entry" in para2.astext()

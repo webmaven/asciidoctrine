@@ -868,6 +868,37 @@ class Example(BlockNode):
         self.blocks: PyList[Node] = list(blocks) if blocks else []
 
 
+class Collapsible(BlockNode):
+    """A block node representing an interactive disclosure/collapsible section."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"blocks": self.blocks}
+
+    def to_dict(self) -> Dict[str, Any]:
+        dct = {
+            "name": self.name,
+            "type": self.type,
+            "blocks": [child.to_dict() for child in self.blocks],
+            "attributes": self.attributes,
+        }
+        if self.title:
+            dct["title"] = self.title.to_dict()
+        return dct
+
+    def __init__(
+        self,
+        title: Optional[Title] = None,
+        blocks: Optional[Sequence[Node]] = None,
+        attributes: Optional[Dict[str, Any]] = None,
+    ):
+        super().__init__()
+        self.name = "collapsible"
+        self.type = "block"
+        self.title = title
+        self.blocks: PyList[Node] = list(blocks) if blocks else []
+        self.attributes: Dict[str, Any] = attributes or {}
+
+
 class Quote(BlockNode):
     """A block representing a quotation."""
 
@@ -1072,6 +1103,37 @@ class Toc(BlockNode):
         self.type = "block"
         self.target = target
         self.attributes = attributes or {}
+
+
+class IndexTerm(InlineNode):
+    """A node representing an index term entry."""
+
+    def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        return {"inlines": self.inlines}
+
+    def to_dict(self) -> Dict[str, Any]:
+        dct: Dict[str, Any] = {
+            "name": self.name,
+            "type": self.type,
+            "terms": self.terms,
+            "variant": self.variant,
+        }
+        if self.inlines:
+            dct["inlines"] = [child.to_dict() for child in self.inlines]
+        return dct
+
+    def __init__(
+        self,
+        terms: Sequence[str],
+        variant: str = "macro",
+        inlines: Optional[Sequence[Node]] = None,
+    ):
+        super().__init__()
+        self.name = "indexterm"
+        self.type = "inline"
+        self.terms: PyList[str] = list(terms)
+        self.variant: str = variant  # "macro", "flow_double", "flow_triple"
+        self.inlines: PyList[Node] = list(inlines) if inlines else []
 
 
 class NodeVisitor:

@@ -13,6 +13,7 @@ from .nodes import (
     Audio,
     Author,
     BlockNode,
+    Collapsible,
     Document,
     Example,
     FloatingTitle,
@@ -20,6 +21,7 @@ from .nodes import (
     Image,
     Include,
     Node,
+    NodeVisitor,
     Open,
     PageBreak,
     Paragraph,
@@ -53,11 +55,13 @@ class AsciiDocSyntaxError(ValueError):
         line: Optional[int] = None,
         column: Optional[int] = None,
         context: Optional[str] = None,
+        filepath: Optional[str] = None,
     ):
         super().__init__(message)
         self.line = line
         self.column = column
         self.context = context
+        self.filepath = filepath
 
 
 Children = PyList[Any]
@@ -394,6 +398,37 @@ class AsciiDocTransformer(
                     block.rows = new_rows
             except Exception:
                 pass
+
+        # Check if the block is collapsible
+        options = block.attributes.get("options", "")
+        is_collapsible = False
+        if isinstance(options, str):
+            is_collapsible = "collapsible" in [
+                opt.strip() for opt in options.split(",")
+            ]
+        elif isinstance(options, list):
+            opt_strings = []
+            for opt in options:
+                if hasattr(opt, "value"):
+                    opt_strings.append(opt.value)
+                else:
+                    opt_strings.append(str(opt))
+            is_collapsible = "collapsible" in opt_strings
+
+        style = block.attributes.get("style", "")
+        if isinstance(style, str) and style.lower() == "collapsible":
+            is_collapsible = True
+
+        if is_collapsible and isinstance(block, (Example, Open)):
+            blocks = block.blocks if hasattr(block, "blocks") else [block]
+            collapsible_block = Collapsible(
+                title=block.title,
+                blocks=blocks,
+                attributes=block.attributes,
+            )
+            collapsible_block.location = block.location
+            block = collapsible_block
+
         return cast(BlockNode, self._set_location_from_children(block, children))
 
     @v_args(meta=True)
@@ -572,7 +607,13 @@ class AsciiDocTransformer(
     @v_args(meta=True)
     def block_macro(self, meta: Any, children: Children) -> BlockNode:
         name = str(children[0].value).lower()
-        target = str(children[1].value) if len(children) > 1 and children[1] else ""
+        target = ""
+        target_token = next(
+            (c for c in children if isinstance(c, Token) and c.type == "MACRO_TARGET"),
+            None,
+        )
+        if target_token is not None:
+            target = str(target_token.value)
         attrs = {}
         attr_token = next(
             (
@@ -610,6 +651,7 @@ class AsciiDocTransformer(
             if target:
                 node.attributes["target"] = target
 
+        block.is_macro = True  # type: ignore[attr-defined]
         return cast(BlockNode, self._set_location_from_children(block, children))
 
     @v_args(meta=True)
@@ -648,12 +690,204 @@ class AsciiDocTransformer(
 DEFAULT_GRAMMAR = os.path.join(os.path.dirname(__file__), "grammar.lark")
 
 
+class ASTSyntaxAuditor(NodeVisitor):
+    """
+    Traverses the parsed AST to enforce strict syntax validation on elements
+    that Lark's permissive Earley parser falls back on (e.g. malformed paragraphs or blocks).
+    """
+
+    def __init__(
+        self,
+        source_lines: PyList[str],
+        line_map: Optional[Dict[int, Tuple[str, int]]] = None,
+    ) -> None:
+        super().__init__()
+        self.source_lines = source_lines
+        self.line_map = line_map or {}
+
+    def _get_origin(self, line_idx: int) -> Tuple[Optional[str], int]:
+        return self.line_map.get(line_idx, (None, line_idx))
+
+    def visit_paragraph(self, node: Node) -> None:
+        if node.location:
+            line_idx = node.location[0].get("line", 1)
+        else:
+            line_idx = 1
+
+        # Reconstruct raw paragraph text from its inline children to preserve exact coordinates
+        text_content = ""
+        for child in getattr(node, "inlines", []):
+            if hasattr(child, "value") and child.value is not None:
+                text_content += str(child.value)
+            elif hasattr(child, "children"):
+
+                def get_text(n: Node) -> str:
+                    t = ""
+                    if hasattr(n, "value") and n.value is not None:
+                        t += str(n.value)
+                    for c in getattr(n, "children", []):
+                        t += get_text(c)
+                    return t
+
+                text_content += get_text(child)
+
+        lines = text_content.splitlines()
+        for offset, line in enumerate(lines):
+            idx = line_idx + offset
+            line_strip = line.strip()
+            if not line_strip:
+                continue
+
+            # 1. Malformed block attribute lists (unclosed or unbalanced brackets)
+            if line_strip.startswith("[") and not line_strip.startswith("[["):
+                open_brackets = line_strip.count("[")
+                close_brackets = line_strip.count("]")
+                if open_brackets != close_brackets:
+                    origin_file, origin_line = self._get_origin(idx)
+                    raise AsciiDocSyntaxError(
+                        f"Syntax error: Malformed block attribute list (unbalanced brackets) at line {origin_line}.",
+                        line=origin_line,
+                        column=1,
+                        context=line,
+                        filepath=origin_file,
+                    )
+
+            # 2. Malformed block macros (e.g. image::logo.png with missing brackets)
+            # Handled on actual block macro nodes (Image, Include, etc.) under generic_visit,
+            # but if it was parsed as a Paragraph instead:
+            if "::" in line_strip and "[" not in line_strip and "]" not in line_strip:
+                if not any(
+                    line_strip.startswith(prefix)
+                    for prefix in ["http://", "https://", "ftp://", "file://"]
+                ):
+                    macro_match = re.match(
+                        r"^\s*([a-zA-Z0-9_-]+)::([^\s\[:]+)$", line_strip
+                    )
+                    if macro_match:
+                        origin_file, origin_line = self._get_origin(idx)
+                        raise AsciiDocSyntaxError(
+                            f"Syntax error: Malformed block macro '{macro_match.group(1)}::' (missing brackets) at line {origin_line}.",
+                            line=origin_line,
+                            column=len(line) - len(line.lstrip()) + 1,
+                            context=line,
+                            filepath=origin_file,
+                        )
+
+            # 3. Malformed description lists (e.g. marker on its own with no term)
+            if re.match(r"^\s*(::+|;;)\s+", line_strip) or line_strip in (
+                "::",
+                ":::",
+                "::::",
+                ";;",
+            ):
+                origin_file, origin_line = self._get_origin(idx)
+                raise AsciiDocSyntaxError(
+                    f"Syntax error: Malformed description list marker (missing term) at line {origin_line}.",
+                    line=origin_line,
+                    column=1,
+                    context=line,
+                    filepath=origin_file,
+                )
+
+            # 4. Malformed inline anchors (unclosed [[)
+            if "[[" in line_strip and "]]" not in line_strip:
+                origin_file, origin_line = self._get_origin(idx)
+                raise AsciiDocSyntaxError(
+                    f"Syntax error: Unclosed inline anchor at line {origin_line}.",
+                    line=origin_line,
+                    column=line.find("[[") + 1,
+                    context=line,
+                    filepath=origin_file,
+                )
+
+            # 5. Unclosed inline footnotes
+            for fn_type in ("footnote:[", "footnoteref:["):
+                if fn_type in line_strip:
+                    start_idx = line_strip.find(fn_type)
+                    sub = line_strip[start_idx:]
+                    open_cnt = 0
+                    closed = False
+                    for char in sub:
+                        if char == "[":
+                            open_cnt += 1
+                        elif char == "]":
+                            open_cnt -= 1
+                            if open_cnt == 0:
+                                closed = True
+                                break
+                    if not closed:
+                        origin_file, origin_line = self._get_origin(idx)
+                        raise AsciiDocSyntaxError(
+                            f"Syntax error: Unclosed inline footnote at line {origin_line}.",
+                            line=origin_line,
+                            column=line.find(fn_type) + 1,
+                            context=line,
+                            filepath=origin_file,
+                        )
+
+        self.generic_visit(node)
+
+    def visit_cell(self, node: Node) -> None:
+        if node.location:
+            line_idx = node.location[0].get("line")
+            col_idx = node.location[0].get("col", 1)
+            if line_idx and 1 <= line_idx <= len(self.source_lines):
+                line = self.source_lines[line_idx - 1]
+                # Extract text starting at this cell's column
+                cell_text = line[col_idx - 1 :]
+                if cell_text.startswith("|") and cell_text != "|===":
+                    spec_match = re.match(
+                        r"^\|([0-9.+\*]*[<>\^.]*[adehlms]?)\s", cell_text
+                    )
+                    if spec_match:
+                        spec_content = spec_match.group(1)
+                        if spec_content:
+                            is_valid = True
+                            if ".." in spec_content:
+                                is_valid = False
+                            elif spec_content.endswith("."):
+                                is_valid = False
+                            elif any(c in spec_content for c in "0123456789.+*"):
+                                has_plus = "+" in spec_content
+                                has_star = "*" in spec_content
+                                if not (has_plus or has_star):
+                                    is_valid = False
+                            if not is_valid:
+                                origin_file, origin_line = self._get_origin(line_idx)
+                                raise AsciiDocSyntaxError(
+                                    f"Syntax error: Malformed table cell specifier '{spec_content}' at line {origin_line}.",
+                                    line=origin_line,
+                                    column=col_idx + 1,
+                                    context=line,
+                                    filepath=origin_file,
+                                )
+        self.generic_visit(node)
+
+    def generic_visit(self, node: Node, **kwargs: Any) -> Any:
+        if getattr(node, "is_macro", False) and node.location:
+            line_idx = node.location[0].get("line")
+            if line_idx and 1 <= line_idx <= len(self.source_lines):
+                line = self.source_lines[line_idx - 1]
+                line_strip = line.strip()
+                if "[" not in line_strip or "]" not in line_strip:
+                    origin_file, origin_line = self._get_origin(line_idx)
+                    raise AsciiDocSyntaxError(
+                        f"Syntax error: Malformed block macro '{node.name}::' (missing brackets) at line {origin_line}.",
+                        line=origin_line,
+                        column=len(line) - len(line.lstrip()) + 1,
+                        context=line,
+                        filepath=origin_file,
+                    )
+        return super().generic_visit(node, **kwargs)
+
+
 def parse_to_ast(
     source: str,
     grammar_file: str = DEFAULT_GRAMMAR,
     base_dir: Optional[str] = None,
     safe_mode: bool = True,
     preprocess_directives: bool = True,
+    strict: bool = True,
 ) -> Document:
     # Detect if the original document preferred Windows CRLF or standard Unix LF
     # by checking if the very first newline sequence in the file is \r\n
@@ -678,6 +912,18 @@ def parse_to_ast(
     )
     processed_source = preprocessor.process(source)
 
+    if strict:
+        # Check for unclosed verbatim blocks
+        if getattr(preprocessor, "root_in_verbatim", None) is not None:
+            raise AsciiDocSyntaxError(
+                f"Syntax error: Unclosed verbatim block '{preprocessor.root_in_verbatim}'."
+            )
+        # Check for unclosed block delimiters
+        if getattr(preprocessor, "root_delimiter_stack", None):
+            raise AsciiDocSyntaxError(
+                f"Syntax error: Unclosed block delimiter '{preprocessor.root_delimiter_stack[-1]}'."
+            )
+
     with open(grammar_file, "r") as f:
         grammar = f.read()
     parser = Lark(
@@ -691,9 +937,16 @@ def parse_to_ast(
         tree = parser.parse(processed_source)
     except UnexpectedInput as e:
         context = e.get_context(processed_source)
-        message = f"Syntax error at line {e.line}, column {e.column}.\n{context}"
+        origin_file, origin_line = preprocessor.line_map.get(e.line, (None, e.line))
+        message = f"Syntax error at line {origin_line}, column {e.column}.\n{context}"
+        if origin_file and origin_file != "<root>":
+            message = f"Syntax error in {os.path.basename(origin_file)} at line {origin_line}, column {e.column}.\n{context}"
         raise AsciiDocSyntaxError(
-            message, line=e.line, column=e.column, context=context
+            message,
+            line=origin_line,
+            column=e.column,
+            context=context,
+            filepath=origin_file,
         ) from e
     ast_root = AsciiDocTransformer().transform(tree)
     if not isinstance(ast_root, Document):
@@ -702,6 +955,12 @@ def parse_to_ast(
     ast_root.line_ending = line_ending
     ast_root.is_preprocessed = preprocessor.is_preprocessed
     ast_root.included_files = sorted(list(preprocessor.included_files_set))
+
+    if strict:
+        ASTSyntaxAuditor(
+            processed_source.splitlines(), line_map=preprocessor.line_map
+        ).visit(ast_root)
+
     return ast_root
 
 
