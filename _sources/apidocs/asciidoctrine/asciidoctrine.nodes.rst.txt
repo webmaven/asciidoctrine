@@ -169,6 +169,10 @@ Classes
      - .. autodoc2-docstring:: asciidoctrine.nodes.Example
           :parser: sphinx_asciidoctrine.parser
           :summary:
+   * - :py:obj:`Collapsible <asciidoctrine.nodes.Collapsible>`
+     - .. autodoc2-docstring:: asciidoctrine.nodes.Collapsible
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
    * - :py:obj:`Quote <asciidoctrine.nodes.Quote>`
      - .. autodoc2-docstring:: asciidoctrine.nodes.Quote
           :parser: sphinx_asciidoctrine.parser
@@ -223,6 +227,10 @@ Classes
           :summary:
    * - :py:obj:`Toc <asciidoctrine.nodes.Toc>`
      - .. autodoc2-docstring:: asciidoctrine.nodes.Toc
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
+   * - :py:obj:`IndexTerm <asciidoctrine.nodes.IndexTerm>`
+     - .. autodoc2-docstring:: asciidoctrine.nodes.IndexTerm
           :parser: sphinx_asciidoctrine.parser
           :summary:
    * - :py:obj:`NodeVisitor <asciidoctrine.nodes.NodeVisitor>`
@@ -998,6 +1006,25 @@ API
    .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Example.get_child_collections
 
+.. py:class:: Collapsible(title: typing.Optional[asciidoctrine.nodes.Title] = None, blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, attributes: typing.Optional[typing.Dict[str, typing.Any]] = None)
+   :canonical: asciidoctrine.nodes.Collapsible
+
+   Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
+
+   .. autodoc2-docstring:: asciidoctrine.nodes.Collapsible
+      :parser: sphinx_asciidoctrine.parser
+
+   .. rubric:: Initialization
+
+   .. autodoc2-docstring:: asciidoctrine.nodes.Collapsible.__init__
+      :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+      :canonical: asciidoctrine.nodes.Collapsible.get_child_collections
+
+   .. py:method:: to_dict() -> typing.Dict[str, typing.Any]
+      :canonical: asciidoctrine.nodes.Collapsible.to_dict
+
 .. py:class:: Quote(blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, delimiter: str = '____')
    :canonical: asciidoctrine.nodes.Quote
 
@@ -1222,6 +1249,25 @@ API
 
    .. autodoc2-docstring:: asciidoctrine.nodes.Toc.__init__
       :parser: sphinx_asciidoctrine.parser
+
+.. py:class:: IndexTerm(terms: typing.Sequence[str], variant: str = 'macro', inlines: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
+   :canonical: asciidoctrine.nodes.IndexTerm
+
+   Bases: :py:obj:`asciidoctrine.nodes.InlineNode`
+
+   .. autodoc2-docstring:: asciidoctrine.nodes.IndexTerm
+      :parser: sphinx_asciidoctrine.parser
+
+   .. rubric:: Initialization
+
+   .. autodoc2-docstring:: asciidoctrine.nodes.IndexTerm.__init__
+      :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+      :canonical: asciidoctrine.nodes.IndexTerm.get_child_collections
+
+   .. py:method:: to_dict() -> typing.Dict[str, typing.Any]
+      :canonical: asciidoctrine.nodes.IndexTerm.to_dict
 
 .. py:class:: NodeVisitor
    :canonical: asciidoctrine.nodes.NodeVisitor

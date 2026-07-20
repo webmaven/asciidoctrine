@@ -105,6 +105,12 @@ API
       .. autodoc2-docstring:: asciidoctrine.preprocessor.Preprocessor.process
          :parser: sphinx_asciidoctrine.parser
 
+   .. py:method:: _record_line(file_path: str, line_num: int) -> None
+      :canonical: asciidoctrine.preprocessor.Preprocessor._record_line
+
+      .. autodoc2-docstring:: asciidoctrine.preprocessor.Preprocessor._record_line
+         :parser: sphinx_asciidoctrine.parser
+
    .. py:method:: _process_source(source: str, current_file: str, include_stack: list[tuple[str, int, str]], delimiter_stack: list[str], in_verbatim: str | None = None, expected_closer: str | None = None) -> str
       :canonical: asciidoctrine.preprocessor.Preprocessor._process_source
 

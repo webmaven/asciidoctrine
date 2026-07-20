@@ -128,14 +128,11 @@
 <section id="id3">
 <h3>Added<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
 <ul class="simple">
-<li><p><strong>Full Eclipse AsciiDoc SDR-1 Open Block Support</strong>:</p>
-<ul>
+<li><p><strong>Full Eclipse AsciiDoc SDR-1 Open Block Support</strong>:</p></li>
 <li><p>Implemented the new standard variable-length tilde-based open block delimiter form (<code class="docutils literal notranslate"><span class="pre">~~~~</span></code>, <code class="docutils literal notranslate"><span class="pre">~~~~~</span></code>, <code class="docutils literal notranslate"><span class="pre">~~~~~~</span></code>, and long <code class="docutils literal notranslate"><span class="pre">~{7,}</span></code>).</p></li>
 <li><p>Supported recursive multi-level open block nesting by varying delimiter lengths.</p></li>
 <li><p>Maintained 100% backward compatibility for the legacy two-hyphen (<code class="docutils literal notranslate"><span class="pre">--</span></code>) open block delimiter form.</p></li>
 <li><p>Restructured and updated the draft TCK open block test suite (organizing into <code class="docutils literal notranslate"><span class="pre">containing-paragraph</span></code> and <code class="docutils literal notranslate"><span class="pre">legacy-delimiter</span></code> tests) in <code class="docutils literal notranslate"><span class="pre">tests/tck_harness/</span></code> in alignment with MR feedback.</p></li>
-</ul>
-</li>
 <li><p>Developed a comprehensive unit test suite in <code class="docutils literal notranslate"><span class="pre">tests/test_inline_transformer_unit.py</span></code> testing 100% of all logical bodies, branching conditions, error fallbacks, and attribute substitutions in <code class="docutils literal notranslate"><span class="pre">InlineTransformer</span></code> (including math stems, keyboard macros, and split target-window link parsers).</p></li>
 <li><p>Boosted <code class="docutils literal notranslate"><span class="pre">inline_transformer.py</span></code> coverage from 53% to 69%.</p></li>
 <li><p><strong>High-Fidelity Cyclic Include Loop Diagnostics</strong>:</p></li>
@@ -169,11 +166,17 @@
 <section id="id4">
 <h3>Fixed<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
 <ul class="simple">
-<li><p><strong>Non-Destructive Lookahead-Based Description List Grammar</strong>:</p></li>
+<li><p><strong>Non-Destructive Lookahead-Based Description List Grammar</strong>:</p>
+<ul>
 <li><p>Refactored description list markers (<code class="docutils literal notranslate"><span class="pre">DLIST_MARKER_2</span></code> through <code class="docutils literal notranslate"><span class="pre">DLIST_MARKER_5</span></code>) in <code class="docutils literal notranslate"><span class="pre">grammar.lark</span></code> using regex positive lookaheads (<code class="docutils literal notranslate"><span class="pre">(?=[</span> <span class="pre">\t\n]|$)</span></code>) to prevent greedily matching inline double-colons (<code class="docutils literal notranslate"><span class="pre">::</span></code>) inside standard paragraph text (Issue #72 sibling).</p></li>
 <li><p>Simplified the <code class="docutils literal notranslate"><span class="pre">COLON</span></code> terminal to a literal <code class="docutils literal notranslate"><span class="pre">&quot;:&quot;</span></code> to allow multiple consecutive colons to cleanly parse as individual colon text nodes.</p></li>
-<li><p><strong>PyPI Dependency Upgrades and Workaround Reversion</strong>:</p></li>
+</ul>
+</li>
+<li><p><strong>PyPI Dependency Upgrades and Workaround Reversion</strong>:</p>
+<ul>
 <li><p>Migrated to stable PyPI releases of <code class="docutils literal notranslate"><span class="pre">sphinx-asciidoctrine==0.1.0a1</span></code> and <code class="docutils literal notranslate"><span class="pre">asciidocstring==0.1.0a5</span></code> (which natively handles blank lines between definition list items).</p></li>
+</ul>
+</li>
 <li><p>Reverted the temporary preprocessor single-line docstring workaround back to a standard multi-line description list.</p></li>
 <li><p><strong>Inline Stem Parsing Priorities</strong>:</p>
 <ul>
@@ -217,23 +220,23 @@
 <li><p><strong>Parameterized Includes in Preprocessor (Issue #79)</strong>:</p>
 <ul>
 <li><p><strong>Procedural Stream Preprocessor</strong>: Updated the Preprocessor in <code class="docutils literal notranslate"><span class="pre">src/asciidoctrine/preprocessor.py</span></code> to support parameterized includes (<code class="docutils literal notranslate"><span class="pre">leveloffset</span></code>, <code class="docutils literal notranslate"><span class="pre">lines</span></code>, <code class="docutils literal notranslate"><span class="pre">tag</span></code>, <code class="docutils literal notranslate"><span class="pre">tags</span></code>) using an immutable, procedural top-to-bottom stream-filtering state machine.</p></li>
-<li><p><strong>C-Level Substring Short-Circuit Optimization</strong>: Implemented optimized short-circuiting (<code class="docutils literal notranslate"><span class="pre">&quot;:&quot;</span> <span class="pre">not</span> <span class="pre">in</span> <span class="pre">line</span></code>) running in compiled C to bypass dynamic interpreter loop overhead for over 95% of standard document lines, increasing performance.</p></li>
 </ul>
 </li>
+<li><p><strong>C-Level Substring Short-Circuit Optimization</strong>: Implemented optimized short-circuiting (<code class="docutils literal notranslate"><span class="pre">&quot;:&quot;</span> <span class="pre">not</span> <span class="pre">in</span> <span class="pre">line</span></code>) running in compiled C to bypass dynamic interpreter loop overhead for over 95% of standard document lines, increasing performance.</p></li>
 <li><p><strong>Stateful Include Filtering</strong>:</p>
 <ul>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">leveloffset</span></code> Shifting</strong>: Shifts relative (e.g. <code class="docutils literal notranslate"><span class="pre">+1</span></code>, <code class="docutils literal notranslate"><span class="pre">-1</span></code>) and absolute (e.g. <code class="docutils literal notranslate"><span class="pre">2</span></code>) section heading levels inside includes.</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">lines</span></code> Slicing</strong>: Slices single (<code class="docutils literal notranslate"><span class="pre">1..5</span></code>), multiple (<code class="docutils literal notranslate"><span class="pre">1..2;4..5</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;1..2,4..5&quot;</span></code>), and open-ended (<code class="docutils literal notranslate"><span class="pre">5..</span></code>) line ranges.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">tag</span></code>/<code class="docutils literal notranslate"><span class="pre">tags</span></code> Filtering</strong>: Extracts marked regions of code blocks while stripping tag boundary comment lines (e.g., <code class="docutils literal notranslate"><span class="pre">//</span> <span class="pre">tag::name[]</span></code>) from the output stream.</p></li>
 </ul>
 </li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">tag</span></code>/<code class="docutils literal notranslate"><span class="pre">tags</span></code> Filtering</strong>: Extracts marked regions of code blocks while stripping tag boundary comment lines (e.g., <code class="docutils literal notranslate"><span class="pre">//</span> <span class="pre">tag::name[]</span></code>) from the output stream.</p></li>
 <li><p><strong>Comprehensive Test Harness</strong>: Authored unit tests verifying individual and combined preprocessor attributes under a strict Red/Green TDD framework, resulting in 100% test suite and TCK compliance.</p></li>
 <li><p><strong>High-Fidelity Cyclic Include Loop Diagnostics (Issue #82)</strong>:</p>
 <ul>
 <li><p>Implemented metadata-enriched <code class="docutils literal notranslate"><span class="pre">include_stack</span></code> to track inclusion paths including line numbers and line text.</p></li>
-<li><p>Implemented an on-loop static cycle scanner that reads on-disk files and builds an elegant compiler-grade diagnostic report listing all mutual includes in a loop simultaneously, complete with raw source strings and caret highlights.</p></li>
 </ul>
 </li>
+<li><p>Implemented an on-loop static cycle scanner that reads on-disk files and builds an elegant compiler-grade diagnostic report listing all mutual includes in a loop simultaneously, complete with raw source strings and caret highlights.</p></li>
 </ul>
 </section>
 <section id="id7">
@@ -248,16 +251,19 @@
 <li><p><strong>Experimental Inline Macros Parsing Bug (Issue #80)</strong>:</p>
 <ul>
 <li><p><strong>EBNF Grammar Priority Adjustment</strong>: Assigned explicit priority of <code class="docutils literal notranslate"><span class="pre">.10</span></code> to <code class="docutils literal notranslate"><span class="pre">inline_kbd</span></code>, <code class="docutils literal notranslate"><span class="pre">inline_button</span></code>, and <code class="docutils literal notranslate"><span class="pre">inline_menu</span></code> grammar rules in <code class="docutils literal notranslate"><span class="pre">grammar.lark</span></code>. This resolves the greedy priority conflicts in Lark’s Earley parsing engine when experimental macros are embedded inside standard prose sentences, preventing them from being flattened into generic standard text nodes.</p></li>
+<li><p><strong>TCK &amp; Integration Tests</strong>: Added comprehensive test cases ensuring standalone and paragraph-embedded experimental macro syntax parses cleanly with 100% compliance across both local unit tests and the Technology Compatibility Kit (TCK) suite.</p></li>
 </ul>
 </li>
-<li><p><strong>TCK &amp; Integration Tests</strong>: Added comprehensive test cases ensuring standalone and paragraph-embedded experimental macro syntax parses cleanly with 100% compliance across both local unit tests and the Technology Compatibility Kit (TCK) suite.</p></li>
 <li><p><strong>Secure Directory Traversal Guard (Issue #83)</strong>:</p>
 <ul>
 <li><p>Replaced prefix-based boundary checking with component-aware <code class="docutils literal notranslate"><span class="pre">os.path.commonpath</span></code> checks under <code class="docutils literal notranslate"><span class="pre">safe_mode</span></code> to secure sibling directories from path traversal vulnerabilities.</p></li>
 </ul>
 </li>
-<li><p><strong>Pytest Recursion Exclusions (Issue #84)</strong>:</p></li>
+<li><p><strong>Pytest Recursion Exclusions (Issue #84)</strong>:</p>
+<ul>
 <li><p>Configured <code class="docutils literal notranslate"><span class="pre">norecursedirs</span></code> inside <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> to exclude <code class="docutils literal notranslate"><span class="pre">tests/include_fixtures</span></code>, preventing pytest and <code class="docutils literal notranslate"><span class="pre">asciidoctest</span></code> from scanning test inclusion files.</p></li>
+</ul>
+</li>
 </ul>
 </section>
 </section>

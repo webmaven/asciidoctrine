@@ -162,9 +162,12 @@
 <ul class="simple">
 <li><p><strong>Why Earley?</strong> Earley is a chart-parsing algorithm that parses all context-free grammars. It handles ambiguities gracefully by evaluating all matching parse trees in parallel.</p></li>
 <li><p><strong>Tie-Breaking via Priorities</strong>: When multiple rules match the same source lines (e.g., <code class="docutils literal notranslate"><span class="pre">toc::[]</span></code> matches both a block macro and a description list item), Lark uses rule-level and terminal-level priorities to break ties.</p></li>
-<li><p><strong>Performance Optimizations</strong>:</p></li>
+<li><p><strong>Performance Optimizations</strong>:</p>
+<ul>
 <li><p>All input files are pre-normalized to Unix line endings (<code class="docutils literal notranslate"><span class="pre">\n</span></code>) to streamline regex lookaheads.</p></li>
 <li><p>Structural block rules are assigned high priorities (e.g., <code class="docutils literal notranslate"><span class="pre">table.10</span></code>) while general formatting inline rules are given moderate priorities to prevent greedy asterisks from “stealing” list markers.</p></li>
+</ul>
+</li>
 </ul>
 </section>
 <hr class="docutils" />

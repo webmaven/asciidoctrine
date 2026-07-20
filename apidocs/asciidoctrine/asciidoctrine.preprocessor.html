@@ -190,7 +190,18 @@ Supports:</p>
 <dt class="sig sig-object py" id="asciidoctrine.preprocessor.Preprocessor.process">
 <span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#asciidoctrine.preprocessor.Preprocessor.process" title="Link to this definition"></a></dt>
 <dd><p>Main entry point for processing the source text.</p>
+<dl class="simple">
+<dt>source</dt><dd><p>The AsciiDoc source text.</p>
+</dd>
+<dt>Returns</dt><dd><p>The source text with <code class="docutils literal notranslate"><span class="pre">include::</span></code> directives replaced by file content.</p>
+</dd>
+</dl>
 </dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.preprocessor.Preprocessor._record_line">
+<span class="sig-name descname"><span class="pre">_record_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.preprocessor.Preprocessor._record_line" title="Link to this definition"></a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.preprocessor.Preprocessor._process_source">

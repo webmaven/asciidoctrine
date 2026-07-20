@@ -298,6 +298,18 @@ API
       .. autodoc2-docstring:: asciidoctrine.docutils_backend.DocutilsRenderer.visit_include
          :parser: sphinx_asciidoctrine.parser
 
+   .. py:method:: visit_collapsible(node: asciidoctrine.nodes.Collapsible) -> None
+      :canonical: asciidoctrine.docutils_backend.DocutilsRenderer.visit_collapsible
+
+      .. autodoc2-docstring:: asciidoctrine.docutils_backend.DocutilsRenderer.visit_collapsible
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: visit_indexterm(node: asciidoctrine.nodes.IndexTerm) -> None
+      :canonical: asciidoctrine.docutils_backend.DocutilsRenderer.visit_indexterm
+
+      .. autodoc2-docstring:: asciidoctrine.docutils_backend.DocutilsRenderer.visit_indexterm
+         :parser: sphinx_asciidoctrine.parser
+
 .. py:function:: asciidoc_to_docutils(source: str, base_dir: typing.Optional[str] = None) -> docutils.nodes.document
    :canonical: asciidoctrine.docutils_backend.asciidoc_to_docutils
 
