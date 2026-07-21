@@ -786,6 +786,44 @@ class Literal(VerbatimBlockMixin, BlockNode):
     def append(self, child: Node) -> None:
         self.inlines.append(child)
 
+    @property
+    def id(self) -> Optional[str]:
+        return self.attributes.get("id")
+
+    @id.setter
+    def id(self, value: Optional[str]) -> None:
+        if value is None:
+            self.attributes.pop("id", None)
+        else:
+            self.attributes["id"] = value
+
+    @property
+    def style(self) -> Optional[str]:
+        return self.attributes.get("style")
+
+    @style.setter
+    def style(self, value: Optional[str]) -> None:
+        if value is None:
+            self.attributes.pop("style", None)
+        else:
+            self.attributes["style"] = value
+
+    @property
+    def literal_title(self) -> Optional[str]:
+        if self.title:
+            parts = []
+            for child in self.title.inlines:
+                if hasattr(child, "value"):
+                    parts.append(str(child.value))
+                elif hasattr(child, "text"):
+                    parts.append(str(child.text))
+                else:
+                    for sub in child.walk():
+                        if hasattr(sub, "value") and getattr(sub, "name", "") == "text":
+                            parts.append(str(sub.value))
+            return "".join(parts)
+        return self.attributes.get("title")
+
 
 class Passthrough(BlockNode):
     """A block for content that should be passed through without processing."""

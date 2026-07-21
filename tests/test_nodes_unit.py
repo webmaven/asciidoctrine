@@ -475,6 +475,36 @@ class TestNodesUnit(unittest.TestCase):
         self.assertEqual(d_idx["terms"], ["primary", "secondary"])
         self.assertEqual(d_idx["variant"], "macro")
 
+    def test_literal_properties(self):
+        from asciidoctrine.nodes import Literal, Text, Title
+
+        lit = Literal()
+        # id
+        assert lit.id is None
+        lit.id = "my-id"
+        assert lit.id == "my-id"
+        assert lit.attributes["id"] == "my-id"
+        lit.id = None
+        assert lit.id is None
+        assert "id" not in lit.attributes
+
+        # style
+        assert lit.style is None
+        lit.style = "my-style"
+        assert lit.style == "my-style"
+        assert lit.attributes["style"] == "my-style"
+        lit.style = None
+        assert lit.style is None
+        assert "style" not in lit.attributes
+
+        # literal_title via attribute
+        lit.attributes["title"] = "Attr Title"
+        assert lit.literal_title == "Attr Title"
+
+        # literal_title via title node
+        lit.title = Title(inlines=[Text("Node Title")])
+        assert lit.literal_title == "Node Title"
+
 
 if __name__ == "__main__":
     unittest.main()
