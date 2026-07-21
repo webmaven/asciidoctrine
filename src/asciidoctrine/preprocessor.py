@@ -37,6 +37,7 @@ class Preprocessor:
         safe_mode: bool = True,
         preprocess_directives: bool = True,
         attributes: Optional[dict[str, str]] = None,
+        strict: bool = True,
     ) -> None:
         """
         Initializes the preprocessor.
@@ -53,6 +54,7 @@ class Preprocessor:
         self.safe_mode = safe_mode
         self.preprocess_directives = preprocess_directives
         self.attributes = attributes or {}
+        self.strict = strict
         self.include_regex = re.compile(r"^include::([^\[]+)\[(.*)\]\s*$")
         self.delimiter_regex = re.compile(
             r"^\s*(?:-{4,}|\.{4,}|\+{4,}|/{4,}|={4,}|\*{4,}|_{4,}|-{2}|\|===)\s*$"
@@ -187,6 +189,16 @@ class Preprocessor:
                 )
 
         if not os.path.isfile(target_file_path):
+            if not self.strict:
+                parent_file = (
+                    os.path.relpath(current_file, self.base_dir)
+                    if current_file != "<root>"
+                    else "<root>"
+                )
+                warnings.warn(
+                    f"Include file not found: {target_file_path}", PreprocessorWarning
+                )
+                return f"Unresolved directive in {parent_file} - include::{include_path}[]"
             raise PreprocessorError(f"Include file not found: {target_file_path}")
 
         # Check if target_file_path is already in the include stack

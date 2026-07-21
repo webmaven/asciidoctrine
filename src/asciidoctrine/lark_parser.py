@@ -1015,7 +1015,10 @@ def parse_to_ast(
         source += "\n"
 
     preprocessor = Preprocessor(
-        base_dir, safe_mode=safe_mode, preprocess_directives=preprocess_directives
+        base_dir,
+        safe_mode=safe_mode,
+        preprocess_directives=preprocess_directives,
+        strict=strict,
     )
     processed_source = preprocessor.process(source)
 
