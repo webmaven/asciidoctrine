@@ -111,3 +111,11 @@ def test_strict_default_behavior():
     source = "image::logo.png\n"
     with pytest.raises(AsciiDocSyntaxError):
         parse_to_ast(source)
+
+
+def test_malformed_bracket_inside_bold_paragraph():
+    # Syntax errors inside inline formatting should be correctly detected in strict mode
+    source = "[This is *bold with [unbalanced* bracket\n"
+    with pytest.raises(AsciiDocSyntaxError) as exc_info:
+        parse_to_ast(source, strict=True)
+    assert "Malformed block attribute list" in str(exc_info.value)

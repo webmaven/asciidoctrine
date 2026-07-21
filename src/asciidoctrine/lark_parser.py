@@ -716,22 +716,14 @@ class ASTSyntaxAuditor(NodeVisitor):
         else:
             line_idx = 1
 
-        # Reconstruct raw paragraph text from its inline children to preserve exact coordinates
+        # Reconstruct raw paragraph text from its inline children recursively using walk
         text_content = ""
         for child in getattr(node, "inlines", []):
-            if hasattr(child, "value") and child.value is not None:
-                text_content += str(child.value)
-            elif hasattr(child, "children"):
-
-                def get_text(n: Node) -> str:
-                    t = ""
-                    if hasattr(n, "value") and n.value is not None:
-                        t += str(n.value)
-                    for c in getattr(n, "children", []):
-                        t += get_text(c)
-                    return t
-
-                text_content += get_text(child)
+            text_content += "".join(
+                getattr(sub, "value", "")
+                for sub in child.walk()
+                if getattr(sub, "name", "") == "text"
+            )
 
         lines = text_content.splitlines()
         for offset, line in enumerate(lines):
