@@ -12,12 +12,13 @@ class ASGResolver(NodeTransformer):
         self.resolved_attributes = resolve_attribute_map(self.attributes)
 
     def resolve(self, node: Node) -> Dict[str, Any]:
-        """Convert AST to fully-resolved ASG."""
-        # 1. Transform the AST nodes in-place
-        self.visit(node)
+        """Convert AST to fully-resolved ASG without mutating input."""
+        import copy
 
-        # 2. Serialize the mutated AST to JSON/ASG dict
-        asg = node.to_dict()
+        copied_node = copy.deepcopy(node)
+        self.visit(copied_node)
+
+        asg = copied_node.to_dict()
 
         # 3. Inject resolved document-level attributes
         if asg.get("name") == "document" and "attributes" in asg:
