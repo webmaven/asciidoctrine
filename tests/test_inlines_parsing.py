@@ -331,7 +331,7 @@ class TestInlines(unittest.TestCase):
         )
 
     def test_bare_url_links(self) -> None:
-        # 1. Parse bare URL
+        # 1. Parse bare URL (with role='bare' and inlines containing URL text)
         ast = self._strip_locations(
             parse_to_ast("Visit https://google.com for info.").to_dict()
         )
@@ -343,18 +343,72 @@ class TestInlines(unittest.TestCase):
         self.assertEqual(link_node["name"], "ref")
         self.assertEqual(link_node["variant"], "link")
         self.assertEqual(link_node["target"], "https://google.com")
-        self.assertEqual(link_node["inlines"], [])
+        self.assertEqual(link_node["attributes"], {"role": "bare"})
+        self.assertEqual(link_node["inlines"][0]["value"], "https://google.com")
 
         self.assertEqual(p_inlines[2]["value"], " for info.")
 
-        # 2. Serialize bare URL
+        # 2. Trailing punctuation stripping (dot must be separated)
+        ast_punc = self._strip_locations(
+            parse_to_ast("Go to https://google.com.").to_dict()
+        )
+        punc_inlines = ast_punc["blocks"][0]["inlines"]
+        self.assertEqual(len(punc_inlines), 3)
+        self.assertEqual(punc_inlines[1]["target"], "https://google.com")
+        self.assertEqual(punc_inlines[2]["value"], ".")
+
+        # 3. Angle brackets delineation stripping
+        ast_bracket = self._strip_locations(
+            parse_to_ast("See <https://google.com> here.").to_dict()
+        )
+        bracket_inlines = ast_bracket["blocks"][0]["inlines"]
+        self.assertEqual(len(bracket_inlines), 3)
+        self.assertEqual(bracket_inlines[0]["value"], "See ")
+        self.assertEqual(bracket_inlines[1]["target"], "https://google.com")
+        self.assertEqual(bracket_inlines[2]["value"], " here.")
+
+        # 4. Escaping behavior (preceding backslash makes it plain text, and
+        #    the result merges with surrounding text)
+        ast_escape = self._strip_locations(
+            parse_to_ast("Go to \\https://google.com").to_dict()
+        )
+        escape_inlines = ast_escape["blocks"][0]["inlines"]
+        # After escaping, 'Go to ' and 'https://google.com' merge into one Text
+        self.assertEqual(len(escape_inlines), 1)
+        self.assertEqual(escape_inlines[0]["value"], "Go to https://google.com")
+
+        # 5. Bare Email autolinks
+        ast_email = self._strip_locations(
+            parse_to_ast("Contact user@example.com for help.").to_dict()
+        )
+        email_inlines = ast_email["blocks"][0]["inlines"]
+        self.assertEqual(len(email_inlines), 3)
+        self.assertEqual(email_inlines[0]["value"], "Contact ")
+        email_node = email_inlines[1]
+        self.assertEqual(email_node["name"], "ref")
+        self.assertEqual(email_node["variant"], "link")
+        self.assertEqual(email_node["target"], "mailto:user@example.com")
+        self.assertEqual(email_node["attributes"], {"role": "bare"})
+        self.assertEqual(email_node["inlines"][0]["value"], "user@example.com")
+        self.assertEqual(email_inlines[2]["value"], " for help.")
+
+        # 6. Escaped Email
+        ast_esc_email = self._strip_locations(
+            parse_to_ast("Send to \\user@example.com").to_dict()
+        )
+        esc_email_inlines = ast_esc_email["blocks"][0]["inlines"]
+        # After escaping, 'Send to ' and 'user@example.com' merge into one Text
+        self.assertEqual(len(esc_email_inlines), 1)
+        self.assertEqual(esc_email_inlines[0]["value"], "Send to user@example.com")
+
+        # 7. Serialize bare URL
         from asciidoctrine.serializer import AsciiDocSerializerVisitor
 
         doc = parse_to_ast("Visit https://google.com for info.")
         serialized = AsciiDocSerializerVisitor().serialize(doc)
         self.assertEqual(serialized.strip(), "Visit https://google.com for info.")
 
-        # 3. Render to docutils
+        # 8. Render to docutils
         from asciidoctrine.docutils_backend import asciidoc_to_docutils
 
         docutils_root = asciidoc_to_docutils("Visit https://google.com for info.")
@@ -366,7 +420,7 @@ class TestInlines(unittest.TestCase):
         self.assertEqual(ref_nodes[0]["refuri"], "https://google.com")
         self.assertEqual(ref_nodes[0].astext(), "https://google.com")
 
-        # 4. Standard link with attributes takes priority over bare URL
+        # 9. Standard link with attributes takes priority over bare URL
         ast2 = self._strip_locations(
             parse_to_ast("Visit https://google.com[Google] today.").to_dict()
         )
@@ -376,6 +430,22 @@ class TestInlines(unittest.TestCase):
         self.assertEqual(link_node2["variant"], "link")
         self.assertEqual(link_node2["target"], "https://google.com")
         self.assertEqual(link_node2["inlines"][0]["value"], "Google")
+
+    def test_inline_passthrough_serialization(self) -> None:
+        from asciidoctrine.nodes import InlinePassthrough
+        from asciidoctrine.serializer import AsciiDocSerializerVisitor
+
+        # 1. Macro form
+        node_macro = InlinePassthrough(value="raw_html_macro")
+        node_macro.form = "macro"
+        serialized_macro = AsciiDocSerializerVisitor().serialize(node_macro)
+        self.assertEqual(serialized_macro, "pass:[raw_html_macro]")
+
+        # 2. Triple plus form
+        node_triple = InlinePassthrough(value="raw_html_triple")
+        node_triple.form = "triple_plus"
+        serialized_triple = AsciiDocSerializerVisitor().serialize(node_triple)
+        self.assertEqual(serialized_triple, "+++raw_html_triple+++")
 
 
 if __name__ == "__main__":

@@ -443,7 +443,11 @@ class AsciiDocSerializerVisitor(NodeVisitor):
             )
             attrs = getattr(node, "attributes", {}) or {}
             inlines = getattr(node, "inlines", []) or []
-            if has_scheme and not inlines and not attrs:
+            if attrs.get("role") == "bare":
+                # Strip mailto: prefix for email bare links
+                clean_target = target[7:] if target.startswith("mailto:") else target
+                self.write(clean_target)
+            elif has_scheme and not inlines and not attrs:
                 self.write(target)
             else:
                 prefix = "" if has_scheme else "link:"

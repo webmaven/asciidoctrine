@@ -1,3 +1,4 @@
+import re
 from typing import Any, Dict, Optional, cast
 from typing import List as PyList
 
@@ -25,6 +26,12 @@ class InlineTransformer(BaseTransformer):
     """
     Mixin class for inline-level AsciiDoc transformations.
     """
+
+    # Regex to match backslash-escaped autolink patterns in Text node values.
+    # Matches \https://, \http://, \ftp://, etc. and \user@domain patterns.
+    _ESCAPED_AUTOLINK_RE = re.compile(
+        r"\\((?:https?|ftp|file|irc)://|[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,5})"
+    )
 
     # attributes: Dict[str, PyList[Node]]  # Will be provided by main transformer
 
@@ -57,9 +64,13 @@ class InlineTransformer(BaseTransformer):
             else:
                 flat_children.append(child)
 
-        for child in flat_children:
+        i = 0
+        while i < len(flat_children):
+            child = flat_children[i]
+
             if isinstance(child, dict):
                 pending_attrs = child
+                i += 1
                 continue
 
             node: Optional[Node] = None
@@ -79,6 +90,64 @@ class InlineTransformer(BaseTransformer):
                 node = child
 
             if node:
+                # Handle escaping and angle bracket stripping for bare links
+                is_bare = (
+                    isinstance(node, Ref)
+                    and getattr(node, "attributes", {}).get("role") == "bare"
+                )
+                if is_bare:
+                    # Escaping check: if previous text ends with '\'
+                    if (
+                        nodes
+                        and isinstance(nodes[-1], Text)
+                        and nodes[-1].value.endswith("\\")
+                    ):
+                        # Strip the trailing backslash
+                        nodes[-1].value = nodes[-1].value[:-1]
+                        if not nodes[-1].value:
+                            nodes.pop()
+                        # Convert Ref to plain Text
+                        target = getattr(node, "target", "")
+                        display = target[7:] if target.startswith("mailto:") else target
+                        node = Text(display)
+                    else:
+                        # Angle bracket check: previous text ends with '<'
+                        # and next item is '>' (either Token or Text node from
+                        # punctuation stripping in bare_url_link).
+                        if (
+                            nodes
+                            and isinstance(nodes[-1], Text)
+                            and nodes[-1].value.endswith("<")
+                        ):
+                            next_is_gt = False
+                            if i + 1 < len(flat_children):
+                                next_child = flat_children[i + 1]
+                                if (
+                                    isinstance(next_child, Token)
+                                    and str(next_child.value) == ">"
+                                ):
+                                    next_is_gt = True
+                                elif isinstance(
+                                    next_child, Text
+                                ) and next_child.value.startswith(">"):
+                                    next_is_gt = True
+                            if next_is_gt:
+                                # Strip '<' from previous text
+                                nodes[-1].value = nodes[-1].value[:-1]
+                                if not nodes[-1].value:
+                                    nodes.pop()
+                                # Strip the leading '>' from the next item
+                                next_child = flat_children[i + 1]
+                                if isinstance(next_child, Token):
+                                    # Skip the '>' token entirely
+                                    i += 1
+                                elif isinstance(next_child, Text):
+                                    # Strip leading '>' from Text node in-place
+                                    next_child.value = next_child.value[1:]
+                                    if not next_child.value:
+                                        # Remove the empty Text node from flat_children
+                                        flat_children.pop(i + 1)
+
                 if pending_attrs:
                     for k, v in pending_attrs.items():
                         if k == "role":
@@ -103,9 +172,19 @@ class InlineTransformer(BaseTransformer):
                 else:
                     nodes.append(node)
 
+            i += 1
+
         if pending_attrs:
             attr_str = ",".join([f"{k}={v}" for k, v in pending_attrs.items()])
             nodes.append(Text(f"[{attr_str}]"))
+
+        # Post-processing: strip backslash escapes before autolink patterns.
+        # When a backslash precedes a URI scheme or email pattern, the lexer
+        # doesn't create a URI/EMAIL token, so the backslash ends up in the
+        # Text node value. We strip it here to match AsciiDoc behavior.
+        for node in nodes:
+            if isinstance(node, Text):
+                node.value = self._ESCAPED_AUTOLINK_RE.sub(r"\1", node.value)
 
         return nodes
 
@@ -339,9 +418,39 @@ class InlineTransformer(BaseTransformer):
         return cast(Ref, self._set_location_from_children(ref, children))
 
     @v_args(meta=True)
-    def bare_url_link(self, meta: Any, children: PyList[Any]) -> Ref:
+    def bare_url_link(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
         target = str(children[0].value)
-        ref = Ref(variant="link", target=target.strip(), inlines=[])
+        # Strip trailing punctuation (including '>' for angle-bracketed URLs)
+        punc_chars = ".,;:!?)>]}"
+        stripped_punc = ""
+        while target and target[-1] in punc_chars:
+            stripped_punc = target[-1] + stripped_punc
+            target = target[:-1]
+
+        ref = Ref(
+            variant="link",
+            target=target.strip(),
+            inlines=[Text(target.strip())],
+        )
+        ref.attributes["role"] = "bare"
+
+        nodes: PyList[Node] = [
+            cast(Ref, self._set_location_from_children(ref, children))
+        ]
+        if stripped_punc:
+            punc_node = Text(stripped_punc)
+            nodes.append(punc_node)
+        return nodes
+
+    @v_args(meta=True)
+    def bare_email_link(self, meta: Any, children: PyList[Any]) -> Ref:
+        email = str(children[0].value)
+        ref = Ref(
+            variant="link",
+            target=f"mailto:{email}",
+            inlines=[Text(email)],
+        )
+        ref.attributes["role"] = "bare"
         return cast(Ref, self._set_location_from_children(ref, children))
 
     @v_args(meta=True)

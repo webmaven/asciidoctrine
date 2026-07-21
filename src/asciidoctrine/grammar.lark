@@ -167,7 +167,7 @@ text_content: inline_element+
 
 attribute_reference.2: LBRACE ATTR_NAME RBRACE
 
-?base_inline: attribute_reference | inline_attribute_list | double_quoted | single_quoted | inline_image | icon_inline | inline_indexterm_macro | inline_indexterm_flow_triple | inline_indexterm_flow_double | inline_anchor | inline_xref | inline_bibref | inline_link | bare_url_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | inline_pass_macro | inline_triple_plus | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | BACKTICK | LT | GT | PLUS | LPAR | RPAR
+?base_inline: attribute_reference | inline_attribute_list | double_quoted | single_quoted | inline_image | icon_inline | inline_indexterm_macro | inline_indexterm_flow_triple | inline_indexterm_flow_double | inline_anchor | inline_xref | inline_bibref | inline_link | bare_url_link | bare_email_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | inline_pass_macro | inline_triple_plus | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | BACKTICK | LT | GT | PLUS | LPAR | RPAR
 
 ?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | marked | superscript | subscript | footnote | footnoteref | base_inline | RSQB | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
 
@@ -196,7 +196,9 @@ inline_xref.10: "<<" text_content ">>" | "xref:" TARGET inline_attribute_list
 inline_bibref.12: "[[[" text_content "]]]"
 inline_link.10: "link:" (TARGET | URI) inline_attribute_list | URI inline_attribute_list
 bare_url_link.1: URI
+bare_email_link.1: EMAIL
 
+EMAIL.3: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,5}/
 URI.3: /(https?|ftp|file|irc):\/\/[^\[\n ]+/ | /mailto:[^\[\n ]+/
 MACRO_TARGET: /[^:\[\n ][^\[\n ]*/
 TARGET: /[^\[\n ]+/
