@@ -196,11 +196,12 @@ The path to 1:1 syntactic specification compliance is tracked through the follow
 |===
 | Phase | Focus | Status
 
-| *0* | *Foundations*: PEG grammar, structured AST, and TCK harness. | ✅
-| *1* | *Advanced Blocks*: Admonitions ✅, Sidebars ✅, Source blocks ✅, and Example blocks ✅. | ✅
-| *2* | *Document Infra*: Headers ✅, attributes ✅, and includes ✅. | ✅
-| *3* | *Tables & Description Lists*: Nested/mixed description lists and advanced table cell alignments/spans. | ✅
-| *4* | *Testing & Developer Experience*: Code block attributes, callout stripping, and precise source location coordinate tracking. | ✅
-| *5* | *Static Site Generator Support*: Auto-slugified section IDs, TOC outline extraction, and cross-references. | ⏳
-| *6* | *Sphinx Extension Support*: Metadata alignment, complete node renderer visitor auditing, and Pygments styling. | ⏳
+| *0* | *Foundations*: PEG/Earley grammar, structured AST, and TCK test harness. | ✅
+| *1* | *Advanced Blocks*: Admonitions ✅, Sidebars ✅, Source blocks ✅, Example blocks ✅, and Open blocks ✅. | ✅
+| *2* | *Document Infra*: Headers ✅, dynamic attribute resolution ✅, and multi-file includes ✅. | ✅
+| *3* | *Tables & Description Lists*: Nested/mixed description lists, checklists ✅, and advanced table formatting/spans ✅. | ✅
+| *4* | *Testing & Developer Experience*: Callout stripping, strict AST syntax auditing ✅, and precise source location coordinate tracking ✅. | ✅
+| *5* | *Structural Resolution & SSG*: TOC outline extraction ✅, cross-references (`xref`) ✅, and bare URL/email autolinks ✅. | ✅
+| *6* | *Sphinx Extension Support*: 100% Docutils node visitor coverage ✅, metadata alignment ✅, and permissive error recovery ✅. | ✅
+| *7* | *Spec & TCK Conformance*: Authoring language specification modules, ASG schema convergence, and upstream TCK contributions. | 🔄
 |===
