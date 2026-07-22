@@ -205,3 +205,12 @@ The path to 1:1 syntactic specification compliance is tracked through the follow
 | *6* | *Sphinx Extension Support*: 100% Docutils node visitor coverage ✅, metadata alignment ✅, and permissive error recovery ✅. | ✅
 | *7* | *Spec & TCK Conformance*: Authoring language specification modules, ASG schema convergence, and upstream TCK contributions. | 🔄
 |===
+
+---
+
+== Project Links & Resources
+
+* *PyPI Package*: link:https://pypi.org/project/asciidoctrine/[https://pypi.org/project/asciidoctrine/]
+* *GitHub Repository*: link:https://github.com/webmaven/asciidoctrine[https://github.com/webmaven/asciidoctrine]
+* *Issue Tracker*: link:https://github.com/webmaven/asciidoctrine/issues[https://github.com/webmaven/asciidoctrine/issues]
+* *License*: Distributed under the link:https://github.com/webmaven/asciidoctrine/blob/main/LICENSE[Apache License 2.0].
