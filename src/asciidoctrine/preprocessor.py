@@ -198,7 +198,9 @@ class Preprocessor:
                 warnings.warn(
                     f"Include file not found: {target_file_path}", PreprocessorWarning
                 )
-                return f"Unresolved directive in {parent_file} - include::{include_path}[]"
+                return (
+                    f"Unresolved directive in {parent_file} - include::{include_path}[]"
+                )
             raise PreprocessorError(f"Include file not found: {target_file_path}")
 
         # Check if target_file_path is already in the include stack

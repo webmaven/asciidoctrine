@@ -746,24 +746,25 @@ print("inner")
             str(context.exception),
         )
 
-
     def test_file_not_found_permissive(self):
         # In permissive mode (strict=False), missing include should emit PreprocessorWarning
         # and return an unresolved directive placeholder string
         preprocessor = Preprocessor(base_dir=self.base_dir, strict=False)
         source = "include::nonexistent_file.adoc[]"
-        
+
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             processed = preprocessor.process(source)
-            
+
             # Assert warning was issued
             assert len(w) == 1
             assert issubclass(w[0].category, PreprocessorWarning)
             assert "Include file not found" in str(w[0].message)
-            
+
             # Assert placeholder was returned
-            expected = "Unresolved directive in <root> - include::nonexistent_file.adoc[]"
+            expected = (
+                "Unresolved directive in <root> - include::nonexistent_file.adoc[]"
+            )
             assert processed.strip() == expected
 
 

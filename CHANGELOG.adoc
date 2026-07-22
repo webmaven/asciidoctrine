@@ -3,7 +3,7 @@
 
 All notable changes to this project will be documented in this file.
 
-== link:https://pypi.org/project/asciidoctrine/0.1.0a11/[0.1.0a11] - 2026-07-21
+== link:https://pypi.org/project/asciidoctrine/0.1.0a11/[0.1.0a11] - 2026-07-22
 
 === Added
 * **Bare URL & Email Autolinks (Issue #76)**:
@@ -11,6 +11,8 @@ All notable changes to this project will be documented in this file.
   - Implemented trailing punctuation stripping (`.,;:!?)>]}`), angle-bracket delineation (`<https://...>`), backslash escaping (`\https://...`, `\user@domain.com`), and round-trip serialization back to raw string forms.
 * **Standardized Verbatim Properties on `Literal` Blocks**:
   - Added property accessors (`id`, `style`, and `literal_title`) to `Literal` block nodes to ensure interface parity with `Listing` blocks.
+* **Section Nesting TCK Test (Draft)**:
+  - Added a local TCK test (`tests/tck_harness/tests/block/section/nesting-*`) demonstrating section nesting and level transitions: child nesting (level 1 → 2 → 3) and returning to a sibling section at a lower numerical level.
 
 === Fixed
 * **Recursive Formatted Paragraph Text Reconstruction in `ASTSyntaxAuditor`**:
