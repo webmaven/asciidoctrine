@@ -942,6 +942,27 @@ API
       .. autodoc2-docstring:: asciidoctrine.nodes.Literal.append
          :parser: sphinx_asciidoctrine.parser
 
+   .. py:property:: id
+      :canonical: asciidoctrine.nodes.Literal.id
+      :type: typing.Optional[str]
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.Literal.id
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:property:: style
+      :canonical: asciidoctrine.nodes.Literal.style
+      :type: typing.Optional[str]
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.Literal.style
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:property:: literal_title
+      :canonical: asciidoctrine.nodes.Literal.literal_title
+      :type: typing.Optional[str]
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.Literal.literal_title
+         :parser: sphinx_asciidoctrine.parser
+
 .. py:class:: Passthrough(inlines: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, attributes: typing.Optional[typing.Dict[str, typing.Any]] = None, delimiter: str = '++++')
    :canonical: asciidoctrine.nodes.Passthrough
 
