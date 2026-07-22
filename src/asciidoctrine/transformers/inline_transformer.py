@@ -320,6 +320,10 @@ class InlineTransformer(BaseTransformer):
 
     @v_args(meta=True)
     def inline_image(self, meta: Any, children: PyList[Any]) -> Image:
+        from lark import Token
+
+        if isinstance(children[0], Token) and children[0].type == "IMAGE_PREFIX":
+            children = children[1:]
         target = str(children[0].value)
         attrs = (
             children[1] if len(children) > 1 and isinstance(children[1], dict) else {}
@@ -333,6 +337,10 @@ class InlineTransformer(BaseTransformer):
 
     @v_args(meta=True)
     def icon_inline(self, meta: Any, children: PyList[Any]) -> Image:
+        from lark import Token
+
+        if isinstance(children[0], Token) and children[0].type == "ICON_PREFIX":
+            children = children[1:]
         target = str(children[0].value)
         attrs = (
             children[1] if len(children) > 1 and isinstance(children[1], dict) else {}
@@ -344,7 +352,11 @@ class InlineTransformer(BaseTransformer):
 
     @v_args(meta=True)
     def inline_anchor(self, meta: Any, children: PyList[Any]) -> Ref:
-        if isinstance(children[0], Token) and children[0].type == "TARGET":
+        from lark import Token
+
+        if isinstance(children[0], Token) and children[0].type == "ANCHOR_PREFIX":
+            children = children[1:]
+        if isinstance(children[0], Token) and children[0].type in ("TARGET", "URI"):
             target = children[0].value
             attrs = (
                 children[1]
@@ -365,7 +377,11 @@ class InlineTransformer(BaseTransformer):
 
     @v_args(meta=True)
     def inline_xref(self, meta: Any, children: PyList[Any]) -> Ref:
-        if isinstance(children[0], Token) and children[0].type == "TARGET":
+        from lark import Token
+
+        if isinstance(children[0], Token) and children[0].type == "XREF_PREFIX":
+            children = children[1:]
+        if isinstance(children[0], Token) and children[0].type in ("TARGET", "URI"):
             target = children[0].value
             attrs = (
                 children[1]
@@ -389,10 +405,29 @@ class InlineTransformer(BaseTransformer):
 
     @v_args(meta=True)
     def inline_link(self, meta: Any, children: PyList[Any]) -> Ref:
-        target = str(children[0].value)
-        attrs = (
-            children[1] if len(children) > 1 and isinstance(children[1], dict) else {}
-        )
+        # When the LINK_PREFIX branch matches, children[0] is the
+        # LINK_PREFIX token ("link:") and children[1] is the URI/TARGET.
+        # When the bare URI branch matches, children[0] is the URI directly.
+        from lark import Token
+
+        if (
+            len(children) > 0
+            and isinstance(children[0], Token)
+            and children[0].type == "LINK_PREFIX"
+        ):
+            target = str(children[1].value)
+            attrs = (
+                children[2]
+                if len(children) > 2 and isinstance(children[2], dict)
+                else {}
+            )
+        else:
+            target = str(children[0].value)
+            attrs = (
+                children[1]
+                if len(children) > 1 and isinstance(children[1], dict)
+                else {}
+            )
 
         label = attrs.get("style", "")
 
@@ -407,7 +442,18 @@ class InlineTransformer(BaseTransformer):
             from asciidoctrine.lark_parser import parse_inlines
 
             try:
-                inlines = parse_inlines(label)
+                raw_inlines = parse_inlines(label)
+
+                def _unwrap(nodes: PyList[Node]) -> PyList[Node]:
+                    res: PyList[Node] = []
+                    for n in nodes:
+                        if isinstance(n, Ref):
+                            res.extend(_unwrap(n.inlines))
+                        else:
+                            res.append(n)
+                    return res
+
+                inlines = _unwrap(raw_inlines)
             except Exception:
                 inlines = [Text(label)]
 

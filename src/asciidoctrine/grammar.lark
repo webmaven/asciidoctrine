@@ -188,18 +188,23 @@ inline_triple_plus.20: "+++" [PASS_TRIPLE_CONTENT] "+++"
 block_macro.50: WORD "::" MACRO_TARGET [LSQB] [ATTR_LIST_CONTENT] [RSQB] _NEWLINE
               | WORD "::" LSQB [ATTR_LIST_CONTENT] RSQB _NEWLINE
 
-inline_image.10: "image:" TARGET inline_attribute_list
-icon_inline.10: "icon:" TARGET inline_attribute_list
+inline_image.10: IMAGE_PREFIX (TARGET | URI) inline_attribute_list
+icon_inline.10: ICON_PREFIX (TARGET | URI) inline_attribute_list
 
-inline_anchor.10: "[[" text_content "]]" | "anchor:" TARGET inline_attribute_list
-inline_xref.10: "<<" text_content ">>" | "xref:" TARGET inline_attribute_list
+inline_anchor.10: "[[" text_content "]]" | ANCHOR_PREFIX (TARGET | URI) inline_attribute_list
+inline_xref.10: "<<" text_content ">>" | XREF_PREFIX (TARGET | URI) inline_attribute_list
 inline_bibref.12: "[[[" text_content "]]]"
-inline_link.10: "link:" (TARGET | URI) inline_attribute_list | URI inline_attribute_list
+inline_link.10: LINK_PREFIX (TARGET | URI) inline_attribute_list | URI inline_attribute_list
 bare_url_link.1: URI
 bare_email_link.1: EMAIL
 
+LINK_PREFIX.5: "link:"
+IMAGE_PREFIX.5: "image:"
+ICON_PREFIX.5: "icon:"
+ANCHOR_PREFIX.5: "anchor:"
+XREF_PREFIX.5: "xref:"
 EMAIL.3: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,5}/
-URI.3: /(https?|ftp|file|irc):\/\/[^\[\n ]+/ | /mailto:[^\[\n ]+/
+URI.3: /(https?|ftps?|file|ircs?|wss?|git|ssh|gopher|chrome|edge|chrome-extension|moz-extension|resource):\/\/[^\s\[\]]+(?<![*_\`.,;:!?\)\}>])/ | /(mailto|data|tel|sms|urn|blob|about):[^\s\[\]]+(?<![*_\`.,;:!?\)\}>])/
 MACRO_TARGET: /[^:\[\n ][^\[\n ]*/
 TARGET: /[^\[\n ]+/
 

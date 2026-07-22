@@ -21,6 +21,16 @@ All notable changes to this project will be documented in this file.
   - Updated `ASGResolver.resolve()` to deep-copy the input AST prior to resolution, eliminating in-place AST mutation side-effects and preserving caller AST nodes.
 * **Graceful Permissive Include Directives (Issue #87)**:
   - Updated `Preprocessor` and `parse_to_ast` to handle missing include files gracefully under permissive parsing (`strict=False`), emitting a `PreprocessorWarning` and returning an unresolved directive placeholder string (`Unresolved directive in ...`).
+* **Inline Macro Prefix vs. URI Terminal Priority Conflict**:
+  - Fixed `link:`, `image:`, `icon:`, `xref:`, and `anchor:` inline macros with URL targets (e.g. `link:https://example.com[text]`) by introducing dedicated high-priority prefix terminals (`LINK_PREFIX.5`, etc.) that prevent `URI.3` from stealing the URL before the macro rule can match.
+* **Bare URLs Swallowing Trailing Formatting Delimiters**:
+  - Fixed `URI.3` regex to use a negative lookbehind so trailing formatting characters (`*`, `_`, `++``++) and punctuation are not consumed as part of the URL token. This allows constructs like `*https://example.com*` to parse correctly as bold-formatted bare links.
+* **Nested Link Elements in Link Labels**:
+  - Added unwrapping logic in `inline_link` transformer to flatten nested `Ref` nodes that arise when a link label is itself a URL string (e.g. `link:https://example.com[https://example.com]`), preventing invalid nested anchor elements.
+
+=== Changed
+* **Expanded URI Scheme Support**:
+  - Broadened `URI.3` terminal to recognize all browser-native and common URI schemes: `ftps:`, `ircs:`, `ws:/wss:`, `git:`, `ssh:`, `gopher:`, `chrome:`, `edge:`, `chrome-extension:`, `moz-extension:`, `resource:`, `data:`, `tel:`, `sms:`, `urn:`, `blob:`, and `about:` (in addition to the existing `http/https`, `ftp`, `file`, `irc`, and `mailto`).
 
 == link:https://pypi.org/project/asciidoctrine/0.1.0a10/[0.1.0a10] - 2026-07-20
 

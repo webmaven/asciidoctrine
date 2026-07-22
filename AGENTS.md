@@ -285,6 +285,19 @@ To produce a TCK-compliant Resolved Abstract Semantic Graph (ASG), the internal 
   2. `WORD "::" LSQB [ATTR_LIST_CONTENT] RSQB _NEWLINE`: This has an empty target (no characters following colons) but strictly requires brackets (e.g. `toc::[]`).
   This clean discrimination prevents raw term lines (such as `About::\n`) from ever matching `block_macro`, while retaining perfect support for both valid macros and bracket-less malformed macros.
 
+### 9. Inline Macro Prefix vs. URI Terminal Lexer Priority Conflict
+- **Problem**: When an inline macro with a URL target was used (e.g., `link:https://example.com[text]`, `image:https://cdn.example.com/logo.png[Logo]`), the `link:`, `image:`, `icon:`, `xref:`, or `anchor:` prefix was consumed as literal text instead of being recognized as part of the macro rule. The URL portion was then matched by the `URI.3` terminal via the bare URL branch, producing an incorrect AST where the prefix appeared as a text node and the link lost its explicit macro semantics.
+- **Cause**: Lark's Earley parser decomposes string literals like `"link:"` into `WORD("link") + COLON(":")` at the lexer level. The `URI.3` terminal (priority `.3`) then grabs the `https://...` portion before the composite rule `"link:" URI inline_attribute_list` can match. The second branch (`URI inline_attribute_list`) wins instead.
+- **What Didn't Work**: Increasing the priority of the `inline_link` rule itself (e.g., `inline_link.20`) does not help because the problem is at the lexer tokenization level, not at the Earley rule-selection level. The `"link:"` string literal is never tokenized as a single unit.
+- **Solution**:
+  1. **Dedicated Prefix Terminals**: Introduced explicit high-priority terminals for all inline macro prefixes: `LINK_PREFIX.5: "link:"`, `IMAGE_PREFIX.5: "image:"`, `ICON_PREFIX.5: "icon:"`, `ANCHOR_PREFIX.5: "anchor:"`, `XREF_PREFIX.5: "xref:"`. Priority `.5` is higher than `URI.3`, ensuring the lexer tokenizes the prefix as a single unit before `URI` can grab the URL.
+  2. **Grammar Rule Updates**: Changed all affected rules to use the new prefix terminals and accept `(TARGET | URI)` for the target, e.g., `inline_link.10: LINK_PREFIX (TARGET | URI) inline_attribute_list | URI inline_attribute_list`.
+  3. **Transformer Updates**: Updated `inline_link`, `inline_image`, `icon_inline`, `inline_anchor`, and `inline_xref` transformer methods in `inline_transformer.py` to detect and skip the prefix token in the children list before extracting the target.
+  4. **URI Trailing Formatting Fix**: Updated the `URI.3` regex with a negative lookbehind `(?<![*_\`.,;:!?\)\}>])` so that trailing formatting delimiters (`*`, `_`, `` ` ``) and punctuation are not swallowed into the URL token. This allows `*https://example.com*` to parse as bold-wrapped bare link instead of a bare link with `*` appended to the target.
+  5. **Nested Ref Unwrapping**: Added an `_unwrap` pass in the `inline_link` transformer that flattens any nested `Ref` nodes inside link labels (which occur when the label text is itself a URL parsed by `parse_inlines`) into plain text, preventing invalid nested anchor elements.
+  6. **Expanded URI Scheme Support**: Broadened the `URI.3` terminal from only `http|https|ftp|file|irc|mailto` to cover all browser-native and common schemes: `https?|ftps?|file|ircs?|wss?|git|ssh|gopher|chrome|edge|chrome-extension|moz-extension|resource` (authority-based) and `mailto|data|tel|sms|urn|blob|about` (opaque/no-authority).
+
+
 ## 🤖 Subagent & Model Routing Strategy
 
 *   **Standing Instruction**: For all coding and coding-adjacent tasks, use your judgement to decide when a lower-power model would be appropriate and run that in a subagent.

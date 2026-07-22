@@ -56,6 +56,155 @@ class TestInlines(unittest.TestCase):
         names = [n["name"] for n in content_nodes]
         self.assertEqual(names.count("span"), 2)
 
+    def test_list_item_starting_with_formatting(self):
+        source = "* *PyPI Package*: https://pypi.org/project/asciidoctrine/\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        item = ast["blocks"][0]["items"][0]
+        content_nodes = item["principal"]
+        self.assertEqual(content_nodes[0]["name"], "span")
+        self.assertEqual(content_nodes[0]["variant"], "strong")
+        self.assertEqual(content_nodes[0]["inlines"][0]["value"], "PyPI Package")
+
+    def test_list_item_with_link_macro(self):
+        """link:URL[text] in a list item: the 'link:' prefix must be consumed
+        by the inline_link rule, not left as literal text."""
+        source = "* *PyPI Package*: link:https://pypi.org/project/asciidoctrine/[asciidoctrine on PyPI]\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        item = ast["blocks"][0]["items"][0]
+        content_nodes = item["principal"]
+        # The text between bold span and link should be ': ' only.
+        self.assertEqual(content_nodes[1]["value"], ": ")
+        ref_node = content_nodes[2]
+        self.assertEqual(ref_node["name"], "ref")
+        self.assertEqual(ref_node["variant"], "link")
+        self.assertEqual(ref_node["target"], "https://pypi.org/project/asciidoctrine/")
+        self.assertEqual(ref_node["inlines"][0]["value"], "asciidoctrine on PyPI")
+
+    def test_explicit_link_macro_with_link_prefix(self):
+        """link:URL[text] in a paragraph: the 'link:' prefix must be consumed
+        by the inline_link rule, making the preceding text 'See '."""
+        source = "See link:https://asciidoc.org/[AsciiDoc] for details.\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        paragraph = ast["blocks"][0]
+        # The preceding text should be 'See ', not 'See link:'
+        self.assertEqual(paragraph["inlines"][0]["value"], "See ")
+        ref = paragraph["inlines"][1]
+        self.assertEqual(ref["name"], "ref")
+        self.assertEqual(ref["variant"], "link")
+        self.assertEqual(ref["target"], "https://asciidoc.org/")
+        self.assertEqual(ref["inlines"][0]["value"], "AsciiDoc")
+
+    def test_inline_image_with_url_target(self):
+        source = "See image:https://example.com/logo.png[Logo] for details.\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        paragraph = ast["blocks"][0]
+        self.assertEqual(paragraph["inlines"][0]["value"], "See ")
+        img = paragraph["inlines"][1]
+        self.assertEqual(img["name"], "image")
+        self.assertEqual(img["target"], "https://example.com/logo.png")
+
+    def test_icon_inline_with_url_target(self):
+        source = "See icon:https://example.com/icon.png[Icon] for details.\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        paragraph = ast["blocks"][0]
+        self.assertEqual(paragraph["inlines"][0]["value"], "See ")
+        icon = paragraph["inlines"][1]
+        self.assertEqual(icon["name"], "icon")
+        self.assertEqual(icon["target"], "https://example.com/icon.png")
+
+    def test_xref_inline_with_url_target(self):
+        source = "See xref:https://example.com/doc.html[Doc] for details.\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        paragraph = ast["blocks"][0]
+        self.assertEqual(paragraph["inlines"][0]["value"], "See ")
+        ref = paragraph["inlines"][1]
+        self.assertEqual(ref["name"], "ref")
+        self.assertEqual(ref["variant"], "xref")
+        self.assertEqual(ref["target"], "https://example.com/doc.html")
+
+    def test_bold_bare_link_parsing(self):
+        source = "* *https://example.com*\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        item = ast["blocks"][0]["items"][0]
+        span = item["principal"][0]
+        self.assertEqual(span["name"], "span")
+        self.assertEqual(span["variant"], "strong")
+        ref = span["inlines"][0]
+        self.assertEqual(ref["name"], "ref")
+        self.assertEqual(ref["target"], "https://example.com")
+        self.assertEqual(ref["attributes"]["role"], "bare")
+
+    def test_nested_formatting_around_inline_link(self):
+        source = "* *_link:https://example.com[https://example.com]_*\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        item = ast["blocks"][0]["items"][0]
+        strong_span = item["principal"][0]
+        self.assertEqual(strong_span["variant"], "strong")
+        italic_span = strong_span["inlines"][0]
+        self.assertEqual(italic_span["variant"], "emphasis")
+        ref = italic_span["inlines"][0]
+        self.assertEqual(ref["name"], "ref")
+        self.assertEqual(ref["variant"], "link")
+        self.assertEqual(ref["target"], "https://example.com")
+        self.assertEqual(ref["inlines"][0]["value"], "https://example.com")
+
+    def test_internationalized_and_advanced_urls(self):
+        cases = [
+            (
+                "https://xn--bcher-kva.ch/search?q=test",
+                "https://xn--bcher-kva.ch/search?q=test",
+            ),
+            (
+                "https://münchen.de/stefan",
+                "https://münchen.de/stefan",
+            ),
+            (
+                "https://example.com/🍕/page",
+                "https://example.com/🍕/page",
+            ),
+            (
+                "data:text/plain;utf8,Hello%20World",
+                "data:text/plain;utf8,Hello%20World",
+            ),
+            (
+                "https://example.com/page.html?arg=value",
+                "https://example.com/page.html?arg=value",
+            ),
+            (
+                "tel:+1-555-0199",
+                "tel:+1-555-0199",
+            ),
+            (
+                "sms:+1-555-0199?body=Hello",
+                "sms:+1-555-0199?body=Hello",
+            ),
+            (
+                "wss://stream.example.com/socket",
+                "wss://stream.example.com/socket",
+            ),
+            (
+                "file:///path/to/doc.pdf",
+                "file:///path/to/doc.pdf",
+            ),
+            (
+                "git://github.com/webmaven/asciidoctrine.git",
+                "git://github.com/webmaven/asciidoctrine.git",
+            ),
+            (
+                "chrome://flags/#enable-webrtc",
+                "chrome://flags/#enable-webrtc",
+            ),
+        ]
+        for src_url, expected_target in cases:
+            source = f"See {src_url} for details.\n"
+            ast = self._strip_locations(parse_to_ast(source).to_dict())
+            paragraph = ast["blocks"][0]
+            self.assertEqual(paragraph["inlines"][0]["value"], "See ")
+            ref = paragraph["inlines"][1]
+            self.assertEqual(ref["name"], "ref")
+            self.assertEqual(ref["variant"], "link")
+            self.assertEqual(ref["target"], expected_target)
+
     def test_attribute_substitutions_parameterized(self):
         cases = [
             (

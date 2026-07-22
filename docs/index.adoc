@@ -210,7 +210,7 @@ The path to 1:1 syntactic specification compliance is tracked through the follow
 
 == Project Links & Resources
 
-PyPI Package:: https://pypi.org/project/asciidoctrine/[asciidoctrine on PyPI]
-GitHub Repository:: https://github.com/webmaven/asciidoctrine[webmaven/asciidoctrine]
-Issue Tracker:: https://github.com/webmaven/asciidoctrine/issues[GitHub Issue Tracker]
-License:: Distributed under the https://github.com/webmaven/asciidoctrine/blob/main/LICENSE[Apache License 2.0]
+* *PyPI Package*: link:https://pypi.org/project/asciidoctrine/[asciidoctrine on PyPI]
+* *GitHub Repository*: link:https://github.com/webmaven/asciidoctrine[webmaven/asciidoctrine]
+* *Issue Tracker*: link:https://github.com/webmaven/asciidoctrine/issues[GitHub Issue Tracker]
+* *License*: Distributed under the link:https://github.com/webmaven/asciidoctrine/blob/main/LICENSE[Apache License 2.0]
