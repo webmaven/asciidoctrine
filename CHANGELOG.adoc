@@ -3,6 +3,23 @@
 
 All notable changes to this project will be documented in this file.
 
+== link:https://pypi.org/project/asciidoctrine/0.1.0a11/[0.1.0a11] - 2026-07-21
+
+=== Added
+* **Bare URL & Email Autolinks (Issue #76)**:
+  - Full support for parsing bare URLs and email addresses (`user@domain.com`) into `Ref` nodes with `role: "bare"` and `target="mailto:..."`.
+  - Implemented trailing punctuation stripping (`.,;:!?)>]}`), angle-bracket delineation (`<https://...>`), backslash escaping (`\https://...`, `\user@domain.com`), and round-trip serialization back to raw string forms.
+* **Standardized Verbatim Properties on `Literal` Blocks**:
+  - Added property accessors (`id`, `style`, and `literal_title`) to `Literal` block nodes to ensure interface parity with `Listing` blocks.
+
+=== Fixed
+* **Recursive Formatted Paragraph Text Reconstruction in `ASTSyntaxAuditor`**:
+  - Fixed `ASTSyntaxAuditor.visit_paragraph` to recursively traverse nested formatted inline spans (bold, italic, monospace, etc.) via `child.walk()`, ensuring syntax auditing properly inspects text inside formatted inline structures.
+* **Non-Destructive `ASGResolver`**:
+  - Updated `ASGResolver.resolve()` to deep-copy the input AST prior to resolution, eliminating in-place AST mutation side-effects and preserving caller AST nodes.
+* **Graceful Permissive Include Directives (Issue #87)**:
+  - Updated `Preprocessor` and `parse_to_ast` to handle missing include files gracefully under permissive parsing (`strict=False`), emitting a `PreprocessorWarning` and returning an unresolved directive placeholder string (`Unresolved directive in ...`).
+
 == link:https://pypi.org/project/asciidoctrine/0.1.0a10/[0.1.0a10] - 2026-07-20
 
 === Added

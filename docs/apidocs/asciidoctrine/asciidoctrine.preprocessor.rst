@@ -64,7 +64,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.preprocessor.PreprocessorWarning.__init__
       :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: Preprocessor(base_dir: typing.Optional[str] = None, safe_mode: bool = True, preprocess_directives: bool = True, attributes: typing.Optional[dict[str, str]] = None)
+.. py:class:: Preprocessor(base_dir: typing.Optional[str] = None, safe_mode: bool = True, preprocess_directives: bool = True, attributes: typing.Optional[dict[str, str]] = None, strict: bool = True)
    :canonical: asciidoctrine.preprocessor.Preprocessor
 
    .. autodoc2-docstring:: asciidoctrine.preprocessor.Preprocessor
