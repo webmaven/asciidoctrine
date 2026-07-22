@@ -9,6 +9,7 @@ v0.1.0
 :sectlinks:
 :source-highlighter: highlight.js
 
+image:https://img.shields.io/pypi/v/asciidoctrine.svg[PyPI Version, link=https://pypi.org/project/asciidoctrine/]
 image:https://img.shields.io/badge/License-Apache_2.0-blue.svg[License, link=https://opensource.org/licenses/Apache-2.0]
 image:https://img.shields.io/badge/python-3.10--3.14-blue.svg[Python Version]
 image:https://img.shields.io/badge/coverage-82%25-green.svg[Coverage, link=https://github.com/webmaven/asciidoctrine/actions/workflows/ci.yml]
@@ -17,7 +18,8 @@ image:https://img.shields.io/badge/docs-GitHub_Pages-blue[Documentation, link=ht
 
 A high-performance, pure-Python AsciiDoc parser built with Lark, designed for compatibility with the official AsciiDoc specification and the TCK. 
 
-The complete, compiled user documentation is available online at link:https://webmaven.github.io/asciidoctrine/[https://webmaven.github.io/asciidoctrine/].
+* *Documentation*: link:https://webmaven.github.io/asciidoctrine/[https://webmaven.github.io/asciidoctrine/]
+* *PyPI Package*: link:https://pypi.org/project/asciidoctrine/[https://pypi.org/project/asciidoctrine/]
 
 == Motivation
 
