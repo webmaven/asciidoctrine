@@ -18,7 +18,6 @@ import pytest
 
 from asciidoctrine import parse_to_ast
 
-
 HARNESS_DIR = os.path.join("tests", "tck_harness", "tests")
 
 

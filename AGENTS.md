@@ -57,37 +57,50 @@ npm ci
 ```
 *Note: `run-tck.sh` handles `npm ci` automatically if `node_modules` is missing.*
 
-## 🧪 Testing Protocols
+## 🧪 Testing Protocols & Workflow Tiers
 
-The project uses a multi-tiered testing strategy.
+The project uses a 3-tiered testing strategy designed to maximize test signal while minimizing execution time and output noise:
 
-### 1. Standard Pytest Suite
-Runs unit, integration, local TCK harness (`tests/test_local_tck.py`), and doctest-based examples.
+### Tier 1: Rapid Development Loop (Fast / Focused)
+Use while iterating on a specific feature, bugfix, or grammar rule. Keep output minimal (`-q`) and focus strictly on the affected module.
 
 ```bash
-# Run all stable tests (includes unit tests and tests/test_local_tck.py)
-venv/bin/pytest -k "not functional"
+# Run a specific test file with quiet output
+venv/bin/pytest tests/test_inlines_parsing.py -q
 
-# Functional tests (Pyodide) currently require a 'pyodide/' dist directory
-# and are known to fail in standard environments.
+# Run a single target test function
+venv/bin/pytest tests/test_inlines_parsing.py -k "test_custom_scheme" -q --tb=short
 ```
 
-### 2. Official TCK Suite
-Authoritative tests for AsciiDoc specification compliance via Node.js runner.
+### Tier 2: Pre-Commit Check (Core Unit + Local TCK Suite)
+Use before committing code. Runs all unit tests and the native Python local TCK harness (`tests/test_local_tck.py`).
 
 ```bash
+# Run all stable tests quietly
+venv/bin/pytest -k "not functional" -q --tb=short
+```
+
+### Tier 3: Pre-Release Conformance Check (Full Suite + Doctests + Upstream TCK)
+Use before tagging releases or pushing release branches. Runs real-world doctest corpus, Node.js upstream TCK runner, and static linters.
+
+```bash
+# 1. Full Pytest suite including all 244 real-world doctests
+RUN_DOCTESTS=1 venv/bin/pytest -k "not functional" -q
+
+# 2. Official Upstream Node.js TCK Runner
 ./run-tck.sh
+
+# 3. TCK Coverage Summary Report
+./run-tck-coverage.sh
+
+# 4. Static Linters & Type Checking
+venv/bin/ruff check . && venv/bin/mypy src/asciidoctrine
 ```
+
 *   **Adapter**: `bin/tck-adapter.py` (Bridge between TCK runner and parser)
 *   **Official TCK Location**: `vendor/asciidoc-tck/`
-*   **Local TCK Harness Location**: `tests/tck_harness/` (Tested natively via `tests/test_local_tck.py` during pytest runs)
+*   **Local TCK Harness Location**: `tests/tck_harness/` (Tested natively via `tests/test_local_tck.py`)
 
-### 3. TCK Coverage Report
-To see a summary of passed/failed TCK categories:
-
-```bash
-./run-tck-coverage.sh
-```
 
 ## 📋 New Feature Checklist
 

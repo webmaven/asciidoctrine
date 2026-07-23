@@ -30,40 +30,53 @@ pip install -e ".[test,docs]"
 
 ---
 
-== Testing Protocols
+== Testing Protocols & Workflow Tiers
 
-We employ a multi-layered testing strategy to guarantee complete syntactic and semantic compatibility with the AsciiDoc specification.
+We employ a 3-tiered testing strategy to guarantee complete syntactic and semantic compatibility with the AsciiDoc specification while maintaining fast feedback loops.
 
-=== 1. Local Pytest Runner
-We use standard `pytest` to run our unit and integration tests.
-
-[source,bash]
-----
-# Run all stable tests
-pytest -k "not functional"
-
-# Run tests with terminal coverage report
-pytest --cov=src --cov-report=term-missing -k "not functional"
-----
-
-=== 2. Technology Compatibility Kit (TCK)
-The official TCK is the authoritative conformance suite for the AsciiDoc language specification.
+=== Tier 1: Rapid Development Loop (Fast / Focused)
+Use while iterating on a specific feature, bugfix, or grammar rule:
 
 [source,bash]
 ----
-# Run the complete TCK test runner
+# Run a targeted test module quietly
+pytest tests/test_inlines_parsing.py -q
+
+# Focus on a single test function
+pytest tests/test_inlines_parsing.py -k "test_custom_scheme" -q --tb=short
+----
+
+=== Tier 2: Pre-Commit Check (Core Unit + Local TCK Suite)
+Use before committing code. Runs unit tests and the native Python local TCK harness (`tests/test_local_tck.py`):
+
+[source,bash]
+----
+# Run all stable tests quietly
+pytest -k "not functional" -q --tb=short
+----
+
+=== Tier 3: Pre-Release Conformance Check (Full Suite + Doctests + Upstream TCK)
+Use before tagging releases or pushing release branches:
+
+[source,bash]
+----
+# 1. Full Pytest suite including all 244 real-world doctests
+RUN_DOCTESTS=1 pytest -k "not functional" -q
+
+# 2. Official Upstream Node.js TCK Runner
 ./run-tck.sh
-----
 
-To view a summary of passed and failed TCK categories:
-[source,bash]
-----
+# 3. TCK Coverage Summary Report
 ./run-tck-coverage.sh
+
+# 4. Code Quality & Typing Checks
+ruff check . && mypy src/asciidoctrine
 ----
 
-=== 3. Standard and Draft TCK Paths
+=== Standard and Draft TCK Paths
 * **Official TCK**: Located inside `vendor/asciidoc-tck/tests/block/`. These are official specification-aligned tests executed via `./run-tck.sh`.
 * **Local TCK Harness**: Located inside `tests/tck_harness/tests/`. These cover custom additions, draft features, or local spec extensions and are run natively as parametrized `pytest` tests via `tests/test_local_tck.py`.
+
 
 ---
 

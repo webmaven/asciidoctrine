@@ -286,6 +286,13 @@ AsciiDoctrine Support::
 | -
 | link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
 
+| *Configurable Custom URI Schemes*
+| -
+| -
+| -
+| link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]
+
+
 | *Literal Paragraphs (Indented Lines)*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-literal-paragraphs[Outline]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]

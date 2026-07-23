@@ -3,9 +3,16 @@
 
 All notable changes to this project will be documented in this file.
 
-== link:https://pypi.org/project/asciidoctrine/0.1.0a11/[0.1.0a11] - 2026-07-22
+== link:https://pypi.org/project/asciidoctrine/0.1.0a11/[0.1.0a11] - 2026-07-23
 
 === Added
+* **Configurable Custom URI Schemes (`extra_authority_schemes`, `extra_opaque_schemes`)**:
+  - Implemented parser options `extra_authority_schemes` and `extra_opaque_schemes` in `parse_to_ast` with dynamic URI regex regeneration.
+  - Implemented scheme name validation and reserved scheme blacklist (`link`, `image`, `xref`, `note`, `tip`, `warning`, `to`, `cc`, `bcc`, `date`, `time`, `ssn`, `id`, etc.) to prevent syntax collisions with core AsciiDoc macros and attributes.
+* **Native Python Local TCK Test Harness**:
+  - Integrated local TCK test suite (`tests/tck_harness/`) into standard `pytest` runs via `tests/test_local_tck.py`.
+* **3-Tiered Testing Strategy & Efficiency Guidelines**:
+  - Established a 3-tiered testing workflow (`Tier 1: Dev Loop`, `Tier 2: Pre-Commit`, `Tier 3: Pre-Release`) with quiet reporting (`-q`) in `AGENTS.md` and `docs/contributing.adoc`.
 * **Bare URL & Email Autolinks (Issue #76)**:
   - Full support for parsing bare URLs and email addresses (`user@domain.com`) into `Ref` nodes with `role: "bare"` and `target="mailto:..."`.
   - Implemented trailing punctuation stripping (`.,;:!?)>]}`), angle-bracket delineation (`<https://...>`), backslash escaping (`\https://...`, `\user@domain.com`), and round-trip serialization back to raw string forms.
@@ -15,7 +22,10 @@ All notable changes to this project will be documented in this file.
   - Added a local TCK test (`tests/tck_harness/tests/block/section/nesting-*`) demonstrating section nesting and level transitions: child nesting (level 1 → 2 → 3) and returning to a sibling section at a lower numerical level.
 
 === Fixed
+* **Block Style Attribute Preservation in `ASGResolver`**:
+  - Updated `ASGResolver` and `lark_parser` to preserve block `style` attributes on resolved ASG block nodes for structural equivalence with reference ASG outputs.
 * **Recursive Formatted Paragraph Text Reconstruction in `ASTSyntaxAuditor`**:
+
   - Fixed `ASTSyntaxAuditor.visit_paragraph` to recursively traverse nested formatted inline spans (bold, italic, monospace, etc.) via `child.walk()`, ensuring syntax auditing properly inspects text inside formatted inline structures.
 * **Non-Destructive `ASGResolver`**:
   - Updated `ASGResolver.resolve()` to deep-copy the input AST prior to resolution, eliminating in-place AST mutation side-effects and preserving caller AST nodes.

@@ -92,17 +92,19 @@ def test_resolver_block_attribute_cleaning_and_comment_removal():
     assert "comment" not in asg_block_names
     assert len(asg_block_names) == 2
 
-    # 2. Verify p_with_attrs has had its positional/style/digit attributes removed, keeping my-named-attr
+    # 2. Verify p_with_attrs has had its positional/digit attributes removed, keeping my-named-attr and style
     cleaned_p = asg["blocks"][0]
     assert "attributes" in cleaned_p
     assert "my-named-attr" in cleaned_p["attributes"]
-    assert "style" not in cleaned_p["attributes"]
+    assert "style" in cleaned_p["attributes"]
     assert "positional" not in cleaned_p["attributes"]
     assert "1" not in cleaned_p["attributes"]
 
-    # 3. Verify p_with_only_positional has had its attributes deleted entirely
+    # 3. Verify p_with_only_positional keeps style in attributes
     empty_p = asg["blocks"][1]
-    assert "attributes" not in empty_p
+    assert "attributes" in empty_p
+    assert "style" in empty_p["attributes"]
+    assert "positional" not in empty_p["attributes"]
 
 
 def test_resolver_non_destructive():
