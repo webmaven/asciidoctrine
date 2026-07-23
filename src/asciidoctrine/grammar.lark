@@ -204,7 +204,7 @@ ICON_PREFIX.5: "icon:"
 ANCHOR_PREFIX.5: "anchor:"
 XREF_PREFIX.5: "xref:"
 EMAIL.3: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,5}/
-URI.3: /(https?|ftps?|file|ircs?|wss?|git|ssh|gopher|chrome|edge|chrome-extension|moz-extension|resource):\/\/[^\s\[\]]+(?<![*_\`.,;:!?\)\}>])/ | /(mailto|data|tel|sms|urn|blob|about):[^\s\[\]]+(?<![*_\`.,;:!?\)\}>])/
+URI.3: /(https?|ftps?|file|ircs?|wss?|git|ssh):\/\/[^\s\[\]]+(?<![*_\`.,;:!?\)\}>])/ | /(mailto|data|tel|sms):[^\s\[\]]+(?<![*_\`.,;:!?\)\}>])/
 MACRO_TARGET: /[^:\[\n ][^\[\n ]*/
 TARGET: /[^\[\n ]+/
 

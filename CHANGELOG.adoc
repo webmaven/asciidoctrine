@@ -29,8 +29,10 @@ All notable changes to this project will be documented in this file.
   - Added unwrapping logic in `inline_link` transformer to flatten nested `Ref` nodes that arise when a link label is itself a URL string (e.g. `link:https://example.com[https://example.com]`), preventing invalid nested anchor elements.
 
 === Changed
-* **Expanded URI Scheme Support**:
-  - Broadened `URI.3` terminal to recognize all browser-native and common URI schemes: `ftps:`, `ircs:`, `ws:/wss:`, `git:`, `ssh:`, `gopher:`, `chrome:`, `edge:`, `chrome-extension:`, `moz-extension:`, `resource:`, `data:`, `tel:`, `sms:`, `urn:`, `blob:`, and `about:` (in addition to the existing `http/https`, `ftp`, `file`, `irc`, and `mailto`).
+* **Configurable & Streamlined URI Scheme Architecture**:
+  - Refactored `URI.3` terminal to a streamlined, safe default set (`http/https`, `ftp/ftps`, `file`, `irc/ircs`, `ws/wss`, `git`, `ssh`, `mailto`, `data`, `tel`, `sms`).
+  - Added support for passing custom authority and opaque schemes via `parse_to_ast(..., extra_authority_schemes=[...], extra_opaque_schemes=[...])`.
+  - Implemented strict scheme validation (`validate_custom_scheme`) enforcing length bounds (2–10 chars), character rules (`[a-z0-9\-]+`), and a comprehensive blacklist preventing collisions with inline macros (`link`, `image`, `xref`), block labels (`note`, `tip`, `warning`), headers, and common colon-followed terms (`to`, `cc`, `bcc`, `date`, `time`, `ssn`, `id`).
 
 == link:https://pypi.org/project/asciidoctrine/0.1.0a10/[0.1.0a10] - 2026-07-20
 

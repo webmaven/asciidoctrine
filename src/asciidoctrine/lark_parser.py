@@ -988,6 +988,124 @@ def resolve_list_continuations(blocks: PyList[Node]) -> PyList[Node]:
     return resolved
 
 
+DEFAULT_AUTHORITY_SCHEMES = ("https?", "ftps?", "file", "ircs?", "wss?", "git", "ssh")
+DEFAULT_OPAQUE_SCHEMES = ("mailto", "data", "tel", "sms")
+
+RESERVED_SCHEMES_BLACKLIST = {
+    # Built-in schemes
+    "http",
+    "https",
+    "ftp",
+    "ftps",
+    "file",
+    "mailto",
+    "tel",
+    "sms",
+    "data",
+    "git",
+    "ssh",
+    "ws",
+    "wss",
+    "irc",
+    "ircs",
+    # Macro & Inline prefixes
+    "link",
+    "image",
+    "icon",
+    "xref",
+    "anchor",
+    "pass",
+    "stem",
+    "latexmath",
+    "asciimath",
+    "btn",
+    "kbd",
+    "menu",
+    # Admonitions & Block labels
+    "note",
+    "tip",
+    "important",
+    "warning",
+    "caution",
+    "todo",
+    "fixme",
+    "see",
+    "example",
+    "sidebar",
+    "quote",
+    "verse",
+    "literal",
+    "listing",
+    "source",
+    "passthrough",
+    "comment",
+    # Headers, Attributes, & Common Colon-followed Terms
+    "author",
+    "version",
+    "revision",
+    "title",
+    "header",
+    "footer",
+    "toc",
+    "index",
+    "style",
+    "class",
+    "role",
+    "id",
+    "ref",
+    "tag",
+    "tags",
+    "include",
+    "to",
+    "cc",
+    "bcc",
+    "date",
+    "time",
+    "ssn",
+}
+
+
+def validate_custom_scheme(scheme: str) -> str:
+    """Validates and normalizes a custom URI scheme string."""
+    scheme_clean = scheme.strip().lower()
+    if not (2 <= len(scheme_clean) <= 10):
+        raise ValueError(
+            f"Custom scheme '{scheme}' must be between 2 and 10 characters in length."
+        )
+    if not re.match(r"^[a-z0-9\-]+$", scheme_clean):
+        raise ValueError(
+            f"Custom scheme '{scheme}' contains invalid characters. Must contain only lowercase ASCII letters, digits, or hyphens."
+        )
+    if scheme_clean in RESERVED_SCHEMES_BLACKLIST:
+        raise ValueError(
+            f"Custom scheme '{scheme}' is reserved or blacklisted and cannot be registered as a custom URI scheme."
+        )
+    return scheme_clean
+
+
+def build_uri_terminal(
+    extra_authority_schemes: Optional[PyList[str]] = None,
+    extra_opaque_schemes: Optional[PyList[str]] = None,
+) -> str:
+    """Builds the URI.3 Lark grammar terminal rule string with optional custom schemes."""
+    auth = list(DEFAULT_AUTHORITY_SCHEMES)
+    if extra_authority_schemes:
+        for s in extra_authority_schemes:
+            auth.append(validate_custom_scheme(s))
+
+    opaque = list(DEFAULT_OPAQUE_SCHEMES)
+    if extra_opaque_schemes:
+        for s in extra_opaque_schemes:
+            opaque.append(validate_custom_scheme(s))
+
+    auth_pattern = "|".join(auth)
+    opaque_pattern = "|".join(opaque)
+    return (
+        f"URI.3: /({auth_pattern}):\\/\\/[^\\s\\[\\]]+(?<![*_\\`.,;:!?\\)\\}}>])/ "
+        f"| /({opaque_pattern}):[^\\s\\[\\]]+(?<![*_\\`.,;:!?\\)\\}}>])/"
+    )
+
+
 def parse_to_ast(
     source: str,
     grammar_file: str = DEFAULT_GRAMMAR,
@@ -995,6 +1113,8 @@ def parse_to_ast(
     safe_mode: bool = True,
     preprocess_directives: bool = True,
     strict: bool = True,
+    extra_authority_schemes: Optional[PyList[str]] = None,
+    extra_opaque_schemes: Optional[PyList[str]] = None,
 ) -> Document:
     # Detect if the original document preferred Windows CRLF or standard Unix LF
     # by checking if the very first newline sequence in the file is \r\n
@@ -1036,6 +1156,15 @@ def parse_to_ast(
 
     with open(grammar_file, "r") as f:
         grammar = f.read()
+
+    if extra_authority_schemes or extra_opaque_schemes:
+        custom_uri_rule = build_uri_terminal(
+            extra_authority_schemes, extra_opaque_schemes
+        )
+        grammar = re.sub(
+            r"^URI\.3:.*$", lambda m: custom_uri_rule, grammar, flags=re.MULTILINE
+        )
+
     parser = Lark(
         grammar,
         start="document",

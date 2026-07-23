@@ -190,10 +190,6 @@ class TestInlines(unittest.TestCase):
                 "git://github.com/webmaven/asciidoctrine.git",
                 "git://github.com/webmaven/asciidoctrine.git",
             ),
-            (
-                "chrome://flags/#enable-webrtc",
-                "chrome://flags/#enable-webrtc",
-            ),
         ]
         for src_url, expected_target in cases:
             source = f"See {src_url} for details.\n"
@@ -204,6 +200,52 @@ class TestInlines(unittest.TestCase):
             self.assertEqual(ref["name"], "ref")
             self.assertEqual(ref["variant"], "link")
             self.assertEqual(ref["target"], expected_target)
+
+    def test_custom_scheme_registration(self):
+        source = "Join slack://channel/general or call zoommtg://zoom.us/join?id=123 for details.\n"
+        ast = self._strip_locations(
+            parse_to_ast(
+                source,
+                extra_authority_schemes=["slack", "zoommtg"],
+            ).to_dict()
+        )
+        inlines = ast["blocks"][0]["inlines"]
+        self.assertEqual(inlines[0]["value"], "Join ")
+        self.assertEqual(inlines[1]["name"], "ref")
+        self.assertEqual(inlines[1]["target"], "slack://channel/general")
+        self.assertEqual(inlines[2]["value"], " or call ")
+        self.assertEqual(inlines[3]["name"], "ref")
+        self.assertEqual(inlines[3]["target"], "zoommtg://zoom.us/join?id=123")
+
+    def test_custom_scheme_validation_errors(self):
+        blacklisted = [
+            "note",
+            "to",
+            "cc",
+            "bcc",
+            "date",
+            "time",
+            "ssn",
+            "id",
+            "link",
+            "http",
+            "image",
+        ]
+        for bad_scheme in blacklisted:
+            with self.assertRaises(ValueError):
+                parse_to_ast("test", extra_authority_schemes=[bad_scheme])
+
+        # Test length limits
+        with self.assertRaises(ValueError):
+            parse_to_ast("test", extra_authority_schemes=["a"])  # Too short (<2)
+        with self.assertRaises(ValueError):
+            parse_to_ast(
+                "test", extra_authority_schemes=["verylongschemename"]
+            )  # Too long (>10)
+
+        # Test invalid characters
+        with self.assertRaises(ValueError):
+            parse_to_ast("test", extra_authority_schemes=["bad_scheme!"])
 
     def test_attribute_substitutions_parameterized(self):
         cases = [
