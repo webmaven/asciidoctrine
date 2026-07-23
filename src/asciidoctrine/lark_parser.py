@@ -269,6 +269,8 @@ class AsciiDocTransformer(
                                 block = Admonition(variant=variant, blocks=block.blocks)
                             else:
                                 block.attributes["style"] = v
+                        elif variant == "source":
+                            block.attributes["style"] = v
                         elif variant == "verse":
                             if isinstance(block, (Paragraph, Quote, Example, Open)):
                                 blocks = (

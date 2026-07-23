@@ -31,7 +31,7 @@ class ASGResolver(NodeTransformer):
         if node.name not in ("document", "attributes") and node.attributes:
             cleaned_attrs = {}
             for k, v in node.attributes.items():
-                if k == "positional" or k == "style" or k.isdigit():
+                if k == "positional" or k.isdigit():
                     continue
                 cleaned_attrs[k] = v
             if cleaned_attrs:
