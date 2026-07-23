@@ -62,8 +62,8 @@ To view a summary of passed and failed TCK categories:
 ----
 
 === 3. Standard and Draft TCK Paths
-* **Official TCK**: Located inside `vendor/asciidoc-tck/tests/block/`. These are official specification-aligned tests.
-* **Draft Harness**: Located inside `tests/tck_harness/tests/block/`. These cover new drafts or upcoming syntactic extensions before they are officially accepted upstream.
+* **Official TCK**: Located inside `vendor/asciidoc-tck/tests/block/`. These are official specification-aligned tests executed via `./run-tck.sh`.
+* **Local TCK Harness**: Located inside `tests/tck_harness/tests/`. These cover custom additions, draft features, or local spec extensions and are run natively as parametrized `pytest` tests via `tests/test_local_tck.py`.
 
 ---
 

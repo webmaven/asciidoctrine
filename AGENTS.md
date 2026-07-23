@@ -62,10 +62,10 @@ npm ci
 The project uses a multi-tiered testing strategy.
 
 ### 1. Standard Pytest Suite
-Runs unit, integration, and doctest-based examples.
+Runs unit, integration, local TCK harness (`tests/test_local_tck.py`), and doctest-based examples.
 
 ```bash
-# Run all stable tests
+# Run all stable tests (includes unit tests and tests/test_local_tck.py)
 venv/bin/pytest -k "not functional"
 
 # Functional tests (Pyodide) currently require a 'pyodide/' dist directory
@@ -73,13 +73,14 @@ venv/bin/pytest -k "not functional"
 ```
 
 ### 2. Official TCK Suite
-Authoritative tests for AsciiDoc specification compliance.
+Authoritative tests for AsciiDoc specification compliance via Node.js runner.
 
 ```bash
 ./run-tck.sh
 ```
 *   **Adapter**: `bin/tck-adapter.py` (Bridge between TCK runner and parser)
-*   **TCK Location**: `vendor/asciidoc-tck/`
+*   **Official TCK Location**: `vendor/asciidoc-tck/`
+*   **Local TCK Harness Location**: `tests/tck_harness/` (Tested natively via `tests/test_local_tck.py` during pytest runs)
 
 ### 3. TCK Coverage Report
 To see a summary of passed/failed TCK categories:
