@@ -111,3 +111,29 @@ To support robust developer workflows, live-preview editors, and resilient compi
 
 * *Strict Mode (`strict=True`, default)*: Any syntactic violation, unclosed block, or parser error throws a structured `AsciiDocSyntaxError` immediately to fail fast.
 * *Permissive Mode (`strict=False`)*: Syntactic or structural failures cleanly degrade into standard paragraph blocks containing the literal representation of the offending text instead of crashing execution. This ensures the parser can always compile incomplete or work-in-progress drafts.
+
+=== Configurable URI Schemes & Extension Rationale
+
+AsciiDoc documents frequently reference web URLs (`https://`), file paths (`file://`), email addresses (`mailto:`), and telephone links (`tel:`). However, open-ended URI scheme matching presents serious syntactic ambiguities in formal EBNF grammars:
+
+1. *Earley State Explosion & Greedy Matching*: If the parser used a generic URI regex matching any string before a colon (such as `[a-zA-Z]+:`), common prose terms (`practices include:`, `NOTE:`, `WARNING:`, `date:`, `time:`) would be mistakenly tokenized as URI schemes.
+2. *Blast Radius & Parser Stability*: Hardcoding hundreds of proprietary or vendor-specific schemes (like `chrome:`, `slack:`, `zoommtg:`) directly into the core grammar increases the parser's maintenance surface area and risks shadowing valid prose.
+
+To balance spec compliance, high performance, and safe extensibility, AsciiDoctrine adopts a *configurable URI scheme architecture*:
+
+* *Core Default Schemes*: The OOTB Lark grammar contains only standardized, universal URI schemes (`http/https`, `ftp/ftps`, `file`, `irc/ircs`, `ws/wss`, `git`, `ssh`, `mailto`, `data`, `tel`, `sms`).
+* *Configuration-Driven Injection*: Developers can register additional authority schemes (`://`) or opaque schemes (`:`) at runtime via `parse_to_ast()`:
+
+[source,python]
+----
+doc = parse_to_ast(
+    source,
+    extra_authority_schemes=["slack", "zoommtg"],
+    extra_opaque_schemes=["bitcoin"],
+)
+----
+
+* *Strict Scheme Validation & Blacklisting*: To prevent regex injection or syntax corruption, all custom schemes pass through `validate_custom_scheme()`:
+  - *Length*: Must be between 2 and 10 characters.
+  - *Character Set*: Must contain only lowercase ASCII letters, digits, and hyphens (`[a-z0-9\-]+`).
+  - *Reserved Blacklist*: Blacklists all inline macro prefixes (`link`, `image`, `xref`), block/admonition labels (`note`, `tip`, `warning`), metadata headers (`author`, `version`, `title`), and common colon-followed terms (`to`, `cc`, `bcc`, `date`, `time`, `ssn`, `id`).

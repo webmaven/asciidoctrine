@@ -57,6 +57,14 @@ Functions
      - .. autodoc2-docstring:: asciidoctrine.lark_parser.resolve_list_continuations
           :parser: sphinx_asciidoctrine.parser
           :summary:
+   * - :py:obj:`validate_custom_scheme <asciidoctrine.lark_parser.validate_custom_scheme>`
+     - .. autodoc2-docstring:: asciidoctrine.lark_parser.validate_custom_scheme
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
+   * - :py:obj:`build_uri_terminal <asciidoctrine.lark_parser.build_uri_terminal>`
+     - .. autodoc2-docstring:: asciidoctrine.lark_parser.build_uri_terminal
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
    * - :py:obj:`parse_to_ast <asciidoctrine.lark_parser.parse_to_ast>`
      - .. autodoc2-docstring:: asciidoctrine.lark_parser.parse_to_ast
           :parser: sphinx_asciidoctrine.parser
@@ -83,6 +91,18 @@ Data
           :summary:
    * - :py:obj:`DEFAULT_GRAMMAR <asciidoctrine.lark_parser.DEFAULT_GRAMMAR>`
      - .. autodoc2-docstring:: asciidoctrine.lark_parser.DEFAULT_GRAMMAR
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
+   * - :py:obj:`DEFAULT_AUTHORITY_SCHEMES <asciidoctrine.lark_parser.DEFAULT_AUTHORITY_SCHEMES>`
+     - .. autodoc2-docstring:: asciidoctrine.lark_parser.DEFAULT_AUTHORITY_SCHEMES
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
+   * - :py:obj:`DEFAULT_OPAQUE_SCHEMES <asciidoctrine.lark_parser.DEFAULT_OPAQUE_SCHEMES>`
+     - .. autodoc2-docstring:: asciidoctrine.lark_parser.DEFAULT_OPAQUE_SCHEMES
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
+   * - :py:obj:`RESERVED_SCHEMES_BLACKLIST <asciidoctrine.lark_parser.RESERVED_SCHEMES_BLACKLIST>`
+     - .. autodoc2-docstring:: asciidoctrine.lark_parser.RESERVED_SCHEMES_BLACKLIST
           :parser: sphinx_asciidoctrine.parser
           :summary:
    * - :py:obj:`_INLINE_PARSER <asciidoctrine.lark_parser._INLINE_PARSER>`
@@ -413,7 +433,40 @@ API
    .. autodoc2-docstring:: asciidoctrine.lark_parser.resolve_list_continuations
       :parser: sphinx_asciidoctrine.parser
 
-.. py:function:: parse_to_ast(source: str, grammar_file: str = DEFAULT_GRAMMAR, base_dir: typing.Optional[str] = None, safe_mode: bool = True, preprocess_directives: bool = True, strict: bool = True) -> asciidoctrine.nodes.Document
+.. py:data:: DEFAULT_AUTHORITY_SCHEMES
+   :canonical: asciidoctrine.lark_parser.DEFAULT_AUTHORITY_SCHEMES
+   :value: ('https?', 'ftps?', 'file', 'ircs?', 'wss?', 'git', 'ssh')
+
+   .. autodoc2-docstring:: asciidoctrine.lark_parser.DEFAULT_AUTHORITY_SCHEMES
+      :parser: sphinx_asciidoctrine.parser
+
+.. py:data:: DEFAULT_OPAQUE_SCHEMES
+   :canonical: asciidoctrine.lark_parser.DEFAULT_OPAQUE_SCHEMES
+   :value: ('mailto', 'data', 'tel', 'sms')
+
+   .. autodoc2-docstring:: asciidoctrine.lark_parser.DEFAULT_OPAQUE_SCHEMES
+      :parser: sphinx_asciidoctrine.parser
+
+.. py:data:: RESERVED_SCHEMES_BLACKLIST
+   :canonical: asciidoctrine.lark_parser.RESERVED_SCHEMES_BLACKLIST
+   :value: None
+
+   .. autodoc2-docstring:: asciidoctrine.lark_parser.RESERVED_SCHEMES_BLACKLIST
+      :parser: sphinx_asciidoctrine.parser
+
+.. py:function:: validate_custom_scheme(scheme: str) -> str
+   :canonical: asciidoctrine.lark_parser.validate_custom_scheme
+
+   .. autodoc2-docstring:: asciidoctrine.lark_parser.validate_custom_scheme
+      :parser: sphinx_asciidoctrine.parser
+
+.. py:function:: build_uri_terminal(extra_authority_schemes: typing.Optional[typing.List[str]] = None, extra_opaque_schemes: typing.Optional[typing.List[str]] = None) -> str
+   :canonical: asciidoctrine.lark_parser.build_uri_terminal
+
+   .. autodoc2-docstring:: asciidoctrine.lark_parser.build_uri_terminal
+      :parser: sphinx_asciidoctrine.parser
+
+.. py:function:: parse_to_ast(source: str, grammar_file: str = DEFAULT_GRAMMAR, base_dir: typing.Optional[str] = None, safe_mode: bool = True, preprocess_directives: bool = True, strict: bool = True, extra_authority_schemes: typing.Optional[typing.List[str]] = None, extra_opaque_schemes: typing.Optional[typing.List[str]] = None) -> asciidoctrine.nodes.Document
    :canonical: asciidoctrine.lark_parser.parse_to_ast
 
    .. autodoc2-docstring:: asciidoctrine.lark_parser.parse_to_ast
