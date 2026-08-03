@@ -12,6 +12,7 @@ from .nodes import (
     Section,
     Text,
 )
+from .resolver import ASGResolver, WorkspaceBuilder, WorkspaceCatalog
 from .serializer import serialize_to_asciidoc
 
 __version__ = "0.1.0a11"
@@ -27,4 +28,7 @@ __all__ = [
     "Text",
     "NodeVisitor",
     "NodeTransformer",
+    "ASGResolver",
+    "WorkspaceCatalog",
+    "WorkspaceBuilder",
 ]
