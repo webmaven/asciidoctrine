@@ -1,8 +1,10 @@
 from collections import defaultdict
+from pathlib import Path
 from typing import Any, Dict, Optional, cast
 from typing import List as PyList
 
 from .attributes import resolve_attribute_map, substitute_attributes
+from .lark_parser import parse_to_ast
 from .nodes import (
     AttributeEntry,
     Attributes,
@@ -227,3 +229,69 @@ class ASGResolver(NodeTransformer):
 
         node.resolved_anchor_target = target_anchor
         return self.generic_visit(node, **kwargs)
+
+
+class WorkspaceBuilder:
+    """Orchestrates parsing a folder directory of AsciiDoc files into a unified multi-file ASG."""
+
+    def __init__(
+        self, workspace_root: str, lark_parser_instance: Optional[Any] = None
+    ) -> None:
+        self.workspace_root = Path(workspace_root).resolve()
+        self.parser = lark_parser_instance
+        self.catalog = WorkspaceCatalog()
+        # Maps canonical File ID paths to their living Document AST nodes
+        self.raw_documents: Dict[str, Document] = {}
+        # Maps canonical File ID paths to their fully mutated ASG Graph outputs
+        self.resolved_asg_graphs: Dict[str, Dict[str, Any]] = {}
+
+    def _get_file_id(self, absolute_path: Path) -> str:
+        """Generates a stable, predictable, platform-agnostic string File ID relative to the workspace root."""
+        return str(absolute_path.relative_to(self.workspace_root).as_posix())
+
+    def discover_and_parse_project(self) -> None:
+        """
+        PASS 1: Scan directories on disk, run the preprocessor and Lark parser loops,
+        and save the raw, un-mutated AST documents into memory.
+        """
+        for adoc_file in sorted(self.workspace_root.rglob("*.adoc")):
+            canonical_path = adoc_file.resolve()
+            file_id = self._get_file_id(canonical_path)
+
+            with open(canonical_path, "r", encoding="utf-8") as f:
+                raw_content = f.read()
+
+            # Parse to a pure, unmutated AST Document class instance.
+            # We explicitly pass base_dir so nested includes resolve properly.
+            if self.parser and hasattr(self.parser, "parse"):
+                ast_root = self.parser.parse(raw_content)
+            else:
+                ast_root = parse_to_ast(raw_content, base_dir=str(canonical_path.parent))
+
+            self.raw_documents[file_id] = ast_root
+
+    def index_workspace_symbols(self) -> None:
+        """
+        PASS 2: Walk the saved un-mutated AST trees using get_child_collections()
+        to build the centralized Global Symbol Table.
+        """
+        for file_id, ast_tree in self.raw_documents.items():
+            self.catalog.index_document(file_id, ast_tree)
+
+    def resolve_workspace_semantics(self) -> None:
+        """
+        PASS 3: Execute deepcopies, evaluate attribute maps, and execute the
+        ASGResolver visitor loops to wire up cross-file object pointers.
+        """
+        for file_id, ast_tree in self.raw_documents.items():
+            # Pass current_file_id to avoid strict mypy errors on dynamically assigning .id to Document
+            resolver = ASGResolver(ast_tree, catalog=self.catalog, current_file_id=file_id)
+            self.resolved_asg_graphs[file_id] = resolver.resolve(ast_tree)
+
+    def build(self) -> Dict[str, Dict[str, Any]]:
+        """Runs the entire multi-pass orchestration sequence sequentially."""
+        self.discover_and_parse_project()
+        self.index_workspace_symbols()
+        self.resolve_workspace_semantics()
+        return self.resolved_asg_graphs
+
