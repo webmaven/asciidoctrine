@@ -104,16 +104,19 @@ venv/bin/ruff check . && venv/bin/mypy src/asciidoctrine
 
 ## 📋 New Feature Checklist
 
-When adding support for a new AsciiDoc element:
+When adding support for a new AsciiDoc element or for a newly discovered edge case or corner case, follow the Red/Green TDD workflow:
 
-1.  **Grammar**: Add the rule to `src/asciidoctrine/grammar.lark`.
-2.  **Node**: Define a new `Node` subclass in `src/asciidoctrine/nodes.py` that matches the [ASG schema](https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/asg/schema.json).
-3.  **Transformer**: Implement a corresponding method in `BlockTransformer` or `InlineTransformer`.
-4.  **Resolver**: If the element contains text that supports attribute substitution, ensure it's handled in `src/asciidoctrine/resolver.py`.
-5.  **Backend**: Add a `visit_<name>` method to `DocutilsRenderer` in `src/asciidoctrine/docutils_backend.py`.
-6.  **Tests**:
+1.  **Tests**:
     *   Add a unit test in `tests/test_blocks_parsing.py` or `tests/test_inlines_parsing.py`.
     *   Add a functional test or TCK-style test in `tests/tck_harness/`.
+    *   These tests are expected to fail at this time (Red).
+2.  **Grammar**: Add the rule to `src/asciidoctrine/grammar.lark`.
+3.  **Node**: Define a new `Node` subclass in `src/asciidoctrine/nodes.py` that matches the [ASG schema](https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/asg/schema.json).
+4.  **Transformer**: Implement a corresponding method in `BlockTransformer` or `InlineTransformer`.
+5.  **Resolver**: If the element contains text that supports attribute substitution, ensure it's handled in `src/asciidoctrine/resolver.py`.
+6.  **Backend**: Add a `visit_<name>` method to `DocutilsRenderer` in `src/asciidoctrine/docutils_backend.py`.
+7. At this point, the tests should pass (Green). If not, the implementation should be fixed until it does.
+8. After the tests pass, we can refactor or optimize the implementation to be more efficient or elegant without modifying the tests. In general corner cases and edge cases should be addressed in the implementation phase, while optimizations and other improvements should be addressed in this phase. 
 
 ## 🚀 Pre-Release Verification Checklist
 
@@ -221,7 +224,7 @@ The following key learnings and design decisions have been consolidated to preve
   - `listing_title`: A helper property returning the string value of the block title node (`self.title`) or falling back to `self.attributes.get("title")`.
 
 ### 5. AST to ASG Node Structure Mapping
-To produce a TCK-compliant Resolved Abstract Semantic Graph (ASG), the internal AST structure in `nodes.py` aligns directly with the official ASG schema. Each node implements a polymorphic `to_dict()` method producing compliant output:
+To facilitate producing a TCK-compliant Resolved Abstract Semantic Graph (ASG), the internal AST structure in `nodes.py` aligns directly with the official ASG schema. Each node implements a polymorphic `to_dict()` method producing compliant output:
 - `Document`: `{"name": "document", "type": "block", "blocks": [], "attributes": {}, "header": {}}`
 - `Paragraph`: `{"name": "paragraph", "type": "block", "inlines": []}`
 - `Text`: `{"name": "text", "type": "string", "value": "text content"}`

@@ -1,7 +1,26 @@
 = Changelog
 :toc:
 
-All notable changes to this project will be documented in this file.
+== Unreleased
+
+=== Added
+* **Cross-Document References Resolution**:
+  - Implemented `WorkspaceCatalog` global symbol table for indexing anchor IDs and document roots across multi-file AsciiDoc workspaces.
+  - Implemented 3-tier fallback reference resolution in `ASGResolver.visit_ref()`: explicit file target, local implicit match, and global workspace lookup.
+  - Implemented `WorkspaceBuilder` orchestrator for 3-pass directory parsing (scan → index → resolve) with `base_dir`-aware include resolution.
+  - Extended `Ref` node with semantic tracking attributes (`resolved_strategy`, `resolved_file_target`, `resolved_anchor_target`, `target_node_instance`) and safe `to_dict()` serialization excluding live object pointers.
+  - Exported `WorkspaceCatalog`, `WorkspaceBuilder`, and `ASGResolver` at the top level of the `asciidoctrine` package.
+* **Documentation & Docstrings**:
+  - Added comprehensive AsciiDoc-native docstrings to `WorkspaceCatalog`, `ASGResolver`, `WorkspaceBuilder`, and `Ref` with description lists, code examples, and attribute documentation.
+  - Added Multi-File Workspace Resolution quick-start section with `WorkspaceBuilder` usage example to `docs/index.adoc`.
+  - Added Multi-File Workspace Resolution Architecture section and ADR-004 to `docs/architecture.adoc`.
+
+=== Changed
+* **Repository Root & Documentation Cleanup**:
+  - Consolidated architectural decision records into `docs/architecture.adoc` and removed duplicate `ARCHITECTURE.adoc` from repository root.
+  - Relocated full feature matrix to `docs/feature-matrix.adoc` and removed root `FEATURE_MATRIX.adoc`.
+  - Moved utility scripts (`regenerate_tck_additions.py`, `run_examples.py`) into the `bin/` directory and added `bin/README.adoc`.
+  - Audited and cleaned up obsolete planning documents (`TECHNICAL-DEBT.adoc`, `TCK-REQUIREMENTS.adoc`, `task.md`, and plan files).
 
 == link:https://pypi.org/project/asciidoctrine/0.1.0a11/[0.1.0a11] - 2026-07-23
 
