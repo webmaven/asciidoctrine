@@ -3,7 +3,15 @@ from typing import Any, Dict, Optional, cast
 from typing import List as PyList
 
 from .attributes import resolve_attribute_map, substitute_attributes
-from .nodes import AttributeEntry, Attributes, Document, Node, NodeTransformer, Text
+from .nodes import (
+    AttributeEntry,
+    Attributes,
+    Document,
+    Node,
+    NodeTransformer,
+    Ref,
+    Text,
+)
 
 
 class WorkspaceCatalog:
@@ -43,9 +51,21 @@ class WorkspaceCatalog:
 class ASGResolver(NodeTransformer):
     """Resolves semantic elements in the AST using a typed NodeTransformer pattern."""
 
-    def __init__(self, document: Document):
+    def __init__(
+        self,
+        document: Document,
+        catalog: Optional[WorkspaceCatalog] = None,
+        current_file_id: Optional[str] = None,
+    ) -> None:
         self.attributes = getattr(document, "attributes", {})
         self.resolved_attributes = resolve_attribute_map(self.attributes)
+        self.catalog = catalog or WorkspaceCatalog()
+        doc_id = getattr(document, "id", None)
+        self.current_file_id: str = (
+            current_file_id
+            if current_file_id is not None
+            else (str(doc_id) if doc_id is not None else "root")
+        )
 
     def resolve(self, node: Node) -> Dict[str, Any]:
         """Convert AST to fully-resolved ASG without mutating input."""
@@ -145,3 +165,65 @@ class ASGResolver(NodeTransformer):
     def visit_comment(self, node: Node, **kwargs: Any) -> Optional[Node]:
         # Filter out comments from parent lists
         return None
+
+    def visit_ref(self, node: Ref, **kwargs: Any) -> Node:
+        """Resolves interdocument cross-references natively."""
+        if node.variant != "xref":
+            return self.generic_visit(node, **kwargs)
+
+        target_str = str(node.target)
+
+        # Robust parsing of file vs anchor links
+        target_file: Optional[str] = None
+        target_anchor: str = ""
+        if "#" in target_str:
+            parts = target_str.split("#", 1)
+            target_file = parts[0] if parts[0] else None
+            target_anchor = parts[1]
+        elif target_str.endswith(".adoc"):
+            target_file = target_str
+        else:
+            target_anchor = target_str
+
+        # Helper to resolve relative path references
+        resolved_file = target_file
+        if target_file:
+            import os
+
+            cur_dir = os.path.dirname(self.current_file_id)
+            raw_path = os.path.join(cur_dir, target_file) if cur_dir else target_file
+            resolved_file = os.path.normpath(raw_path).replace("\\", "/")
+
+        # --- 3-TIER RESOLUTION FALLBACK ---
+        # 1. Explicit file target
+        if resolved_file and f"{resolved_file}#{target_anchor}" in self.catalog.by_fqid:
+            node.target_node_instance = self.catalog.by_fqid[f"{resolved_file}#{target_anchor}"]
+            node.resolved_file_target = resolved_file
+            node.resolved_strategy = (
+                "same_file" if resolved_file == self.current_file_id else "cross_file"
+            )
+
+        # 2. Local file implicit match
+        elif f"{self.current_file_id}#{target_anchor}" in self.catalog.by_fqid:
+            node.target_node_instance = self.catalog.by_fqid[
+                f"{self.current_file_id}#{target_anchor}"
+            ]
+            node.resolved_file_target = self.current_file_id
+            node.resolved_strategy = "same_file"
+
+        # 3. Global lookup
+        elif (
+            target_anchor in self.catalog.by_local_id
+            and len(self.catalog.by_local_id[target_anchor]) == 1
+        ):
+            matching_file = self.catalog.by_local_id[target_anchor][0]
+            node.target_node_instance = self.catalog.by_fqid[f"{matching_file}#{target_anchor}"]
+            node.resolved_file_target = matching_file
+            node.resolved_strategy = (
+                "same_file" if matching_file == self.current_file_id else "cross_file"
+            )
+        else:
+            raise KeyError(f"Cross-reference error: '{target_str}' not found in workspace.")
+
+        node.resolved_anchor_target = target_anchor
+        return self.generic_visit(node, **kwargs)
