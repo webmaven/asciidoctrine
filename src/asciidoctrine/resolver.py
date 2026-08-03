@@ -22,15 +22,19 @@ class WorkspaceCatalog:
     `WorkspaceCatalog` collects and indexes all target anchors (`[[id]]` or `[#id]`) and document roots
     across all parsed files in a multi-document workspace, mapping them to live `Node` AST instances.
 
-    Attributes:
-        by_fqid (Dict[str, Node]): Fully-Qualified ID map matching `"file_id#anchor_id"` to the live target `Node` AST instance.
-            Document roots are indexed under `"file_id#"`.
-        by_local_id (Dict[str, List[str]]): Local anchor ID map matching `"anchor_id"` to a list of file IDs containing that anchor.
+    *Attributes:*
 
-    Example:
-        >>> catalog = WorkspaceCatalog()
-        >>> catalog.index_document("main.adoc", doc)
-        >>> target_node = catalog.by_fqid.get("main.adoc#intro")
+    `by_fqid`:: Fully-Qualified ID map matching `"file_id#anchor_id"` to the live target `Node` AST instance. Document roots are indexed under `"file_id#"`.
+    `by_local_id`:: Local anchor ID map matching `"anchor_id"` to a list of file IDs containing that anchor.
+
+    *Example:*
+
+    [source,python]
+    ----
+    catalog = WorkspaceCatalog()
+    catalog.index_document("main.adoc", doc)
+    target_node = catalog.by_fqid.get("main.adoc#intro")
+    ----
     """
 
     def __init__(self) -> None:
@@ -40,9 +44,8 @@ class WorkspaceCatalog:
     def index_document(self, file_id: str, document: Document) -> None:
         """Recursively parses an un-mutated AST document tree via `get_child_collections()` to index all anchor IDs.
 
-        Args:
-            file_id: The relative, platform-agnostic file path key (e.g., `"subdir/doc.adoc"`).
-            document: The root `Document` AST node instance to index.
+        `file_id`:: The relative, platform-agnostic file path key (e.g., `"subdir/doc.adoc"`).
+        `document`:: The root `Document` AST node instance to index.
         """
         # Always index the document root under an empty anchor for file-level links (e.g. xref:doc.adoc[])
         self.by_fqid[f"{file_id}#"] = document
@@ -76,12 +79,9 @@ class ASGResolver(NodeTransformer):
     transient syntax-only elements (like comments and standalone attribute entries), and binds
     interdocument cross-references (`Ref` nodes) via 3-tier target resolution using a `WorkspaceCatalog`.
 
-    Args:
-        document: The root `Document` AST node instance to resolve.
-        catalog: Optional `WorkspaceCatalog` containing symbol tables for multi-file workspace resolution.
-            Defaults to a new empty catalog if omitted.
-        current_file_id: The relative file ID of the document being resolved (e.g. `"chapter1/intro.adoc"`).
-            Used for resolving relative path targets and local file resolution fallbacks.
+    `document`:: The root `Document` AST node instance to resolve.
+    `catalog`:: Optional `WorkspaceCatalog` containing symbol tables for multi-file workspace resolution. Defaults to a new empty catalog if omitted.
+    `current_file_id`:: The relative file ID of the document being resolved (e.g. `"chapter1/intro.adoc"`). Used for resolving relative path targets and local file resolution fallbacks.
     """
 
     def __init__(
@@ -106,11 +106,9 @@ class ASGResolver(NodeTransformer):
         Performs a pure deep copy of the input node tree before applying transformations, ensuring the
         syntax-level AST remains unmutated for coordinate tracking and serialization tools.
 
-        Args:
-            node: The root AST node (typically a `Document`) to resolve.
+        `node`:: The root AST node (typically a `Document`) to resolve.
 
-        Returns:
-            Dict[str, Any]: A spec-compliant Abstract Semantic Graph (ASG) dictionary.
+        Returns a spec-compliant Abstract Semantic Graph (ASG) dictionary.
         """
         import copy
 
@@ -278,17 +276,22 @@ class WorkspaceBuilder:
     `WorkspaceBuilder` coordinates directory discovery, raw un-mutated AST parsing, global symbol table indexing
     via `WorkspaceCatalog`, and interdocument reference resolution via `ASGResolver`.
 
-    Attributes:
-        workspace_root (Path): Absolute canonical `Path` to the root directory of the AsciiDoc project.
-        parser (Optional[Any]): Optional custom parser engine instance overriding default `parse_to_ast`.
-        catalog (WorkspaceCatalog): Central global symbol table mapping all anchor IDs across the workspace.
-        raw_documents (Dict[str, Document]): Map of platform-agnostic file IDs to raw, un-mutated `Document` AST instances.
-        resolved_asg_graphs (Dict[str, Dict[str, Any]]): Map of file IDs to fully-resolved ASG dictionaries.
+    *Attributes:*
 
-    Example:
-        >>> builder = WorkspaceBuilder("/path/to/docs")
-        >>> graphs = builder.build()
-        >>> intro_asg = graphs["intro.adoc"]
+    `workspace_root`:: Absolute canonical `Path` to the root directory of the AsciiDoc project.
+    `parser`:: Optional custom parser engine instance overriding default `parse_to_ast`.
+    `catalog`:: Central global symbol table mapping all anchor IDs across the workspace.
+    `raw_documents`:: Map of platform-agnostic file IDs to raw, un-mutated `Document` AST instances.
+    `resolved_asg_graphs`:: Map of file IDs to fully-resolved ASG dictionaries.
+
+    *Example:*
+
+    [source,python]
+    ----
+    builder = WorkspaceBuilder("/path/to/docs")
+    graphs = builder.build()
+    intro_asg = graphs["intro.adoc"]
+    ----
     """
 
     def __init__(
@@ -303,11 +306,9 @@ class WorkspaceBuilder:
     def _get_file_id(self, absolute_path: Path) -> str:
         """Generates a stable, platform-agnostic string file ID relative to the workspace root.
 
-        Args:
-            absolute_path: Absolute file system `Path` to a document.
+        `absolute_path`:: Absolute file system `Path` to a document.
 
-        Returns:
-            str: Posix-style relative path string (e.g. `"subfolder/doc.adoc"`).
+        Returns a Posix-style relative path string (e.g. `"subfolder/doc.adoc"`).
         """
         return str(absolute_path.relative_to(self.workspace_root).as_posix())
 
@@ -345,9 +346,7 @@ class WorkspaceBuilder:
     def build(self) -> Dict[str, Dict[str, Any]]:
         """Runs the complete multi-pass orchestration sequence sequentially (Pass 1 -> Pass 2 -> Pass 3).
 
-        Returns:
-            Dict[str, Dict[str, Any]]: Dictionary mapping relative file IDs (e.g., `"doc.adoc"`)
-            to their fully-resolved, spec-compliant ASG dictionaries.
+        Returns a dictionary mapping relative file IDs (e.g., `"doc.adoc"`) to their fully-resolved, spec-compliant ASG dictionaries.
         """
         self.discover_and_parse_project()
         self.index_workspace_symbols()
