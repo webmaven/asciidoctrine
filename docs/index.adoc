@@ -61,6 +61,24 @@ for block in asg.get("blocks", []):
         print(f"Found section: {title_text}")
 ----
 
+=== Multi-File Workspace Resolution
+
+To parse an entire folder directory of AsciiDoc files and resolve interdocument cross-references (`xref:other.adoc#anchor[]` or `<<other.adoc#anchor,label>>`), use `WorkspaceBuilder`:
+
+[source,python]
+----
+from asciidoctrine import WorkspaceBuilder
+
+# 1. Initialize builder targeting your documentation root
+builder = WorkspaceBuilder("/path/to/docs")
+
+# 2. Run 3-pass pipeline (scan -> index symbols -> resolve cross-references)
+asg_graphs = builder.build()
+
+# Access resolved ASG dictionary for any relative file ID
+doc_asg = asg_graphs["subfolder/chapter1.adoc"]
+----
+
 ---
 
 == ASG Representation

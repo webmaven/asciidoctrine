@@ -17,14 +17,33 @@ from .nodes import (
 
 
 class WorkspaceCatalog:
-    """The global symbol table managing cross-file anchors across an AsciiDoc project."""
+    """The global symbol table managing cross-file anchors and IDs across an AsciiDoc project workspace.
+
+    `WorkspaceCatalog` collects and indexes all target anchors (`[[id]]` or `[#id]`) and document roots
+    across all parsed files in a multi-document workspace, mapping them to live `Node` AST instances.
+
+    Attributes:
+        by_fqid (Dict[str, Node]): Fully-Qualified ID map matching `"file_id#anchor_id"` to the live target `Node` AST instance.
+            Document roots are indexed under `"file_id#"`.
+        by_local_id (Dict[str, List[str]]): Local anchor ID map matching `"anchor_id"` to a list of file IDs containing that anchor.
+
+    Example:
+        >>> catalog = WorkspaceCatalog()
+        >>> catalog.index_document("main.adoc", doc)
+        >>> target_node = catalog.by_fqid.get("main.adoc#intro")
+    """
 
     def __init__(self) -> None:
         self.by_fqid: Dict[str, Node] = {}  # Maps "file_id#anchor_id" -> Live Node instance
         self.by_local_id: Dict[str, PyList[str]] = defaultdict(list)  # Maps "anchor_id" -> List of files
 
     def index_document(self, file_id: str, document: Document) -> None:
-        """Recursively parses an un-mutated AST via get_child_collections."""
+        """Recursively parses an un-mutated AST document tree via `get_child_collections()` to index all anchor IDs.
+
+        Args:
+            file_id: The relative, platform-agnostic file path key (e.g., `"subdir/doc.adoc"`).
+            document: The root `Document` AST node instance to index.
+        """
         # Always index the document root under an empty anchor for file-level links (e.g. xref:doc.adoc[])
         self.by_fqid[f"{file_id}#"] = document
 
@@ -51,7 +70,19 @@ class WorkspaceCatalog:
 
 
 class ASGResolver(NodeTransformer):
-    """Resolves semantic elements in the AST using a typed NodeTransformer pattern."""
+    """Resolves semantic elements in an AsciiDoc AST using a typed NodeTransformer pattern.
+
+    `ASGResolver` evaluates document-level and block-level attribute substitutions, filters out
+    transient syntax-only elements (like comments and standalone attribute entries), and binds
+    interdocument cross-references (`Ref` nodes) via 3-tier target resolution using a `WorkspaceCatalog`.
+
+    Args:
+        document: The root `Document` AST node instance to resolve.
+        catalog: Optional `WorkspaceCatalog` containing symbol tables for multi-file workspace resolution.
+            Defaults to a new empty catalog if omitted.
+        current_file_id: The relative file ID of the document being resolved (e.g. `"chapter1/intro.adoc"`).
+            Used for resolving relative path targets and local file resolution fallbacks.
+    """
 
     def __init__(
         self,
@@ -70,7 +101,17 @@ class ASGResolver(NodeTransformer):
         )
 
     def resolve(self, node: Node) -> Dict[str, Any]:
-        """Convert AST to fully-resolved ASG without mutating input."""
+        """Converts an AST node tree to a fully-resolved ASG dictionary without mutating the original input AST.
+
+        Performs a pure deep copy of the input node tree before applying transformations, ensuring the
+        syntax-level AST remains unmutated for coordinate tracking and serialization tools.
+
+        Args:
+            node: The root AST node (typically a `Document`) to resolve.
+
+        Returns:
+            Dict[str, Any]: A spec-compliant Abstract Semantic Graph (ASG) dictionary.
+        """
         import copy
 
         copied_node = copy.deepcopy(node)
@@ -78,7 +119,7 @@ class ASGResolver(NodeTransformer):
 
         asg = copied_node.to_dict()
 
-        # 3. Inject resolved document-level attributes
+        # Inject resolved document-level attributes
         if asg.get("name") == "document" and "attributes" in asg:
             asg["attributes"] = self.resolved_attributes
 
@@ -232,7 +273,23 @@ class ASGResolver(NodeTransformer):
 
 
 class WorkspaceBuilder:
-    """Orchestrates parsing a folder directory of AsciiDoc files into a unified multi-file ASG."""
+    """Orchestrates multi-pass parsing and semantic resolution for an entire folder workspace of AsciiDoc files.
+
+    `WorkspaceBuilder` coordinates directory discovery, raw un-mutated AST parsing, global symbol table indexing
+    via `WorkspaceCatalog`, and interdocument reference resolution via `ASGResolver`.
+
+    Attributes:
+        workspace_root (Path): Absolute canonical `Path` to the root directory of the AsciiDoc project.
+        parser (Optional[Any]): Optional custom parser engine instance overriding default `parse_to_ast`.
+        catalog (WorkspaceCatalog): Central global symbol table mapping all anchor IDs across the workspace.
+        raw_documents (Dict[str, Document]): Map of platform-agnostic file IDs to raw, un-mutated `Document` AST instances.
+        resolved_asg_graphs (Dict[str, Dict[str, Any]]): Map of file IDs to fully-resolved ASG dictionaries.
+
+    Example:
+        >>> builder = WorkspaceBuilder("/path/to/docs")
+        >>> graphs = builder.build()
+        >>> intro_asg = graphs["intro.adoc"]
+    """
 
     def __init__(
         self, workspace_root: str, lark_parser_instance: Optional[Any] = None
@@ -240,19 +297,25 @@ class WorkspaceBuilder:
         self.workspace_root = Path(workspace_root).resolve()
         self.parser = lark_parser_instance
         self.catalog = WorkspaceCatalog()
-        # Maps canonical File ID paths to their living Document AST nodes
         self.raw_documents: Dict[str, Document] = {}
-        # Maps canonical File ID paths to their fully mutated ASG Graph outputs
         self.resolved_asg_graphs: Dict[str, Dict[str, Any]] = {}
 
     def _get_file_id(self, absolute_path: Path) -> str:
-        """Generates a stable, predictable, platform-agnostic string File ID relative to the workspace root."""
+        """Generates a stable, platform-agnostic string file ID relative to the workspace root.
+
+        Args:
+            absolute_path: Absolute file system `Path` to a document.
+
+        Returns:
+            str: Posix-style relative path string (e.g. `"subfolder/doc.adoc"`).
+        """
         return str(absolute_path.relative_to(self.workspace_root).as_posix())
 
     def discover_and_parse_project(self) -> None:
-        """
-        PASS 1: Scan directories on disk, run the preprocessor and Lark parser loops,
-        and save the raw, un-mutated AST documents into memory.
+        """Pass 1: Scans directory tree for `.adoc` files, runs Lark parsing loops, and stores raw ASTs.
+
+        Recursively walks `workspace_root` matching `*.adoc`. Passes `base_dir` context to `parse_to_ast()`
+        so nested include directives resolve relative to their parent file's location.
         """
         for adoc_file in sorted(self.workspace_root.rglob("*.adoc")):
             canonical_path = adoc_file.resolve()
@@ -261,8 +324,6 @@ class WorkspaceBuilder:
             with open(canonical_path, "r", encoding="utf-8") as f:
                 raw_content = f.read()
 
-            # Parse to a pure, unmutated AST Document class instance.
-            # We explicitly pass base_dir so nested includes resolve properly.
             if self.parser and hasattr(self.parser, "parse"):
                 ast_root = self.parser.parse(raw_content)
             else:
@@ -271,25 +332,23 @@ class WorkspaceBuilder:
             self.raw_documents[file_id] = ast_root
 
     def index_workspace_symbols(self) -> None:
-        """
-        PASS 2: Walk the saved un-mutated AST trees using get_child_collections()
-        to build the centralized Global Symbol Table.
-        """
+        """Pass 2: Walks saved un-mutated AST trees to populate the central `WorkspaceCatalog` symbol table."""
         for file_id, ast_tree in self.raw_documents.items():
             self.catalog.index_document(file_id, ast_tree)
 
     def resolve_workspace_semantics(self) -> None:
-        """
-        PASS 3: Execute deepcopies, evaluate attribute maps, and execute the
-        ASGResolver visitor loops to wire up cross-file object pointers.
-        """
+        """Pass 3: Resolves attributes, deep-copies AST trees, and binds cross-file references via `ASGResolver`."""
         for file_id, ast_tree in self.raw_documents.items():
-            # Pass current_file_id to avoid strict mypy errors on dynamically assigning .id to Document
             resolver = ASGResolver(ast_tree, catalog=self.catalog, current_file_id=file_id)
             self.resolved_asg_graphs[file_id] = resolver.resolve(ast_tree)
 
     def build(self) -> Dict[str, Dict[str, Any]]:
-        """Runs the entire multi-pass orchestration sequence sequentially."""
+        """Runs the complete multi-pass orchestration sequence sequentially (Pass 1 -> Pass 2 -> Pass 3).
+
+        Returns:
+            Dict[str, Dict[str, Any]]: Dictionary mapping relative file IDs (e.g., `"doc.adoc"`)
+            to their fully-resolved, spec-compliant ASG dictionaries.
+        """
         self.discover_and_parse_project()
         self.index_workspace_symbols()
         self.resolve_workspace_semantics()

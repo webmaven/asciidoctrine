@@ -448,7 +448,18 @@ class Span(InlineNode):
 
 
 class Ref(InlineNode):
-    """An inline node for a hyperlink or cross-reference."""
+    """An inline node for a hyperlink or cross-reference (`xref:...[]` or `<<...>>`).
+
+    Attributes:
+        variant (str): The reference variant (e.g. `"xref"`, `"link"`).
+        target (str): Raw target string from source (e.g. `"chapter1.adoc#intro"`, `"intro"`).
+        inlines (PyList[Node]): Optional child inline nodes representing custom link label text.
+        resolved_strategy (Optional[str]): Set by `ASGResolver` to `"same_file"` or `"cross_file"`.
+        resolved_file_target (Optional[str]): Set by `ASGResolver` to the target file ID.
+        resolved_anchor_target (Optional[str]): Set by `ASGResolver` to the target anchor/section ID.
+        target_node_instance (Optional[Node]): Direct live memory pointer to the resolved target `Node` AST instance.
+            Excluded from `to_dict()` serialization to prevent circular references.
+    """
 
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
         return {"inlines": self.inlines}

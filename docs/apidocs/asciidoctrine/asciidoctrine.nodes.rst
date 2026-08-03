@@ -473,7 +473,7 @@ API
       .. autodoc2-docstring:: asciidoctrine.nodes.Header.to_dict
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: Section(level: int, title: asciidoctrine.nodes.Title, blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
+.. py:class:: Section(level: int, title: typing.Optional[asciidoctrine.nodes.Title] = None, blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
    :canonical: asciidoctrine.nodes.Section
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`

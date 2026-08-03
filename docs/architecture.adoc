@@ -133,7 +133,78 @@ doc = parse_to_ast(
 )
 ----
 
-* *Strict Scheme Validation & Blacklisting*: To prevent regex injection or syntax corruption, all custom schemes pass through `validate_custom_scheme()`:
-  - *Length*: Must be between 2 and 10 characters.
-  - *Character Set*: Must contain only lowercase ASCII letters, digits, and hyphens (`[a-z0-9\-]+`).
-  - *Reserved Blacklist*: Blacklists all inline macro prefixes (`link`, `image`, `xref`), block/admonition labels (`note`, `tip`, `warning`), metadata headers (`author`, `version`, `title`), and common colon-followed terms (`to`, `cc`, `bcc`, `date`, `time`, `ssn`, `id`).
+
+---
+
+== Multi-File Workspace Resolution Architecture
+
+Parsing a single AsciiDoc file in isolation is insufficient for static site generators and documentation portals where documents cross-reference each other across directory hierarchies using `xref:other-doc.adoc#anchor[]` or `<<other-doc.adoc#anchor,label>>`.
+
+AsciiDoctrine implements a **3-Pass Workspace Pipeline** orchestrated by `WorkspaceBuilder` and backed by a central `WorkspaceCatalog` symbol table:
+
+[source,text]
+----
+ +-------------------------------------------------------------------+
+ |                      Workspace Directory                           |
+ +-------------------------------------------------------------------+
+                                   |
+                                   | [Pass 1: Directory Crawl & Raw Parse]
+                                   v
+ +-------------------------------------------------------------------+
+ |  raw_documents: Dict[file_id, Document] (Unmutated Pure ASTs)     |
+ +-------------------------------------------------------------------+
+                                   |
+                                   | [Pass 2: Symbol Indexing]
+                                   v
+ +-------------------------------------------------------------------+
+ |  WorkspaceCatalog: by_fqid ("doc#anchor") & by_local_id ("anchor")|
+ +-------------------------------------------------------------------+
+                                   |
+                                   | [Pass 3: DeepCopy & ASG Resolution]
+                                   v
+ +-------------------------------------------------------------------+
+ |  resolved_asg_graphs: Dict[file_id, ASG] (Bound Cross-Refs)       |
+ +-------------------------------------------------------------------+
+----
+
+=== 1. Pass 1: Raw Unmutated AST Parsing
+`WorkspaceBuilder.discover_and_parse_project()` scans the workspace directory for `.adoc` files. Each file is parsed to a pure AST `Document` using `parse_to_ast()` with `base_dir` context so nested includes resolve relative to their parent file.
+
+=== 2. Pass 2: Global Symbol Table Indexing
+`WorkspaceCatalog.index_document()` walks each unmutated AST tree via `get_child_collections()` to populate:
+* `by_fqid["file_id#anchor_id"]`: Maps fully-qualified file and anchor keys directly to target `Node` AST instances. Document roots are indexed under `file_id#` for file-level links (`xref:doc.adoc[]`).
+* `by_local_id["anchor_id"]`: Maps bare anchor strings to a list of matching file IDs.
+
+=== 3. Pass 3: 3-Tier Fallback Reference Resolution
+`ASGResolver` evaluates `Ref` nodes using a 3-tier fallback algorithm:
+1. **Explicit File Target**: Matches `{resolved_file}#{target_anchor}` in `catalog.by_fqid`.
+2. **Local Implicit Match**: Matches `{current_file_id}#{target_anchor}` in `catalog.by_fqid`.
+3. **Global Workspace Lookup**: Matches `target_anchor` in `catalog.by_local_id` if unique across the project workspace.
+
+---
+
+== Architecture Decision Records (ADRs)
+
+=== ADR-001: TCK ASG Structure Mapping
+* **Status**: Accepted
+* **Context**: The project needs to produce a TCK-compliant Resolved Abstract Semantic Graph (ASG). This requires a mapping from the internal AST nodes to a specific JSON structure defined by the official ASG schema.
+* **Decision**: We have converged the internal AST structure to match the ASG schema directly. Each node in `nodes.py` implements a polymorphic `to_dict()` method that produces TCK-compliant output. Semantic resolution (attribute substitution, etc.) is handled by `ASGResolver`.
+
+=== ADR-002: Inclusive Location Tracking
+* **Status**: Accepted
+* **Context**: The AsciiDoc TCK expects inclusive location boundaries (e.g., a 5-character word starting at column 1 ends at column 5). Lark's default `end_column` is exclusive.
+* **Decision**: All node locations use `end_column - 1` from Lark's metadata, and parent bounding box coordinates are calculated dynamically via `_set_location_from_children()`.
+
+=== ADR-003: Indented Block and Marker Support
+* **Status**: Accepted
+* **Context**: Standard AsciiDoc allows block elements (like lists and literal blocks) to be indented.
+* **Decision**: Updated block-starting terminals (e.g., `ULIST_MARKER`, `LITERAL_DELIM`) to support optional leading whitespace using consolidated regexes: `/[ \t]*(\*+|[-])[ \t]+/`.
+
+=== ADR-004: Multi-File Cross-Document Reference Binding
+* **Status**: Accepted
+* **Context**: Cross-document references require access to target nodes in other files. Mutating ASTs in-place during indexing breaks coordinate tracking and serializer round-trips. Passing file paths requires non-violating type-checking mechanisms.
+* **Decision**:
+  1. `ASGResolver` uses a **Pure Deep Copy Strategy** (`copy.deepcopy`), leaving raw AST trees in `WorkspaceCatalog` pristine.
+  2. `Ref` nodes store live target pointers (`target_node_instance`) which are excluded from `to_dict()` serialization to prevent circular JSON recursion.
+  3. `ASGResolver` accepts `current_file_id` explicitly in `__init__` rather than dynamically assigning `.id` to `Document` nodes, maintaining 100% strict Mypy type-checker compliance.
+
