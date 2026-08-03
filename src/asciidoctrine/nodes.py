@@ -54,6 +54,9 @@ class Node:
             "align",
             "valign",
             "style",
+            "resolved_strategy",
+            "resolved_file_target",
+            "resolved_anchor_target",
         ]:
             if hasattr(self, attr):
                 val = getattr(self, attr)
@@ -459,6 +462,10 @@ class Ref(InlineNode):
         self.variant = variant
         self.target = target
         self.inlines: PyList[Node] = list(inlines) if inlines else []
+        self.resolved_strategy: Optional[str] = None
+        self.resolved_file_target: Optional[str] = None
+        self.resolved_anchor_target: Optional[str] = None
+        self.target_node_instance: Optional[Node] = None
 
 
 class Image(BlockNode):
