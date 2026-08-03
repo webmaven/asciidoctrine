@@ -1,7 +1,43 @@
+from collections import defaultdict
 from typing import Any, Dict, Optional, cast
+from typing import List as PyList
 
 from .attributes import resolve_attribute_map, substitute_attributes
 from .nodes import AttributeEntry, Attributes, Document, Node, NodeTransformer, Text
+
+
+class WorkspaceCatalog:
+    """The global symbol table managing cross-file anchors across an AsciiDoc project."""
+
+    def __init__(self) -> None:
+        self.by_fqid: Dict[str, Node] = {}  # Maps "file_id#anchor_id" -> Live Node instance
+        self.by_local_id: Dict[str, PyList[str]] = defaultdict(list)  # Maps "anchor_id" -> List of files
+
+    def index_document(self, file_id: str, document: Document) -> None:
+        """Recursively parses an un-mutated AST via get_child_collections."""
+        # Always index the document root under an empty anchor for file-level links (e.g. xref:doc.adoc[])
+        self.by_fqid[f"{file_id}#"] = document
+
+        stack: PyList[Node] = [document]
+        header = getattr(document, "header", None)
+        if header:
+            stack.append(header)
+
+        while stack:
+            current_node = stack.pop()
+
+            # Register anchor ID, handling potential duplicates or object wrappers
+            node_id = getattr(current_node, "id", None) or current_node.attributes.get("id")
+            if node_id:
+                id_str = str(node_id.value) if hasattr(node_id, "value") else str(node_id)
+                fqid = f"{file_id}#{id_str}"
+                self.by_fqid[fqid] = current_node
+                if file_id not in self.by_local_id[id_str]:
+                    self.by_local_id[id_str].append(file_id)
+
+            # Traverse child branches
+            for collection in current_node.get_child_collections().values():
+                stack.extend(reversed(collection))
 
 
 class ASGResolver(NodeTransformer):
