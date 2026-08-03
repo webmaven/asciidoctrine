@@ -1,0 +1,81 @@
+= AsciiDoctrine Scripts & Executables Directory (`bin/`)
+
+This directory contains command-line interface utilities, test harness adapters, and execution scripts for development, verification, and browser-based preview workflows.
+
+== Scripts Reference
+
+`tck-adapter.py`::
+Standard CLI bridge adapter connecting the official AsciiDoc Technology Compatibility Kit (TCK) runner to the `asciidoctrine` parser and ASG resolver.
+Reads AsciiDoc source from a file argument, parses it to an AST, resolves the ASG, and outputs TCK-compliant JSON to stdout.
++
+[source,bash]
+----
+python3 bin/tck-adapter.py sample.adoc
+----
+
+`run-tck-json.mjs`::
+Node.js event-driven TCK runner that consumes the native TCK test stream.
+Invokes the adapter command against each TCK test case and reports results as JSON, replacing fragile log-regex parsing with a structured, programmatic interface.
++
+[source,bash]
+----
+node bin/run-tck-json.mjs "python3 bin/tck-adapter.py"
+----
++
+NOTE: Requires Node.js >= 20 and the TCK submodule at `vendor/asciidoc-tck/` with `npm ci` run.
+
+`run_examples.py`::
+Helper script to execute and verify sample AsciiDoc files located in `examples/`.
+Useful for smoke-testing that the parser handles representative documents without errors.
++
+[source,bash]
+----
+python3 bin/run_examples.py
+----
+
+`regenerate_tck_additions.py`::
+Utility script to process and format local TCK additions under `tests/tck_harness/`.
+Use this after adding or modifying local TCK test YAML files to ensure they conform to the expected structure.
++
+[source,bash]
+----
+python3 bin/regenerate_tck_additions.py
+----
+
+`measure-overlap.py`::
+Test coverage redundancy and overlap measurement tool.
+Parses the `.coverage` database using the official coverage API to analyze test execution contexts, find over-tested lines of code, compute Jaccard similarity between test suites, and detect fully redundant tests.
++
+[source,bash]
+----
+# Requires a .coverage database from a prior pytest --cov run
+python3 bin/measure-overlap.py
+----
+
+`run-coverage-audit.sh`::
+Combined workflow script that runs the full pytest suite with dynamic context coverage collection, then invokes `measure-overlap.py` to print a comprehensive test redundancy and overlap audit report.
++
+[source,bash]
+----
+./bin/run-coverage-audit.sh
+----
+
+`browser-mac.sh`::
+Native macOS browser launching and screenshot wrapper.
+Uses the project's virtual environment Playwright installation to open a URL in a local browser and optionally capture a screenshot.
+Designed for documentation preview and visual regression workflows on macOS.
++
+[source,bash]
+----
+# Preview the local docs build
+./bin/browser-mac.sh http://localhost:8080
+
+# Capture a screenshot
+./bin/browser-mac.sh http://localhost:8080 docs_preview.png
+----
+
+== Prerequisites
+
+* **Python scripts**: Require the project virtual environment (`venv/bin/python3`) with the package installed in editable mode (`pip install -e ".[test,docs]"`).
+* **Node.js scripts**: Require Node.js >= 20 and the TCK submodule dependencies (`cd vendor/asciidoc-tck && npm ci`).
+* **Shell scripts**: Require a POSIX-compatible shell (bash/zsh) on macOS or Linux.
