@@ -73,3 +73,11 @@ def test_expression_evaluation(expr: str, expected: bool) -> None:
     preprocessor = Preprocessor()
     assert preprocessor._evaluate_ifeval_condition(expr) is expected
 
+def test_attribute_substitution() -> None:
+    preprocessor = Preprocessor()
+    preprocessor.attributes["backend"] = "html5"
+    preprocessor.attributes["sectnumlevels"] = "3"
+    
+    assert preprocessor._evaluate_ifeval_condition('"{backend}" == "html5"') is True
+    assert preprocessor._evaluate_ifeval_condition('{sectnumlevels} == 3') is True
+    assert preprocessor._evaluate_ifeval_condition('"{unset_attr}" == ""') is True

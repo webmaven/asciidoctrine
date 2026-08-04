@@ -105,6 +105,13 @@ class Preprocessor:
         Extracts left operand, operator (==, !=, <=, >=, <, >), and right operand,
         parses both operands via _parse_ifeval_operand, and performs safe comparison.
         """
+        # Substitute attributes
+        def repl(m: re.Match[str]) -> str:
+            attr_name = m.group(1)
+            return str(self.attributes.get(attr_name, ""))
+
+        expr = re.sub(r"\{([a-zA-Z0-9_-]+)\}", repl, expr)
+
         match = re.match(r"^\s*(.*?)\s*(==|!=|<=|>=|<|>)\s*(.*?)\s*$", expr)
         if not match:
             return False
