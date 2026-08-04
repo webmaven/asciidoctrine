@@ -128,7 +128,12 @@ class Document(BlockNode):
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
         return {"blocks": self.blocks}
 
-    def __init__(self, blocks: Optional[Sequence[Node]] = None):
+    def __init__(
+        self,
+        blocks: Optional[Sequence[Node]] = None,
+        base_dir: Optional[str] = None,
+        safe_mode: int = 0,
+    ):
         super().__init__()
         self.name = "document"
         self.type = "block"
@@ -139,6 +144,8 @@ class Document(BlockNode):
         self.line_ending: str = "\n"
         self.is_preprocessed: bool = False
         self.included_files: PyList[str] = []
+        self.base_dir: Optional[str] = base_dir
+        self.safe_mode: int = safe_mode
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize document with header and resolved attributes."""

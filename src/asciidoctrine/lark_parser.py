@@ -1112,7 +1112,7 @@ def parse_to_ast(
     source: str,
     grammar_file: str = DEFAULT_GRAMMAR,
     base_dir: Optional[str] = None,
-    safe_mode: bool = True,
+    safe_mode: int = 0,
     preprocess_directives: bool = True,
     strict: bool = True,
     extra_authority_schemes: Optional[PyList[str]] = None,
@@ -1197,6 +1197,8 @@ def parse_to_ast(
     ast_root.line_ending = line_ending
     ast_root.is_preprocessed = preprocessor.is_preprocessed
     ast_root.included_files = sorted(list(preprocessor.included_files_set))
+    ast_root.base_dir = base_dir
+    ast_root.safe_mode = safe_mode
 
     if strict:
         ASTSyntaxAuditor(
