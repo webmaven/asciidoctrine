@@ -4,6 +4,15 @@
 == Unreleased
 
 === Added
+* **Docinfo & Document Metadata (`:docinfo:`, `:docinfodir:`, `:docinfofiles:`)**:
+  - Implemented `Docinfo` AST node class (`src/asciidoctrine/nodes.py`) supporting `head_content` and `footer_content` attributes and ASG serialization.
+  - Attached `base_dir` and `safe_mode` properties to the root `Document` AST node in `parse_to_ast()`.
+  - Implemented ASG-time docinfo discovery (`_resolve_docinfo_files()`) in `ASGResolver` (`src/asciidoctrine/resolver.py`), supporting shared (`docinfo.html`, `docinfo-footer.html`) and private (`<docname>-docinfo.html`, `<docname>-docinfo-footer.html`) files, custom `:docinfofiles:`, and `:docinfodir:`.
+  - Implemented `safe_mode` boundary checks preventing path-traversal file reads outside `base_dir`.
+  - Implemented attribute substitution (`{attr}`) inside resolved docinfo header and footer content.
+  - Implemented Docutils HTML backend rendering in `DocutilsRenderer` (`src/asciidoctrine/docutils_backend.py`), injecting head and footer raw HTML markup into output documents.
+  - Added comprehensive test suite in `tests/test_docinfo.py`.
+  - Marked Docinfo as `Fully Supported` in `docs/feature-matrix.adoc` and updated `docs/index.adoc`.
 * **Attribute Comparison Directive (`ifeval::[]`)**:
   - Implemented `ifeval::[expression]` conditional directive in `Preprocessor`, supporting comparison operators (`==`, `!=`, `<`, `<=`, `>`, `>=`).
   - Implemented `_parse_ifeval_operand()` with type coercion for quoted strings, integers, floats, booleans (`true`/`false`), and `nil`/`null`.
