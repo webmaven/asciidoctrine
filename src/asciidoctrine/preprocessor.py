@@ -5,7 +5,7 @@ Preprocessor for AsciiDoc source, handling directives like include::.
 import os
 import re
 import warnings
-from typing import Optional
+from typing import Any, Optional
 
 
 class PreprocessorError(Exception):
@@ -62,6 +62,42 @@ class Preprocessor:
         self.is_preprocessed = False
         self.included_files_set: set[str] = set()
         self.line_map: dict[int, tuple[str, int]] = {}
+
+    def _parse_ifeval_operand(self, val: str) -> Any:
+        """
+        Parses an operand from an ifeval expression and coerces it to an appropriate Python type.
+
+        - Quoted strings ('...' or "...") -> str (unquoted)
+        - Integers and floats -> int / float
+        - Booleans ("true", "false", "True", "False") -> bool
+        - "nil" and "null" -> None
+        """
+        v = val.strip()
+        if (len(v) >= 2) and (
+            (v.startswith('"') and v.endswith('"'))
+            or (v.startswith("'") and v.endswith("'"))
+        ):
+            return v[1:-1]
+
+        if v in ("nil", "null"):
+            return None
+
+        if v in ("true", "True"):
+            return True
+        if v in ("false", "False"):
+            return False
+
+        try:
+            return int(v)
+        except ValueError:
+            pass
+
+        try:
+            return float(v)
+        except ValueError:
+            pass
+
+        return v
 
     def _parse_attributes(self, attr_str: str) -> dict[str, str]:
         """
