@@ -99,6 +99,39 @@ class Preprocessor:
 
         return v
 
+    def _evaluate_ifeval_condition(self, expr: str) -> bool:
+        """
+        Evaluates an ifeval condition expression (e.g. '"html5" == "html5"', '5 > 3').
+        Extracts left operand, operator (==, !=, <=, >=, <, >), and right operand,
+        parses both operands via _parse_ifeval_operand, and performs safe comparison.
+        """
+        match = re.match(r"^\s*(.*?)\s*(==|!=|<=|>=|<|>)\s*(.*?)\s*$", expr)
+        if not match:
+            return False
+
+        left_raw, op, right_raw = match.groups()
+        left_val = self._parse_ifeval_operand(left_raw)
+        right_val = self._parse_ifeval_operand(right_raw)
+
+        try:
+            if op == "==":
+                return bool(left_val == right_val)
+            elif op == "!=":
+                return bool(left_val != right_val)
+            elif op == "<":
+                return bool(left_val < right_val)
+            elif op == "<=":
+                return bool(left_val <= right_val)
+            elif op == ">":
+                return bool(left_val > right_val)
+            elif op == ">=":
+                return bool(left_val >= right_val)
+        except TypeError:
+            return False
+
+        return False
+
+
     def _parse_attributes(self, attr_str: str) -> dict[str, str]:
         """
         Parses attribute string character by character to handle quotes and delimiters.
