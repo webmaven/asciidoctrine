@@ -101,6 +101,25 @@ class BlockNode(Node):
         self.blocks.append(child)  # type: ignore[attr-defined]
 
 
+class Docinfo(Node):
+    """Represents header and footer injected document metadata."""
+
+    _should_serialize_attributes = False
+
+    def __init__(self, head_content: str = "", footer_content: str = "") -> None:
+        super().__init__()
+        self.name = "docinfo"
+        self.type = "metadata"
+        self.head_content = head_content
+        self.footer_content = footer_content
+
+    def to_dict(self) -> Dict[str, Any]:
+        data = super().to_dict()
+        data["head_content"] = self.head_content
+        data["footer_content"] = self.footer_content
+        return data
+
+
 class Document(BlockNode):
     """The root node of the entire AsciiDoc document AST."""
 
@@ -115,6 +134,7 @@ class Document(BlockNode):
         self.type = "block"
         self.blocks: PyList[Node] = list(blocks) if blocks else []
         self.header: Optional[Header] = None
+        self.docinfo: Optional[Docinfo] = None
         self.had_trailing_newline: bool = True
         self.line_ending: str = "\n"
         self.is_preprocessed: bool = False
@@ -139,6 +159,8 @@ class Document(BlockNode):
 
         if self.header:
             data["header"] = self.header.to_dict()
+        if hasattr(self, "docinfo") and self.docinfo:
+            data["docinfo"] = self.docinfo.to_dict()
         return data
 
 
@@ -214,6 +236,7 @@ class Header(Node):
         authors: Optional[PyList[Author]] = None,
         revision: Optional[Revision] = None,
         attributes: Optional[Dict[str, Any]] = None,
+        docinfo: Optional[Docinfo] = None,
     ):
         super().__init__()
         self.name = "header"
@@ -222,6 +245,7 @@ class Header(Node):
         self.authors = authors or []
         self.revision = revision
         self.attributes = attributes or {}
+        self.docinfo = docinfo
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize header metadata."""
@@ -253,6 +277,8 @@ class Header(Node):
                 "type": "block",
                 "value": value,
             }
+        if hasattr(self, "docinfo") and self.docinfo:
+            header_data["docinfo"] = self.docinfo.to_dict()
         return header_data
 
 

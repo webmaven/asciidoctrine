@@ -11,6 +11,7 @@ Core features include:
 
 from .lark_parser import AsciiDocSyntaxError, parse_to_ast
 from .nodes import (
+    Docinfo,
     Document,
     Node,
     NodeTransformer,
@@ -29,6 +30,7 @@ __all__ = [
     "AsciiDocSyntaxError",
     "serialize_to_asciidoc",
     "Node",
+    "Docinfo",
     "Document",
     "Section",
     "Paragraph",

@@ -18,6 +18,7 @@ from asciidoctrine.nodes import (
     DescriptionList,
     DescriptionListItem,
     DescriptionListTerm,
+    Docinfo,
     Document,
     Example,
     FloatingTitle,
@@ -178,6 +179,31 @@ class TestNodesUnit(unittest.TestCase):
         )
         # _should_serialize_attributes is False on Header by default
         self.assertNotIn("attributes", header_dict)
+
+    def test_docinfo_node_serialization(self):
+        docinfo = Docinfo(head_content="<meta>", footer_content="<footer>")
+        self.assertEqual(docinfo.head_content, "<meta>")
+        self.assertEqual(docinfo.footer_content, "<footer>")
+
+        doc_dict = docinfo.to_dict()
+        self.assertEqual(doc_dict["name"], "docinfo")
+        self.assertEqual(doc_dict["type"], "metadata")
+        self.assertEqual(doc_dict["head_content"], "<meta>")
+        self.assertEqual(doc_dict["footer_content"], "<footer>")
+
+        doc = Document()
+        doc.docinfo = docinfo
+        serialized_doc = doc.to_dict()
+        self.assertIn("docinfo", serialized_doc)
+        self.assertEqual(serialized_doc["docinfo"]["head_content"], "<meta>")
+        self.assertEqual(serialized_doc["docinfo"]["footer_content"], "<footer>")
+
+        hdr = Header(title=Title([Text("Header Title")]), docinfo=docinfo)
+        self.assertEqual(hdr.docinfo, docinfo)
+        serialized_hdr = hdr.to_dict()
+        self.assertIn("docinfo", serialized_hdr)
+        self.assertEqual(serialized_hdr["docinfo"]["head_content"], "<meta>")
+        self.assertEqual(serialized_hdr["docinfo"]["footer_content"], "<footer>")
 
     def test_section_node(self):
         title = Title([Text("Sect1")])
@@ -505,6 +531,139 @@ class TestNodesUnit(unittest.TestCase):
         lit.title = Title(inlines=[Text("Node Title")])
         assert lit.literal_title == "Node Title"
 
+    def test_additional_node_serializations_and_collections(self):
+        # Title
+        t = Title(inlines=[Text("Main Title")])
+        self.assertEqual(t.get_child_collections(), {"inlines": t.inlines})
+        self.assertEqual(t.to_list(), [{"name": "text", "type": "string", "value": "Main Title"}])
+
+        # Author
+        a = Author(inlines=[Text("Jane Doe")])
+        self.assertEqual(a.get_child_collections(), {"inlines": a.inlines})
+
+        # Revision
+        r = Revision(inlines=[Text("v1.0")])
+        self.assertEqual(r.get_child_collections(), {"inlines": r.inlines})
+        r.append(Text(" extra"))
+        self.assertEqual(len(r.inlines), 2)
+
+        # FloatingTitle
+        ft = FloatingTitle(level=2, title=t)
+        self.assertEqual(ft.get_child_collections(), {"inlines": t.inlines})
+        d_ft = ft.to_dict()
+        self.assertEqual(d_ft["name"], "floatingTitle")
+        self.assertEqual(d_ft["level"], 2)
+
+        # Audio
+        audio = Audio(target="music.mp3", attributes={"autoplay": "true"})
+        self.assertEqual(audio.get_child_collections(), {})
+        d_audio = audio.to_dict()
+        self.assertEqual(d_audio["name"], "audio")
+        self.assertEqual(d_audio["target"], "music.mp3")
+
+        # Video
+        video = Video(target="movie.mp4", attributes={"controls": "true"})
+        self.assertEqual(video.get_child_collections(), {})
+        d_vid = video.to_dict()
+        self.assertEqual(d_vid["name"], "video")
+        self.assertEqual(d_vid["target"], "movie.mp4")
+
+        # Button: stores label as self.value, serialized as 'value'
+        btn = Button(label="Submit")
+        self.assertEqual(btn.get_child_collections(), {})
+        d_btn = btn.to_dict()
+        self.assertEqual(d_btn["name"], "button")
+        self.assertEqual(d_btn["value"], "Submit")
+
+        # Kbd: stores keys list as self.value, serialized as 'value'
+        kbd = Kbd(keys=["Ctrl", "C"])
+        self.assertEqual(kbd.get_child_collections(), {})
+        d_kbd = kbd.to_dict()
+        self.assertEqual(d_kbd["name"], "kbd")
+        self.assertEqual(d_kbd["value"], ["Ctrl", "C"])
+
+        # Menu: stores menu name and items separately; has custom to_dict()
+        menu = Menu(menu="File", items=["Save", "Save As"])
+        self.assertEqual(menu.get_child_collections(), {})
+        d_menu = menu.to_dict()
+        self.assertEqual(d_menu["name"], "menu")
+        self.assertEqual(d_menu["menu"], "File")
+        self.assertEqual(d_menu["items"], ["Save", "Save As"])
+
+        # Verse
+        v = Verse(blocks=[Paragraph([Text("Stanza line")])])
+        self.assertEqual(v.get_child_collections(), {"blocks": v.blocks})
+        v.append(Paragraph([Text("Second line")]))
+        d_v = v.to_dict()
+        self.assertEqual(d_v["name"], "verse")
+
+        # CalloutList & CalloutListItem
+        cli = CalloutListItem(number=1, blocks=[Paragraph([Text("Callout desc")])])
+        cl = CalloutList(items=[cli])
+        self.assertEqual(cl.get_child_collections(), {"items": cl.items})
+        # CalloutListItem exposes both 'principal' and 'blocks' collections
+        self.assertEqual(cli.get_child_collections(), {"principal": cli.principal, "blocks": cli.blocks})
+        d_cl = cl.to_dict()
+        self.assertEqual(d_cl["name"], "calloutList")
+
+        # Breaks
+        br = Break()
+        pb = PageBreak()
+        tb = ThematicBreak()
+        self.assertEqual(br.get_child_collections(), {})
+        self.assertEqual(pb.get_child_collections(), {})
+        self.assertEqual(tb.get_child_collections(), {})
+        self.assertEqual(br.to_dict()["name"], "break")
+        self.assertEqual(pb.to_dict()["name"], "page_break")
+        self.assertEqual(tb.to_dict()["name"], "thematic_break")
+
+        # Open
+        op = Open(blocks=[Paragraph([Text("Open content")])], delimiter="~~")
+        self.assertEqual(op.get_child_collections(), {"blocks": op.blocks})
+        d_op = op.to_dict()
+        self.assertEqual(d_op["name"], "open")
+        self.assertEqual(d_op["delimiter"], "~~")
+
+    def test_listing_properties(self):
+        from asciidoctrine.nodes import Listing
+
+        lis = Listing()
+        # id
+        self.assertIsNone(lis.id)
+        lis.id = "code-block-1"
+        self.assertEqual(lis.id, "code-block-1")
+        self.assertEqual(lis.attributes["id"], "code-block-1")
+        lis.id = None
+        self.assertIsNone(lis.id)
+        self.assertNotIn("id", lis.attributes)
+
+        # language
+        self.assertIsNone(lis.language)
+        lis.language = "python"
+        self.assertEqual(lis.language, "python")
+        self.assertEqual(lis.attributes["language"], "python")
+        lis.language = None
+        self.assertIsNone(lis.language)
+        self.assertNotIn("language", lis.attributes)
+
+        # style
+        self.assertIsNone(lis.style)
+        lis.style = "source"
+        self.assertEqual(lis.style, "source")
+        self.assertEqual(lis.attributes["style"], "source")
+        lis.style = None
+        self.assertIsNone(lis.style)
+        self.assertNotIn("style", lis.attributes)
+
+        # listing_title via attribute
+        lis.attributes["title"] = "Listing Attr Title"
+        self.assertEqual(lis.listing_title, "Listing Attr Title")
+
+        # listing_title via title node
+        lis.title = Title(inlines=[Text("Listing Node Title")])
+        self.assertEqual(lis.listing_title, "Listing Node Title")
+
 
 if __name__ == "__main__":
     unittest.main()
+
