@@ -99,6 +99,47 @@ class Preprocessor:
 
         return v
 
+    def _split_ifeval_expression(
+        self, expr: str
+    ) -> tuple[str, str, str] | None:
+        """
+        Split an ifeval expression into (left_operand, operator, right_operand)
+        using a quote-aware character-by-character scan.
+
+        Unlike a naive regex, this correctly handles operator characters
+        embedded inside quoted string literals (e.g. ``"a == b" == "a == b"``).
+        Returns None if no top-level operator is found.
+        """
+        operators = ("==", "!=", "<=", ">=", "<", ">")
+        in_quote: str | None = None
+        i = 0
+        s = expr.strip()
+
+        while i < len(s):
+            ch = s[i]
+
+            # Track quote state
+            if ch in ('"', "'"):
+                if in_quote is None:
+                    in_quote = ch
+                elif in_quote == ch:
+                    in_quote = None
+                i += 1
+                continue
+
+            # Only look for operators outside quotes
+            if in_quote is None:
+                # Try two-character operators first, then single-character
+                for op in operators:
+                    if s[i : i + len(op)] == op:
+                        left = s[:i].strip()
+                        right = s[i + len(op) :].strip()
+                        return (left, op, right)
+
+            i += 1
+
+        return None
+
     def _evaluate_ifeval_condition(self, expr: str) -> bool:
         """
         Evaluates an ifeval condition expression (e.g. '"html5" == "html5"', '5 > 3').
@@ -112,11 +153,11 @@ class Preprocessor:
 
         expr = re.sub(r"\{([a-zA-Z0-9_-]+)\}", repl, expr)
 
-        match = re.match(r"^\s*(.*?)\s*(==|!=|<=|>=|<|>)\s*(.*?)\s*$", expr)
-        if not match:
+        parts = self._split_ifeval_expression(expr)
+        if parts is None:
             return False
 
-        left_raw, op, right_raw = match.groups()
+        left_raw, op, right_raw = parts
         left_val = self._parse_ifeval_operand(left_raw)
         right_val = self._parse_ifeval_operand(right_raw)
 
