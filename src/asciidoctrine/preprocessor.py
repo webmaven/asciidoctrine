@@ -547,6 +547,14 @@ class Preprocessor:
                                 processed_lines.append(body_str + newline)
                     continue
 
+                # 2.5 ifeval::[expr]
+                ifeval_match = re.match(r"^ifeval::\[(.*)\]\s*$", line_strip)
+                if ifeval_match:
+                    cond_str = ifeval_match.group(1).strip()
+                    eval_res = self._evaluate_ifeval_condition(cond_str)
+                    conditional_stack.append(eval_res)
+                    continue
+
                 # 3. ifndef::attr[] or ifndef::attr[shorthand]
                 ifndef_match = re.match(r"^ifndef::([^\[]*)\[(.*)\]\s*$", line_strip)
                 if ifndef_match:
