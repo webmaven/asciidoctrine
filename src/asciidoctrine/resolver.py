@@ -8,6 +8,7 @@ from .lark_parser import parse_to_ast
 from .nodes import (
     AttributeEntry,
     Attributes,
+    Docinfo,
     Document,
     Node,
     NodeTransformer,
@@ -100,6 +101,92 @@ class ASGResolver(NodeTransformer):
             else (str(doc_id) if doc_id is not None else "root")
         )
 
+    def _resolve_docinfo_files(self, doc: Document) -> tuple[str, str]:
+        docinfo_attr = str(self.resolved_attributes.get("docinfo", "")).strip()
+        docinfofiles_attr = str(self.resolved_attributes.get("docinfofiles", "")).strip()
+        if not docinfo_attr and not docinfofiles_attr:
+            return ("", "")
+
+        docinfo_val = [x.strip() for x in docinfo_attr.split(",") if x.strip()]
+
+        is_shared = any(v in ("1", "shared", "shared-head", "shared-footer") for v in docinfo_val)
+        is_private = any(v in ("private", "private-head", "private-footer") for v in docinfo_val)
+
+        docname = self.resolved_attributes.get("docname")
+        if not docname and self.current_file_id and self.current_file_id != "root":
+            docname = Path(self.current_file_id).stem
+        if not docname:
+            docname = "docinfo"
+
+        base_dir_path = Path(doc.base_dir).resolve() if doc.base_dir else Path.cwd().resolve()
+
+        docinfodir = str(self.resolved_attributes.get("docinfodir", "")).strip()
+        if docinfodir:
+            target_dir = (base_dir_path / docinfodir).resolve()
+        else:
+            target_dir = base_dir_path
+
+        if getattr(doc, "safe_mode", 0) >= 2:
+            try:
+                target_dir.relative_to(base_dir_path)
+            except ValueError:
+                return ("", "")
+
+        head_contents: PyList[str] = []
+        footer_contents: PyList[str] = []
+
+        def safe_read(file_path: Path) -> str:
+            if not file_path.is_file():
+                return ""
+            if getattr(doc, "safe_mode", 0) >= 2:
+                try:
+                    file_path.resolve().relative_to(base_dir_path)
+                except ValueError:
+                    return ""
+            try:
+                return file_path.read_text(encoding="utf-8")
+            except Exception:
+                return ""
+
+        if is_shared:
+            for ext in (".html", ".xml"):
+                h = safe_read(target_dir / f"docinfo{ext}") or safe_read(target_dir / f"docinfo-head{ext}")
+                if h:
+                    head_contents.append(h)
+                f = safe_read(target_dir / f"docinfo-footer{ext}")
+                if f:
+                    footer_contents.append(f)
+
+        if is_private and docname:
+            for ext in (".html", ".xml"):
+                h = safe_read(target_dir / f"{docname}-docinfo{ext}") or safe_read(target_dir / f"{docname}-docinfo-head{ext}")
+                if h:
+                    head_contents.append(h)
+                f = safe_read(target_dir / f"{docname}-docinfo-footer{ext}")
+                if f:
+                    footer_contents.append(f)
+
+        if docinfofiles_attr:
+            custom_files = [x.strip() for x in docinfofiles_attr.split(",") if x.strip()]
+            for cfile in custom_files:
+                cpath = target_dir / cfile
+                c_content = safe_read(cpath)
+                if c_content:
+                    if "footer" in cfile:
+                        footer_contents.append(c_content)
+                    else:
+                        head_contents.append(c_content)
+
+        head_str = "".join(head_contents)
+        footer_str = "".join(footer_contents)
+
+        if head_str:
+            head_str = substitute_attributes(head_str, self.resolved_attributes)
+        if footer_str:
+            footer_str = substitute_attributes(footer_str, self.resolved_attributes)
+
+        return (head_str, footer_str)
+
     def resolve(self, node: Node) -> Dict[str, Any]:
         """Converts an AST node tree to a fully-resolved ASG dictionary without mutating the original input AST.
 
@@ -113,6 +200,13 @@ class ASGResolver(NodeTransformer):
         import copy
 
         copied_node = copy.deepcopy(node)
+        if isinstance(copied_node, Document):
+            head_content, footer_content = self._resolve_docinfo_files(copied_node)
+            if head_content or footer_content:
+                copied_node.docinfo = Docinfo(
+                    head_content=head_content, footer_content=footer_content
+                )
+
         self.visit(copied_node)
 
         asg = copied_node.to_dict()
