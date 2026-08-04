@@ -767,6 +767,83 @@ print("inner")
             )
             assert processed.strip() == expected
 
+    def test_named_endif_matching(self):
+        """Named endif::backend[] should correctly close its matching ifdef::backend[]."""
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        preprocessor.attributes = {"backend": "html5"}
+        source = (
+            "ifdef::backend[]\n"
+            "Visible content\n"
+            "endif::backend[]\n"
+        )
+        processed = preprocessor.process(source)
+        self.assertEqual(processed.strip(), "Visible content")
+
+    def test_named_endif_mismatch_strict(self):
+        """In strict mode, a mismatched named endif should raise PreprocessorError."""
+        preprocessor = Preprocessor(base_dir=self.base_dir, strict=True)
+        preprocessor.attributes = {"backend": "html5"}
+        source = (
+            "ifdef::backend[]\n"
+            "Content\n"
+            "endif::wrong_name[]\n"
+        )
+        with self.assertRaises(PreprocessorError) as context:
+            preprocessor.process(source)
+        self.assertIn("mismatch", str(context.exception).lower())
+
+    def test_named_endif_mismatch_permissive(self):
+        """In permissive mode, a mismatched named endif should still pop the stack (lenient)."""
+        preprocessor = Preprocessor(base_dir=self.base_dir, strict=False)
+        preprocessor.attributes = {"backend": "html5"}
+        source = (
+            "ifdef::backend[]\n"
+            "Content\n"
+            "endif::wrong_name[]\n"
+            "After endif\n"
+        )
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            processed = preprocessor.process(source)
+            # Should still work (pop the stack) but issue a warning
+            self.assertIn("Content", processed)
+            self.assertIn("After endif", processed)
+            # Check that a warning was issued about the mismatch
+            mismatch_warnings = [
+                x for x in w if "mismatch" in str(x.message).lower()
+            ]
+            self.assertGreater(len(mismatch_warnings), 0)
+
+    def test_named_endif_with_ifeval(self):
+        """Anonymous endif::[] should correctly close an ifeval block."""
+        preprocessor = Preprocessor(base_dir=self.base_dir, strict=True)
+        preprocessor.attributes = {"backend": "html5"}
+        source = (
+            'ifeval::["{backend}" == "html5"]\n'
+            "HTML content\n"
+            "endif::[]\n"
+        )
+        processed = preprocessor.process(source)
+        self.assertIn("HTML content", processed)
+
+    def test_nested_named_endif_strict(self):
+        """Named endifs in strict mode should match their corresponding openers in LIFO order."""
+        preprocessor = Preprocessor(base_dir=self.base_dir, strict=True)
+        preprocessor.attributes = {"outer": "", "inner": ""}
+        source = (
+            "ifdef::outer[]\n"
+            "Outer\n"
+            "ifdef::inner[]\n"
+            "Inner\n"
+            "endif::inner[]\n"
+            "Still outer\n"
+            "endif::outer[]\n"
+        )
+        processed = preprocessor.process(source)
+        self.assertIn("Outer", processed)
+        self.assertIn("Inner", processed)
+        self.assertIn("Still outer", processed)
+
 
 if __name__ == "__main__":
     unittest.main()

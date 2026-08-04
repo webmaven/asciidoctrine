@@ -5,6 +5,7 @@ Preprocessor for AsciiDoc source, handling directives like include::.
 import os
 import re
 import warnings
+from dataclasses import dataclass
 from typing import Any, Optional
 
 
@@ -24,6 +25,51 @@ class PreprocessorWarning(UserWarning):
     """Warning category for fragile preprocessor constructs."""
 
     pass
+
+
+@dataclass
+class ConditionalFrame:
+    """Represents a frame on the preprocessor conditional stack."""
+
+    active: bool
+    name: str
+    directive: str
+
+
+class ConditionalStack:
+    """
+    Manages nested conditional block frames (ifdef, ifndef, ifeval) and handles
+    named endif matching and validation.
+    """
+
+    def __init__(self, strict: bool = True) -> None:
+        self.stack: list[ConditionalFrame] = []
+        self.strict = strict
+
+    def push(self, active: bool, name: str, directive: str) -> None:
+        self.stack.append(
+            ConditionalFrame(active=active, name=name, directive=directive)
+        )
+
+    def pop(self, name: str = "") -> Optional[ConditionalFrame]:
+        if not self.stack:
+            return None
+
+        top = self.stack[-1]
+        if name and top.name and top.name != name:
+            msg = f"Mismatched endif target: expected '{top.name}', got '{name}'"
+            if self.strict:
+                raise PreprocessorError(msg)
+            else:
+                warnings.warn(msg, PreprocessorWarning, stacklevel=2)
+
+        return self.stack.pop()
+
+    def is_active(self) -> bool:
+        return all(frame.active for frame in self.stack)
+
+    def __bool__(self) -> bool:
+        return bool(self.stack)
 
 
 class Preprocessor:
@@ -524,6 +570,74 @@ class Preprocessor:
         self.line_map[self._global_line_counter] = (file_path, line_num)
         self._global_line_counter += 1
 
+    def _try_handle_conditional_directive(
+        self,
+        line: str,
+        line_strip: str,
+        current_file: str,
+        line_num: int,
+        conditional_stack: ConditionalStack,
+        processed_lines: list[str],
+    ) -> bool:
+        """
+        Handles ifdef, ifndef, ifeval, and endif directives.
+        Returns True if line was a conditional directive (and processed), False otherwise.
+        """
+        # 1. endif::[] or endif::some_attr[]
+        endif_match = re.match(r"^endif::([^\[]*)\[(.*)\]\s*$", line_strip)
+        if endif_match:
+            target_name = endif_match.group(1).strip()
+            conditional_stack.pop(target_name)
+            return True
+
+        # 2. ifdef::attr[] or ifdef::attr[shorthand]
+        ifdef_match = re.match(r"^ifdef::([^\[]*)\[(.*)\]\s*$", line_strip)
+        if ifdef_match:
+            cond_str = ifdef_match.group(1).strip()
+            body_str = ifdef_match.group(2)
+            if body_str == "":
+                # Block style
+                eval_res = self._evaluate_condition(cond_str)
+                conditional_stack.push(eval_res, name=cond_str, directive="ifdef")
+            else:
+                # Shorthand style (only if outer stack is fully active)
+                if conditional_stack.is_active():
+                    eval_res = self._evaluate_condition(cond_str)
+                    if eval_res:
+                        newline = "\n" if line.endswith("\n") else ""
+                        self._record_line(current_file, line_num)
+                        processed_lines.append(body_str + newline)
+            return True
+
+        # 2.5 ifeval::[expr]
+        ifeval_match = re.match(r"^ifeval::\[(.*)\]\s*$", line_strip)
+        if ifeval_match:
+            cond_str = ifeval_match.group(1).strip()
+            eval_res = self._evaluate_ifeval_condition(cond_str)
+            conditional_stack.push(eval_res, name="", directive="ifeval")
+            return True
+
+        # 3. ifndef::attr[] or ifndef::attr[shorthand]
+        ifndef_match = re.match(r"^ifndef::([^\[]*)\[(.*)\]\s*$", line_strip)
+        if ifndef_match:
+            cond_str = ifndef_match.group(1).strip()
+            body_str = ifndef_match.group(2)
+            if body_str == "":
+                # Block style
+                eval_res = not self._evaluate_condition(cond_str)
+                conditional_stack.push(eval_res, name=cond_str, directive="ifndef")
+            else:
+                # Shorthand style (only if outer stack is fully active)
+                if conditional_stack.is_active():
+                    eval_res = not self._evaluate_condition(cond_str)
+                    if eval_res:
+                        newline = "\n" if line.endswith("\n") else ""
+                        self._record_line(current_file, line_num)
+                        processed_lines.append(body_str + newline)
+            return True
+
+        return False
+
     def _process_source(
         self,
         source: str,
@@ -540,9 +654,9 @@ class Preprocessor:
         current_dir = (
             os.path.dirname(current_file) if current_file != "<root>" else self.base_dir
         )
-        processed_lines = []
+        processed_lines: list[str] = []
         metadata_pending = False
-        conditional_stack: list[bool] = []
+        conditional_stack = ConditionalStack(strict=self.strict)
 
         def is_metadata(l_strip: str) -> bool:
             if l_strip.startswith("//") and not re.match(r"^/{4,}$", l_strip):
@@ -562,61 +676,18 @@ class Preprocessor:
 
             # Handle conditional directives first (only if not inside verbatim)
             if in_verbatim is None:
-                # 1. endif::[] or endif::some_attr[]
-                endif_match = re.match(r"^endif::([^\[]*)\[(.*)\]\s*$", line_strip)
-                if endif_match:
-                    if conditional_stack:
-                        conditional_stack.pop()
-                    continue
-
-                # 2. ifdef::attr[] or ifdef::attr[shorthand]
-                ifdef_match = re.match(r"^ifdef::([^\[]*)\[(.*)\]\s*$", line_strip)
-                if ifdef_match:
-                    cond_str = ifdef_match.group(1).strip()
-                    body_str = ifdef_match.group(2)
-                    if body_str == "":
-                        # Block style
-                        eval_res = self._evaluate_condition(cond_str)
-                        conditional_stack.append(eval_res)
-                    else:
-                        # Shorthand style (only if outer stack is fully active)
-                        if all(conditional_stack):
-                            eval_res = self._evaluate_condition(cond_str)
-                            if eval_res:
-                                newline = "\n" if line.endswith("\n") else ""
-                                self._record_line(current_file, line_num)
-                                processed_lines.append(body_str + newline)
-                    continue
-
-                # 2.5 ifeval::[expr]
-                ifeval_match = re.match(r"^ifeval::\[(.*)\]\s*$", line_strip)
-                if ifeval_match:
-                    cond_str = ifeval_match.group(1).strip()
-                    eval_res = self._evaluate_ifeval_condition(cond_str)
-                    conditional_stack.append(eval_res)
-                    continue
-
-                # 3. ifndef::attr[] or ifndef::attr[shorthand]
-                ifndef_match = re.match(r"^ifndef::([^\[]*)\[(.*)\]\s*$", line_strip)
-                if ifndef_match:
-                    cond_str = ifndef_match.group(1).strip()
-                    body_str = ifndef_match.group(2)
-                    if body_str == "":
-                        # Block style
-                        eval_res = not self._evaluate_condition(cond_str)
-                        conditional_stack.append(eval_res)
-                    else:
-                        # Shorthand style (only if outer stack is fully active)
-                        if all(conditional_stack):
-                            eval_res = not self._evaluate_condition(cond_str)
-                            if eval_res:
-                                newline = "\n" if line.endswith("\n") else ""
-                                self._record_line(current_file, line_num)
-                                processed_lines.append(body_str + newline)
+                if self._try_handle_conditional_directive(
+                    line,
+                    line_strip,
+                    current_file,
+                    line_num,
+                    conditional_stack,
+                    processed_lines,
+                ):
                     continue
 
             # If the current block is not active, skip processing the line
-            if not all(conditional_stack):
+            if not conditional_stack.is_active():
                 continue
 
             # We are in an active block, track dynamic attribute changes (if not inside verbatim)
