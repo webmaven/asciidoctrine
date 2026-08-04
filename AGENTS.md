@@ -235,6 +235,12 @@ To facilitate producing a TCK-compliant Resolved Abstract Semantic Graph (ASG), 
 - `Listing`: `{"name": "listing", "type": "block", "form": "delimited", "delimiter": "----", "inlines": []}`
 - `Ref`: `{"name": "ref", "type": "inline", "variant": "link", "target": "url", "inlines": []}`
 
+### 6. Preprocessor Expression Tokenization & ConditionalStack Architecture
+- **Quote-Aware Expression Tokenization**: `_split_ifeval_expression(expr)` replaces naive regex matching with a character-by-character scanner that tracks quote state (`"` and `'`). Comparison operators (`==`, `!=`, `<=`, `>=`, `<`, `>`) embedded inside string literals (e.g. `ifeval::["a == b" == "a == b"]`) are ignored during top-level operator resolution.
+- **ConditionalStack & Frame Management**: `ConditionalFrame` dataclass tracks `active`, `name`, and `directive` across nested `ifdef`, `ifndef`, and `ifeval` blocks.
+- **Named `endif` Target Validation**: `ConditionalStack.pop(name)` validates that named endifs (e.g. `endif::backend[]`) match the target name of the opening directive. In `strict=True` mode, mismatched names raise `PreprocessorError`; in `strict=False` mode, a `PreprocessorWarning` is issued while remaining lenient.
+- **Loop Decomposition**: `_try_handle_conditional_directive()` isolates conditional directive matching from `_process_source()` to preserve clean SRP design.
+
 ## 📝 Recording Grammar Learnings
 
 * **Standing Instruction**: When you solve a grammar problem, don't leave the grammar file itself as the only record of whatever solution you devised, record an explanation as prose as well. Include what you tried that *didn't* work, and why.
@@ -313,6 +319,15 @@ To facilitate producing a TCK-compliant Resolved Abstract Semantic Graph (ASG), 
   4. **URI Trailing Formatting Fix**: Updated the `URI.3` regex with a negative lookbehind `(?<![*_\`.,;:!?\)\}>])` so that trailing formatting delimiters (`*`, `_`, `` ` ``) and punctuation are not swallowed into the URL token. This allows `*https://example.com*` to parse as bold-wrapped bare link instead of a bare link with `*` appended to the target.
   5. **Nested Ref Unwrapping**: Added an `_unwrap` pass in the `inline_link` transformer that flattens any nested `Ref` nodes inside link labels (which occur when the label text is itself a URL parsed by `parse_inlines`) into plain text, preventing invalid nested anchor elements.
   6. **Expanded URI Scheme Support**: Broadened the `URI.3` terminal from only `http|https|ftp|file|irc|mailto` to cover all browser-native and common schemes: `https?|ftps?|file|ircs?|wss?|git|ssh|gopher|chrome|edge|chrome-extension|moz-extension|resource` (authority-based) and `mailto|data|tel|sms|urn|blob|about` (opaque/no-authority).
+
+### 10. Perpetual Deprecation Policy for the `--` Open Block Delimiter
+- **Decision**: The legacy `--` open block delimiter is **deprecated in perpetuity** and will **never** be escalated to a hard error, even under `strict=True`. It is too widespread in existing AsciiDoc content to make that transition viable.
+- **Behaviour Contract**:
+  - In all modes (strict or permissive): the transformer emits a `DeprecationWarning` via Python's `warnings` module.
+  - In `strict=True`: the parse still succeeds and returns a valid `Open` AST node — `ASTSyntaxAuditor` does **not** have a `visit_open` method and must **not** be given one for this purpose.
+  - In `strict=False`: identical behaviour — successful parse + `DeprecationWarning`.
+- **Testing**: A regression guard test `test_legacy_open_block_strict_mode_never_errors` in `tests/test_strict_parsing.py` asserts both halves of this contract. It must not be removed or weakened.
+- **Contrast with other strict errors**: All other `ASTSyntaxAuditor`-enforced errors (malformed attribute lists, unclosed anchors, missing macro brackets, bad dlist markers, malformed table cell specifiers) represent genuinely broken syntax that has a plausible but incorrect fallback parse. The `--` delimiter is not broken — it is valid but superseded syntax, which is why it belongs in the deprecation-warning category rather than the strict-error category.
 
 
 ## 🤖 Subagent & Model Routing Strategy
