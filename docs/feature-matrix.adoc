@@ -309,7 +309,7 @@ AsciiDoctrine Support::
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/directives/pages/conditionals.adoc[Outline]
 | -
 | -
-| Not Supported footnote:[No parsing rules or evaluation logic exists for +ifeval::+ in the preprocessor.]
+| link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/preprocessor.py[Fully Supported]
 
 | *Include Tagged Regions (`tag=name`)*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/directives/pages/include-tagged-regions.adoc[Outline]
