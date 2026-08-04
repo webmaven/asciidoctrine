@@ -204,3 +204,135 @@ def test_table_cell_spec(transformer):
         "valign": "middle",
         "style": "s",
     }
+
+
+def test_block_transformer_delimiters(transformer):
+    from lark.tree import Meta
+
+    from asciidoctrine.nodes import Paragraph, Text
+
+    meta = Meta()
+
+    # Quote variants (4, 5, 6)
+    q4_delim = Token("QUOTE_DELIM_4", "____")
+    q4 = transformer.quote_4(meta, [q4_delim, Paragraph(inlines=[Text("Quote text")])])
+    assert q4.delimiter == "____"
+
+    q5_delim = Token("QUOTE_DELIM_5", "_____")
+    q5 = transformer.quote_5(meta, [q5_delim, Paragraph(inlines=[Text("Quote text")])])
+    assert q5.delimiter == "_____"
+
+    q6_delim = Token("QUOTE_DELIM_6", "______")
+    q6 = transformer.quote_6(meta, [q6_delim, Paragraph(inlines=[Text("Quote text")])])
+    assert q6.delimiter == "______"
+
+    # Sidebar variants (5, 6)
+    s5_delim = Token("SIDEBAR_DELIM_5", "*****")
+    s5 = transformer.sidebar_5(
+        meta, [s5_delim, Paragraph(inlines=[Text("Sidebar text")])]
+    )
+    assert s5.delimiter == "*****"
+
+    s6_delim = Token("SIDEBAR_DELIM_6", "******")
+    s6 = transformer.sidebar_6(
+        meta, [s6_delim, Paragraph(inlines=[Text("Sidebar text")])]
+    )
+    assert s6.delimiter == "******"
+
+    # Open block variants (4, 5, 6, long)
+    o4_delim = Token("OPEN_BLOCK_DELIM_4", "~~~~")
+    o4 = transformer.open_block_4(
+        meta, [o4_delim, Paragraph(inlines=[Text("Open text")])]
+    )
+    assert o4.delimiter == "~~~~"
+
+    o5_delim = Token("OPEN_BLOCK_DELIM_5", "~~~~~")
+    o5 = transformer.open_block_5(
+        meta, [o5_delim, Paragraph(inlines=[Text("Open text")])]
+    )
+    assert o5.delimiter == "~~~~~"
+
+    o6_delim = Token("OPEN_BLOCK_DELIM_6", "~~~~~~")
+    o6 = transformer.open_block_6(
+        meta, [o6_delim, Paragraph(inlines=[Text("Open text")])]
+    )
+    assert o6.delimiter == "~~~~~~"
+
+    olong_delim = Token("OPEN_BLOCK_DELIM_6", "~~~~~~~")
+    olong = transformer.open_block_long(
+        meta, [olong_delim, Paragraph(inlines=[Text("Open text")])]
+    )
+    assert olong.delimiter == "~~~~~~~"
+
+
+def test_open_block_legacy_warning(transformer):
+    import warnings
+
+    from lark.tree import Meta
+
+    from asciidoctrine.nodes import Paragraph, Text
+
+    meta = Meta()
+    delim = Token("OPEN_BLOCK_DELIM", "--")
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        ob = transformer.open_block_legacy(
+            meta, [delim, Paragraph(inlines=[Text("Legacy open")])]
+        )
+        assert len(w) == 1
+        assert issubclass(w[-1].category, DeprecationWarning)
+        assert "deprecated" in str(w[-1].message)
+        assert ob.delimiter == "--"
+
+
+def test_block_transformer_verbatim_blocks(transformer):
+    from lark.tree import Meta
+
+    meta = Meta()
+
+    # literal_block
+    lit_delim = Token("LITERAL_DELIM", "....")
+    lit_content = Token("LITERAL_CONTENT", "literal text content")
+    lit = transformer.literal_block(meta, [lit_delim, lit_content, lit_delim])
+    assert lit.delimiter == "...."
+    assert lit.inlines[0].value == "literal text content"
+
+    # passthrough_block
+    pass_delim = Token("PASSTHROUGH_BLOCK_DELIM", "++++")
+    pass_content = Token("PASSTHROUGH_CONTENT", "pass text content")
+    pas = transformer.passthrough_block(meta, [pass_delim, pass_content, pass_delim])
+    assert pas.delimiter == "++++"
+    assert pas.inlines[0].value == "pass text content"
+
+    # outer_listing_block
+    out_start = Token("OUTER_LISTING_START", "--ASCIIDOCTRINE_OUTER_LISTING_START_4--")
+    out_content = Token("OUTER_LISTING_CONTENT", "outer listing content")
+    out_end = Token("OUTER_LISTING_END", "--ASCIIDOCTRINE_OUTER_LISTING_END_4--")
+    out_lis = transformer.outer_listing_block(meta, [out_start, out_content, out_end])
+    assert out_lis.delimiter == "----"
+    assert out_lis.inlines[0].value == "outer listing content"
+
+
+def test_table_cell_fallback_and_spec(transformer):
+    from lark.tree import Meta
+
+    meta = Meta()
+    spec_dict = {
+        "colspan": 2,
+        "rowspan": 3,
+        "align": "center",
+        "valign": "middle",
+        "style": "s",
+        "multiplier": 2,
+    }
+    cell_token = Token("TABLE_CELL", "| Invalid AsciiDoc ((( markup")
+
+    cell = transformer.table_cell(meta, [spec_dict, cell_token])
+    assert cell.colspan == 2
+    assert cell.rowspan == 3
+    assert cell.align == "center"
+    assert cell.valign == "middle"
+    assert cell.style == "s"
+    assert cell.multiplier == 2
+    assert len(cell.blocks) == 1
+    assert cell.blocks[0].inlines[0].value == "Invalid AsciiDoc ((( markup"

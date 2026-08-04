@@ -903,6 +903,34 @@ Alternative collapsible.
         ast2 = parse_to_ast(source2).to_dict()
         self.assertEqual(ast2["blocks"][0]["name"], "collapsible")
 
+    def test_extended_delimiters_parsing(self):
+        source = """*****
+Sidebar with 5 asterisks
+*****
+
+______
+Quote with 6 underscores
+______
+
+~~~~~
+Open block with 5 tildes
+~~~~~
+"""
+        ast = parse_to_ast(source).to_dict()
+        self.assertEqual(len(ast["blocks"]), 3)
+
+        sb = ast["blocks"][0]
+        self.assertEqual(sb["name"], "sidebar")
+        self.assertEqual(sb["delimiter"], "*****")
+
+        q = ast["blocks"][1]
+        self.assertEqual(q["name"], "quote")
+        self.assertEqual(q["delimiter"], "______")
+
+        op = ast["blocks"][2]
+        self.assertEqual(op["name"], "open")
+        self.assertEqual(op["delimiter"], "~~~~~")
+
 
 if __name__ == "__main__":
     unittest.main()

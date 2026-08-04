@@ -145,9 +145,7 @@ class Preprocessor:
 
         return v
 
-    def _split_ifeval_expression(
-        self, expr: str
-    ) -> tuple[str, str, str] | None:
+    def _split_ifeval_expression(self, expr: str) -> tuple[str, str, str] | None:
         """
         Split an ifeval expression into (left_operand, operator, right_operand)
         using a quote-aware character-by-character scan.
@@ -192,6 +190,7 @@ class Preprocessor:
         Extracts left operand, operator (==, !=, <=, >=, <, >), and right operand,
         parses both operands via _parse_ifeval_operand, and performs safe comparison.
         """
+
         # Substitute attributes
         def repl(m: re.Match[str]) -> str:
             attr_name = m.group(1)
@@ -224,7 +223,6 @@ class Preprocessor:
             return False
 
         return False
-
 
     def _parse_attributes(self, attr_str: str) -> dict[str, str]:
         """

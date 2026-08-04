@@ -535,7 +535,9 @@ class TestNodesUnit(unittest.TestCase):
         # Title
         t = Title(inlines=[Text("Main Title")])
         self.assertEqual(t.get_child_collections(), {"inlines": t.inlines})
-        self.assertEqual(t.to_list(), [{"name": "text", "type": "string", "value": "Main Title"}])
+        self.assertEqual(
+            t.to_list(), [{"name": "text", "type": "string", "value": "Main Title"}]
+        )
 
         # Author
         a = Author(inlines=[Text("Jane Doe")])
@@ -602,7 +604,10 @@ class TestNodesUnit(unittest.TestCase):
         cl = CalloutList(items=[cli])
         self.assertEqual(cl.get_child_collections(), {"items": cl.items})
         # CalloutListItem exposes both 'principal' and 'blocks' collections
-        self.assertEqual(cli.get_child_collections(), {"principal": cli.principal, "blocks": cli.blocks})
+        self.assertEqual(
+            cli.get_child_collections(),
+            {"principal": cli.principal, "blocks": cli.blocks},
+        )
         d_cl = cl.to_dict()
         self.assertEqual(d_cl["name"], "calloutList")
 
@@ -666,4 +671,3 @@ class TestNodesUnit(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

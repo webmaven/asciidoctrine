@@ -39,8 +39,12 @@ class WorkspaceCatalog:
     """
 
     def __init__(self) -> None:
-        self.by_fqid: Dict[str, Node] = {}  # Maps "file_id#anchor_id" -> Live Node instance
-        self.by_local_id: Dict[str, PyList[str]] = defaultdict(list)  # Maps "anchor_id" -> List of files
+        self.by_fqid: Dict[
+            str, Node
+        ] = {}  # Maps "file_id#anchor_id" -> Live Node instance
+        self.by_local_id: Dict[str, PyList[str]] = defaultdict(
+            list
+        )  # Maps "anchor_id" -> List of files
 
     def index_document(self, file_id: str, document: Document) -> None:
         """Recursively parses an un-mutated AST document tree via `get_child_collections()` to index all anchor IDs.
@@ -60,9 +64,13 @@ class WorkspaceCatalog:
             current_node = stack.pop()
 
             # Register anchor ID, handling potential duplicates or object wrappers
-            node_id = getattr(current_node, "id", None) or current_node.attributes.get("id")
+            node_id = getattr(current_node, "id", None) or current_node.attributes.get(
+                "id"
+            )
             if node_id:
-                id_str = str(node_id.value) if hasattr(node_id, "value") else str(node_id)
+                id_str = (
+                    str(node_id.value) if hasattr(node_id, "value") else str(node_id)
+                )
                 fqid = f"{file_id}#{id_str}"
                 self.by_fqid[fqid] = current_node
                 if file_id not in self.by_local_id[id_str]:
@@ -103,14 +111,20 @@ class ASGResolver(NodeTransformer):
 
     def _resolve_docinfo_files(self, doc: Document) -> tuple[str, str]:
         docinfo_attr = str(self.resolved_attributes.get("docinfo", "")).strip()
-        docinfofiles_attr = str(self.resolved_attributes.get("docinfofiles", "")).strip()
+        docinfofiles_attr = str(
+            self.resolved_attributes.get("docinfofiles", "")
+        ).strip()
         if not docinfo_attr and not docinfofiles_attr:
             return ("", "")
 
         docinfo_val = [x.strip() for x in docinfo_attr.split(",") if x.strip()]
 
-        is_shared = any(v in ("1", "shared", "shared-head", "shared-footer") for v in docinfo_val)
-        is_private = any(v in ("private", "private-head", "private-footer") for v in docinfo_val)
+        is_shared = any(
+            v in ("1", "shared", "shared-head", "shared-footer") for v in docinfo_val
+        )
+        is_private = any(
+            v in ("private", "private-head", "private-footer") for v in docinfo_val
+        )
 
         docname = self.resolved_attributes.get("docname")
         if not docname and self.current_file_id and self.current_file_id != "root":
@@ -118,7 +132,9 @@ class ASGResolver(NodeTransformer):
         if not docname:
             docname = "docinfo"
 
-        base_dir_path = Path(doc.base_dir).resolve() if doc.base_dir else Path.cwd().resolve()
+        base_dir_path = (
+            Path(doc.base_dir).resolve() if doc.base_dir else Path.cwd().resolve()
+        )
 
         docinfodir = str(self.resolved_attributes.get("docinfodir", "")).strip()
         if docinfodir:
@@ -150,7 +166,9 @@ class ASGResolver(NodeTransformer):
 
         if is_shared:
             for ext in (".html", ".xml"):
-                h = safe_read(target_dir / f"docinfo{ext}") or safe_read(target_dir / f"docinfo-head{ext}")
+                h = safe_read(target_dir / f"docinfo{ext}") or safe_read(
+                    target_dir / f"docinfo-head{ext}"
+                )
                 if h:
                     head_contents.append(h)
                 f = safe_read(target_dir / f"docinfo-footer{ext}")
@@ -159,7 +177,9 @@ class ASGResolver(NodeTransformer):
 
         if is_private and docname:
             for ext in (".html", ".xml"):
-                h = safe_read(target_dir / f"{docname}-docinfo{ext}") or safe_read(target_dir / f"{docname}-docinfo-head{ext}")
+                h = safe_read(target_dir / f"{docname}-docinfo{ext}") or safe_read(
+                    target_dir / f"{docname}-docinfo-head{ext}"
+                )
                 if h:
                     head_contents.append(h)
                 f = safe_read(target_dir / f"{docname}-docinfo-footer{ext}")
@@ -167,7 +187,9 @@ class ASGResolver(NodeTransformer):
                     footer_contents.append(f)
 
         if docinfofiles_attr:
-            custom_files = [x.strip() for x in docinfofiles_attr.split(",") if x.strip()]
+            custom_files = [
+                x.strip() for x in docinfofiles_attr.split(",") if x.strip()
+            ]
             for cfile in custom_files:
                 cpath = target_dir / cfile
                 c_content = safe_read(cpath)
@@ -332,7 +354,9 @@ class ASGResolver(NodeTransformer):
         # --- 3-TIER RESOLUTION FALLBACK ---
         # 1. Explicit file target
         if resolved_file and f"{resolved_file}#{target_anchor}" in self.catalog.by_fqid:
-            node.target_node_instance = self.catalog.by_fqid[f"{resolved_file}#{target_anchor}"]
+            node.target_node_instance = self.catalog.by_fqid[
+                f"{resolved_file}#{target_anchor}"
+            ]
             node.resolved_file_target = resolved_file
             node.resolved_strategy = (
                 "same_file" if resolved_file == self.current_file_id else "cross_file"
@@ -352,13 +376,17 @@ class ASGResolver(NodeTransformer):
             and len(self.catalog.by_local_id[target_anchor]) == 1
         ):
             matching_file = self.catalog.by_local_id[target_anchor][0]
-            node.target_node_instance = self.catalog.by_fqid[f"{matching_file}#{target_anchor}"]
+            node.target_node_instance = self.catalog.by_fqid[
+                f"{matching_file}#{target_anchor}"
+            ]
             node.resolved_file_target = matching_file
             node.resolved_strategy = (
                 "same_file" if matching_file == self.current_file_id else "cross_file"
             )
         else:
-            raise KeyError(f"Cross-reference error: '{target_str}' not found in workspace.")
+            raise KeyError(
+                f"Cross-reference error: '{target_str}' not found in workspace."
+            )
 
         node.resolved_anchor_target = target_anchor
         return self.generic_visit(node, **kwargs)
@@ -422,7 +450,9 @@ class WorkspaceBuilder:
             if self.parser and hasattr(self.parser, "parse"):
                 ast_root = self.parser.parse(raw_content)
             else:
-                ast_root = parse_to_ast(raw_content, base_dir=str(canonical_path.parent))
+                ast_root = parse_to_ast(
+                    raw_content, base_dir=str(canonical_path.parent)
+                )
 
             self.raw_documents[file_id] = ast_root
 
@@ -434,7 +464,9 @@ class WorkspaceBuilder:
     def resolve_workspace_semantics(self) -> None:
         """Pass 3: Resolves attributes, deep-copies AST trees, and binds cross-file references via `ASGResolver`."""
         for file_id, ast_tree in self.raw_documents.items():
-            resolver = ASGResolver(ast_tree, catalog=self.catalog, current_file_id=file_id)
+            resolver = ASGResolver(
+                ast_tree, catalog=self.catalog, current_file_id=file_id
+            )
             self.resolved_asg_graphs[file_id] = resolver.resolve(ast_tree)
 
     def build(self) -> Dict[str, Dict[str, Any]]:
@@ -446,4 +478,3 @@ class WorkspaceBuilder:
         self.index_workspace_symbols()
         self.resolve_workspace_semantics()
         return self.resolved_asg_graphs
-

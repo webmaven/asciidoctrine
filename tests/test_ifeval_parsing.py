@@ -3,6 +3,7 @@ Tests for ifeval directive parsing in the AsciiDoc preprocessor.
 """
 
 import pytest
+
 from asciidoctrine.preprocessor import Preprocessor
 
 pytestmark = pytest.mark.unit
@@ -67,6 +68,11 @@ def test_operand_parsing(input_val: str, expected: object, expected_type: type) 
         ('"abc" > 10', False),
         ('"abc" <= 10', False),
         ('"abc" >= 10', False),
+        # Embedded operators inside strings
+        ('"a == b" == "a == b"', True),
+        ("'a != b' != 'a == b'", True),
+        ('"<" == "<"', True),
+        ('">=" != "<="', True),
     ],
 )
 def test_expression_evaluation(expr: str, expected: bool) -> None:
@@ -80,7 +86,7 @@ def test_attribute_substitution() -> None:
     preprocessor.attributes["sectnumlevels"] = "3"
 
     assert preprocessor._evaluate_ifeval_condition('"{backend}" == "html5"') is True
-    assert preprocessor._evaluate_ifeval_condition('{sectnumlevels} == 3') is True
+    assert preprocessor._evaluate_ifeval_condition("{sectnumlevels} == 3") is True
     assert preprocessor._evaluate_ifeval_condition('"{unset_attr}" == ""') is True
 
 

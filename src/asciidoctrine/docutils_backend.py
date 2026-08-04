@@ -700,7 +700,6 @@ class DocutilsRenderer(NodeVisitor):
             for inline in node.inlines:
                 self.visit(inline)
 
-
     def visit_docinfo(self, node: Docinfo) -> None:
         if node.head_content:
             self.document += nodes.raw("", node.head_content, format="html")

@@ -771,11 +771,7 @@ print("inner")
         """Named endif::backend[] should correctly close its matching ifdef::backend[]."""
         preprocessor = Preprocessor(base_dir=self.base_dir)
         preprocessor.attributes = {"backend": "html5"}
-        source = (
-            "ifdef::backend[]\n"
-            "Visible content\n"
-            "endif::backend[]\n"
-        )
+        source = "ifdef::backend[]\nVisible content\nendif::backend[]\n"
         processed = preprocessor.process(source)
         self.assertEqual(processed.strip(), "Visible content")
 
@@ -783,11 +779,7 @@ print("inner")
         """In strict mode, a mismatched named endif should raise PreprocessorError."""
         preprocessor = Preprocessor(base_dir=self.base_dir, strict=True)
         preprocessor.attributes = {"backend": "html5"}
-        source = (
-            "ifdef::backend[]\n"
-            "Content\n"
-            "endif::wrong_name[]\n"
-        )
+        source = "ifdef::backend[]\nContent\nendif::wrong_name[]\n"
         with self.assertRaises(PreprocessorError) as context:
             preprocessor.process(source)
         self.assertIn("mismatch", str(context.exception).lower())
@@ -796,12 +788,7 @@ print("inner")
         """In permissive mode, a mismatched named endif should still pop the stack (lenient)."""
         preprocessor = Preprocessor(base_dir=self.base_dir, strict=False)
         preprocessor.attributes = {"backend": "html5"}
-        source = (
-            "ifdef::backend[]\n"
-            "Content\n"
-            "endif::wrong_name[]\n"
-            "After endif\n"
-        )
+        source = "ifdef::backend[]\nContent\nendif::wrong_name[]\nAfter endif\n"
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             processed = preprocessor.process(source)
@@ -809,20 +796,14 @@ print("inner")
             self.assertIn("Content", processed)
             self.assertIn("After endif", processed)
             # Check that a warning was issued about the mismatch
-            mismatch_warnings = [
-                x for x in w if "mismatch" in str(x.message).lower()
-            ]
+            mismatch_warnings = [x for x in w if "mismatch" in str(x.message).lower()]
             self.assertGreater(len(mismatch_warnings), 0)
 
     def test_named_endif_with_ifeval(self):
         """Anonymous endif::[] should correctly close an ifeval block."""
         preprocessor = Preprocessor(base_dir=self.base_dir, strict=True)
         preprocessor.attributes = {"backend": "html5"}
-        source = (
-            'ifeval::["{backend}" == "html5"]\n'
-            "HTML content\n"
-            "endif::[]\n"
-        )
+        source = 'ifeval::["{backend}" == "html5"]\nHTML content\nendif::[]\n'
         processed = preprocessor.process(source)
         self.assertIn("HTML content", processed)
 

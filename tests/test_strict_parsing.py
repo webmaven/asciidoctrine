@@ -119,3 +119,39 @@ def test_malformed_bracket_inside_bold_paragraph():
     with pytest.raises(AsciiDocSyntaxError) as exc_info:
         parse_to_ast(source, strict=True)
     assert "Malformed block attribute list" in str(exc_info.value)
+
+
+def test_legacy_open_block_strict_mode_never_errors():
+    """Regression guard: the '--' open block delimiter is deprecated in perpetuity.
+
+    It is too widespread to ever become a hard error, so strict=True must
+    NOT raise AsciiDocSyntaxError for it.  Instead, it must always emit a
+    DeprecationWarning regardless of the strict flag.
+    """
+    import warnings
+
+    source = "--\nSome content.\n--\n"
+
+    # strict=True: parses successfully, emits DeprecationWarning, does not raise
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        doc = parse_to_ast(source, strict=True)
+    assert doc.blocks[0].name == "open"
+    assert doc.blocks[0].delimiter == "--"
+    deprecation_warnings = [
+        w for w in caught if issubclass(w.category, DeprecationWarning)
+    ]
+    assert deprecation_warnings, "Expected a DeprecationWarning for '--' delimiter"
+    assert "deprecated" in str(deprecation_warnings[0].message).lower()
+
+    # strict=False: same warning, same successful parse
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        doc_permissive = parse_to_ast(source, strict=False)
+    assert doc_permissive.blocks[0].name == "open"
+    deprecation_warnings_permissive = [
+        w for w in caught if issubclass(w.category, DeprecationWarning)
+    ]
+    assert deprecation_warnings_permissive, (
+        "Expected a DeprecationWarning for '--' delimiter in permissive mode too"
+    )

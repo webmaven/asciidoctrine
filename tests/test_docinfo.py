@@ -1,5 +1,6 @@
 import os
 import tempfile
+
 from asciidoctrine.lark_parser import parse_to_ast
 from asciidoctrine.resolver import ASGResolver
 
@@ -9,7 +10,7 @@ def test_docinfo_shared_files():
         head_path = os.path.join(tmpdir, "docinfo.html")
         footer_path = os.path.join(tmpdir, "docinfo-footer.html")
         with open(head_path, "w") as f:
-            f.write("<meta name=\"keywords\" content=\"AsciiDoc\">\n")
+            f.write('<meta name="keywords" content="AsciiDoc">\n')
         with open(footer_path, "w") as f:
             f.write("<script>console.log('footer');</script>\n")
 
@@ -19,8 +20,14 @@ def test_docinfo_shared_files():
 
         assert "docinfo" in asg
         assert asg["docinfo"]["name"] == "docinfo"
-        assert "<meta name=\"keywords\" content=\"AsciiDoc\">" in asg["docinfo"]["head_content"]
-        assert "<script>console.log('footer');</script>" in asg["docinfo"]["footer_content"]
+        assert (
+            '<meta name="keywords" content="AsciiDoc">'
+            in asg["docinfo"]["head_content"]
+        )
+        assert (
+            "<script>console.log('footer');</script>"
+            in asg["docinfo"]["footer_content"]
+        )
 
 
 def test_docinfo_private_files():
@@ -41,14 +48,16 @@ def test_docinfo_attribute_substitution():
     with tempfile.TemporaryDirectory() as tmpdir:
         head_path = os.path.join(tmpdir, "docinfo.html")
         with open(head_path, "w") as f:
-            f.write("<meta name=\"author\" content=\"{author}\">\n")
+            f.write('<meta name="author" content="{author}">\n')
 
         doc_source = ":docinfo: shared\n:author: Jane Doe\n\nHello World\n"
         doc = parse_to_ast(doc_source, base_dir=tmpdir)
         asg = ASGResolver(doc).resolve(doc)
 
         assert "docinfo" in asg
-        assert "<meta name=\"author\" content=\"Jane Doe\">" in asg["docinfo"]["head_content"]
+        assert (
+            '<meta name="author" content="Jane Doe">' in asg["docinfo"]["head_content"]
+        )
 
 
 def test_docinfo_safe_mode_traversal_prevention():
@@ -57,7 +66,7 @@ def test_docinfo_safe_mode_traversal_prevention():
         os.makedirs(sub_dir)
         secret_path = os.path.join(tmpdir, "docinfo.html")
         with open(secret_path, "w") as f:
-            f.write("<meta name=\"secret\" content=\"leaked\">\n")
+            f.write('<meta name="secret" content="leaked">\n')
 
         doc_source = ":docinfo: shared\n:docinfodir: ..\n\nHello World\n"
         # safe_mode >= 2 should block reading outside sub_dir
@@ -74,16 +83,16 @@ def test_docinfo_docutils_rendering():
         head_path = os.path.join(tmpdir, "docinfo.html")
         footer_path = os.path.join(tmpdir, "docinfo-footer.html")
         with open(head_path, "w") as f:
-            f.write("<meta name=\"custom-docinfo\" content=\"active\">\n")
+            f.write('<meta name="custom-docinfo" content="active">\n')
         with open(footer_path, "w") as f:
             f.write("<script>console.log('footer-rendered');</script>\n")
 
         doc_source = ":docinfo: shared\n\nHello World\n"
 
         from asciidoctrine.docutils_backend import asciidoc_to_docutils
+
         docutils_doc = asciidoc_to_docutils(doc_source, base_dir=tmpdir)
         xml = docutils_doc.pformat()
 
         assert "custom-docinfo" in xml
         assert "footer-rendered" in xml
-

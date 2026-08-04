@@ -296,7 +296,10 @@ class Section(BlockNode):
         return {"blocks": self.blocks}
 
     def __init__(
-        self, level: int, title: Optional[Title] = None, blocks: Optional[Sequence[Node]] = None
+        self,
+        level: int,
+        title: Optional[Title] = None,
+        blocks: Optional[Sequence[Node]] = None,
     ):
         super().__init__()
         self.name = "section"
