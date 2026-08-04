@@ -199,14 +199,14 @@ class ASGResolver(NodeTransformer):
         """
         import copy
 
-        copied_node = copy.deepcopy(node)
-        if isinstance(copied_node, Document):
-            head_content, footer_content = self._resolve_docinfo_files(copied_node)
+        if isinstance(node, Document):
+            head_content, footer_content = self._resolve_docinfo_files(node)
             if head_content or footer_content:
-                copied_node.docinfo = Docinfo(
+                node.docinfo = Docinfo(
                     head_content=head_content, footer_content=footer_content
                 )
 
+        copied_node = copy.deepcopy(node)
         self.visit(copied_node)
 
         asg = copied_node.to_dict()

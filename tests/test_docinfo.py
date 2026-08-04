@@ -67,3 +67,23 @@ def test_docinfo_safe_mode_traversal_prevention():
         # docinfo should either be missing or not contain secret_path content
         if "docinfo" in asg:
             assert "leaked" not in asg["docinfo"]["head_content"]
+
+
+def test_docinfo_docutils_rendering():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        head_path = os.path.join(tmpdir, "docinfo.html")
+        footer_path = os.path.join(tmpdir, "docinfo-footer.html")
+        with open(head_path, "w") as f:
+            f.write("<meta name=\"custom-docinfo\" content=\"active\">\n")
+        with open(footer_path, "w") as f:
+            f.write("<script>console.log('footer-rendered');</script>\n")
+
+        doc_source = ":docinfo: shared\n\nHello World\n"
+
+        from asciidoctrine.docutils_backend import asciidoc_to_docutils
+        docutils_doc = asciidoc_to_docutils(doc_source, base_dir=tmpdir)
+        xml = docutils_doc.pformat()
+
+        assert "custom-docinfo" in xml
+        assert "footer-rendered" in xml
+

@@ -19,6 +19,7 @@ from .nodes import (
     DescriptionList,
     DescriptionListItem,
     DescriptionListTerm,
+    Docinfo,
     Document,
     FloatingTitle,
     Image,
@@ -65,6 +66,9 @@ class DocutilsRenderer(NodeVisitor):
         self.footnote_by_custom_id = {}
         self.footnote_counter = 0
 
+        if hasattr(node, "docinfo") and node.docinfo and node.docinfo.head_content:
+            self.document += nodes.raw("", node.docinfo.head_content, format="html")
+
         if node.header and (header_title := node.header.title):
             root_section = nodes.section()
             self.document.set_id(root_section)
@@ -85,6 +89,9 @@ class DocutilsRenderer(NodeVisitor):
         else:
             for block in node.blocks:
                 self.visit(block)
+
+        if hasattr(node, "docinfo") and node.docinfo and node.docinfo.footer_content:
+            self.document += nodes.raw("", node.docinfo.footer_content, format="html")
 
         for fn in self.footnotes:
             self.document += fn
@@ -694,13 +701,22 @@ class DocutilsRenderer(NodeVisitor):
                 self.visit(inline)
 
 
+    def visit_docinfo(self, node: Docinfo) -> None:
+        if node.head_content:
+            self.document += nodes.raw("", node.head_content, format="html")
+        if node.footer_content:
+            self.document += nodes.raw("", node.footer_content, format="html")
+
+
 def asciidoc_to_docutils(source: str, base_dir: Optional[str] = None) -> nodes.document:
     """
     Convert AsciiDoc source string to a Docutils document.
     """
     from .lark_parser import parse_to_ast
+    from .resolver import ASGResolver
 
     ast = parse_to_ast(source, base_dir=base_dir)
+    ASGResolver(ast).resolve(ast)
 
     try:
         from docutils.frontend import get_default_settings
