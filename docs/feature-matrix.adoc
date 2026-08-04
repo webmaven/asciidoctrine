@@ -303,7 +303,7 @@ AsciiDoctrine Support::
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-docinfo[Outline]
 | -
 | -
-| Not Supported footnote:[No docinfo parsing or layout integration exists.]
+| link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/resolver.py[Fully Supported]
 
 | *Attribute Comparison Directive (`ifeval::[]`)*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/directives/pages/conditionals.adoc[Outline]

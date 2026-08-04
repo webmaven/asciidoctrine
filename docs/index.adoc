@@ -13,6 +13,7 @@ AsciiDoctrine is designed to provide a structured, type-safe representation of A
 * *TCK Validation*: Ensures standard-compliant rendering by validating its pipeline against the official AsciiDoc Technology Compatibility Kit (TCK) test suites.
 * *Precise Source Coordinate Mapping*: Enables robust IDE integrations, precise diagnostic errors, and syntactical formatting tools by attaching optional line and column coordinates to every structural block and inline element.
 * *Attribute and Macro Resolution*: Implements standard AsciiDoc dynamic attribute substitutions, conditional preprocessor passes, multi-file includes, and block/inline macros.
+* *Docinfo Metadata Integration*: Discovers shared and private docinfo files (`docinfo.html`, `<docname>-docinfo.html`), performs attribute substitution, and injects header/footer markup into HTML output while respecting `safe_mode` boundaries.
 * *Docutils & Sphinx Power*: Integrates cleanly with the Python documentation ecosystem by compiling AsciiDoc files natively into the Docutils component tree.
 * *Wasm and Pyodide Portability*: Runs seamlessly inside browsers and serverless sandboxes via pure-Python, zero-native-dependency Pyodide builds.
 
