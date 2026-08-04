@@ -716,7 +716,9 @@ def asciidoc_to_docutils(source: str, base_dir: Optional[str] = None) -> nodes.d
     from .resolver import ASGResolver
 
     ast = parse_to_ast(source, base_dir=base_dir)
-    ASGResolver(ast).resolve(ast)
+    head_content, footer_content = ASGResolver(ast)._resolve_docinfo_files(ast)
+    if head_content or footer_content:
+        ast.docinfo = Docinfo(head_content=head_content, footer_content=footer_content)
 
     try:
         from docutils.frontend import get_default_settings
