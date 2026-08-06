@@ -6,21 +6,21 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>asciidoctrine &mdash; AsciiDoctrine 0.1.0a11 documentation</title>
+  <title>asciidoctrine &mdash; AsciiDoctrine 0.1.0a12 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=1da06fa4" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=21f1c15c" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=1ab5421d"></script>
+      <script src="../../_static/documentation_options.js?v=2d4dc877"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="asciidoctrine.lark_parser" href="asciidoctrine.lark_parser.html" />
+    <link rel="next" title="asciidoctrine.docutils_backend" href="asciidoctrine.docutils_backend.html" />
     <link rel="prev" title="API Reference" href="../index.html" /> 
 </head>
 
@@ -52,13 +52,13 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.lark_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.docutils_backend.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.docutils_backend</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.serializer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.serializer</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.resolver.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.resolver</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.preprocessor.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.preprocessor</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.nodes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.attributes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.attributes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.lark_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.resolver.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.resolver</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#package-contents">Package Contents</a><ul>
@@ -100,17 +100,26 @@
   <section id="module-asciidoctrine">
 <span id="asciidoctrine"></span><h1><a class="reference internal" href="#module-asciidoctrine" title="asciidoctrine"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine</span></code></a><a class="headerlink" href="#module-asciidoctrine" title="Link to this heading"></a></h1>
 <p>AsciiDoctrine: Pure-Python AsciiDoc parser library using Lark.</p>
+<p>AsciiDoctrine provides a structured, type-safe representation of AsciiDoc documents.</p>
+<p>Core features include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">parse_to_ast()</span></code>: Parse raw AsciiDoc source code into a syntax-level AST.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code>: Resolve AST trees into spec-compliant Abstract Semantic Graphs (ASG).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WorkspaceCatalog</span></code>: Index symbols and target anchors across multi-document workspaces.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WorkspaceBuilder</span></code>: Orchestrate multi-pass directory parsing and cross-reference resolution.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">serialize_to_asciidoc()</span></code>: Losslessly serialize AST nodes back to AsciiDoc text.</p></li>
+</ul>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="asciidoctrine.lark_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="asciidoctrine.docutils_backend.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.docutils_backend</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="asciidoctrine.serializer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.serializer</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="asciidoctrine.resolver.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.resolver</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="asciidoctrine.preprocessor.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.preprocessor</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="asciidoctrine.nodes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="asciidoctrine.attributes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.attributes</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="asciidoctrine.lark_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="asciidoctrine.resolver.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.resolver</span></code></a></li>
 </ul>
 </div>
 </section>
@@ -133,12 +142,12 @@
 <h3>API<a class="headerlink" href="#api" title="Link to this heading"></a></h3>
 <dl class="py data">
 <dt class="sig sig-object py" id="asciidoctrine.__version__">
-<span class="sig-prename descclassname"><span class="pre">asciidoctrine.</span></span><span class="sig-name descname"><span class="pre">__version__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'0.1.0a11'</span></span><a class="headerlink" href="#asciidoctrine.__version__" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.</span></span><span class="sig-name descname"><span class="pre">__version__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'0.1.0a12'</span></span><a class="headerlink" href="#asciidoctrine.__version__" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="asciidoctrine.__all__">
-<span class="sig-prename descclassname"><span class="pre">asciidoctrine.</span></span><span class="sig-name descname"><span class="pre">__all__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['parse_to_ast',</span> <span class="pre">'AsciiDocSyntaxError',</span> <span class="pre">'serialize_to_asciidoc',</span> <span class="pre">'Node',</span> <span class="pre">'Document',</span> <span class="pre">'Section',</span> <span class="pre">'Par...</span></span><a class="headerlink" href="#asciidoctrine.__all__" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.</span></span><span class="sig-name descname"><span class="pre">__all__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['parse_to_ast',</span> <span class="pre">'AsciiDocSyntaxError',</span> <span class="pre">'serialize_to_asciidoc',</span> <span class="pre">'Node',</span> <span class="pre">'Docinfo',</span> <span class="pre">'Document',</span> <span class="pre">'Sec...</span></span><a class="headerlink" href="#asciidoctrine.__all__" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>
@@ -150,7 +159,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../index.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="asciidoctrine.lark_parser.html" class="btn btn-neutral float-right" title="asciidoctrine.lark_parser" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="asciidoctrine.docutils_backend.html" class="btn btn-neutral float-right" title="asciidoctrine.docutils_backend" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -6,22 +6,22 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>asciidoctrine.preprocessor &mdash; AsciiDoctrine 0.1.0a11 documentation</title>
+  <title>asciidoctrine.preprocessor &mdash; AsciiDoctrine 0.1.0a12 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=1da06fa4" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=21f1c15c" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=1ab5421d"></script>
+      <script src="../../_static/documentation_options.js?v=2d4dc877"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="asciidoctrine.nodes" href="asciidoctrine.nodes.html" />
-    <link rel="prev" title="asciidoctrine.resolver" href="asciidoctrine.resolver.html" /> 
+    <link rel="prev" title="asciidoctrine.serializer" href="asciidoctrine.serializer.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -52,13 +52,13 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="asciidoctrine.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine</span></code></a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="asciidoctrine.html#submodules">Submodules</a><ul class="current">
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.lark_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.docutils_backend.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.docutils_backend</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.serializer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.serializer</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.resolver.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.resolver</span></code></a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.preprocessor</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.nodes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.attributes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.attributes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.lark_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.resolver.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.resolver</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="asciidoctrine.html#package-contents">Package Contents</a></li>
@@ -103,6 +103,13 @@
 <h3>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h3>
 <table class="autosummary longtable docutils align-left">
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.preprocessor.ConditionalFrame" title="asciidoctrine.preprocessor.ConditionalFrame"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConditionalFrame</span></code></a></p></td>
+<td><p>Represents a frame on the preprocessor conditional stack.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.preprocessor.ConditionalStack" title="asciidoctrine.preprocessor.ConditionalStack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConditionalStack</span></code></a></p></td>
+<td><p>Manages nested conditional block frames (ifdef, ifndef, ifeval) and handles
+named endif matching and validation.</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.preprocessor.Preprocessor" title="asciidoctrine.preprocessor.Preprocessor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Preprocessor</span></code></a></p></td>
 <td><p>Processes AsciiDoc source to handle <code class="docutils literal notranslate"><span class="pre">include::</span></code> directives.</p></td>
 </tr>
@@ -139,6 +146,55 @@
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.preprocessor.ConditionalFrame">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.preprocessor.</span></span><span class="sig-name descname"><span class="pre">ConditionalFrame</span></span><a class="headerlink" href="#asciidoctrine.preprocessor.ConditionalFrame" title="Link to this definition"></a></dt>
+<dd><p>Represents a frame on the preprocessor conditional stack.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asciidoctrine.preprocessor.ConditionalFrame.active">
+<span class="sig-name descname"><span class="pre">active</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#asciidoctrine.preprocessor.ConditionalFrame.active" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asciidoctrine.preprocessor.ConditionalFrame.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#asciidoctrine.preprocessor.ConditionalFrame.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asciidoctrine.preprocessor.ConditionalFrame.directive">
+<span class="sig-name descname"><span class="pre">directive</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#asciidoctrine.preprocessor.ConditionalFrame.directive" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.preprocessor.ConditionalStack">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.preprocessor.</span></span><span class="sig-name descname"><span class="pre">ConditionalStack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">strict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.preprocessor.ConditionalStack" title="Link to this definition"></a></dt>
+<dd><p>Manages nested conditional block frames (ifdef, ifndef, ifeval) and handles
+named endif matching and validation.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.preprocessor.ConditionalStack.push">
+<span class="sig-name descname"><span class="pre">push</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">active</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.preprocessor.ConditionalStack.push" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.preprocessor.ConditionalStack.pop">
+<span class="sig-name descname"><span class="pre">pop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.preprocessor.ConditionalFrame" title="asciidoctrine.preprocessor.ConditionalFrame"><span class="pre">asciidoctrine.preprocessor.ConditionalFrame</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.preprocessor.ConditionalStack.pop" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.preprocessor.ConditionalStack.is_active">
+<span class="sig-name descname"><span class="pre">is_active</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#asciidoctrine.preprocessor.ConditionalStack.is_active" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.preprocessor.ConditionalStack.__bool__">
+<span class="sig-name descname"><span class="pre">__bool__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#asciidoctrine.preprocessor.ConditionalStack.__bool__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="asciidoctrine.preprocessor.Preprocessor">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.preprocessor.</span></span><span class="sig-name descname"><span class="pre">Preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocess_directives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.preprocessor.Preprocessor" title="Link to this definition"></a></dt>
 <dd><p>Processes AsciiDoc source to handle <code class="docutils literal notranslate"><span class="pre">include::</span></code> directives.</p>
@@ -153,6 +209,36 @@ Defaults to the current working directory.</p>
 <dt>preprocess_directives</dt><dd><p>If True, processes AsciiDoc preprocessing directives like include::.</p>
 </dd>
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.preprocessor.Preprocessor._parse_ifeval_operand">
+<span class="sig-name descname"><span class="pre">_parse_ifeval_operand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#asciidoctrine.preprocessor.Preprocessor._parse_ifeval_operand" title="Link to this definition"></a></dt>
+<dd><p>Parses an operand from an ifeval expression and coerces it to an appropriate Python type.</p>
+<ul class="simple">
+<li><p>Quoted strings (’…’ or “…”) -&gt; str (unquoted)</p></li>
+<li><p>Integers and floats -&gt; int / float</p></li>
+<li><p>Booleans (“true”, “false”, “True”, “False”) -&gt; bool</p></li>
+<li><p>“nil” and “null” -&gt; None</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.preprocessor.Preprocessor._split_ifeval_expression">
+<span class="sig-name descname"><span class="pre">_split_ifeval_expression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.preprocessor.Preprocessor._split_ifeval_expression" title="Link to this definition"></a></dt>
+<dd><p>Split an ifeval expression into (left*operand, operator, right*operand)
+using a quote-aware character-by-character scan.</p>
+<p>Unlike a naive regex, this correctly handles operator characters
+embedded inside quoted string literals (e.g. <code class="docutils literal notranslate"><span class="pre">`&quot;a</span> <span class="pre">==</span> <span class="pre">b&quot;</span> <span class="pre">==</span> <span class="pre">&quot;a</span> <span class="pre">==</span> <span class="pre">b&quot;`</span></code>).
+Returns None if no top-level operator is found.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.preprocessor.Preprocessor._evaluate_ifeval_condition">
+<span class="sig-name descname"><span class="pre">_evaluate_ifeval_condition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#asciidoctrine.preprocessor.Preprocessor._evaluate_ifeval_condition" title="Link to this definition"></a></dt>
+<dd><p>Evaluates an ifeval condition expression (e.g. ‘“html5” == “html5”’, ‘5 &gt; 3’).
+Extracts left operand, operator (==, !=, &lt;=, &gt;=, &lt;, &gt;), and right operand,
+parses both operands via <a href="#id1"><span class="problematic" id="id2">*</span></a>parse*ifeval_operand, and performs safe comparison.</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.preprocessor.Preprocessor._parse_attributes">
 <span class="sig-name descname"><span class="pre">_parse_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attr_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.preprocessor.Preprocessor._parse_attributes" title="Link to this definition"></a></dt>
@@ -204,6 +290,13 @@ Supports:</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.preprocessor.Preprocessor._try_handle_conditional_directive">
+<span class="sig-name descname"><span class="pre">_try_handle_conditional_directive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">line</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_strip</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_num</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conditional_stack</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.preprocessor.ConditionalStack" title="asciidoctrine.preprocessor.ConditionalStack"><span class="pre">asciidoctrine.preprocessor.ConditionalStack</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">processed_lines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#asciidoctrine.preprocessor.Preprocessor._try_handle_conditional_directive" title="Link to this definition"></a></dt>
+<dd><p>Handles ifdef, ifndef, ifeval, and endif directives.
+Returns True if line was a conditional directive (and processed), False otherwise.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.preprocessor.Preprocessor._process_source">
 <span class="sig-name descname"><span class="pre">_process_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_stack</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter_stack</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_verbatim</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expected_closer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#asciidoctrine.preprocessor.Preprocessor._process_source" title="Link to this definition"></a></dt>
 <dd><p>Recursively processes source text, handling includes and translating verbatim blocks.</p>
@@ -219,7 +312,7 @@ Supports:</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="asciidoctrine.resolver.html" class="btn btn-neutral float-left" title="asciidoctrine.resolver" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="asciidoctrine.serializer.html" class="btn btn-neutral float-left" title="asciidoctrine.serializer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="asciidoctrine.nodes.html" class="btn btn-neutral float-right" title="asciidoctrine.nodes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

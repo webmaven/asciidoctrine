@@ -29,6 +29,10 @@ Classes
      - .. autodoc2-docstring:: asciidoctrine.nodes.BlockNode
           :parser: sphinx_asciidoctrine.parser
           :summary:
+   * - :py:obj:`Docinfo <asciidoctrine.nodes.Docinfo>`
+     - .. autodoc2-docstring:: asciidoctrine.nodes.Docinfo
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
    * - :py:obj:`Document <asciidoctrine.nodes.Document>`
      - .. autodoc2-docstring:: asciidoctrine.nodes.Document
           :parser: sphinx_asciidoctrine.parser
@@ -342,7 +346,30 @@ API
       .. autodoc2-docstring:: asciidoctrine.nodes.BlockNode.append
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: Document(blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
+.. py:class:: Docinfo(head_content: str = '', footer_content: str = '')
+   :canonical: asciidoctrine.nodes.Docinfo
+
+   Bases: :py:obj:`asciidoctrine.nodes.Node`
+
+   .. autodoc2-docstring:: asciidoctrine.nodes.Docinfo
+      :parser: sphinx_asciidoctrine.parser
+
+   .. rubric:: Initialization
+
+   .. autodoc2-docstring:: asciidoctrine.nodes.Docinfo.__init__
+      :parser: sphinx_asciidoctrine.parser
+
+   .. py:attribute:: _should_serialize_attributes
+      :canonical: asciidoctrine.nodes.Docinfo._should_serialize_attributes
+      :value: False
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.Docinfo._should_serialize_attributes
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: to_dict() -> typing.Dict[str, typing.Any]
+      :canonical: asciidoctrine.nodes.Docinfo.to_dict
+
+.. py:class:: Document(blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, base_dir: typing.Optional[str] = None, safe_mode: int = 0)
    :canonical: asciidoctrine.nodes.Document
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -447,7 +474,7 @@ API
    .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.FloatingTitle.get_child_collections
 
-.. py:class:: Header(title: typing.Optional[asciidoctrine.nodes.Title] = None, authors: typing.Optional[typing.List[asciidoctrine.nodes.Author]] = None, revision: typing.Optional[asciidoctrine.nodes.Revision] = None, attributes: typing.Optional[typing.Dict[str, typing.Any]] = None)
+.. py:class:: Header(title: typing.Optional[asciidoctrine.nodes.Title] = None, authors: typing.Optional[typing.List[asciidoctrine.nodes.Author]] = None, revision: typing.Optional[asciidoctrine.nodes.Revision] = None, attributes: typing.Optional[typing.Dict[str, typing.Any]] = None, docinfo: typing.Optional[asciidoctrine.nodes.Docinfo] = None)
    :canonical: asciidoctrine.nodes.Header
 
    Bases: :py:obj:`asciidoctrine.nodes.Node`
@@ -473,7 +500,7 @@ API
       .. autodoc2-docstring:: asciidoctrine.nodes.Header.to_dict
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: Section(level: int, title: asciidoctrine.nodes.Title, blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
+.. py:class:: Section(level: int, title: typing.Optional[asciidoctrine.nodes.Title] = None, blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
    :canonical: asciidoctrine.nodes.Section
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`

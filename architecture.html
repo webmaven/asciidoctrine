@@ -6,15 +6,15 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Architecture &amp; Design &mdash; AsciiDoctrine 0.1.0a11 documentation</title>
+  <title>Architecture &amp; Design &mdash; AsciiDoctrine 0.1.0a12 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=1da06fa4" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=21f1c15c" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=1ab5421d"></script>
+      <script src="_static/documentation_options.js?v=2d4dc877"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -56,6 +56,19 @@
 <li class="toctree-l3"><a class="reference internal" href="#id8">Recursive Include Coordinate Mapping</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id9">Permissive Parsing &amp; Error Recovery</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id10">Configurable URI Schemes &amp; Extension Rationale</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id11">Multi-File Workspace Resolution Architecture</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id12">1. Pass 1: Raw Unmutated AST Parsing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13">2. Pass 2: Global Symbol Table Indexing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id14">3. Pass 3: 3-Tier Fallback Reference Resolution</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id15">Architecture Decision Records (ADRs)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id16">ADR-001: TCK ASG Structure Mapping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id17">ADR-002: Inclusive Location Tracking</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id18">ADR-003: Indented Block and Marker Support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id19">ADR-004: Multi-File Cross-Document Reference Binding</a></li>
 </ul>
 </li>
 </ul>
@@ -223,12 +236,97 @@
 <span class="p">)</span>
 </pre></div>
 </div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id11">
+<h2>Multi-File Workspace Resolution Architecture<a class="headerlink" href="#id11" title="Link to this heading"></a></h2>
+<p>Parsing a single AsciiDoc file in isolation is insufficient for static site generators and documentation portals where documents cross-reference each other across directory hierarchies using `<a class="reference external" href="other-doc.html#anchor">other-doc.adoc#anchor</a><code class="docutils literal notranslate"> <span class="pre">or</span> </code><a class="reference external" href="other-doc.html#anchor">label</a>`.</p>
+<p>AsciiDoctrine implements a <strong>3-Pass Workspace Pipeline</strong> orchestrated by <code class="docutils literal notranslate"><span class="pre">WorkspaceBuilder</span></code> and backed by a central <code class="docutils literal notranslate"><span class="pre">WorkspaceCatalog</span></code> symbol table:</p>
+<div class="text highlight-default notranslate"><div class="highlight"><pre><span></span> <span class="o">+-------------------------------------------------------------------+</span>
+ <span class="o">|</span>                      <span class="n">Workspace</span> <span class="n">Directory</span>                           <span class="o">|</span>
+ <span class="o">+-------------------------------------------------------------------+</span>
+                                   <span class="o">|</span>
+                                   <span class="o">|</span> <span class="p">[</span><span class="n">Pass</span> <span class="mi">1</span><span class="p">:</span> <span class="n">Directory</span> <span class="n">Crawl</span> <span class="o">&amp;</span> <span class="n">Raw</span> <span class="n">Parse</span><span class="p">]</span>
+                                   <span class="n">v</span>
+ <span class="o">+-------------------------------------------------------------------+</span>
+ <span class="o">|</span>  <span class="n">raw_documents</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">file_id</span><span class="p">,</span> <span class="n">Document</span><span class="p">]</span> <span class="p">(</span><span class="n">Unmutated</span> <span class="n">Pure</span> <span class="n">ASTs</span><span class="p">)</span>     <span class="o">|</span>
+ <span class="o">+-------------------------------------------------------------------+</span>
+                                   <span class="o">|</span>
+                                   <span class="o">|</span> <span class="p">[</span><span class="n">Pass</span> <span class="mi">2</span><span class="p">:</span> <span class="n">Symbol</span> <span class="n">Indexing</span><span class="p">]</span>
+                                   <span class="n">v</span>
+ <span class="o">+-------------------------------------------------------------------+</span>
+ <span class="o">|</span>  <span class="n">WorkspaceCatalog</span><span class="p">:</span> <span class="n">by_fqid</span> <span class="p">(</span><span class="s2">&quot;doc#anchor&quot;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">by_local_id</span> <span class="p">(</span><span class="s2">&quot;anchor&quot;</span><span class="p">)</span><span class="o">|</span>
+ <span class="o">+-------------------------------------------------------------------+</span>
+                                   <span class="o">|</span>
+                                   <span class="o">|</span> <span class="p">[</span><span class="n">Pass</span> <span class="mi">3</span><span class="p">:</span> <span class="n">DeepCopy</span> <span class="o">&amp;</span> <span class="n">ASG</span> <span class="n">Resolution</span><span class="p">]</span>
+                                   <span class="n">v</span>
+ <span class="o">+-------------------------------------------------------------------+</span>
+ <span class="o">|</span>  <span class="n">resolved_asg_graphs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">file_id</span><span class="p">,</span> <span class="n">ASG</span><span class="p">]</span> <span class="p">(</span><span class="n">Bound</span> <span class="n">Cross</span><span class="o">-</span><span class="n">Refs</span><span class="p">)</span>       <span class="o">|</span>
+ <span class="o">+-------------------------------------------------------------------+</span>
+</pre></div>
+</div>
+<section id="id12">
+<h3>1. Pass 1: Raw Unmutated AST Parsing<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">WorkspaceBuilder.discover_and_parse_project()</span></code> scans the workspace directory for <code class="docutils literal notranslate"><span class="pre">.adoc</span></code> files. Each file is parsed to a pure AST <code class="docutils literal notranslate"><span class="pre">Document</span></code> using <code class="docutils literal notranslate"><span class="pre">parse_to_ast()</span></code> with <code class="docutils literal notranslate"><span class="pre">base_dir</span></code> context so nested includes resolve relative to their parent file.</p>
+</section>
+<section id="id13">
+<h3>2. Pass 2: Global Symbol Table Indexing<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">WorkspaceCatalog.index_document()</span></code> walks each unmutated AST tree via <code class="docutils literal notranslate"><span class="pre">get_child_collections()</span></code> to populate:</p>
 <ul class="simple">
-<li><p><strong>Strict Scheme Validation &amp; Blacklisting</strong>: To prevent regex injection or syntax corruption, all custom schemes pass through <code class="docutils literal notranslate"><span class="pre">validate_custom_scheme()</span></code>:</p></li>
-<li><p><strong>Length</strong>: Must be between 2 and 10 characters.</p></li>
-<li><p><strong>Character Set</strong>: Must contain only lowercase ASCII letters, digits, and hyphens (<code class="docutils literal notranslate"><span class="pre">[a-z0-9\-]+</span></code>).</p></li>
-<li><p><strong>Reserved Blacklist</strong>: Blacklists all inline macro prefixes (<code class="docutils literal notranslate"><span class="pre">link</span></code>, <code class="docutils literal notranslate"><span class="pre">image</span></code>, <code class="docutils literal notranslate"><span class="pre">xref</span></code>), block/admonition labels (<code class="docutils literal notranslate"><span class="pre">note</span></code>, <code class="docutils literal notranslate"><span class="pre">tip</span></code>, <code class="docutils literal notranslate"><span class="pre">warning</span></code>), metadata headers (<code class="docutils literal notranslate"><span class="pre">author</span></code>, <code class="docutils literal notranslate"><span class="pre">version</span></code>, <code class="docutils literal notranslate"><span class="pre">title</span></code>), and common colon-followed terms (<code class="docutils literal notranslate"><span class="pre">to</span></code>, <code class="docutils literal notranslate"><span class="pre">cc</span></code>, <code class="docutils literal notranslate"><span class="pre">bcc</span></code>, <code class="docutils literal notranslate"><span class="pre">date</span></code>, <code class="docutils literal notranslate"><span class="pre">time</span></code>, <code class="docutils literal notranslate"><span class="pre">ssn</span></code>, <code class="docutils literal notranslate"><span class="pre">id</span></code>).</p></li>
+<li><p>`by<em>fqid[“file</em>id<span class="mark">anchor<em>id”]<code class="docutils literal notranslate"><span class="pre">:</span> <span class="pre">Maps</span> <span class="pre">fully-qualified</span> <span class="pre">file</span> <span class="pre">and</span> <span class="pre">anchor</span> <span class="pre">keys</span> <span class="pre">directly</span> <span class="pre">to</span> <span class="pre">target</span> </code>Node<code class="docutils literal notranslate"> <span class="pre">AST</span> <span class="pre">instances.</span> <span class="pre">Document</span> <span class="pre">roots</span> <span class="pre">are</span> <span class="pre">indexed</span> <span class="pre">under</span> </code>file</em>id</span><code class="docutils literal notranslate"> <span class="pre">for</span> <span class="pre">file-level</span> <span class="pre">links</span> <span class="pre">(</span></code><a class="reference external" href="doc.html">doc.adoc</a>`).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">by_local_id[&quot;anchor_id&quot;]</span></code>: Maps bare anchor strings to a list of matching file IDs.</p></li>
 </ul>
+</section>
+<section id="id14">
+<h3>3. Pass 3: 3-Tier Fallback Reference Resolution<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code> evaluates <code class="docutils literal notranslate"><span class="pre">Ref</span></code> nodes using a 3-tier fallback algorithm:</p>
+<ol class="simple">
+<li><p><strong>Explicit File Target</strong>: Matches <code class="docutils literal notranslate"><span class="pre">{resolved_file}#{target_anchor}</span></code> in <code class="docutils literal notranslate"><span class="pre">catalog.by_fqid</span></code>.</p></li>
+<li><p><strong>Local Implicit Match</strong>: Matches <code class="docutils literal notranslate"><span class="pre">{current_file_id}#{target_anchor}</span></code> in <code class="docutils literal notranslate"><span class="pre">catalog.by_fqid</span></code>.</p></li>
+<li><p><strong>Global Workspace Lookup</strong>: Matches <code class="docutils literal notranslate"><span class="pre">target_anchor</span></code> in <code class="docutils literal notranslate"><span class="pre">catalog.by_local_id</span></code> if unique across the project workspace.</p></li>
+</ol>
+</section>
+</section>
+<hr class="docutils" />
+<section id="id15">
+<h2>Architecture Decision Records (ADRs)<a class="headerlink" href="#id15" title="Link to this heading"></a></h2>
+<section id="id16">
+<h3>ADR-001: TCK ASG Structure Mapping<a class="headerlink" href="#id16" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Status</strong>: Accepted</p></li>
+<li><p><strong>Context</strong>: The project needs to produce a TCK-compliant Resolved Abstract Semantic Graph (ASG). This requires a mapping from the internal AST nodes to a specific JSON structure defined by the official ASG schema.</p></li>
+<li><p><strong>Decision</strong>: We have converged the internal AST structure to match the ASG schema directly. Each node in <code class="docutils literal notranslate"><span class="pre">nodes.py</span></code> implements a polymorphic <code class="docutils literal notranslate"><span class="pre">to_dict()</span></code> method that produces TCK-compliant output. Semantic resolution (attribute substitution, etc.) is handled by <code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code>.</p></li>
+</ul>
+</section>
+<section id="id17">
+<h3>ADR-002: Inclusive Location Tracking<a class="headerlink" href="#id17" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Status</strong>: Accepted</p></li>
+<li><p><strong>Context</strong>: The AsciiDoc TCK expects inclusive location boundaries (e.g., a 5-character word starting at column 1 ends at column 5). Lark’s default <code class="docutils literal notranslate"><span class="pre">end_column</span></code> is exclusive.</p></li>
+<li><p><strong>Decision</strong>: All node locations use <code class="docutils literal notranslate"><span class="pre">end_column</span> <span class="pre">-</span> <span class="pre">1</span></code> from Lark’s metadata, and parent bounding box coordinates are calculated dynamically via <code class="docutils literal notranslate"><span class="pre">_set_location_from_children()</span></code>.</p></li>
+</ul>
+</section>
+<section id="id18">
+<h3>ADR-003: Indented Block and Marker Support<a class="headerlink" href="#id18" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Status</strong>: Accepted</p></li>
+<li><p><strong>Context</strong>: Standard AsciiDoc allows block elements (like lists and literal blocks) to be indented.</p></li>
+<li><p><strong>Decision</strong>: Updated block-starting terminals (e.g., <code class="docutils literal notranslate"><span class="pre">ULIST_MARKER</span></code>, <code class="docutils literal notranslate"><span class="pre">LITERAL_DELIM</span></code>) to support optional leading whitespace using consolidated regexes: <code class="docutils literal notranslate"><span class="pre">/[</span> <span class="pre">\t]*(\*+|[-])[</span> <span class="pre">\t]+/</span></code>.</p></li>
+</ul>
+</section>
+<section id="id19">
+<h3>ADR-004: Multi-File Cross-Document Reference Binding<a class="headerlink" href="#id19" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Status</strong>: Accepted</p></li>
+<li><p><strong>Context</strong>: Cross-document references require access to target nodes in other files. Mutating ASTs in-place during indexing breaks coordinate tracking and serializer round-trips. Passing file paths requires non-violating type-checking mechanisms.</p></li>
+<li><p><strong>Decision</strong>:</p></li>
+</ul>
+<ol class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code> uses a <strong>Pure Deep Copy Strategy</strong> (<code class="docutils literal notranslate"><span class="pre">copy.deepcopy</span></code>), leaving raw AST trees in <code class="docutils literal notranslate"><span class="pre">WorkspaceCatalog</span></code> pristine.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Ref</span></code> nodes store live target pointers (<code class="docutils literal notranslate"><span class="pre">target_node_instance</span></code>) which are excluded from <code class="docutils literal notranslate"><span class="pre">to_dict()</span></code> serialization to prevent circular JSON recursion.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code> accepts <code class="docutils literal notranslate"><span class="pre">current_file_id</span></code> explicitly in <code class="docutils literal notranslate"><span class="pre">__init__</span></code> rather than dynamically assigning <code class="docutils literal notranslate"><span class="pre">.id</span></code> to <code class="docutils literal notranslate"><span class="pre">Document</span></code> nodes, maintaining 100% strict Mypy type-checker compliance.</p></li>
+</ol>
 </section>
 </section>
 </section>

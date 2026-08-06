@@ -14,13 +14,13 @@ Submodules
    :titlesonly:
    :maxdepth: 1
 
-   asciidoctrine.lark_parser
    asciidoctrine.docutils_backend
    asciidoctrine.serializer
-   asciidoctrine.resolver
    asciidoctrine.preprocessor
    asciidoctrine.nodes
    asciidoctrine.attributes
+   asciidoctrine.lark_parser
+   asciidoctrine.resolver
 
 Package Contents
 ----------------
@@ -46,14 +46,14 @@ API
 
 .. py:data:: __version__
    :canonical: asciidoctrine.__version__
-   :value: '0.1.0a11'
+   :value: '0.1.0a12'
 
    .. autodoc2-docstring:: asciidoctrine.__version__
       :parser: sphinx_asciidoctrine.parser
 
 .. py:data:: __all__
    :canonical: asciidoctrine.__all__
-   :value: ['parse_to_ast', 'AsciiDocSyntaxError', 'serialize_to_asciidoc', 'Node', 'Document', 'Section', 'Par...
+   :value: ['parse_to_ast', 'AsciiDocSyntaxError', 'serialize_to_asciidoc', 'Node', 'Docinfo', 'Document', 'Sec...
 
    .. autodoc2-docstring:: asciidoctrine.__all__
       :parser: sphinx_asciidoctrine.parser

@@ -6,15 +6,15 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How-to: Custom ASG Renderer Tutorial &mdash; AsciiDoctrine 0.1.0a11 documentation</title>
+  <title>How-to: Custom ASG Renderer Tutorial &mdash; AsciiDoctrine 0.1.0a12 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=1da06fa4" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=21f1c15c" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=1ab5421d"></script>
+      <script src="_static/documentation_options.js?v=2d4dc877"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -88,7 +88,7 @@
 <h1>How-to: Custom ASG Renderer Tutorial<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>Michael R. Bernstein <a class="reference external" href="mailto:zopemaven&#37;&#52;&#48;gmail&#46;com">zopemaven<span>&#64;</span>gmail<span>&#46;</span>com</a>
 v0.1.0</p>
-<p>This tutorial demonstrates how to traverse and render the resolved Abstract Semantic Graph (ASG) produced by *<strong>AsciiDoctrine</strong><strong>. We will build a complete, object-oriented </strong><strong>Markdown Renderer</strong>* from scratch using Python.</p>
+<p>This tutorial demonstrates how to traverse and render the resolved Abstract Semantic Graph (ASG) produced by <strong>AsciiDoctrine</strong>. We will build a complete, object-oriented <strong>Markdown Renderer</strong> from scratch using Python.</p>
 <hr class="docutils" />
 <section id="id2">
 <h2>Understanding the ASG Structure<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
@@ -165,7 +165,7 @@ v0.1.0</p>
         <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">render_span</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="c1"># Spans represent formatting wraps like bold, italic, or monospace</span>
+        <span class="c1"># Spans represent formatting wraps like bold, italic, monospace, or marked text</span>
         <span class="n">variant</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;variant&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">)</span>
         <span class="n">inlines</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;inlines&quot;</span><span class="p">,</span> <span class="p">[])]</span>
         <span class="n">content</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">inlines</span><span class="p">)</span>
@@ -176,6 +176,10 @@ v0.1.0</p>
             <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;*</span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">*&quot;</span>
         <span class="k">elif</span> <span class="n">variant</span> <span class="o">==</span> <span class="s2">&quot;code&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">`&quot;</span>
+        <span class="k">elif</span> <span class="n">variant</span> <span class="o">==</span> <span class="s2">&quot;mark&quot;</span><span class="p">:</span>
+            <span class="c1"># Marked/highlighted text — render with == (GFM highlight) or fallback</span>
+            <span class="c1"># Roles are available in node[&quot;attributes&quot;][&quot;role&quot;] if present</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;==</span><span class="si">{</span><span class="n">content</span><span class="si">}</span><span class="s2">==&quot;</span>
         <span class="k">return</span> <span class="n">content</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">render_listing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -220,7 +224,7 @@ v0.1.0</p>
 <span class="s2">:author: Jane Doe</span>
 
 <span class="s2">== Overview</span>
-<span class="s2">This is a *bold* word and a `monospace` term in a paragraph.</span>
+<span class="s2">This is a *bold* word, a `monospace` term, and a [.highlight]#highlighted phrase# in a paragraph.</span>
 
 <span class="s2">=== Syntax Parity List</span>
 <span class="s2">* Admonitions</span>
@@ -248,7 +252,7 @@ v0.1.0</p>
 <p>Expected Output:</p>
 <div class="markdown highlight-default notranslate"><div class="highlight"><pre><span></span># Overview
 
-This is a **bold** word and a `monospace` term in a paragraph.
+This is a **bold** word, a `monospace` term, and a ==highlighted phrase== in a paragraph.
 
 ## Syntax Parity List
 

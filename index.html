@@ -6,15 +6,15 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AsciiDoctrine Documentation &mdash; AsciiDoctrine 0.1.0a11 documentation</title>
+  <title>AsciiDoctrine Documentation &mdash; AsciiDoctrine 0.1.0a12 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=1da06fa4" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=21f1c15c" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=1ab5421d"></script>
+      <script src="_static/documentation_options.js?v=2d4dc877"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -88,6 +88,7 @@
 <li><p><strong>TCK Validation</strong>: Ensures standard-compliant rendering by validating its pipeline against the official AsciiDoc Technology Compatibility Kit (TCK) test suites.</p></li>
 <li><p><strong>Precise Source Coordinate Mapping</strong>: Enables robust IDE integrations, precise diagnostic errors, and syntactical formatting tools by attaching optional line and column coordinates to every structural block and inline element.</p></li>
 <li><p><strong>Attribute and Macro Resolution</strong>: Implements standard AsciiDoc dynamic attribute substitutions, conditional preprocessor passes, multi-file includes, and block/inline macros.</p></li>
+<li><p><strong>Docinfo Metadata Integration</strong>: Discovers shared and private docinfo files (<code class="docutils literal notranslate"><span class="pre">docinfo.html</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;docname&gt;-docinfo.html</span></code>), performs attribute substitution, and injects header/footer markup into HTML output while respecting <code class="docutils literal notranslate"><span class="pre">safe_mode</span></code> boundaries.</p></li>
 <li><p><strong>Docutils &amp; Sphinx Power</strong>: Integrates cleanly with the Python documentation ecosystem by compiling AsciiDoc files natively into the Docutils component tree.</p></li>
 <li><p><strong>Wasm and Pyodide Portability</strong>: Runs seamlessly inside browsers and serverless sandboxes via pure-Python, zero-native-dependency Pyodide builds.</p></li>
 </ul>
@@ -110,7 +111,7 @@
 
 <span class="n">source</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">== Section Title</span>
-<span class="s2">This is a *bold* word in a paragraph.</span>
+<span class="s2">This is a *bold* word and a [.highlight]#key concept# in a paragraph.</span>
 <span class="s2">&quot;&quot;&quot;</span>
 
 <span class="c1"># 1. Parse raw source to syntax-level AST</span>
@@ -129,10 +130,26 @@
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found section: </span><span class="si">{</span><span class="n">title_text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
+<section id="id5">
+<h3>Multi-File Workspace Resolution<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<p>To parse an entire folder directory of AsciiDoc files and resolve interdocument cross-references (`<a class="reference external" href="other.html#anchor">other.adoc#anchor</a><code class="docutils literal notranslate"> <span class="pre">or</span> </code><a class="reference external" href="other.html#anchor">label</a><code class="docutils literal notranslate"><span class="pre">),</span> <span class="pre">use</span> </code>WorkspaceBuilder`:</p>
+<div class="python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine</span><span class="w"> </span><span class="kn">import</span> <span class="n">WorkspaceBuilder</span>
+
+<span class="c1"># 1. Initialize builder targeting your documentation root</span>
+<span class="n">builder</span> <span class="o">=</span> <span class="n">WorkspaceBuilder</span><span class="p">(</span><span class="s2">&quot;/path/to/docs&quot;</span><span class="p">)</span>
+
+<span class="c1"># 2. Run 3-pass pipeline (scan -&gt; index symbols -&gt; resolve cross-references)</span>
+<span class="n">asg_graphs</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+
+<span class="c1"># Access resolved ASG dictionary for any relative file ID</span>
+<span class="n">doc_asg</span> <span class="o">=</span> <span class="n">asg_graphs</span><span class="p">[</span><span class="s2">&quot;subfolder/chapter1.adoc&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
 </section>
 <hr class="docutils" />
-<section id="id5">
-<h2>ASG Representation<a class="headerlink" href="#id5" title="Link to this heading"></a></h2>
+<section id="id6">
+<h2>ASG Representation<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
 <p>Calling <code class="docutils literal notranslate"><span class="pre">asg.to_dict()</span></code> yields a structured, spec-compliant representation matching the official AsciiDoc Language ASG schema:</p>
 <div class="json highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;document&quot;</span><span class="p">,</span>
@@ -164,7 +181,18 @@
                 <span class="p">{</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;bold&quot;</span> <span class="p">}</span>
               <span class="p">]</span>
             <span class="p">},</span>
-            <span class="p">{</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot; word in a paragraph.&quot;</span> <span class="p">}</span>
+            <span class="p">{</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot; word and a &quot;</span> <span class="p">},</span>
+            <span class="p">{</span>
+              <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;span&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;inline&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;variant&quot;</span><span class="p">:</span> <span class="s2">&quot;mark&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;form&quot;</span><span class="p">:</span> <span class="s2">&quot;constrained&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;inlines&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;key concept&quot;</span> <span class="p">}</span>
+              <span class="p">],</span>
+              <span class="s2">&quot;attributes&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;highlight&quot;</span> <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="p">{</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot; in a paragraph.&quot;</span> <span class="p">}</span>
           <span class="p">]</span>
         <span class="p">}</span>
       <span class="p">]</span>
@@ -176,8 +204,8 @@
 </div>
 </section>
 <hr class="docutils" />
-<section id="id6">
-<h2>Project Guides<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
+<section id="id7">
+<h2>Project Guides<a class="headerlink" href="#id7" title="Link to this heading"></a></h2>
 <p>Explore detailed design and usage documentation for library users and developers:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="architecture.html">Architecture &amp; Design Guide</a>: The parser pipeline, Earley algorithm details, and location tracking mechanics.</p></li>
@@ -187,8 +215,8 @@
 </ul>
 </section>
 <hr class="docutils" />
-<section id="id7">
-<h2>Motivation<a class="headerlink" href="#id7" title="Link to this heading"></a></h2>
+<section id="id8">
+<h2>Motivation<a class="headerlink" href="#id8" title="Link to this heading"></a></h2>
 <p>The Python ecosystem has long lacked a modern, maintainable, and specification-compliant AsciiDoc parser. Historically, AsciiDoc was defined entirely by its implementations (originally the Python-based <code class="docutils literal notranslate"><span class="pre">asciidoc.py</span></code>, and later the Ruby-based <code class="docutils literal notranslate"><span class="pre">Asciidoctor</span></code>). This lack of a formal specification made developing third-party tooling—such as IDE plugins, formatters, and custom translators—extremely fragile and prone to compatibility drift.</p>
 <p>With the working group at the Eclipse Foundation actively standardizing the AsciiDoc Language and providing an authoritative Technology Compatibility Kit (TCK), building a native, robust Python implementation became both possible and necessary. </p>
 <p>Rather than relying on brittle, regex-heavy line-by-line parsing models that struggle with context-sensitive nested blocks, AsciiDoctrine implements a formal context-free grammar parsed via <strong>Lark’s Earley parsing engine</strong>. This formal parsing approach guarantees:</p>
@@ -199,10 +227,10 @@
 </ol>
 </section>
 <hr class="docutils" />
-<section id="id8">
-<h2>Under the Hood<a class="headerlink" href="#id8" title="Link to this heading"></a></h2>
 <section id="id9">
-<h3>Parser Pipeline Architecture<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<h2>Under the Hood<a class="headerlink" href="#id9" title="Link to this heading"></a></h2>
+<section id="id10">
+<h3>Parser Pipeline Architecture<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
 <p>The parser operates in a multi-pass pipeline to handle the inherent complexity of AsciiDoc, while supporting complete, lossless round-trip serialization back to source:</p>
 <div class="text highlight-default notranslate"><div class="highlight"><pre><span></span>           <span class="o">+---------------------------------+</span>
            <span class="o">|</span>          <span class="n">Raw</span> <span class="n">Source</span>             <span class="o">|&lt;---------------+</span>
@@ -240,8 +268,8 @@
 </section>
 </section>
 <hr class="docutils" />
-<section id="id10">
-<h2>Roadmap to Syntax Parity<a class="headerlink" href="#id10" title="Link to this heading"></a></h2>
+<section id="id11">
+<h2>Roadmap to Syntax Parity<a class="headerlink" href="#id11" title="Link to this heading"></a></h2>
 <p>The path to 1:1 syntactic specification compliance is tracked through the following phases:</p>
 <table class="docutils align-default">
 <tbody>
@@ -285,8 +313,8 @@
 </table>
 </section>
 <hr class="docutils" />
-<section id="id11">
-<h2>Project Links &amp; Resources<a class="headerlink" href="#id11" title="Link to this heading"></a></h2>
+<section id="id12">
+<h2>Project Links &amp; Resources<a class="headerlink" href="#id12" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p><strong>PyPI Package</strong>: <a class="reference external" href="https://pypi.org/project/asciidoctrine/">asciidoctrine on PyPI</a></p></li>
 <li><p><strong>GitHub Repository</strong>: <a class="reference external" href="https://github.com/webmaven/asciidoctrine">webmaven/asciidoctrine</a></p></li>

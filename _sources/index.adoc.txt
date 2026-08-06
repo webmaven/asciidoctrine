@@ -1,6 +1,7 @@
 = AsciiDoctrine Documentation
 Michael R. Bernstein <zopemaven@gmail.com>
 v0.1.0
+:docinfo: shared
 
 Welcome to the official documentation for *AsciiDoctrine*, a native Python implementation of the AsciiDoc Language Specification.
 
@@ -13,6 +14,7 @@ AsciiDoctrine is designed to provide a structured, type-safe representation of A
 * *TCK Validation*: Ensures standard-compliant rendering by validating its pipeline against the official AsciiDoc Technology Compatibility Kit (TCK) test suites.
 * *Precise Source Coordinate Mapping*: Enables robust IDE integrations, precise diagnostic errors, and syntactical formatting tools by attaching optional line and column coordinates to every structural block and inline element.
 * *Attribute and Macro Resolution*: Implements standard AsciiDoc dynamic attribute substitutions, conditional preprocessor passes, multi-file includes, and block/inline macros.
+* *Docinfo Metadata Integration*: Discovers shared and private docinfo files (`docinfo.html`, `<docname>-docinfo.html`), performs attribute substitution, and injects header/footer markup into HTML output while respecting `safe_mode` boundaries.
 * *Docutils & Sphinx Power*: Integrates cleanly with the Python documentation ecosystem by compiling AsciiDoc files natively into the Docutils component tree.
 * *Wasm and Pyodide Portability*: Runs seamlessly inside browsers and serverless sandboxes via pure-Python, zero-native-dependency Pyodide builds.
 
@@ -42,7 +44,7 @@ from asciidoctrine.resolver import ASGResolver
 
 source = """
 == Section Title
-This is a *bold* word in a paragraph.
+This is a *bold* word and a [.highlight]#key concept# in a paragraph.
 """
 
 # 1. Parse raw source to syntax-level AST
@@ -59,6 +61,24 @@ for block in asg.get("blocks", []):
         title_nodes = block.get("title", [])
         title_text = "".join(node.get("value", "") for node in title_nodes if node.get("name") == "text")
         print(f"Found section: {title_text}")
+----
+
+=== Multi-File Workspace Resolution
+
+To parse an entire folder directory of AsciiDoc files and resolve interdocument cross-references (`xref:other.adoc#anchor[]` or `<<other.adoc#anchor,label>>`), use `WorkspaceBuilder`:
+
+[source,python]
+----
+from asciidoctrine import WorkspaceBuilder
+
+# 1. Initialize builder targeting your documentation root
+builder = WorkspaceBuilder("/path/to/docs")
+
+# 2. Run 3-pass pipeline (scan -> index symbols -> resolve cross-references)
+asg_graphs = builder.build()
+
+# Access resolved ASG dictionary for any relative file ID
+doc_asg = asg_graphs["subfolder/chapter1.adoc"]
 ----
 
 ---
@@ -99,7 +119,18 @@ Calling `asg.to_dict()` yields a structured, spec-compliant representation match
                 { "name": "text", "type": "string", "value": "bold" }
               ]
             },
-            { "name": "text", "type": "string", "value": " word in a paragraph." }
+            { "name": "text", "type": "string", "value": " word and a " },
+            {
+              "name": "span",
+              "type": "inline",
+              "variant": "mark",
+              "form": "constrained",
+              "inlines": [
+                { "name": "text", "type": "string", "value": "key concept" }
+              ],
+              "attributes": { "role": "highlight" }
+            },
+            { "name": "text", "type": "string", "value": " in a paragraph." }
           ]
         }
       ]
@@ -125,10 +156,10 @@ changelog
 apidocs/index
 --
 
-* link:architecture.html[Architecture & Design Guide]: The parser pipeline, Earley algorithm details, and location tracking mechanics.
-* link:how-to-custom-renderer.html[Custom ASG Renderer Tutorial]: Walkthrough and fully executable Python implementation of a custom Markdown converter.
-* link:feature-matrix.html[Feature Matrix]: Complete comparison of supported language features, specification documents, and test coverage.
-* link:contributing.html[Contributor's Guide]: Virtualenv setup, Pytest protocols, Mypy type checks, and pre-release packaging verification checklists.
+* xref:architecture.adoc[Architecture & Design Guide]: The parser pipeline, Earley algorithm details, and location tracking mechanics.
+* xref:how-to-custom-renderer.adoc[Custom ASG Renderer Tutorial]: Walkthrough and fully executable Python implementation of a custom Markdown converter.
+* xref:feature-matrix.adoc[Feature Matrix]: Complete comparison of supported language features, specification documents, and test coverage.
+* xref:contributing.adoc[Contributor's Guide]: Virtualenv setup, Pytest protocols, Mypy type checks, and pre-release packaging verification checklists.
 
 ---
 

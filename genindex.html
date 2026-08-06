@@ -5,15 +5,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; AsciiDoctrine 0.1.0a11 documentation</title>
+  <title>Index &mdash; AsciiDoctrine 0.1.0a12 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
-      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=1da06fa4" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=21f1c15c" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=1ab5421d"></script>
+      <script src="_static/documentation_options.js?v=2d4dc877"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -105,11 +105,17 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.html#asciidoctrine.__all__">__all__ (in module asciidoctrine)</a>
 </li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.ConditionalStack.__bool__">__bool__() (asciidoctrine.preprocessor.ConditionalStack method)</a>
+</li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.html#asciidoctrine.__version__">__version__ (in module asciidoctrine)</a>
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.Preprocessor._evaluate_condition">_evaluate_condition() (asciidoctrine.preprocessor.Preprocessor method)</a>
 </li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.Preprocessor._evaluate_ifeval_condition">_evaluate_ifeval_condition() (asciidoctrine.preprocessor.Preprocessor method)</a>
+</li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.lark_parser.html#asciidoctrine.lark_parser.AsciiDocTransformer._finalize_document_blocks">_finalize_document_blocks() (asciidoctrine.lark_parser.AsciiDocTransformer method)</a>
+</li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.resolver.html#asciidoctrine.resolver.WorkspaceBuilder._get_file_id">_get_file_id() (asciidoctrine.resolver.WorkspaceBuilder method)</a>
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.lark_parser.html#asciidoctrine.lark_parser.ASTSyntaxAuditor._get_origin">_get_origin() (asciidoctrine.lark_parser.ASTSyntaxAuditor method)</a>
 </li>
@@ -123,17 +129,23 @@
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.Preprocessor._parse_attributes">_parse_attributes() (asciidoctrine.preprocessor.Preprocessor method)</a>
 </li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.Preprocessor._parse_ifeval_operand">_parse_ifeval_operand() (asciidoctrine.preprocessor.Preprocessor method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.Preprocessor._process_source">_process_source() (asciidoctrine.preprocessor.Preprocessor method)</a>
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.Preprocessor._record_line">_record_line() (asciidoctrine.preprocessor.Preprocessor method)</a>
 </li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.resolver.html#asciidoctrine.resolver.ASGResolver._resolve_docinfo_files">_resolve_docinfo_files() (asciidoctrine.resolver.ASGResolver method)</a>
+</li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.lark_parser.html#asciidoctrine.lark_parser.AsciiDocTransformer._set_location_from_meta">_set_location_from_meta() (asciidoctrine.lark_parser.AsciiDocTransformer method)</a>
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Attributes._should_serialize_attributes">_should_serialize_attributes (asciidoctrine.nodes.Attributes attribute)</a>
 
       <ul>
+        <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Docinfo._should_serialize_attributes">(asciidoctrine.nodes.Docinfo attribute)</a>
+</li>
         <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Document._should_serialize_attributes">(asciidoctrine.nodes.Document attribute)</a>
 </li>
         <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Header._should_serialize_attributes">(asciidoctrine.nodes.Header attribute)</a>
@@ -143,6 +155,10 @@
         <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Node._should_serialize_attributes">(asciidoctrine.nodes.Node attribute)</a>
 </li>
       </ul></li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.Preprocessor._split_ifeval_expression">_split_ifeval_expression() (asciidoctrine.preprocessor.Preprocessor method)</a>
+</li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.Preprocessor._try_handle_conditional_directive">_try_handle_conditional_directive() (asciidoctrine.preprocessor.Preprocessor method)</a>
+</li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.Preprocessor._update_delimiter_stack">_update_delimiter_stack() (asciidoctrine.preprocessor.Preprocessor method)</a>
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.lark_parser.html#asciidoctrine.lark_parser.AsciiDocTransformer._WS">_WS() (asciidoctrine.lark_parser.AsciiDocTransformer method)</a>
@@ -153,6 +169,8 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.ConditionalFrame.active">active (asciidoctrine.preprocessor.ConditionalFrame attribute)</a>
+</li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Admonition">Admonition (class in asciidoctrine.nodes)</a>
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.lark_parser.html#asciidoctrine.lark_parser.AsciiDocTransformer.anchor">anchor() (asciidoctrine.lark_parser.AsciiDocTransformer method)</a>
@@ -303,6 +321,8 @@
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Break">Break (class in asciidoctrine.nodes)</a>
 </li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.resolver.html#asciidoctrine.resolver.WorkspaceBuilder.build">build() (asciidoctrine.resolver.WorkspaceBuilder method)</a>
+</li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.lark_parser.html#asciidoctrine.lark_parser.build_uri_terminal">build_uri_terminal() (in module asciidoctrine.lark_parser)</a>
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Button">Button (class in asciidoctrine.nodes)</a>
@@ -323,10 +343,10 @@
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.VerbatimBlockMixin.callouts">callouts (asciidoctrine.nodes.VerbatimBlockMixin property)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.lark_parser.html#asciidoctrine.lark_parser.Children">Children (in module asciidoctrine.lark_parser)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.CircularIncludeError">CircularIncludeError</a>
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.VerbatimBlockMixin.code">code (asciidoctrine.nodes.VerbatimBlockMixin property)</a>
@@ -336,6 +356,10 @@
       <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Comment">Comment (class in asciidoctrine.nodes)</a>
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.lark_parser.html#asciidoctrine.lark_parser.AsciiDocTransformer.comment">comment() (asciidoctrine.lark_parser.AsciiDocTransformer method)</a>
+</li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.ConditionalFrame">ConditionalFrame (class in asciidoctrine.preprocessor)</a>
+</li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.ConditionalStack">ConditionalStack (class in asciidoctrine.preprocessor)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -355,8 +379,14 @@
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.DescriptionListTerm">DescriptionListTerm (class in asciidoctrine.nodes)</a>
 </li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.ConditionalFrame.directive">directive (asciidoctrine.preprocessor.ConditionalFrame attribute)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.resolver.html#asciidoctrine.resolver.WorkspaceBuilder.discover_and_parse_project">discover_and_parse_project() (asciidoctrine.resolver.WorkspaceBuilder method)</a>
+</li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Docinfo">Docinfo (class in asciidoctrine.nodes)</a>
+</li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Document">Document (class in asciidoctrine.nodes)</a>
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.lark_parser.html#asciidoctrine.lark_parser.AsciiDocTransformer.document">document() (asciidoctrine.lark_parser.AsciiDocTransformer method)</a>
@@ -509,10 +539,14 @@
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Include">Include (class in asciidoctrine.nodes)</a>
 </li>
-      <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.IndexTerm">IndexTerm (class in asciidoctrine.nodes)</a>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.resolver.html#asciidoctrine.resolver.WorkspaceCatalog.index_document">index_document() (asciidoctrine.resolver.WorkspaceCatalog method)</a>
+</li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.resolver.html#asciidoctrine.resolver.WorkspaceBuilder.index_workspace_symbols">index_workspace_symbols() (asciidoctrine.resolver.WorkspaceBuilder method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.IndexTerm">IndexTerm (class in asciidoctrine.nodes)</a>
+</li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.lark_parser.html#asciidoctrine.lark_parser.AsciiDocTransformer.inline_attribute_list">inline_attribute_list() (asciidoctrine.lark_parser.AsciiDocTransformer method)</a>
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.InlineNode">InlineNode (class in asciidoctrine.nodes)</a>
@@ -520,6 +554,8 @@
       <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.InlinePassthrough">InlinePassthrough (class in asciidoctrine.nodes)</a>
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.InlineStem">InlineStem (class in asciidoctrine.nodes)</a>
+</li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.ConditionalStack.is_active">is_active() (asciidoctrine.preprocessor.ConditionalStack method)</a>
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.lark_parser.html#asciidoctrine.lark_parser.is_continuation_paragraph">is_continuation_paragraph() (in module asciidoctrine.lark_parser)</a>
 </li>
@@ -588,6 +624,8 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.ConditionalFrame.name">name (asciidoctrine.preprocessor.ConditionalFrame attribute)</a>
+</li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Node">Node (class in asciidoctrine.nodes)</a>
 </li>
   </ul></td>
@@ -620,9 +658,11 @@
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.lark_parser.html#asciidoctrine.lark_parser.parse_to_ast">parse_to_ast() (in module asciidoctrine.lark_parser)</a>
 </li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Passthrough">Passthrough (class in asciidoctrine.nodes)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Passthrough">Passthrough (class in asciidoctrine.nodes)</a>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.ConditionalStack.pop">pop() (asciidoctrine.preprocessor.ConditionalStack method)</a>
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.Preprocessor">Preprocessor (class in asciidoctrine.preprocessor)</a>
 </li>
@@ -631,6 +671,8 @@
       <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.PreprocessorWarning">PreprocessorWarning</a>
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.Preprocessor.process">process() (asciidoctrine.preprocessor.Preprocessor method)</a>
+</li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.preprocessor.html#asciidoctrine.preprocessor.ConditionalStack.push">push() (asciidoctrine.preprocessor.ConditionalStack method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -654,13 +696,15 @@
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.attributes.html#asciidoctrine.attributes.resolve_attribute_map">resolve_attribute_map() (in module asciidoctrine.attributes)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.lark_parser.html#asciidoctrine.lark_parser.resolve_block_internals">resolve_block_internals() (in module asciidoctrine.lark_parser)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.lark_parser.html#asciidoctrine.lark_parser.resolve_list_continuations">resolve_list_continuations() (in module asciidoctrine.lark_parser)</a>
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.attributes.html#asciidoctrine.attributes.resolve_node_to_string">resolve_node_to_string() (in module asciidoctrine.attributes)</a>
+</li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.resolver.html#asciidoctrine.resolver.WorkspaceBuilder.resolve_workspace_semantics">resolve_workspace_semantics() (asciidoctrine.resolver.WorkspaceBuilder method)</a>
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Revision">Revision (class in asciidoctrine.nodes)</a>
 </li>
@@ -725,6 +769,8 @@
       <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Collapsible.to_dict">to_dict() (asciidoctrine.nodes.Collapsible method)</a>
 
       <ul>
+        <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Docinfo.to_dict">(asciidoctrine.nodes.Docinfo method)</a>
+</li>
         <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Document.to_dict">(asciidoctrine.nodes.Document method)</a>
 </li>
         <li><a href="apidocs/asciidoctrine/asciidoctrine.nodes.html#asciidoctrine.nodes.Header.to_dict">(asciidoctrine.nodes.Header method)</a>
@@ -842,6 +888,8 @@
         <li><a href="apidocs/asciidoctrine/asciidoctrine.serializer.html#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_descriptionlistterm">(asciidoctrine.serializer.AsciiDocSerializerVisitor method)</a>
 </li>
       </ul></li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.docutils_backend.html#asciidoctrine.docutils_backend.DocutilsRenderer.visit_docinfo">visit_docinfo() (asciidoctrine.docutils_backend.DocutilsRenderer method)</a>
+</li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.docutils_backend.html#asciidoctrine.docutils_backend.DocutilsRenderer.visit_document">visit_document() (asciidoctrine.docutils_backend.DocutilsRenderer method)</a>
 
       <ul>
@@ -943,6 +991,8 @@
       <li><a href="apidocs/asciidoctrine/asciidoctrine.docutils_backend.html#asciidoctrine.docutils_backend.DocutilsRenderer.visit_ref">visit_ref() (asciidoctrine.docutils_backend.DocutilsRenderer method)</a>
 
       <ul>
+        <li><a href="apidocs/asciidoctrine/asciidoctrine.resolver.html#asciidoctrine.resolver.ASGResolver.visit_ref">(asciidoctrine.resolver.ASGResolver method)</a>
+</li>
         <li><a href="apidocs/asciidoctrine/asciidoctrine.serializer.html#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_ref">(asciidoctrine.serializer.AsciiDocSerializerVisitor method)</a>
 </li>
       </ul></li>
@@ -1024,8 +1074,12 @@
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.lark_parser.html#asciidoctrine.lark_parser.AsciiDocTransformer.WHITESPACE">WHITESPACE() (asciidoctrine.lark_parser.AsciiDocTransformer method)</a>
 </li>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.resolver.html#asciidoctrine.resolver.WorkspaceBuilder">WorkspaceBuilder (class in asciidoctrine.resolver)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/asciidoctrine/asciidoctrine.resolver.html#asciidoctrine.resolver.WorkspaceCatalog">WorkspaceCatalog (class in asciidoctrine.resolver)</a>
+</li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.serializer.html#asciidoctrine.serializer.AsciiDocSerializerVisitor.write">write() (asciidoctrine.serializer.AsciiDocSerializerVisitor method)</a>
 </li>
       <li><a href="apidocs/asciidoctrine/asciidoctrine.serializer.html#asciidoctrine.serializer.AsciiDocSerializerVisitor.write_block_metadata">write_block_metadata() (asciidoctrine.serializer.AsciiDocSerializerVisitor method)</a>

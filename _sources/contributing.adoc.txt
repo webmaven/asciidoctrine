@@ -5,6 +5,7 @@ v0.1.0
 :idseparator: -
 :sectanchors:
 :sectlinks:
+:docinfo: shared
 
 Welcome to the **AsciiDoctrine** developer community! This guide outlines the development environment setup, testing protocols, code quality standards, and package release verification checklist.
 
@@ -121,9 +122,11 @@ Before releasing any package version to PyPI, follow this sequential checklist t
    - Ensure Ruff linter and formatter are completely happy.
    - Ensure the Mypy strict type-checker passes cleanly.
    - Run the full test suite locally with coverage (using `-n0` to disable multi-processing clashes):
-     ```bash
-     pytest -n0 --cov=src --cov-report=term-missing -k "not functional"
-     ```
++
+[source,bash]
+----
+pytest -n0 --cov=src --cov-report=term-missing -k "not functional"
+----
    - Run the TCK suite locally and check for 100% compliance.
 
 2. **Verify Version Coherence**:
@@ -133,9 +136,11 @@ Before releasing any package version to PyPI, follow this sequential checklist t
 
 3. **Verify Documentation and Sandboxes**:
    - Rebuild HTML documentation locally to ensure zero errors:
-     ```bash
-     sphinx-build -a -E -b html docs docs/_build/html
-     ```
++
+[source,bash]
+----
+sphinx-build -a -E -b html docs docs/_build/html
+----
 
 4. **Verify GHA Status on main**:
    - Push release branches to GitHub and verify that **all GitHub Actions jobs** (including Pyodide runs, document builders, and linters) succeed cleanly with a green checkmark before creating the PyPI release.
