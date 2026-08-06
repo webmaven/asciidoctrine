@@ -310,6 +310,12 @@ API
       .. autodoc2-docstring:: asciidoctrine.docutils_backend.DocutilsRenderer.visit_indexterm
          :parser: sphinx_asciidoctrine.parser
 
+   .. py:method:: visit_docinfo(node: asciidoctrine.nodes.Docinfo) -> None
+      :canonical: asciidoctrine.docutils_backend.DocutilsRenderer.visit_docinfo
+
+      .. autodoc2-docstring:: asciidoctrine.docutils_backend.DocutilsRenderer.visit_docinfo
+         :parser: sphinx_asciidoctrine.parser
+
 .. py:function:: asciidoc_to_docutils(source: str, base_dir: typing.Optional[str] = None) -> docutils.nodes.document
    :canonical: asciidoctrine.docutils_backend.asciidoc_to_docutils
 

@@ -226,6 +226,18 @@ class DocutilsRenderer(NodeVisitor):
         creator = mapping.get(node.variant, nodes.inline)
         span_node = creator()
 
+        # Extract roles from attributes dict
+        roles_str = node.attributes.get("role", "")
+        roles = roles_str.split() if roles_str else []
+
+        # Apply roles as CSS classes
+        if roles:
+            span_node["classes"].extend(roles)
+
+        # For mark variant, add 'mark' class for default styling if no custom roles exist
+        if node.variant == "mark" and not roles:
+            span_node["classes"].append("mark")
+
         old_parent = self.current_node
         self.current_node = span_node
         for inline in node.inlines:

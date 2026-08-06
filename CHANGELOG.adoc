@@ -3,49 +3,25 @@
 
 == Unreleased
 
+== link:https://pypi.org/project/asciidoctrine/0.1.0a12/[0.1.0a12] - 2026-08-06
+
 === Added
+* **Span Roles & Unconstrained Marked Text (`[.role]#text#`, `##text##`)**:
+  - Added support for unconstrained marked text (`##text##`) and custom span roles (`[.role]#text#`), mapping role attributes to ASG `Span.attributes["role"]` and Docutils HTML CSS classes.
 * **Docinfo & Document Metadata (`:docinfo:`, `:docinfodir:`, `:docinfofiles:`)**:
-  - Implemented `Docinfo` AST node class (`src/asciidoctrine/nodes.py`) supporting `head_content` and `footer_content` attributes and ASG serialization.
-  - Attached `base_dir` and `safe_mode` properties to the root `Document` AST node in `parse_to_ast()`.
-  - Implemented ASG-time docinfo discovery (`_resolve_docinfo_files()`) in `ASGResolver` (`src/asciidoctrine/resolver.py`), supporting shared (`docinfo.html`, `docinfo-footer.html`) and private (`<docname>-docinfo.html`, `<docname>-docinfo-footer.html`) files, custom `:docinfofiles:`, and `:docinfodir:`.
-  - Implemented `safe_mode` boundary checks preventing path-traversal file reads outside `base_dir`.
-  - Implemented attribute substitution (`{attr}`) inside resolved docinfo header and footer content.
-  - Implemented Docutils HTML backend rendering in `DocutilsRenderer` (`src/asciidoctrine/docutils_backend.py`), injecting head and footer raw HTML markup into output documents.
-  - Added comprehensive test suite in `tests/test_docinfo.py`.
-  - Marked Docinfo as `Fully Supported` in `docs/feature-matrix.adoc` and updated `docs/index.adoc`.
+  - Implemented `:docinfo:` header and footer discovery in `ASGResolver` with `safe_mode` path-traversal boundaries, attribute substitution, and Docutils HTML head/footer injection.
 * **Attribute Comparison Directive (`ifeval::[]`)**:
-  - Implemented `ifeval::[expression]` conditional directive in `Preprocessor`, supporting comparison operators (`==`, `!=`, `<`, `<=`, `>`, `>=`).
-  - Implemented `_parse_ifeval_operand()` with type coercion for quoted strings, integers, floats, booleans (`true`/`false`), and `nil`/`null`.
-  - Implemented preprocessor attribute substitution `{attr}` inside `ifeval` expressions prior to evaluation.
-  - Implemented type-safe evaluation returning `False` on incompatible type comparisons without raising `TypeError`.
-  - Added comprehensive test suite in `tests/test_ifeval_parsing.py` covering operand parsing, expression evaluation, attribute substitution, type safety, and nested preprocessor block stack integration.
-* **Test Coverage Expansion — AST Nodes & Block Transformer**:
-  - Added comprehensive unit tests in `tests/test_nodes_unit.py` covering `to_dict()`, `get_child_collections()`, property accessors, and `append()` for 18 AST node subclasses: `Title`, `Author`, `Revision`, `FloatingTitle`, `Audio`, `Video`, `Button`, `Kbd`, `Menu`, `Verse`, `CalloutList`, `CalloutListItem`, `Break`, `PageBreak`, `ThematicBreak`, `Open`, `Listing` (property accessors), and `InlineStem`.
-  - Added unit tests in `tests/test_transformers_unit.py` covering multi-character block delimiter variants for quote, sidebar, and open blocks (`quote_4`–`quote_6`, `sidebar_5`–`sidebar_6`, `open_block_4`–`open_block_long`), legacy `--` open block deprecation warning, verbatim blocks (`literal_block`, `passthrough_block`, `outer_listing_block`), and table cell spec/alignment parsing.
-  - Added end-to-end block parsing tests in `tests/test_blocks_parsing.py` for extended delimiter sequences (`*****`, `______`, `~~~~~`).
-  - Added `test_legacy_open_block_strict_mode_never_errors` regression guard to `tests/test_strict_parsing.py`, asserting that the `--` open block delimiter emits a `DeprecationWarning` in both strict and permissive modes and does **not** raise `AsciiDocSyntaxError` under `strict=True` in either mode, documenting the perpetual-deprecation policy.
-* **Cross-Document References Resolution**:
-  - Implemented `WorkspaceCatalog` global symbol table for indexing anchor IDs and document roots across multi-file AsciiDoc workspaces.
-  - Implemented 3-tier fallback reference resolution in `ASGResolver.visit_ref()`: explicit file target, local implicit match, and global workspace lookup.
-  - Implemented `WorkspaceBuilder` orchestrator for 3-pass directory parsing (scan → index → resolve) with `base_dir`-aware include resolution.
-  - Extended `Ref` node with semantic tracking attributes (`resolved_strategy`, `resolved_file_target`, `resolved_anchor_target`, `target_node_instance`) and safe `to_dict()` serialization excluding live object pointers.
-  - Exported `WorkspaceCatalog`, `WorkspaceBuilder`, and `ASGResolver` at the top level of the `asciidoctrine` package.
-* **Documentation & Docstrings**:
-  - Added comprehensive AsciiDoc-native docstrings to `WorkspaceCatalog`, `ASGResolver`, `WorkspaceBuilder`, and `Ref` with description lists, code examples, and attribute documentation.
-  - Added Multi-File Workspace Resolution quick-start section with `WorkspaceBuilder` usage example to `docs/index.adoc`.
-  - Added Multi-File Workspace Resolution Architecture section and ADR-004 to `docs/architecture.adoc`.
+  - Added `ifeval::[expression]` conditional preprocessor directive with string/numeric/boolean comparison evaluation and attribute substitution.
+* **Cross-Document References & Multi-File Workspace Resolution**:
+  - Added global `WorkspaceCatalog` symbol table, 3-pass `WorkspaceBuilder` orchestrator, and multi-file cross-reference resolution.
+* **AST Node & Transformer Test Coverage**:
+  - Expanded unit test coverage for 18 AST node classes, multi-character block delimiters, legacy `--` open block warnings, and table cell alignment.
+* **Documentation & Styling Updates**:
+  - Dogfooded span roles, docinfo stylesheets, and cross-references across all project documentation.
 
 === Changed
-* **Preprocessor Technical Debt & Architecture Refactoring**:
-  - Implemented quote-aware tokenizer `_split_ifeval_expression()` in `Preprocessor` to replace naive regex splitting, correctly handling operator literals inside quoted strings (e.g. `ifeval::["a == b" == "a == b"]`).
-  - Introduced `ConditionalFrame` dataclass and `ConditionalStack` manager to track nested conditional blocks (`ifdef`, `ifndef`, `ifeval`) and validate named `endif` directives (e.g. `endif::backend[]`).
-  - Implemented `strict=True` validation raising `PreprocessorError` on mismatched `endif` targets, while issuing `PreprocessorWarning` in permissive mode (`strict=False`).
-  - Decomposed preprocessor source loop by extracting conditional directive matching into helper method `_try_handle_conditional_directive()`.
-* **Repository Root & Documentation Cleanup**:
-  - Consolidated architectural decision records into `docs/architecture.adoc` and removed duplicate `ARCHITECTURE.adoc` from repository root.
-  - Relocated full feature matrix to `docs/feature-matrix.adoc` and removed root `FEATURE_MATRIX.adoc`.
-  - Moved utility scripts (`regenerate_tck_additions.py`, `run_examples.py`) into the `bin/` directory and added `bin/README.adoc`.
-  - Audited and cleaned up obsolete planning documents (`TECHNICAL-DEBT.adoc`, `TCK-REQUIREMENTS.adoc`, `task.md`, and plan files).
+* **Preprocessor Architecture**: Refactored expression tokenization (`_split_ifeval_expression`) and introduced `ConditionalStack` for robust nested directive validation.
+* **Repository Cleanup**: Consolidated architecture records and feature matrix into `docs/`, reorganized utility scripts into `bin/`, and removed obsolete planning documentation.
 
 == link:https://pypi.org/project/asciidoctrine/0.1.0a11/[0.1.0a11] - 2026-07-23
 

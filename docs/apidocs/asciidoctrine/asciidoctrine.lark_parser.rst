@@ -466,7 +466,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.lark_parser.build_uri_terminal
       :parser: sphinx_asciidoctrine.parser
 
-.. py:function:: parse_to_ast(source: str, grammar_file: str = DEFAULT_GRAMMAR, base_dir: typing.Optional[str] = None, safe_mode: bool = True, preprocess_directives: bool = True, strict: bool = True, extra_authority_schemes: typing.Optional[typing.List[str]] = None, extra_opaque_schemes: typing.Optional[typing.List[str]] = None) -> asciidoctrine.nodes.Document
+.. py:function:: parse_to_ast(source: str, grammar_file: str = DEFAULT_GRAMMAR, base_dir: typing.Optional[str] = None, safe_mode: int = 0, preprocess_directives: bool = True, strict: bool = True, extra_authority_schemes: typing.Optional[typing.List[str]] = None, extra_opaque_schemes: typing.Optional[typing.List[str]] = None) -> asciidoctrine.nodes.Document
    :canonical: asciidoctrine.lark_parser.parse_to_ast
 
    .. autodoc2-docstring:: asciidoctrine.lark_parser.parse_to_ast

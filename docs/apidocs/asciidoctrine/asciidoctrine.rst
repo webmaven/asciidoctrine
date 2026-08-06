@@ -53,7 +53,7 @@ API
 
 .. py:data:: __all__
    :canonical: asciidoctrine.__all__
-   :value: ['parse_to_ast', 'AsciiDocSyntaxError', 'serialize_to_asciidoc', 'Node', 'Document', 'Section', 'Par...
+   :value: ['parse_to_ast', 'AsciiDocSyntaxError', 'serialize_to_asciidoc', 'Node', 'Docinfo', 'Document', 'Sec...
 
    .. autodoc2-docstring:: asciidoctrine.__all__
       :parser: sphinx_asciidoctrine.parser

@@ -1,6 +1,7 @@
 = AsciiDoctrine Documentation
 Michael R. Bernstein <zopemaven@gmail.com>
 v0.1.0
+:docinfo: shared
 
 Welcome to the official documentation for *AsciiDoctrine*, a native Python implementation of the AsciiDoc Language Specification.
 
@@ -43,7 +44,7 @@ from asciidoctrine.resolver import ASGResolver
 
 source = """
 == Section Title
-This is a *bold* word in a paragraph.
+This is a *bold* word and a [.highlight]#key concept# in a paragraph.
 """
 
 # 1. Parse raw source to syntax-level AST
@@ -118,7 +119,18 @@ Calling `asg.to_dict()` yields a structured, spec-compliant representation match
                 { "name": "text", "type": "string", "value": "bold" }
               ]
             },
-            { "name": "text", "type": "string", "value": " word in a paragraph." }
+            { "name": "text", "type": "string", "value": " word and a " },
+            {
+              "name": "span",
+              "type": "inline",
+              "variant": "mark",
+              "form": "constrained",
+              "inlines": [
+                { "name": "text", "type": "string", "value": "key concept" }
+              ],
+              "attributes": { "role": "highlight" }
+            },
+            { "name": "text", "type": "string", "value": " in a paragraph." }
           ]
         }
       ]
@@ -144,10 +156,10 @@ changelog
 apidocs/index
 --
 
-* link:architecture.html[Architecture & Design Guide]: The parser pipeline, Earley algorithm details, and location tracking mechanics.
-* link:how-to-custom-renderer.html[Custom ASG Renderer Tutorial]: Walkthrough and fully executable Python implementation of a custom Markdown converter.
-* link:feature-matrix.html[Feature Matrix]: Complete comparison of supported language features, specification documents, and test coverage.
-* link:contributing.html[Contributor's Guide]: Virtualenv setup, Pytest protocols, Mypy type checks, and pre-release packaging verification checklists.
+* xref:architecture.adoc[Architecture & Design Guide]: The parser pipeline, Earley algorithm details, and location tracking mechanics.
+* xref:how-to-custom-renderer.adoc[Custom ASG Renderer Tutorial]: Walkthrough and fully executable Python implementation of a custom Markdown converter.
+* xref:feature-matrix.adoc[Feature Matrix]: Complete comparison of supported language features, specification documents, and test coverage.
+* xref:contributing.adoc[Contributor's Guide]: Virtualenv setup, Pytest protocols, Mypy type checks, and pre-release packaging verification checklists.
 
 ---
 

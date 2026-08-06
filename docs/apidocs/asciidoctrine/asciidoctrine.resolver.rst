@@ -63,6 +63,12 @@ API
    .. autodoc2-docstring:: asciidoctrine.resolver.ASGResolver.__init__
       :parser: sphinx_asciidoctrine.parser
 
+   .. py:method:: _resolve_docinfo_files(doc: asciidoctrine.nodes.Document) -> tuple[str, str]
+      :canonical: asciidoctrine.resolver.ASGResolver._resolve_docinfo_files
+
+      .. autodoc2-docstring:: asciidoctrine.resolver.ASGResolver._resolve_docinfo_files
+         :parser: sphinx_asciidoctrine.parser
+
    .. py:method:: resolve(node: asciidoctrine.nodes.Node) -> typing.Dict[str, typing.Any]
       :canonical: asciidoctrine.resolver.ASGResolver.resolve
 

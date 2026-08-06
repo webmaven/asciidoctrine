@@ -638,6 +638,85 @@ class TestInlines(unittest.TestCase):
         serialized_triple = AsciiDocSerializerVisitor().serialize(node_triple)
         self.assertEqual(serialized_triple, "+++raw_html_triple+++")
 
+    def test_marked_and_span_roles(self) -> None:
+        # 1. Bare marked text
+        source = "#text#\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        span = ast["blocks"][0]["inlines"][0]
+        self.assertEqual(span["name"], "span")
+        self.assertEqual(span["variant"], "mark")
+        self.assertEqual(span["form"], "constrained")
+        self.assertEqual(span["inlines"][0]["value"], "text")
+
+        # 2. Single role on marked text
+        source = "[.underline]#text#\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        span = ast["blocks"][0]["inlines"][0]
+        self.assertEqual(span["name"], "span")
+        self.assertEqual(span["variant"], "mark")
+        self.assertEqual(span["attributes"]["role"], "underline")
+        self.assertEqual(span["inlines"][0]["value"], "text")
+
+        # 3. Multiple roles on marked text
+        source = "[.role1.role2]#text#\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        span = ast["blocks"][0]["inlines"][0]
+        self.assertEqual(span["attributes"]["role"], "role1 role2")
+
+        # 4. Role + ID on marked text
+        source = "[#myid.highlight]#text#\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        span = ast["blocks"][0]["inlines"][0]
+        self.assertEqual(span["attributes"]["id"], "myid")
+        self.assertEqual(span["attributes"]["role"], "highlight")
+
+        # 5. Unconstrained marked text
+        source = "##text##\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        span = ast["blocks"][0]["inlines"][0]
+        self.assertEqual(span["name"], "span")
+        self.assertEqual(span["variant"], "mark")
+        self.assertEqual(span["form"], "unconstrained")
+        self.assertEqual(span["inlines"][0]["value"], "text")
+
+        # 6. Unconstrained marked text with role
+        source = "[.line-through]##struck##\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        span = ast["blocks"][0]["inlines"][0]
+        self.assertEqual(span["name"], "span")
+        self.assertEqual(span["variant"], "mark")
+        self.assertEqual(span["form"], "unconstrained")
+        self.assertEqual(span["attributes"]["role"], "line-through")
+
+        # 7. Role on bold
+        source = "[.important]*bold*\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        span = ast["blocks"][0]["inlines"][0]
+        self.assertEqual(span["variant"], "strong")
+        self.assertEqual(span["attributes"]["role"], "important")
+
+        # 8. Role on italic
+        source = "[.cite]_italic_\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        span = ast["blocks"][0]["inlines"][0]
+        self.assertEqual(span["variant"], "emphasis")
+        self.assertEqual(span["attributes"]["role"], "cite")
+
+        # 9. Docutils backend role class mapping
+        from asciidoctrine.docutils_backend import asciidoc_to_docutils
+
+        # 9a. Marked text with role -> inline node with CSS class
+        doc1 = asciidoc_to_docutils("[.line-through]##struck##\n")
+        para1 = doc1[0]
+        span1 = para1[0]
+        self.assertIn("line-through", span1["classes"])
+
+        # 9b. Bold with role -> strong node with CSS class
+        doc2 = asciidoc_to_docutils("[.important]*bold*\n")
+        para2 = doc2[0]
+        span2 = para2[0]
+        self.assertIn("important", span2["classes"])
+
 
 if __name__ == "__main__":
     unittest.main()

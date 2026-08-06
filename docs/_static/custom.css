@@ -143,3 +143,86 @@ a:hover, a:active {
 .admonition.note .admonition-title, .admonition.todo .admonition-title {
     background-color: #2d6a4f !important;
 }
+
+/* ============================================================
+   Span Role Styles (dogfooding asciidoctrine span roles feature)
+   ============================================================ */
+
+/* Highlighted / marked text */
+span.highlight {
+    background-color: #fff3cd !important;
+    padding: 0.1em 0.3em;
+    border-radius: 0.2em;
+    color: #856404 !important;
+}
+
+/* Deprecated / struck-through text */
+span.deprecated {
+    text-decoration: line-through;
+    color: #6c757d !important;
+}
+
+/* Feature Matrix: Fully Supported */
+span.status-full {
+    color: #155724 !important;
+    font-weight: bold;
+    background-color: #d4edda !important;
+    padding: 0.15em 0.4em;
+    border-radius: 0.2em;
+}
+
+/* Feature Matrix: Partially Supported */
+span.status-partial {
+    color: #856404 !important;
+    font-weight: bold;
+    background-color: #fff3cd !important;
+    padding: 0.15em 0.4em;
+    border-radius: 0.2em;
+}
+
+/* Feature Matrix: Not Supported */
+span.status-none {
+    color: #721c24 !important;
+    font-weight: bold;
+    background-color: #f8d7da !important;
+    padding: 0.15em 0.4em;
+    border-radius: 0.2em;
+}
+
+/* Important / warning inline emphasis */
+span.important {
+    color: #721c24 !important;
+    font-weight: bold;
+}
+
+/* Default mark/highlight class (bare #text#) */
+span.mark {
+    background-color: #fff3cd !important;
+    padding: 0.1em 0.2em;
+    border-radius: 0.15em;
+}
+
+/* Line-through role */
+span.line-through {
+    text-decoration: line-through;
+}
+
+/* Underline role */
+span.underline {
+    text-decoration: underline;
+}
+
+/* Overline role */
+span.overline {
+    text-decoration: overline;
+}
+
+
+/* Link colors inside status badge spans */
+span.status-full a, span.status-full a:visited {
+    color: #155724 !important;
+    text-decoration: none !important;
+}
+span.status-full a:hover {
+    text-decoration: underline !important;
+}

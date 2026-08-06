@@ -228,7 +228,7 @@ To facilitate producing a TCK-compliant Resolved Abstract Semantic Graph (ASG), 
 - `Document`: `{"name": "document", "type": "block", "blocks": [], "attributes": {}, "header": {}}`
 - `Paragraph`: `{"name": "paragraph", "type": "block", "inlines": []}`
 - `Text`: `{"name": "text", "type": "string", "value": "text content"}`
-- `Span`: `{"name": "span", "type": "inline", "variant": "strong|emphasis|code", "form": "constrained", "inlines": []}`
+- `Span`: `{"name": "span", "type": "inline", "variant": "strong|emphasis|code|mark", "form": "constrained|unconstrained", "inlines": [], "attributes": {"role": "class1 class2"}}` (roles are stored in `attributes["role"]` as a space-delimited string when applied via `[.role]#text#` syntax)
 - `Section`: `{"name": "section", "type": "block", "level": 1, "title": [], "blocks": []}`
 - `List`: `{"name": "list", "type": "block", "variant": "unordered|ordered", "marker": "*|.", "items": []}`
 - `ListItem`: `{"name": "listItem", "type": "block", "principal": [], "blocks": []}`
@@ -328,6 +328,13 @@ To facilitate producing a TCK-compliant Resolved Abstract Semantic Graph (ASG), 
   - In `strict=False`: identical behaviour — successful parse + `DeprecationWarning`.
 - **Testing**: A regression guard test `test_legacy_open_block_strict_mode_never_errors` in `tests/test_strict_parsing.py` asserts both halves of this contract. It must not be removed or weakened.
 - **Contrast with other strict errors**: All other `ASTSyntaxAuditor`-enforced errors (malformed attribute lists, unclosed anchors, missing macro brackets, bad dlist markers, malformed table cell specifiers) represent genuinely broken syntax that has a plausible but incorrect fallback parse. The `--` delimiter is not broken — it is valid but superseded syntax, which is why it belongs in the deprecation-warning category rather than the strict-error category.
+
+### 11. WORD Terminal Exclusion of `#`, `^`, and `~` for Marked/Superscript/Subscript Parsing
+- **Problem**: When attempting to parse constrained marked text (`#text#`), unconstrained marked text (`##text##`), superscript (`^text^`), or subscript (`~text~`), the `WORD` terminal greedily consumed the delimiter characters as part of normal word content. This prevented the Earley parser from ever seeing the delimiters as rule boundaries.
+- **Cause**: The `WORD` terminal regex `/[^ \t\n*_`=\[\]{}:<>+()]+/` did not exclude `#`, `^`, or `~`. Lark's lexer tokenized `#text#` as a single `WORD("#text#")` token, so the `marked` rule's `HASH inline_content HASH` pattern had no individual `HASH` tokens to match against.
+- **What Didn't Work**: Raising the priority of the `marked` or `HASH` terminal did not help because the problem was at the lexer level — the characters were never tokenized separately.
+- **Solution**: Updated the `WORD` terminal regex to `/[^ \t\n*_`=\[\]{}:<>+()#^~]+/`, explicitly excluding `#`, `^`, and `~`. This forces the lexer to emit these characters as individual tokens, allowing the `marked`, `unconstrained_marked`, `superscript`, and `subscript` grammar rules to match correctly. The `unconstrained_marked` rule uses literal `"##"` at priority `.3`, consistent with other unconstrained inline formatting rules (`unconstrained_bold.3`, `unconstrained_italic.3`, `unconstrained_monospace.3`).
+- **Design Decision — Literal `"##"` vs. Dedicated Terminal**: The `unconstrained_marked` rule uses the literal string `"##"` rather than a dedicated `DOUBLEHASH` terminal. This is consistent with how `unconstrained_bold` uses `"**"`, `unconstrained_italic` uses `"__"`, and `unconstrained_monospace` uses ` "``" `. Lark decomposes multi-character literals into individual token sequences during lexing, which is the desired behavior for Earley parsing. A dedicated terminal would only be warranted if there were other grammar contexts that needed to match the exact sequence `##` as a single lexer token — and there are none.
 
 
 ## 🤖 Subagent & Model Routing Strategy

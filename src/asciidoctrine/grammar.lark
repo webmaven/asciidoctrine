@@ -169,10 +169,10 @@ attribute_reference.2: LBRACE ATTR_NAME RBRACE
 
 ?base_inline: attribute_reference | inline_attribute_list | double_quoted | single_quoted | inline_image | icon_inline | inline_indexterm_macro | inline_indexterm_flow_triple | inline_indexterm_flow_double | inline_anchor | inline_xref | inline_bibref | inline_link | bare_url_link | bare_email_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | inline_pass_macro | inline_triple_plus | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | BACKTICK | LT | GT | PLUS | LPAR | RPAR
 
-?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | marked | superscript | subscript | footnote | footnoteref | base_inline | RSQB | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
+?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | unconstrained_marked | marked | superscript | subscript | footnote | footnoteref | base_inline | RSQB | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
 
 footnote_text_content: footnote_inline_element+
-?footnote_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | marked | superscript | subscript | footnote | footnoteref | base_inline | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
+?footnote_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | unconstrained_marked | marked | superscript | subscript | footnote | footnoteref | base_inline | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
 
 inline_break: INLINE_BREAK
 inline_kbd.10: "kbd:[" ATTR_LIST_CONTENT "]"
@@ -233,25 +233,29 @@ MONOSPACE_TEXT: /[^`{\n]+/ | "{"
 UNCONSTRAINED_MONOSPACE_TEXT: /([^`{\n]|`[^`])+/ | "{"
 
 marked.2: HASH marked_content HASH
+unconstrained_marked.3: "##" unconstrained_marked_content "##"
 superscript.2: CIRCUMFLEX superscript_content CIRCUMFLEX
 subscript.2: TILDE subscript_content TILDE
 double_quoted: "\"`" text_content "`\""
 single_quoted: "'`" text_content "`'"
 
 bold_content: bold_inline_element+
-?bold_inline_element: unconstrained_italic | italic | unconstrained_monospace | monospace | marked | superscript | subscript | footnote | footnoteref | base_inline | RSQB | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
+?bold_inline_element: unconstrained_italic | italic | unconstrained_monospace | monospace | unconstrained_marked | marked | superscript | subscript | footnote | footnoteref | base_inline | RSQB | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
 
 italic_content: italic_inline_element+
-?italic_inline_element: unconstrained_bold | bold | unconstrained_monospace | monospace | marked | superscript | subscript | footnote | footnoteref | base_inline | RSQB | ASTERISK | CIRCUMFLEX | TILDE | HASH
+?italic_inline_element: unconstrained_bold | bold | unconstrained_monospace | monospace | unconstrained_marked | marked | superscript | subscript | footnote | footnoteref | base_inline | RSQB | ASTERISK | CIRCUMFLEX | TILDE | HASH
 
 marked_content: marked_inline_element+
 ?marked_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | superscript | subscript | footnote | footnoteref | base_inline | RSQB | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE
 
+unconstrained_marked_content: unconstrained_marked_inline_element+
+?unconstrained_marked_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | marked | superscript | subscript | footnote | footnoteref | base_inline | RSQB | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE
+
 superscript_content: superscript_inline_element+
-?superscript_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | marked | subscript | footnote | footnoteref | base_inline | RSQB | ASTERISK | UNDERSCORE | TILDE | HASH
+?superscript_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | unconstrained_marked | marked | subscript | footnote | footnoteref | base_inline | RSQB | ASTERISK | UNDERSCORE | TILDE | HASH
 
 subscript_content: subscript_inline_element+
-?subscript_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | marked | superscript | footnote | footnoteref | base_inline | RSQB | ASTERISK | UNDERSCORE | CIRCUMFLEX | HASH
+?subscript_inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | unconstrained_marked | marked | superscript | footnote | footnoteref | base_inline | RSQB | ASTERISK | UNDERSCORE | CIRCUMFLEX | HASH
 
 
 // --- Terminals ---
@@ -325,7 +329,7 @@ WHITESPACE: _WS+
 NUMBER: /[0-9]+/
 ATTR_NAME: /[a-zA-Z0-9_\-]+/
 FN_ID: /[a-zA-Z0-9_\-]+/
-WORD: /[^ \t\n*_`=\[\]{}:<>+()]+/  // Word characters (not whitespace or markup or parentheses)
+WORD: /[^ \t\n*_`=\[\]{}:<>+()#^~]+/  // Word characters (not whitespace or markup or parentheses)
 LBRACE: "{"
 RBRACE: "}"
 LSQB: "["

@@ -5,8 +5,9 @@ v0.1.0
 :idseparator: -
 :sectanchors:
 :sectlinks:
+:docinfo: shared
 
-This tutorial demonstrates how to traverse and render the resolved Abstract Semantic Graph (ASG) produced by **AsciiDoctrine**. We will build a complete, object-oriented **Markdown Renderer** from scratch using Python.
+This tutorial demonstrates how to traverse and render the resolved Abstract Semantic Graph (ASG) produced by *AsciiDoctrine*. We will build a complete, object-oriented *Markdown Renderer* from scratch using Python.
 
 ---
 
@@ -90,7 +91,7 @@ class MarkdownRenderer:
         return node.get("value", "")
 
     def render_span(self, node: Dict[str, Any]) -> str:
-        # Spans represent formatting wraps like bold, italic, or monospace
+        # Spans represent formatting wraps like bold, italic, monospace, or marked text
         variant = node.get("variant", "text")
         inlines = [self.render(i) for i in node.get("inlines", [])]
         content = "".join(inlines)
@@ -101,6 +102,10 @@ class MarkdownRenderer:
             return f"*{content}*"
         elif variant == "code":
             return f"`{content}`"
+        elif variant == "mark":
+            # Marked/highlighted text — render with == (GFM highlight) or fallback
+            # Roles are available in node["attributes"]["role"] if present
+            return f"=={content}=="
         return content
 
     def render_listing(self, node: Dict[str, Any]) -> str:
@@ -147,7 +152,7 @@ asciidoc_source = """
 :author: Jane Doe
 
 == Overview
-This is a *bold* word and a `monospace` term in a paragraph.
+This is a *bold* word, a `monospace` term, and a [.highlight]#highlighted phrase# in a paragraph.
 
 === Syntax Parity List
 * Admonitions
@@ -178,7 +183,7 @@ Expected Output:
 ----
 # Overview
 
-This is a **bold** word and a `monospace` term in a paragraph.
+This is a **bold** word, a `monospace` term, and a ==highlighted phrase== in a paragraph.
 
 ## Syntax Parity List
 

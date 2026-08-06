@@ -5,6 +5,7 @@ v0.1.0
 :idseparator: -
 :sectanchors:
 :sectlinks:
+:docinfo: shared
 
 This document provides a deep dive into the design and architectural choices behind *AsciiDoctrine*. It is intended for both advanced users and core package contributors.
 

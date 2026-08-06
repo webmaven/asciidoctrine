@@ -201,6 +201,12 @@ class InlineTransformer(BaseTransformer):
         return cast(PyList[Node], self.text_content(meta, children))
 
     @v_args(meta=True)
+    def unconstrained_marked_content(
+        self, meta: Any, children: PyList[Any]
+    ) -> PyList[Node]:
+        return cast(PyList[Node], self.text_content(meta, children))
+
+    @v_args(meta=True)
     def superscript_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
         return cast(PyList[Node], self.text_content(meta, children))
 
@@ -276,7 +282,22 @@ class InlineTransformer(BaseTransformer):
 
     @v_args(meta=True)
     def marked(self, meta: Any, children: PyList[Any]) -> Span:
-        span = Span(variant="mark", inlines=children[0] if children else [])
+        content = [c for c in children if isinstance(c, list)]
+        span = Span(
+            variant="mark",
+            form="constrained",
+            inlines=content[0] if content else [],
+        )
+        return cast(Span, self._set_location_from_children(span, children))
+
+    @v_args(meta=True)
+    def unconstrained_marked(self, meta: Any, children: PyList[Any]) -> Span:
+        content = [c for c in children if isinstance(c, list)]
+        span = Span(
+            variant="mark",
+            form="unconstrained",
+            inlines=content[0] if content else [],
+        )
         return cast(Span, self._set_location_from_children(span, children))
 
     @v_args(meta=True)
