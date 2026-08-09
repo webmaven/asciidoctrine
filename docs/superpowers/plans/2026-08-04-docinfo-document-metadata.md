@@ -48,7 +48,9 @@ def test_resolve_docinfo_files_shared_head():
         preprocessor = Preprocessor(base_dir=tmpdir)
         preprocessor.attributes["docinfo"] = "shared"
 
-        head, footer = preprocessor._resolve_docinfo_files(os.path.join(tmpdir, "main.adoc"))
+        head, footer = preprocessor._resolve_docinfo_files(
+            os.path.join(tmpdir, "main.adoc")
+        )
         assert "<meta name='author' content='Test Author'>" in head
         assert footer == ""
 ```
@@ -63,81 +65,97 @@ Expected: FAIL with "AttributeError: 'Preprocessor' object has no attribute '_re
 In `src/asciidoctrine/preprocessor.py`:
 
 ```python
-    def _resolve_docinfo_files(self, current_file: str) -> tuple[str, str]:
-        """
-        Discovers and reads docinfo files based on :docinfo:, :docinfodir:, and current_file.
-        Returns tuple of (head_content, footer_content).
-        """
-        docinfo_attr = self.attributes.get("docinfo", "").strip()
-        if not docinfo_attr:
-            return ("", "")
+def _resolve_docinfo_files(self, current_file: str) -> tuple[str, str]:
+    """
+    Discovers and reads docinfo files based on :docinfo:, :docinfodir:, and current_file.
+    Returns tuple of (head_content, footer_content).
+    """
+    docinfo_attr = self.attributes.get("docinfo", "").strip()
+    if not docinfo_attr:
+        return ("", "")
 
-        docinfodir = self.attributes.get("docinfodir", "").strip()
-        if docinfodir:
-            target_dir = os.path.abspath(os.path.join(self.base_dir, docinfodir))
-        else:
-            target_dir = os.path.dirname(current_file) if current_file != "<root>" else self.base_dir
+    docinfodir = self.attributes.get("docinfodir", "").strip()
+    if docinfodir:
+        target_dir = os.path.abspath(os.path.join(self.base_dir, docinfodir))
+    else:
+        target_dir = (
+            os.path.dirname(current_file) if current_file != "<root>" else self.base_dir
+        )
 
-        if self.safe_mode:
-            try:
-                common = os.path.commonpath([self.base_dir, target_dir])
-                if common != self.base_dir:
-                    raise PreprocessorError(
-                        f"docinfodir '{target_dir}' attempts to access files outside the base directory '{self.base_dir}'"
-                    )
-            except ValueError:
+    if self.safe_mode:
+        try:
+            common = os.path.commonpath([self.base_dir, target_dir])
+            if common != self.base_dir:
                 raise PreprocessorError(
                     f"docinfodir '{target_dir}' attempts to access files outside the base directory '{self.base_dir}'"
                 )
+        except ValueError:
+            raise PreprocessorError(
+                f"docinfodir '{target_dir}' attempts to access files outside the base directory '{self.base_dir}'"
+            )
 
-        docname = os.path.splitext(os.path.basename(current_file))[0] if current_file != "<root>" else "document"
+    docname = (
+        os.path.splitext(os.path.basename(current_file))[0]
+        if current_file != "<root>"
+        else "document"
+    )
 
-        modes = [m.strip() for m in docinfo_attr.split(",") if m.strip()]
-        include_shared = "shared" in modes or "shared-head" in modes or "shared-footer" in modes or "both" in modes
-        include_private = "private" in modes or "private-head" in modes or "private-footer" in modes or "both" in modes
+    modes = [m.strip() for m in docinfo_attr.split(",") if m.strip()]
+    include_shared = (
+        "shared" in modes
+        or "shared-head" in modes
+        or "shared-footer" in modes
+        or "both" in modes
+    )
+    include_private = (
+        "private" in modes
+        or "private-head" in modes
+        or "private-footer" in modes
+        or "both" in modes
+    )
 
-        head_parts: list[str] = []
-        footer_parts: list[str] = []
+    head_parts: list[str] = []
+    footer_parts: list[str] = []
 
-        exts = [".html", ".xml"]
+    exts = [".html", ".xml"]
 
-        # Shared head
-        if include_shared or "shared-head" in modes:
-            for ext in exts:
-                path = os.path.join(target_dir, f"docinfo{ext}")
-                if os.path.isfile(path):
-                    with open(path, "r", encoding="utf-8") as f:
-                        head_parts.append(f.read())
-                    break
+    # Shared head
+    if include_shared or "shared-head" in modes:
+        for ext in exts:
+            path = os.path.join(target_dir, f"docinfo{ext}")
+            if os.path.isfile(path):
+                with open(path, "r", encoding="utf-8") as f:
+                    head_parts.append(f.read())
+                break
 
-        # Private head
-        if include_private or "private-head" in modes:
-            for ext in exts:
-                path = os.path.join(target_dir, f"{docname}-docinfo{ext}")
-                if os.path.isfile(path):
-                    with open(path, "r", encoding="utf-8") as f:
-                        head_parts.append(f.read())
-                    break
+    # Private head
+    if include_private or "private-head" in modes:
+        for ext in exts:
+            path = os.path.join(target_dir, f"{docname}-docinfo{ext}")
+            if os.path.isfile(path):
+                with open(path, "r", encoding="utf-8") as f:
+                    head_parts.append(f.read())
+                break
 
-        # Shared footer
-        if include_shared or "shared-footer" in modes:
-            for ext in exts:
-                path = os.path.join(target_dir, f"docinfo-footer{ext}")
-                if os.path.isfile(path):
-                    with open(path, "r", encoding="utf-8") as f:
-                        footer_parts.append(f.read())
-                    break
+    # Shared footer
+    if include_shared or "shared-footer" in modes:
+        for ext in exts:
+            path = os.path.join(target_dir, f"docinfo-footer{ext}")
+            if os.path.isfile(path):
+                with open(path, "r", encoding="utf-8") as f:
+                    footer_parts.append(f.read())
+                break
 
-        # Private footer
-        if include_private or "private-footer" in modes:
-            for ext in exts:
-                path = os.path.join(target_dir, f"{docname}-docinfo-footer{ext}")
-                if os.path.isfile(path):
-                    with open(path, "r", encoding="utf-8") as f:
-                        footer_parts.append(f.read())
-                    break
+    # Private footer
+    if include_private or "private-footer" in modes:
+        for ext in exts:
+            path = os.path.join(target_dir, f"{docname}-docinfo-footer{ext}")
+            if os.path.isfile(path):
+                with open(path, "r", encoding="utf-8") as f:
+                    footer_parts.append(f.read())
+                break
 
-        return ("\n".join(head_parts), "\n".join(footer_parts))
+    return ("\n".join(head_parts), "\n".join(footer_parts))
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
@@ -265,7 +283,9 @@ def test_preprocessor_attaches_docinfo():
         preprocessor.process(source)
 
         assert preprocessor.docinfo is not None
-        assert "<script>console.log('test');</script>" in preprocessor.docinfo.head_content
+        assert (
+            "<script>console.log('test');</script>" in preprocessor.docinfo.head_content
+        )
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -320,7 +340,9 @@ def test_resolver_substitutes_attributes_in_docinfo():
     resolved_doc = resolver.resolve(doc)
 
     assert resolved_doc.docinfo is not None
-    assert "<meta name='author' content='Jane Doe'>" in resolved_doc.docinfo.head_content
+    assert (
+        "<meta name='author' content='Jane Doe'>" in resolved_doc.docinfo.head_content
+    )
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
