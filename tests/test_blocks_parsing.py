@@ -973,6 +973,72 @@ Second paragraph.
         self.assertEqual(len(resolved["blocks"]), 3)
         self.assertEqual(resolved["blocks"][1]["name"], "page_break")
 
+    def test_quote_and_verse_attribution_and_citetitle(self):
+        from asciidoctrine.resolver import ASGResolver
+
+        # 1. Delimited quote with positional attributes [quote, author, title]
+        source_quote_pos = (
+            '[quote, Antoine de Saint-Exupéry, "Airman\'s Odyssey"]\n'
+            "____\n"
+            "It is in the compelling zest of high adventure...\n"
+            "____\n"
+        )
+        doc = parse_to_ast(source_quote_pos)
+        ast = self._strip_locations(doc.to_dict())
+        quote_node = ast["blocks"][0]
+        self.assertEqual(quote_node["name"], "quote")
+        self.assertEqual(quote_node["attribution"], "Antoine de Saint-Exupéry")
+        self.assertEqual(quote_node["citetitle"], "Airman's Odyssey")
+
+        asg = ASGResolver(doc).resolve(doc)
+        asg_quote = asg["blocks"][0]
+        self.assertEqual(asg_quote["name"], "quote")
+        self.assertEqual(asg_quote["attribution"], "Antoine de Saint-Exupéry")
+        self.assertEqual(asg_quote["citetitle"], "Airman's Odyssey")
+
+        # 2. Delimited quote with named attributes [attribution="...", citetitle="..."]
+        source_quote_named = (
+            '[attribution="Albert Einstein", citetitle="Relativity"]\n'
+            "____\n"
+            "Imagination is more important than knowledge.\n"
+            "____\n"
+        )
+        doc_named = parse_to_ast(source_quote_named)
+        asg_named = ASGResolver(doc_named).resolve(doc_named)
+        quote_named = asg_named["blocks"][0]
+        self.assertEqual(quote_named["name"], "quote")
+        self.assertEqual(quote_named["attribution"], "Albert Einstein")
+        self.assertEqual(quote_named["citetitle"], "Relativity")
+
+        # 3. Delimited verse with positional attributes [verse, author, title]
+        source_verse_pos = (
+            '[verse, Carl Sandburg, "Fog"]\n'
+            "____\n"
+            "The fog comes\n"
+            "on little cat feet.\n"
+            "____\n"
+        )
+        doc_verse = parse_to_ast(source_verse_pos)
+        asg_verse = ASGResolver(doc_verse).resolve(doc_verse)
+        verse_node = asg_verse["blocks"][0]
+        self.assertEqual(verse_node["name"], "verse")
+        self.assertEqual(verse_node["attribution"], "Carl Sandburg")
+        self.assertEqual(verse_node["citetitle"], "Fog")
+
+        # 4. Paragraph quote with positional attributes
+        source_para_quote = (
+            "[quote, Douglas Adams, The Hitchhiker's Guide to the Galaxy]\n"
+            "Don't Panic.\n"
+        )
+        doc_pq = parse_to_ast(source_para_quote)
+        asg_pq = ASGResolver(doc_pq).resolve(doc_pq)
+        pq_node = asg_pq["blocks"][0]
+        self.assertEqual(pq_node["name"], "quote")
+        self.assertEqual(pq_node["attribution"], "Douglas Adams")
+        self.assertEqual(
+            pq_node["citetitle"], "The Hitchhiker's Guide to the Galaxy"
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

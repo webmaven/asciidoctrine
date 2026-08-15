@@ -54,6 +54,8 @@ class Node:
             "align",
             "valign",
             "style",
+            "attribution",
+            "citetitle",
             "resolved_strategy",
             "resolved_file_target",
             "resolved_anchor_target",
@@ -998,7 +1000,12 @@ class Quote(BlockNode):
         return {"blocks": self.blocks}
 
     def __init__(
-        self, blocks: Optional[Sequence[Node]] = None, delimiter: str = "____"
+        self,
+        blocks: Optional[Sequence[Node]] = None,
+        delimiter: str = "____",
+        attribution: Optional[str] = None,
+        citetitle: Optional[str] = None,
+        attributes: Optional[Dict[str, Any]] = None,
     ):
         super().__init__()
         self.name = "quote"
@@ -1006,6 +1013,9 @@ class Quote(BlockNode):
         self.form = "delimited"
         self.delimiter = delimiter
         self.blocks: PyList[Node] = list(blocks) if blocks else []
+        self.attribution: Optional[str] = attribution
+        self.citetitle: Optional[str] = citetitle
+        self.attributes: Dict[str, Any] = attributes or {}
 
 
 class Admonition(BlockNode):
@@ -1053,7 +1063,12 @@ class Verse(BlockNode):
         return {"blocks": self.blocks}
 
     def __init__(
-        self, blocks: Optional[Sequence[Node]] = None, delimiter: Optional[str] = None
+        self,
+        blocks: Optional[Sequence[Node]] = None,
+        delimiter: Optional[str] = None,
+        attribution: Optional[str] = None,
+        citetitle: Optional[str] = None,
+        attributes: Optional[Dict[str, Any]] = None,
     ):
         super().__init__()
         self.name = "verse"
@@ -1061,6 +1076,9 @@ class Verse(BlockNode):
         self.form = "delimited" if delimiter else "paragraph"
         self.delimiter = delimiter
         self.blocks: PyList[Node] = list(blocks) if blocks else []
+        self.attribution: Optional[str] = attribution
+        self.citetitle: Optional[str] = citetitle
+        self.attributes: Dict[str, Any] = attributes or {}
 
 
 class Open(BlockNode):

@@ -433,6 +433,32 @@ class AsciiDocTransformer(
             collapsible_block.location = block.location
             block = collapsible_block
 
+        if isinstance(block, (Quote, Verse)):
+            # Extract attribution and citetitle
+            attrs = block.attributes
+            attribution = (
+                attrs.get("attribution")
+                or attrs.get("quote_author")
+                or attrs.get("author")
+            )
+            citetitle = (
+                attrs.get("citetitle")
+                or attrs.get("quote_title")
+                or attrs.get("title")
+            )
+            # Check positional attributes if not explicitly named
+            pos = attrs.get("positional", [])
+            # If style is quote or verse (first positional), then 2nd positional is attribution and 3rd is citetitle
+            if not attribution and len(pos) > 1:
+                attribution = pos[1]
+            if not citetitle and len(pos) > 2:
+                citetitle = pos[2]
+
+            if attribution:
+                block.attribution = attribution
+            if citetitle:
+                block.citetitle = citetitle
+
         return cast(BlockNode, self._set_location_from_children(block, children))
 
     @v_args(meta=True)
