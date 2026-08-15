@@ -931,6 +931,49 @@ Open block with 5 tildes
         self.assertEqual(op["name"], "open")
         self.assertEqual(op["delimiter"], "~~~~~")
 
+    def test_page_break(self):
+        source = """First paragraph.
+
+<<<
+
+Second paragraph.
+"""
+        doc = parse_to_ast(source)
+        ast = self._strip_locations(doc.to_dict())
+        self.assertEqual(len(ast["blocks"]), 3)
+        self.assertEqual(ast["blocks"][0]["name"], "paragraph")
+        self.assertEqual(ast["blocks"][1]["name"], "page_break")
+        self.assertEqual(ast["blocks"][1]["type"], "block")
+        self.assertEqual(ast["blocks"][2]["name"], "paragraph")
+
+        # Standalone page break
+        source_standalone = "<<<\n"
+        doc_standalone = parse_to_ast(source_standalone)
+        ast_standalone = self._strip_locations(doc_standalone.to_dict())
+        self.assertEqual(len(ast_standalone["blocks"]), 1)
+        self.assertEqual(ast_standalone["blocks"][0]["name"], "page_break")
+        self.assertEqual(ast_standalone["blocks"][0]["type"], "block")
+
+        # Page break with longer delimiter (e.g. <<<<)
+        source_long = "Para 1\n\n<<<<\n\nPara 2\n"
+        doc_long = parse_to_ast(source_long)
+        ast_long = self._strip_locations(doc_long.to_dict())
+        self.assertEqual(len(ast_long["blocks"]), 3)
+        self.assertEqual(ast_long["blocks"][1]["name"], "page_break")
+
+        # Page break location tracking
+        pb_node = doc.blocks[1]
+        self.assertIsNotNone(pb_node.location)
+        self.assertEqual(pb_node.location[0]["line"], 3)
+
+        # ASG Resolver preserves page break
+        from asciidoctrine.resolver import ASGResolver
+
+        resolved = ASGResolver(doc).resolve(doc)
+        self.assertEqual(len(resolved["blocks"]), 3)
+        self.assertEqual(resolved["blocks"][1]["name"], "page_break")
+
 
 if __name__ == "__main__":
     unittest.main()
+

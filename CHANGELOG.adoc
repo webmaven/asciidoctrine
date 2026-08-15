@@ -3,6 +3,10 @@
 
 == Unreleased
 
+=== Fixed
+* **Page Break Grammar Precedence (Issue #89)**:
+  - Ensured page break tokens (`<<<`) correctly parse to `PageBreak` AST nodes instead of being swallowed as literal paragraph text by defining `PAGE_BREAK_MARKER.20` terminal and increasing `page_break.20` rule precedence.
+
 == link:https://pypi.org/project/asciidoctrine/0.1.0a12/[0.1.0a12] - 2026-08-06
 
 === Added

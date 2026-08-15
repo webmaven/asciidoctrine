@@ -479,6 +479,14 @@ def test_thematic_break_conversion():
     assert isinstance(document[1], nodes.transition)
 
 
+def test_page_break_conversion():
+    source = "Paragraph 1\n\n<<<\n\nParagraph 2"
+    document = asciidoc_to_docutils(source)
+    assert len(document) == 3
+    assert isinstance(document[1], nodes.raw)
+    assert document[1].astext() == "<!-- page break -->"
+
+
 def test_asciidoc_to_docutils_fallbacks():
     # Test setting fallback when get_default_settings is not available
     # We patch docutils.frontend to emulate get_default_settings missing

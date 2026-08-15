@@ -159,7 +159,7 @@ quote_5.10: QUOTE_DELIM_5 _NEWLINE (example_block | admonition | sidebar | quote
 quote_6.10: QUOTE_DELIM_6 _NEWLINE (example_block | admonition | sidebar | quote_4 | quote_5 | basic_block)* QUOTE_DELIM_6 _NEWLINE?
 
 thematic_break: THEMATIC_BREAK_MARKER _NEWLINE
-page_break: "<<<" _NEWLINE
+page_break.20: PAGE_BREAK_MARKER _NEWLINE
 
 // --- Inline Elements ---
 // Using a recursive definition. Requires the Earley parser.
@@ -296,6 +296,7 @@ QUOTE_DELIM_6: "______"
 QUOTE_DELIM_LONG: /_{7,}/
 
 THEMATIC_BREAK_MARKER.5: /'{3,}|\*{3}(?!\*)|\*{5,}|-{3}(?!-)|-{5,}|(_ _ _)+|(\* \* \*)+|(- - -)+/
+PAGE_BREAK_MARKER.20: /<{3,}/
 
 // Non-greedy content matching for listing and literal blocks.
 LISTING_CONTENT: /(.+?)(?=\n-{4,})/s
