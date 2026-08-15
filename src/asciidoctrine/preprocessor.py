@@ -6,7 +6,7 @@ import os
 import re
 import warnings
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 
 class PreprocessorError(Exception):
@@ -80,7 +80,7 @@ class Preprocessor:
     def __init__(
         self,
         base_dir: Optional[str] = None,
-        safe_mode: bool = True,
+        safe_mode: Union[bool, int] = True,
         preprocess_directives: bool = True,
         attributes: Optional[dict[str, str]] = None,
         strict: bool = True,
@@ -92,12 +92,12 @@ class Preprocessor:
           The base directory for resolving include paths.
           Defaults to the current working directory.
         safe_mode::
-          If True, prevents including files outside base_dir.
+          If True (or non-zero), prevents including files outside base_dir.
         preprocess_directives::
           If True, processes AsciiDoc preprocessing directives like include::.
         """
         self.base_dir = os.path.abspath(base_dir) if base_dir else os.getcwd()
-        self.safe_mode = safe_mode
+        self.safe_mode = bool(safe_mode)
         self.preprocess_directives = preprocess_directives
         self.attributes = attributes or {}
         self.strict = strict

@@ -1138,7 +1138,7 @@ def parse_to_ast(
 
     preprocessor = Preprocessor(
         base_dir,
-        safe_mode=bool(safe_mode),
+        safe_mode=safe_mode,
         preprocess_directives=preprocess_directives,
         strict=strict,
     )

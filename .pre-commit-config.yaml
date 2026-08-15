@@ -1,19 +1,33 @@
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
+  - repo: https://github.com/
     rev: v0.9.6
     hooks:
+      # Hook 1: Ultra-Compact Linting (Single-line tokens only)
       - id: ruff
-        args: [ --fix ]
+        name: Agent-Concise-Lint
+        args: [--format=compact, --quiet, --fix ]
+
+      # Hook 2: Fast Formatting Check (Silent if clean)
       - id: ruff-format
+        name: Agent-Concise-Format
+        args: [--check, --quiet]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.15.0
     hooks:
+      # Hook 3: Compressed Type Checking (No summaries, no terminal art)
       - id: mypy
+        name: Agent-Concise-Typecheck
         additional_dependencies: [lark>=1.1.0, types-docutils, sphinx, docutils]
         exclude: ^tests/
-        args: [--package, asciidoctrine]
-        pass_filenames: false
+        args: [
+          --package, asciidoctrine,
+          --pass-filenames: false,
+          --no-error-summary,
+          --hide-error-context,
+          --no-pretty,
+          --color-output=never
+        ]
 
   - repo: local
     hooks:
