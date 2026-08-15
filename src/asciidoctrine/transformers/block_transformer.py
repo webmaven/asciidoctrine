@@ -236,7 +236,16 @@ class BlockTransformer(BaseTransformer):
                 blocks.extend(child)
             elif isinstance(child, BlockNode):
                 blocks.append(child)
-        item = DescriptionListItem(terms=terms, blocks=blocks)
+        from ..lark_parser import expand_joint_paragraphs, is_continuation_paragraph
+
+        expanded_blocks = expand_joint_paragraphs(blocks)
+        resolved_blocks: PyList[Node] = []
+        for b in expanded_blocks:
+            if is_continuation_paragraph(b):
+                continue
+            resolved_blocks.append(b)
+
+        item = DescriptionListItem(terms=terms, blocks=resolved_blocks)
         return cast(
             DescriptionListItem, self._set_location_from_children(item, children)
         )

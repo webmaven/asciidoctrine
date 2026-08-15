@@ -14,6 +14,8 @@ from .nodes import (
     Author,
     BlockNode,
     Collapsible,
+    DescriptionList,
+    DescriptionListItem,
     Document,
     Example,
     FloatingTitle,
@@ -910,14 +912,25 @@ def is_continuation_paragraph(node: Node) -> bool:
     return False
 
 
-def find_deepest_active_list_item(node: Node) -> Optional[ListItem]:
+def find_deepest_active_list_item(
+    node: Node,
+) -> Optional[Union[ListItem, DescriptionListItem]]:
     if isinstance(node, ListItem):
         if node.blocks:
             nested = find_deepest_active_list_item(node.blocks[-1])
             if nested is not None:
                 return nested
         return node
+    elif isinstance(node, DescriptionListItem):
+        if node.blocks:
+            nested = find_deepest_active_list_item(node.blocks[-1])
+            if nested is not None:
+                return nested
+        return node
     elif isinstance(node, List):
+        if node.items:
+            return find_deepest_active_list_item(node.items[-1])
+    elif isinstance(node, DescriptionList):
         if node.items:
             return find_deepest_active_list_item(node.items[-1])
     return None
@@ -927,7 +940,10 @@ def resolve_block_internals(block: Node) -> Node:
     if isinstance(block, List):
         for item in block.items:
             item.blocks = resolve_list_continuations(item.blocks)
-    elif isinstance(block, ListItem):
+    elif isinstance(block, DescriptionList):
+        for d_item in block.items:
+            d_item.blocks = resolve_list_continuations(d_item.blocks)
+    elif isinstance(block, (ListItem, DescriptionListItem)):
         block.blocks = resolve_list_continuations(block.blocks)
     else:
         collections = block.get_child_collections()
@@ -936,46 +952,39 @@ def resolve_block_internals(block: Node) -> Node:
     return block
 
 
-def split_continuation_paragraph(node: Node) -> Optional[tuple[Paragraph, Paragraph]]:
-    if isinstance(node, Paragraph) and node.inlines:
-        first_inline = node.inlines[0]
-        if isinstance(first_inline, Text) and first_inline.value:
-            val = first_inline.value
-            if val.startswith("+\n"):
-                continuation_text = Text("+")
-                continuation_text.location = first_inline.location
-                continuation_p = Paragraph(inlines=[continuation_text])
-                continuation_p.location = node.location
-
-                remaining_val = val[2:]
-                remaining_text = Text(remaining_val)
-                remaining_text.location = first_inline.location
-
-                remaining_inlines = [remaining_text] + node.inlines[1:]
-                remaining_p = Paragraph(inlines=remaining_inlines)
-                remaining_p.location = node.location
-
-                return continuation_p, remaining_p
-    return None
+def split_continuation_paragraphs(
+    blocks: PyList[Node],
+) -> PyList[Node]:
+    expanded: PyList[Node] = []
+    for block in blocks:
+        if isinstance(block, Paragraph) and len(block.inlines) == 1 and isinstance(block.inlines[0], Text):
+            text_val = block.inlines[0].value
+            # Check if paragraph contains \n+\n or starts with +\n or ends with \n+
+            if "\n+\n" in text_val or text_val.startswith("+\n") or text_val == "+":
+                parts = re.split(r"(?:^|\n)\+(?:\n|$)", text_val)
+                # Build reconstructed blocks alternating with continuation paragraphs
+                for idx, part in enumerate(parts):
+                    if idx > 0:
+                        cp = Paragraph(inlines=[Text("+")])
+                        cp.location = block.location
+                        expanded.append(cp)
+                    if part:
+                        p = Paragraph(inlines=[Text(part)])
+                        p.location = block.location
+                        expanded.append(p)
+                continue
+        expanded.append(block)
+    return expanded
 
 
 def expand_joint_paragraphs(blocks: PyList[Node]) -> PyList[Node]:
-    expanded: PyList[Node] = []
-    for block in blocks:
-        split_res = split_continuation_paragraph(block)
-        if split_res is not None:
-            continuation_p, remaining_p = split_res
-            expanded.append(continuation_p)
-            expanded.append(remaining_p)
-        else:
-            expanded.append(block)
-    return expanded
+    return split_continuation_paragraphs(blocks)
 
 
 def resolve_list_continuations(blocks: PyList[Node]) -> PyList[Node]:
     blocks = expand_joint_paragraphs(blocks)
     resolved: PyList[Node] = []
-    last_active_item: Optional[ListItem] = None
+    last_active_item: Optional[Union[ListItem, DescriptionListItem]] = None
 
     i = 0
     while i < len(blocks):
@@ -988,6 +997,16 @@ def resolve_list_continuations(blocks: PyList[Node]) -> PyList[Node]:
                 last_active_item.blocks.append(continued_block)
                 i += 2
                 continue
+            elif resolved and i + 1 < len(blocks):
+                # If last_active_item is None, find deepest active item in resolved[-1]
+                deepest = find_deepest_active_list_item(resolved[-1])
+                if deepest is not None:
+                    last_active_item = deepest
+                    continued_block = blocks[i + 1]
+                    continued_block = resolve_block_internals(continued_block)
+                    last_active_item.blocks.append(continued_block)
+                    i += 2
+                    continue
 
         block = resolve_block_internals(block)
 
@@ -1002,12 +1021,23 @@ def resolve_list_continuations(blocks: PyList[Node]) -> PyList[Node]:
                     last_active_item = deepest
                 i += 1
                 continue
+        elif (
+            isinstance(block, DescriptionList)
+            and resolved
+            and isinstance(resolved[-1], DescriptionList)
+        ):
+            resolved[-1].items.extend(block.items)
+            deepest = find_deepest_active_list_item(resolved[-1])
+            if deepest is not None:
+                last_active_item = deepest
+            i += 1
+            continue
 
-        if isinstance(block, List):
+        if isinstance(block, (List, DescriptionList)):
             deepest = find_deepest_active_list_item(block)
             if deepest is not None:
                 last_active_item = deepest
-        elif isinstance(block, ListItem):
+        elif isinstance(block, (ListItem, DescriptionListItem)):
             last_active_item = find_deepest_active_list_item(block)
 
         resolved.append(block)

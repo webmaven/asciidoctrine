@@ -1039,6 +1039,29 @@ Second paragraph.
             pq_node["citetitle"], "The Hitchhiker's Guide to the Galaxy"
         )
 
+    def test_dlist_continuation_multiple_blocks(self):
+        source = (
+            "AST (Abstract Syntax Tree)::\n"
+            "Raw hierarchical parse tree generated directly by Lark grammar rules.\n"
+            "+\n"
+            "It preserves concrete syntax tokens and source offsets before resolution.\n"
+        )
+        doc = parse_to_ast(source)
+        ast = doc.to_dict()
+        self.assertEqual(ast["blocks"][0]["name"], "descriptionList")
+        item = ast["blocks"][0]["items"][0]
+        self.assertEqual(len(item["blocks"]), 2)
+        self.assertEqual(item["blocks"][0]["name"], "paragraph")
+        self.assertEqual(
+            item["blocks"][0]["inlines"][0]["value"],
+            "Raw hierarchical parse tree generated directly by Lark grammar rules.",
+        )
+        self.assertEqual(item["blocks"][1]["name"], "paragraph")
+        self.assertEqual(
+            item["blocks"][1]["inlines"][0]["value"],
+            "It preserves concrete syntax tokens and source offsets before resolution.",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
