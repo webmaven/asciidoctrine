@@ -3,6 +3,10 @@
 
 == Unreleased
 
+=== Added
+* **Resolve Inline Callouts in Listing Blocks (Issue #92)**:
+  - Extracted inline callout markers (e.g. `<1>`, `<2>`, `// <1>`, `<!-- <.> -->`, `<!--1-->`) in verbatim `Listing` and `Literal` blocks into structured `Callout` AST/ASG inline nodes with auto-numbering and comment-stripping support.
+
 === Fixed
 * **Page Break Grammar Precedence (Issue #89)**:
   - Ensured page break tokens (`<<<`) correctly parse to `PageBreak` AST nodes instead of being swallowed as literal paragraph text by defining `PAGE_BREAK_MARKER.20` terminal and increasing `page_break.20` rule precedence.
@@ -10,6 +14,7 @@
   - Added support for extracting `attribution` and `citetitle` properties from positional and named block attributes on `Quote` and `Verse` AST/ASG nodes and serializing them in `to_dict()`.
 * **List Item Continuation (`+`) Support for Description Lists (Issue #91)**:
   - Extended list continuation resolution to handle `DescriptionList` and `DescriptionListItem` nodes, correctly attaching subsequent continuation paragraphs and blocks to the active item's `blocks` list instead of leaving literal `+` tokens in paragraph text.
+
 
 == link:https://pypi.org/project/asciidoctrine/0.1.0a12/[0.1.0a12] - 2026-08-06
 

@@ -41,7 +41,8 @@ asciidoctrine = ["grammar.lark"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-n auto"
-norecursedirs = ["vendor", "venv", ".git", "docs", "tests/include_fixtures"]
+norecursedirs = ["vendor", "venv", ".git", "docs", "tests/include_fixtures", "tests/tck_harness"]
+
 markers = [
     "unit: Fast, isolated unit tests for core module logic.",
     "integration: Integration tests exercising full parsing, ASG transformations, and serialization.",

@@ -52,3 +52,24 @@ def test_literal_properties():
     assert node.code == "literal output <.>\n"
     assert node.callouts == {1: [1]}
     assert node.stripped_code == "literal output\n"
+
+
+def test_parsed_listing_block_callouts():
+    from asciidoctrine.lark_parser import parse_to_ast
+
+    source = (
+        "[source,ruby]\n"
+        "----\n"
+        "require 'json' # <1>\n"
+        "puts JSON.generate({ok: true}) # <2>\n"
+        "----\n"
+    )
+    doc = parse_to_ast(source)
+    listing = doc.blocks[0]
+    assert len(listing.inlines) == 4
+    assert listing.inlines[0].value == "require 'json'"
+    assert listing.inlines[1].value == 1
+    assert listing.inlines[2].value == "\nputs JSON.generate({ok: true})"
+    assert listing.inlines[3].value == 2
+    assert listing.callouts == {1: [1], 2: [2]}
+    assert listing.stripped_code == "require 'json'\nputs JSON.generate({ok: true})"

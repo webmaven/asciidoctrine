@@ -496,9 +496,7 @@ class DocutilsRenderer(NodeVisitor):
         self.current_node = old_parent
 
     def visit_listing(self, node: Listing) -> None:
-        content = "".join(
-            [getattr(n, "value", "") for n in node.inlines if hasattr(n, "value")]
-        )
+        content = node.code
         literal = nodes.literal_block(content, content)
         if "language" in node.attributes:
             literal["classes"].append(node.attributes["language"])

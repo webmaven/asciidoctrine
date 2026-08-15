@@ -660,14 +660,14 @@ class DescriptionListTerm(InlineNode):
 
 
 CALLOUT_RE = re.compile(
-    r"\s+"
+    r"(?:\s+|^)"
     r"(?:(?P<prefix>(?://|#|;;?|--|/\*|<!--)\s*))?"
     r"(?P<markers>(?:<\d+>\s*|<\.>\s*)+)"
     r"(?P<suffix>\*/|-->)?"
     r"\s*$"
 )
 
-HTML_BARE_CALLOUT_RE = re.compile(r"\s+<!--\s*(?P<num>\d+|\.)\s*-->\s*$")
+HTML_BARE_CALLOUT_RE = re.compile(r"(?:\s+|^)<!--\s*(?P<num>\d+|\.)\s*-->\s*$")
 
 
 class VerbatimBlockMixin:
@@ -677,7 +677,9 @@ class VerbatimBlockMixin:
     def code(self) -> str:
         parts = []
         for child in getattr(self, "inlines", []):
-            if hasattr(child, "value"):
+            if isinstance(child, Callout):
+                parts.append(f" <{child.value}>")
+            elif hasattr(child, "value"):
                 parts.append(str(child.value))
             elif hasattr(child, "text"):
                 parts.append(str(child.text))
@@ -689,6 +691,17 @@ class VerbatimBlockMixin:
 
     @property
     def stripped_code(self) -> str:
+        inlines = getattr(self, "inlines", [])
+        if any(isinstance(c, Callout) for c in inlines):
+            parts = []
+            for child in inlines:
+                if not isinstance(child, Callout):
+                    if hasattr(child, "value"):
+                        parts.append(str(child.value))
+                    elif hasattr(child, "text"):
+                        parts.append(str(child.text))
+            return "".join(parts)
+
         lines = self.code.splitlines(keepends=True)
         stripped_lines = []
         for line in lines:
@@ -713,6 +726,20 @@ class VerbatimBlockMixin:
 
     @property
     def callouts(self) -> Dict[int, PyList[int]]:
+        inlines = getattr(self, "inlines", [])
+        if any(isinstance(c, Callout) for c in inlines):
+            callout_map: Dict[int, PyList[int]] = {}
+            cur_line = 1
+            for child in inlines:
+                if isinstance(child, Callout):
+                    val = getattr(child, "value", None)
+                    if val is not None:
+                        callout_map.setdefault(cur_line, []).append(int(val))
+                else:
+                    text_val = str(getattr(child, "value", getattr(child, "text", "")))
+                    cur_line += text_val.count("\n")
+            return callout_map
+
         lines = self.code.splitlines()
         callout_map = {}
         next_auto = 1

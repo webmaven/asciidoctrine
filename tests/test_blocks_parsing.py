@@ -1035,9 +1035,7 @@ Second paragraph.
         pq_node = asg_pq["blocks"][0]
         self.assertEqual(pq_node["name"], "quote")
         self.assertEqual(pq_node["attribution"], "Douglas Adams")
-        self.assertEqual(
-            pq_node["citetitle"], "The Hitchhiker's Guide to the Galaxy"
-        )
+        self.assertEqual(pq_node["citetitle"], "The Hitchhiker's Guide to the Galaxy")
 
     def test_dlist_continuation_multiple_blocks(self):
         source = (
@@ -1062,7 +1060,46 @@ Second paragraph.
             "It preserves concrete syntax tokens and source offsets before resolution.",
         )
 
+    def test_listing_block_inline_callouts_explicit(self):
+        source = "[source,python]\n----\nimport os # <1>\nsys.exit(0) # <2> <3>\n----\n"
+        doc = parse_to_ast(source)
+        ast = self._strip_locations(doc.to_dict())
+        listing = ast["blocks"][0]
+        self.assertEqual(listing["name"], "listing")
+        expected_inlines = [
+            {"name": "text", "type": "string", "value": "import os"},
+            {"name": "callout", "type": "inline", "value": 1},
+            {"name": "text", "type": "string", "value": "\nsys.exit(0)"},
+            {"name": "callout", "type": "inline", "value": 2},
+            {"name": "callout", "type": "inline", "value": 3},
+        ]
+        self.assertEqual(listing["inlines"], expected_inlines)
+
+    def test_listing_block_inline_callouts_auto_and_comments(self):
+        source = (
+            "----\n"
+            "line 1 // <.>\n"
+            "line 2 /* <5> */\n"
+            "line 3 <!-- <.> -->\n"
+            "line 4 <!--7-->\n"
+            "----\n"
+        )
+        doc = parse_to_ast(source)
+        ast = self._strip_locations(doc.to_dict())
+        listing = ast["blocks"][0]
+        self.assertEqual(listing["name"], "listing")
+        expected_inlines = [
+            {"name": "text", "type": "string", "value": "line 1"},
+            {"name": "callout", "type": "inline", "value": 1},
+            {"name": "text", "type": "string", "value": "\nline 2"},
+            {"name": "callout", "type": "inline", "value": 5},
+            {"name": "text", "type": "string", "value": "\nline 3"},
+            {"name": "callout", "type": "inline", "value": 6},
+            {"name": "text", "type": "string", "value": "\nline 4"},
+            {"name": "callout", "type": "inline", "value": 7},
+        ]
+        self.assertEqual(listing["inlines"], expected_inlines)
+
 
 if __name__ == "__main__":
     unittest.main()
-

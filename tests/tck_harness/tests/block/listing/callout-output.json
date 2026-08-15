@@ -32,19 +32,25 @@
         {
           "name": "text",
           "type": "string",
-          "location": [
-            {
-              "line": 3,
-              "col": 1
-            },
-            {
-              "line": 4,
-              "col": 20
-            }
-          ],
-          "value": "import os # <1>\nprint(\"hello\") # <.>"
+          "value": "import os"
+        },
+        {
+          "name": "callout",
+          "type": "inline",
+          "value": 1
+        },
+        {
+          "name": "text",
+          "type": "string",
+          "value": "\nprint(\"hello\")"
+        },
+        {
+          "name": "callout",
+          "type": "inline",
+          "value": 2
         }
       ],
+
       "attributes": {
         "style": "source",
         "language": "python"

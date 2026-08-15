@@ -4,8 +4,11 @@ from typing import List as PyList
 from lark import Discard, Token, v_args
 
 from ..nodes import (
+    CALLOUT_RE,
+    HTML_BARE_CALLOUT_RE,
     Admonition,
     BlockNode,
+    Callout,
     CalloutList,
     CalloutListItem,
     Comment,
@@ -392,6 +395,88 @@ class BlockTransformer(BaseTransformer):
         delimiter = delims[0].value if delims else "===="
         return Example(blocks=merged_inner, delimiter=delimiter)
 
+    def _build_verbatim_inlines(
+        self, content: str, content_token: Optional[Token]
+    ) -> PyList[Node]:
+        if not content:
+            text_node = Text("")
+            if content_token:
+                self._set_location_from_children(text_node, [content_token])
+            return [text_node]
+
+        lines = content.splitlines(keepends=True)
+        has_any_callouts = False
+        for line in lines:
+            if line.endswith("\r\n"):
+                t = line[:-2]
+            elif line.endswith("\n"):
+                t = line[:-1]
+            else:
+                t = line
+            if CALLOUT_RE.search(t) or HTML_BARE_CALLOUT_RE.search(t):
+                has_any_callouts = True
+                break
+
+        if not has_any_callouts:
+            text_node = Text(content)
+            if content_token:
+                self._set_location_from_children(text_node, [content_token])
+            return [text_node]
+
+        import re
+
+        inlines: PyList[Node] = []
+        next_auto = 1
+
+        for line in lines:
+            if line.endswith("\r\n"):
+                text, nl = line[:-2], "\r\n"
+            elif line.endswith("\n"):
+                text, nl = line[:-1], "\n"
+            else:
+                text, nl = line, ""
+
+            m = CALLOUT_RE.search(text)
+            raw_nums: PyList[str] = []
+            code_part = text
+            if m:
+                code_part = text[: m.start()]
+                raw_nums = re.findall(r"<(\d+|\.)>", m.group("markers"))
+            else:
+                m2 = HTML_BARE_CALLOUT_RE.search(text)
+                if m2:
+                    code_part = text[: m2.start()]
+                    raw_nums = [m2.group("num")]
+
+            if raw_nums:
+                if code_part:
+                    inlines.append(Text(code_part))
+                for num in raw_nums:
+                    if num == ".":
+                        val = next_auto
+                        next_auto += 1
+                    else:
+                        val = int(num)
+                        next_auto = max(next_auto, val + 1)
+                    inlines.append(Callout(number=val))
+                if nl:
+                    inlines.append(Text(nl))
+            else:
+                inlines.append(Text(line))
+
+        # Merge contiguous Text nodes
+        merged: PyList[Node] = []
+        for node in inlines:
+            if isinstance(node, Text):
+                if merged and isinstance(merged[-1], Text):
+                    merged[-1].value += node.value
+                else:
+                    merged.append(node)
+            else:
+                merged.append(node)
+
+        return merged
+
     @v_args(meta=True)
     def listing_block(self, meta: Any, children: PyList[Any]) -> Listing:
         content = ""
@@ -409,12 +494,8 @@ class BlockTransformer(BaseTransformer):
                 content_token = c
 
         delimiter = delims[0].value if delims else "----"
-        text_node = Text(content)
-        if content_token:
-            self._set_location_from_children(text_node, [content_token])
-        listing = Listing(
-            inlines=[text_node], attributes=attributes, delimiter=delimiter
-        )
+        inlines = self._build_verbatim_inlines(content, content_token)
+        listing = Listing(inlines=inlines, attributes=attributes, delimiter=delimiter)
         return cast(Listing, self._set_location_from_children(listing, children))
 
     @v_args(meta=True)
@@ -434,12 +515,8 @@ class BlockTransformer(BaseTransformer):
                 content_token = c
 
         delimiter = delims[0].value if delims else "...."
-        text_node = Text(content)
-        if content_token:
-            self._set_location_from_children(text_node, [content_token])
-        literal = Literal(
-            inlines=[text_node], attributes=attributes, delimiter=delimiter
-        )
+        inlines = self._build_verbatim_inlines(content, content_token)
+        literal = Literal(inlines=inlines, attributes=attributes, delimiter=delimiter)
         return cast(Literal, self._set_location_from_children(literal, children))
 
     @v_args(meta=True)
@@ -493,12 +570,8 @@ class BlockTransformer(BaseTransformer):
             if m:
                 delimiter = "-" * int(m.group(1))
 
-        text_node = Text(content)
-        if content_token:
-            self._set_location_from_children(text_node, [content_token])
-        listing = Listing(
-            inlines=[text_node], attributes=attributes, delimiter=delimiter
-        )
+        inlines = self._build_verbatim_inlines(content, content_token)
+        listing = Listing(inlines=inlines, attributes=attributes, delimiter=delimiter)
         return cast(Listing, self._set_location_from_children(listing, children))
 
     @v_args(meta=True)
@@ -525,12 +598,8 @@ class BlockTransformer(BaseTransformer):
             if m:
                 delimiter = "." * int(m.group(1))
 
-        text_node = Text(content)
-        if content_token:
-            self._set_location_from_children(text_node, [content_token])
-        literal = Literal(
-            inlines=[text_node], attributes=attributes, delimiter=delimiter
-        )
+        inlines = self._build_verbatim_inlines(content, content_token)
+        literal = Literal(inlines=inlines, attributes=attributes, delimiter=delimiter)
         return cast(Literal, self._set_location_from_children(literal, children))
 
     @v_args(meta=True)
