@@ -694,3 +694,319 @@ def test_serialize_preprocessed_warning():
     assert len(w) == 1
     assert issubclass(w[0].category, UserWarning)
     assert "preprocessed" in str(w[0].message).lower()
+
+
+# ---------------------------------------------------------------------------
+# write_block_metadata — id, role, title branches
+# ---------------------------------------------------------------------------
+
+
+def test_write_block_metadata_id():
+    p = Paragraph(inlines=[Text("x")])
+    p.attributes["id"] = "my-anchor"
+    result = _ser(p)
+    assert result.startswith("[[my-anchor]]\n")
+
+
+def test_write_block_metadata_role():
+    p = Paragraph(inlines=[Text("x")])
+    p.attributes["role"] = "lead"
+    result = _ser(p)
+    assert "[.lead]\n" in result
+
+
+def test_write_block_metadata_title_node():
+    from asciidoctrine.nodes import Title
+    p = Paragraph(inlines=[Text("body")])
+    p.title = Title(inlines=[Text("My Para")])
+    result = _ser(p)
+    assert result.startswith(".My Para\n")
+
+
+# ---------------------------------------------------------------------------
+# visit_document — with header
+# ---------------------------------------------------------------------------
+
+
+def test_visit_document_with_header():
+    from asciidoctrine.nodes import Header, Title
+    doc = Document()
+    doc.header = Header(title=Title(inlines=[Text("Doc Title")]))
+    doc.blocks.append(Paragraph(inlines=[Text("Body.")]))
+    v = AsciiDocSerializerVisitor()
+    result = v.serialize(doc)
+    assert "= Doc Title\n" in result
+    assert "Body." in result
+
+
+def test_visit_document_no_header():
+    doc = Document()
+    doc.blocks.append(Paragraph(inlines=[Text("Solo.")]))
+    v = AsciiDocSerializerVisitor()
+    result = v.serialize(doc)
+    assert "Solo." in result
+
+
+# ---------------------------------------------------------------------------
+# visit_section
+# ---------------------------------------------------------------------------
+
+
+def test_visit_section_level2():
+    from asciidoctrine.nodes import Title
+    sec = Section(level=2, title=Title(inlines=[Text("Sub")]))
+    sec.blocks.append(Paragraph(inlines=[Text("Content.")]))
+    result = _ser(sec)
+    # write_block_metadata emits ".Sub\n" (from title node) before "=== Sub\n"
+    assert ".Sub\n" in result
+    assert "=== Sub\n" in result
+    assert "Content." in result
+
+
+def test_visit_section_no_title():
+    sec = Section(level=1)
+    result = _ser(sec)
+    assert result.startswith("== \n")
+
+
+# ---------------------------------------------------------------------------
+# visit_title
+# ---------------------------------------------------------------------------
+
+
+def test_visit_title_renders_inlines():
+    from asciidoctrine.nodes import Title
+    t = Title(inlines=[Text("Hello "), Text("World")])
+    result = _ser(t)
+    assert result == "Hello World"
+
+
+# ---------------------------------------------------------------------------
+# visit_paragraph
+# ---------------------------------------------------------------------------
+
+
+def test_visit_paragraph_with_metadata():
+    p = Paragraph(inlines=[Text("text")])
+    p.attributes["id"] = "p1"
+    result = _ser(p)
+    assert "[[p1]]\n" in result
+    assert result.endswith("text\n")
+
+
+# ---------------------------------------------------------------------------
+# visit_literal — indented already tested, test delimited explicitly
+# ---------------------------------------------------------------------------
+
+
+def test_visit_literal_delimited_form_explicit():
+    lit = Literal(form="delimited", delimiter="....",
+                  inlines=[Text("x = 1\n")])
+    result = _ser(lit)
+    assert result.startswith("....\n")
+    assert result.endswith("....\n")
+
+
+# ---------------------------------------------------------------------------
+# visit_comment
+# ---------------------------------------------------------------------------
+
+
+def test_visit_comment_block():
+    c = Comment(value="internal note\n")
+    result = _ser(c)
+    assert result == "////\ninternal note\n////\n"
+
+
+def test_visit_comment_no_trailing_newline():
+    c = Comment(value="note")
+    result = _ser(c)
+    assert result == "////\nnote\n////\n"
+
+
+# ---------------------------------------------------------------------------
+# visit_sidebar, visit_example, visit_quote, visit_open
+# ---------------------------------------------------------------------------
+
+
+def test_visit_sidebar():
+    s = Sidebar()
+    s.blocks.append(Paragraph(inlines=[Text("side")]))
+    result = _ser(s)
+    assert result.startswith("****\n")
+    assert "side" in result
+    assert result.endswith("****\n")
+
+
+def test_visit_example():
+    e = Example()
+    e.blocks.append(Paragraph(inlines=[Text("ex")]))
+    result = _ser(e)
+    assert result.startswith("====\n")
+    assert result.endswith("====\n")
+
+
+def test_visit_quote():
+    q = Quote()
+    q.blocks.append(Paragraph(inlines=[Text("quote")])  )
+    result = _ser(q)
+    assert result.startswith("____\n")
+    assert result.endswith("____\n")
+
+
+def test_visit_open():
+    o = Open()
+    o.blocks.append(Paragraph(inlines=[Text("open")]))
+    result = _ser(o)
+    assert result.startswith("--\n")
+    assert result.endswith("--\n")
+
+
+# ---------------------------------------------------------------------------
+# visit_listitem — unchecked (no checked attribute)
+# ---------------------------------------------------------------------------
+
+
+def test_visit_listitem_no_checked():
+    item = ListItem(marker="*", principal=[Text("plain")])
+    result = _ser(item)
+    assert result.startswith("* plain\n")
+
+
+# ---------------------------------------------------------------------------
+# visit_descriptionlist, visit_descriptionlistitem, visit_descriptionlistterm
+# ---------------------------------------------------------------------------
+
+
+def test_visit_descriptionlist():
+    term = DescriptionListTerm(inlines=[Text("Term")])
+    item = DescriptionListItem(terms=[term], blocks=[Paragraph(inlines=[Text("Desc")])])
+    dl = DescriptionList()
+    dl.items.append(item)
+    result = _ser(dl)
+    assert "Term::\n" in result
+    assert "Desc" in result
+
+
+def test_visit_descriptionlistitem_single_block():
+    term = DescriptionListTerm(inlines=[Text("Key")])
+    item = DescriptionListItem(terms=[term], blocks=[Paragraph(inlines=[Text("Val")])])
+    result = _ser(item)
+    assert "Key::\n" in result
+    assert "Val" in result
+
+
+def test_visit_descriptionlistitem_no_blocks():
+    term = DescriptionListTerm(inlines=[Text("Empty")])
+    item = DescriptionListItem(terms=[term], blocks=[])
+    result = _ser(item)
+    assert "Empty::\n" in result
+
+
+# ---------------------------------------------------------------------------
+# visit_table, visit_row, visit_cell — no-specifier (default) path
+# ---------------------------------------------------------------------------
+
+
+def test_visit_table_basic():
+    cell = TableCell()
+    cell.blocks.append(Paragraph(inlines=[Text("A")]))
+    row = TableRow()
+    row.cells.append(cell)
+    table = Table()
+    table.rows.append(row)
+    result = _ser(table)
+    assert result.startswith("|===\n")
+    assert result.endswith("|===\n")
+    assert "| A" in result
+
+
+def test_visit_row_multiple_cells():
+    c1 = TableCell()
+    c1.blocks.append(Paragraph(inlines=[Text("X")]))
+    c2 = TableCell()
+    c2.blocks.append(Paragraph(inlines=[Text("Y")]))
+    row = TableRow()
+    row.cells.extend([c1, c2])
+    result = _ser(row)
+    assert "| X" in result
+    assert "| Y" in result
+    assert result.endswith("\n")
+
+
+def test_visit_cell_no_specifiers():
+    cell = TableCell()
+    cell.blocks.append(Paragraph(inlines=[Text("plain")]))
+    result = _ser(cell)
+    assert result == " | plain"
+
+
+# ---------------------------------------------------------------------------
+# visit_thematic_break, visit_page_break
+# ---------------------------------------------------------------------------
+
+
+def test_visit_thematic_break():
+    from asciidoctrine.nodes import ThematicBreak
+    result = _ser(ThematicBreak())
+    assert result == "'''\n"
+
+
+def test_visit_page_break():
+    from asciidoctrine.nodes import PageBreak
+    result = _ser(PageBreak())
+    assert result == "<<<\n"
+
+
+# ---------------------------------------------------------------------------
+# visit_attribute_entry
+# ---------------------------------------------------------------------------
+
+
+def test_visit_attribute_entry_with_value():
+    from asciidoctrine.nodes import AttributeEntry
+    ae = AttributeEntry(name="author", value="Alice")
+    result = _ser(ae)
+    assert result == ":author: Alice\n"
+
+
+def test_visit_attribute_entry_no_value():
+    from asciidoctrine.nodes import AttributeEntry
+    ae = AttributeEntry(name="toc", value="")
+    result = _ser(ae)
+    assert result == ":toc:\n"
+
+
+# ---------------------------------------------------------------------------
+# visit_include, visit_toc
+# ---------------------------------------------------------------------------
+
+
+def test_visit_include():
+    from asciidoctrine.nodes import Include
+    inc = Include(filename="sub/chapter.adoc")
+    result = _ser(inc)
+    assert result == "include::sub/chapter.adoc[]\n"
+
+
+def test_visit_toc():
+    from asciidoctrine.nodes import Toc
+    toc = Toc(target="")
+    result = _ser(toc)
+    assert result == "toc::[]\n"
+
+
+# ---------------------------------------------------------------------------
+# visit_text, visit_break
+# ---------------------------------------------------------------------------
+
+
+def test_visit_text():
+    result = _ser(Text("hello"))
+    assert result == "hello"
+
+
+def test_visit_break():
+    from asciidoctrine.nodes import Break
+    result = _ser(Break())
+    assert result == " +\n"
