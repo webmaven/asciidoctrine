@@ -1,5 +1,7 @@
 import os
+import shutil
 import tempfile
+import unittest
 from pathlib import Path
 from typing import Any, Optional
 
@@ -598,3 +600,66 @@ class TestResolverCurrentFileId:
         resolver = ASGResolver(doc, current_file_id="explicit.adoc")
         assert resolver.current_file_id == "explicit.adoc"
 
+
+
+# ---------------------------------------------------------------------------
+# Integration tests relocated from test_integration.py / test_workspace_builder.py
+# These require parse_to_ast so they stay marked unit=False; they live here
+# because their subject matter is the resolver/workspace layer.
+# ---------------------------------------------------------------------------
+
+
+class TestResolverIntegration(unittest.TestCase):
+    pytestmark = pytest.mark.integration
+    """Pipeline-level tests for ASGResolver — parse then resolve."""
+
+    def test_attribute_entry_consumed_into_asg(self):
+        """parse + resolve: attribute_entry nodes are consumed; ASG gains an 'attributes' block."""
+        from asciidoctrine.lark_parser import parse_to_ast
+
+        source = ":my-attr: my-value\n\nThis is a paragraph.\n"
+        ast = parse_to_ast(source)
+
+        ast_block_names = [b["name"] for b in ast.to_dict().get("blocks", [])]
+        self.assertIn("attribute_entry", ast_block_names)
+
+        asg = ASGResolver(ast).resolve(ast)
+        asg_block_names = [b["name"] for b in asg.get("blocks", [])]
+        self.assertNotIn("attribute_entry", asg_block_names)
+        self.assertIn("attributes", asg_block_names)
+        self.assertIn("paragraph", asg_block_names)
+
+        attr_block = next(b for b in asg["blocks"] if b["name"] == "attributes")
+        self.assertIn("my-attr", attr_block["attributes"])
+        self.assertEqual(attr_block["attributes"]["my-attr"]["value"], "my-value")
+        self.assertIn("location", attr_block["attributes"]["my-attr"])
+
+
+class TestWorkspaceBuilderIntegration(unittest.TestCase):
+    pytestmark = pytest.mark.integration
+    """End-to-end WorkspaceBuilder tests requiring real files on disk."""
+
+    def setUp(self):
+        self.tmp_dir = tempfile.mkdtemp()
+        Path(self.tmp_dir, "subdir").mkdir(parents=True, exist_ok=True)
+        with open(os.path.join(self.tmp_dir, "doc1.adoc"), "w") as f:
+            f.write("= Document One\n:id: doc1\n\n[[intro]]\n== Intro\n")
+        with open(os.path.join(self.tmp_dir, "subdir", "doc2.adoc"), "w") as f:
+            f.write("= Document Two\n\nRefer to <<../doc1.adoc#intro,link>>\n")
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp_dir)
+
+    def test_cross_file_xref_resolution(self):
+        """WorkspaceBuilder resolves cross-file xrefs with correct strategy and targets."""
+        builder = WorkspaceBuilder(self.tmp_dir)
+        graphs = builder.build()
+
+        self.assertIn("doc1.adoc", graphs)
+        self.assertIn("subdir/doc2.adoc", graphs)
+
+        doc2_asg = graphs["subdir/doc2.adoc"]
+        ref = doc2_asg["blocks"][0]["inlines"][1]  # <<../doc1.adoc#intro>>
+        self.assertEqual(ref["resolved_strategy"], "cross_file")
+        self.assertEqual(ref["resolved_file_target"], "doc1.adoc")
+        self.assertEqual(ref["resolved_anchor_target"], "intro")
