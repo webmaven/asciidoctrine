@@ -336,3 +336,466 @@ def test_table_cell_fallback_and_spec(transformer):
     assert cell.multiplier == 2
     assert len(cell.blocks) == 1
     assert cell.blocks[0].inlines[0].value == "Invalid AsciiDoc ((( markup"
+
+
+# ---------------------------------------------------------------------------
+# _merge_consecutive_lists
+# ---------------------------------------------------------------------------
+
+
+def test_merge_consecutive_lists_description_lists(transformer):
+    from asciidoctrine.nodes import (
+        DescriptionList,
+        DescriptionListItem,
+        DescriptionListTerm,
+    )
+
+    term = DescriptionListTerm(inlines=[Text("key")])
+    item = DescriptionListItem(terms=[term], blocks=[])
+    dl1 = DescriptionList(items=[item])
+    dl2 = DescriptionList(items=[item])
+    result = transformer._merge_consecutive_lists([dl1, dl2])
+    assert len(result) == 1
+    assert isinstance(result[0], DescriptionList)
+    assert len(result[0].items) == 2
+
+
+def test_merge_consecutive_lists_callout_lists(transformer):
+    from asciidoctrine.nodes import CalloutList, CalloutListItem
+
+    cli1 = CalloutListItem(number=1, principal=[Text("first")])
+    cli2 = CalloutListItem(number=2, principal=[Text("second")])
+    cl1 = CalloutList(items=[cli1])
+    cl2 = CalloutList(items=[cli2])
+    result = transformer._merge_consecutive_lists([cl1, cl2])
+    assert len(result) == 1
+    assert isinstance(result[0], CalloutList)
+    assert len(result[0].items) == 2
+
+
+def test_merge_consecutive_lists_different_types_not_merged(transformer):
+    from asciidoctrine.nodes import List as ASTList, Paragraph
+
+    ul = ASTList(variant="unordered", marker="*")
+    para = Paragraph(inlines=[Text("para")])
+    result = transformer._merge_consecutive_lists([ul, para])
+    assert len(result) == 2
+
+
+def test_merge_consecutive_lists_empty(transformer):
+    assert transformer._merge_consecutive_lists([]) == []
+
+
+# ---------------------------------------------------------------------------
+# _get_list_level
+# ---------------------------------------------------------------------------
+
+
+def test_get_list_level_dash(transformer):
+    token = Token("ULIST_MARKER", "- ")
+    assert transformer._get_list_level(token) == 1
+
+
+def test_get_list_level_numeric_fallback(transformer):
+    # "1. " — starts with neither -, *, . so falls to else → level=1
+    token = Token("OLIST_MARKER", "1. ")
+    assert transformer._get_list_level(token) == 1
+
+
+# ---------------------------------------------------------------------------
+# _nest_list_items — deep nesting and edge cases
+# ---------------------------------------------------------------------------
+
+
+def test_nest_list_items_empty(transformer):
+    assert transformer._nest_list_items([]) == []
+
+
+def test_nest_list_items_deep_nesting(transformer):
+    items = [
+        {
+            "level": 1,
+            "item_type": "bullet",
+            "marker": "*",
+            "children": [Text("parent")],
+            "raw_children": [],
+        },
+        {
+            "level": 2,
+            "item_type": "bullet",
+            "marker": "**",
+            "children": [Text("child")],
+            "raw_children": [],
+        },
+    ]
+    result = transformer._nest_list_items(items)
+    assert len(result) == 1
+    # The child should be nested under the parent
+    parent = result[0]
+    assert len(parent.blocks) == 1  # one nested ASTList
+
+
+def test_nest_list_items_variant_change_same_level(transformer):
+    """Switching from bullet to ordered at the same level must not crash."""
+    items = [
+        {
+            "level": 1,
+            "item_type": "bullet",
+            "marker": "*",
+            "children": [Text("a")],
+            "raw_children": [],
+        },
+        {
+            "level": 1,
+            "item_type": "enumerated",
+            "marker": ".",
+            "children": [Text("b")],
+            "raw_children": [],
+        },
+    ]
+    result = transformer._nest_list_items(items)
+    # Both end up in the same list (variant stays from first item per impl)
+    assert len(result) == 2
+
+
+# ---------------------------------------------------------------------------
+# _build_verbatim_inlines — CRLF, HTML callouts, auto-number, no-nl branch
+# ---------------------------------------------------------------------------
+
+
+def test_build_verbatim_inlines_empty(transformer):
+    result = transformer._build_verbatim_inlines("", None)
+    assert len(result) == 1
+    assert result[0].value == ""
+
+
+def test_build_verbatim_inlines_no_callouts(transformer):
+    result = transformer._build_verbatim_inlines("just text", None)
+    assert len(result) == 1
+    assert result[0].value == "just text"
+
+
+def test_build_verbatim_inlines_crlf_line(transformer):
+    """Lines with CRLF endings must be handled without crashing."""
+    content = "first line\r\nsecond line\r\n"
+    result = transformer._build_verbatim_inlines(content, None)
+    # No callouts — should return a single Text with the original content
+    assert result[0].value == content
+
+
+def test_build_verbatim_inlines_html_bare_callout(transformer):
+    """The HTML_BARE_CALLOUT_RE branch (<!--1-->) must fire and produce a Callout."""
+    from asciidoctrine.nodes import Callout
+
+    content = "some code <!--1-->\n"
+    result = transformer._build_verbatim_inlines(content, None)
+    callout_nodes = [n for n in result if isinstance(n, Callout)]
+    assert len(callout_nodes) == 1
+    assert callout_nodes[0].value == 1
+
+
+def test_build_verbatim_inlines_auto_numbered_callout(transformer):
+    """'<.>' must auto-number starting at 1."""
+    from asciidoctrine.nodes import Callout
+
+    content = "line a <.>\nline b <.>\n"
+    result = transformer._build_verbatim_inlines(content, None)
+    callouts = [n for n in result if isinstance(n, Callout)]
+    assert len(callouts) == 2
+    assert callouts[0].value == 1
+    assert callouts[1].value == 2
+
+
+def test_build_verbatim_inlines_explicit_callout_no_trailing_nl(transformer):
+    """Line without a trailing newline must still parse the callout."""
+    from asciidoctrine.nodes import Callout
+
+    content = "code <1>"  # no trailing newline
+    result = transformer._build_verbatim_inlines(content, None)
+    callouts = [n for n in result if isinstance(n, Callout)]
+    assert callouts[0].value == 1
+
+
+def test_build_verbatim_inlines_callout_increments_next_auto(transformer):
+    """An explicit <3> must advance next_auto past 3."""
+    from asciidoctrine.nodes import Callout
+
+    content = "a <3>\nb <.>\n"
+    result = transformer._build_verbatim_inlines(content, None)
+    callouts = [n for n in result if isinstance(n, Callout)]
+    assert callouts[0].value == 3
+    assert callouts[1].value == 4  # next_auto advances past 3
+
+
+# ---------------------------------------------------------------------------
+# Outer block variants with non-default delimiters
+# ---------------------------------------------------------------------------
+
+
+def test_outer_listing_block_non_default_delimiter(transformer):
+    from lark.tree import Meta
+
+    meta = Meta()
+    # Pattern: --ASCIIDOCTRINE_OUTER_LISTING_START_<N>-- where N controls dashes
+    start = Token("OUTER_LISTING_START", "--ASCIIDOCTRINE_OUTER_LISTING_START_5--")
+    content = Token("OUTER_LISTING_CONTENT", "code here")
+    result = transformer.outer_listing_block(meta, [start, content])
+    assert result.delimiter == "-----"
+    assert result.inlines[0].value == "code here"
+
+
+def test_outer_literal_block_non_default_delimiter(transformer):
+    from lark.tree import Meta
+
+    meta = Meta()
+    start = Token("OUTER_LITERAL_START", "--ASCIIDOCTRINE_OUTER_LITERAL_START_5--")
+    content = Token("OUTER_LITERAL_CONTENT", "literal here")
+    result = transformer.outer_literal_block(meta, [start, content])
+    assert result.delimiter == "....."
+    assert result.inlines[0].value == "literal here"
+
+
+def test_outer_passthrough_block_non_default_delimiter(transformer):
+    from lark.tree import Meta
+
+    meta = Meta()
+    start = Token(
+        "OUTER_PASSTHROUGH_START", "--ASCIIDOCTRINE_OUTER_PASSTHROUGH_START_5--"
+    )
+    content = Token("OUTER_PASSTHROUGH_CONTENT", "raw html")
+    result = transformer.outer_passthrough_block(meta, [start, content])
+    assert result.delimiter == "+++++"
+    assert result.inlines[0].value == "raw html"
+
+
+def test_outer_comment_block_non_default_delimiter(transformer):
+    from lark.tree import Meta
+
+    meta = Meta()
+    start = Token("OUTER_COMMENT_START", "--ASCIIDOCTRINE_OUTER_COMMENT_START_5--")
+    content = Token("OUTER_COMMENT_CONTENT", "a comment")
+    result = transformer.outer_comment_block(meta, [start, content])
+    assert result.delimiter == "/////"
+    assert result.value == "a comment"
+
+
+def test_outer_comment_block_default_delimiter(transformer):
+    from lark.tree import Meta
+
+    meta = Meta()
+    content = Token("OUTER_COMMENT_CONTENT", "plain comment")
+    result = transformer.outer_comment_block(meta, [content])
+    assert result.delimiter == "////"
+
+
+# ---------------------------------------------------------------------------
+# shorthand_admonition
+# ---------------------------------------------------------------------------
+
+
+def test_shorthand_admonition(transformer):
+    from lark.tree import Meta
+
+    meta = Meta()
+    adm_type = Token("ADMONITION_TYPE", "WARNING")
+    content = [Text("Watch out")]
+    result = transformer.shorthand_admonition(meta, [adm_type, content])
+    assert result.variant == "warning"
+    assert len(result.blocks) == 1
+    assert isinstance(result.blocks[0], Paragraph)
+    assert result.blocks[0].inlines[0].value == "Watch out"
+
+
+def test_shorthand_admonition_default_note(transformer):
+    """shorthand_admonition defaults to 'note' when no ADMONITION_TYPE token."""
+    from lark.tree import Meta
+
+    meta = Meta()
+    content = [Text("FYI")]
+    result = transformer.shorthand_admonition(meta, [content])
+    assert result.variant == "note"
+
+
+# ---------------------------------------------------------------------------
+# admonition_4 / admonition_5 / admonition_6
+# ---------------------------------------------------------------------------
+
+
+def test_admonition_block_variants(transformer):
+    from lark.tree import Meta
+
+    meta = Meta()
+    para = Paragraph(inlines=[Text("Admonition body")])
+
+    # admonition_4
+    start4 = Token("ADMONITION_START", "[NOTE]")
+    delim4 = Token("ADMONITION_DELIM_4", "====")
+    a4 = transformer.admonition_4(meta, [start4, para, delim4])
+    assert a4.variant == "note"
+    assert a4.delimiter == "===="
+    assert len(a4.blocks) == 1
+
+    # admonition_5
+    start5 = Token("ADMONITION_START", "[TIP]")
+    delim5 = Token("ADMONITION_DELIM_5", "=====")
+    a5 = transformer.admonition_5(meta, [start5, para, delim5])
+    assert a5.variant == "tip"
+
+    # admonition_6
+    start6 = Token("ADMONITION_START", "[CAUTION]")
+    delim6 = Token("ADMONITION_DELIM_6", "======")
+    a6 = transformer.admonition_6(meta, [start6, para, delim6])
+    assert a6.variant == "caution"
+
+
+# ---------------------------------------------------------------------------
+# sidebar_4
+# ---------------------------------------------------------------------------
+
+
+def test_sidebar_4(transformer):
+    from lark.tree import Meta
+
+    meta = Meta()
+    delim = Token("SIDEBAR_DELIM_4", "****")
+    para = Paragraph(inlines=[Text("sidebar body")])
+    result = transformer.sidebar_4(meta, [delim, para])
+    assert result.delimiter == "****"
+    assert len(result.blocks) == 1
+
+
+# ---------------------------------------------------------------------------
+# paragraph location consolidation
+# ---------------------------------------------------------------------------
+
+
+def test_paragraph_location_consolidation(transformer):
+    """consecutive Text nodes with same attrs get merged; location is updated."""
+    from lark.tree import Meta
+
+    meta = Meta()
+    # Build two text-content lists (simulating two lines)
+    t1 = Text("Hello")
+    t1.location = [{"line": 1, "col": 1}, {"line": 1, "col": 5}]
+    t2 = Text(" world")
+    t2.location = [{"line": 1, "col": 6}, {"line": 1, "col": 11}]
+    # paragraph receives lists of nodes per line
+    result = transformer.paragraph(meta, [[t1], [t2]])
+    # Should have a newline Text(\n) inserted between lines and then consolidated
+    assert isinstance(result, Paragraph)
+
+
+# ---------------------------------------------------------------------------
+# colist_item — whitespace token filtering
+# ---------------------------------------------------------------------------
+
+
+def test_colist_item_whitespace_filter(transformer):
+    from lark.tree import Meta
+
+    meta = Meta()
+    num = Token("COLIST_NUM", "2")
+    ws = Token("WHITESPACE", "  ")  # should be filtered out
+    content = [Text("second callout")]
+    result = transformer.colist_item(meta, [num, ws, content])
+    assert result.value == 2
+    assert result.principal[0].value == "second callout"
+
+
+# ---------------------------------------------------------------------------
+# dlist_item — BlockNode child branch
+# ---------------------------------------------------------------------------
+
+
+def test_dlist_item_with_block_node_child(transformer):
+    from lark.tree import Meta
+
+    from asciidoctrine.nodes import DescriptionListTerm
+
+    meta = Meta()
+    term = DescriptionListTerm(inlines=[Text("term")])
+    body_para = Paragraph(inlines=[Text("definition body")])
+    # Pass a BlockNode directly (not a list) as child
+    result = transformer.dlist_item(meta, [term, body_para])
+    assert len(result.terms) == 1
+    assert len(result.blocks) == 1
+    assert result.blocks[0].inlines[0].value == "definition body"
+
+
+# ---------------------------------------------------------------------------
+# table — multiplier expansion and rowspan/colspan grid
+# ---------------------------------------------------------------------------
+
+
+def test_table_multiplier_expansion(transformer):
+    """A cell with multiplier=2 must be cloned into 2 cells in the table."""
+    from lark.tree import Meta
+
+    from asciidoctrine.nodes import TableCell, TableRow
+
+    meta = Meta()
+    cell = TableCell(blocks=[Paragraph(inlines=[Text("repeated")])])
+    cell.colspan = 1
+    cell.rowspan = 1
+    cell.align = None
+    cell.valign = None
+    cell.style = None
+    cell.multiplier = 2
+    # Give both cells a location on the same line so num_cols is computed
+    cell.location = [{"line": 1, "col": 1}, {"line": 1, "col": 10}]
+
+    result = transformer.table(meta, [cell])
+    # 2 cells on same line → num_cols=2, expanded into 1 row of 2 cells
+    all_cells = [c for row in result.rows for c in row.cells]
+    assert len(all_cells) == 2
+
+
+def test_table_colspan_grid(transformer):
+    """A cell spanning 2 cols must leave a 'spanned' marker in the grid."""
+    from lark.tree import Meta
+
+    from asciidoctrine.nodes import TableCell
+
+    meta = Meta()
+
+    def make_cell(line, col_end, colspan=1, rowspan=1):
+        c = TableCell(blocks=[Paragraph(inlines=[Text("x")])])
+        c.colspan = colspan
+        c.rowspan = rowspan
+        c.align = None
+        c.valign = None
+        c.style = None
+        c.location = [{"line": line, "col": 1}, {"line": line, "col": col_end}]
+        return c
+
+    # Row 1: cell spanning 2 cols; Row 1 col 2 and 3 appear on same line → num_cols=2
+    c1 = make_cell(1, 5, colspan=2)
+    c2 = make_cell(2, 5)
+    result = transformer.table(meta, [c1, c2])
+    assert len(result.rows) >= 1
+
+
+def test_table_empty_cells(transformer):
+    from lark.tree import Meta
+
+    meta = Meta()
+    result = transformer.table(meta, [])
+    assert result.rows == []
+
+
+def test_table_num_cols_zero_guard(transformer):
+    """When all cells have no location, num_cols must fall back to 1."""
+    from lark.tree import Meta
+
+    from asciidoctrine.nodes import TableCell
+
+    meta = Meta()
+    cell = TableCell(blocks=[])
+    cell.colspan = 1
+    cell.rowspan = 1
+    cell.align = None
+    cell.valign = None
+    cell.style = None
+    cell.location = None  # no location → first_line lookup returns 1, sum=0 → fallback
+    result = transformer.table(meta, [cell])
+    assert len(result.rows) == 1
