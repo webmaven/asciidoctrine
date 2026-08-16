@@ -943,3 +943,48 @@ def test_text_content_bare_ref_angle_brackets_stripped():
     full_text = "".join(n.value for n in result if isinstance(n, Text))
     assert "<" not in full_text
     assert ">" not in full_text
+
+
+def test_text_content_bare_ref_angle_bracket_next_is_text_node():
+    """Next item after bare Ref is a Text node starting with '>' (lines 130-133, 144-149)."""
+    from asciidoctrine.nodes import Ref
+    ref = Ref(variant="link", target="https://example.com")
+    ref.attributes["role"] = "bare"
+    # Next child is a Text node starting with '>' instead of a '>' Token
+    next_text = Text(">rest")
+    children = [Token("TEXT", "See <"), ref, next_text]
+    result = _it().text_content(None, children)
+    full = "".join(n.value for n in result if isinstance(n, Text))
+    # '<' stripped before ref, '>' stripped from start of next_text
+    assert "<" not in full
+    # "rest" should survive
+    assert "rest" in full
+
+
+def test_text_content_bare_ref_angle_bracket_next_text_only_gt():
+    """Next Text node is exactly '>' — should be removed entirely (lines 147-149)."""
+    from asciidoctrine.nodes import Ref
+    ref = Ref(variant="link", target="https://example.com")
+    ref.attributes["role"] = "bare"
+    # Next item is Text(">"): stripping ">" leaves an empty string → node removed
+    next_text = Text(">")
+    children = [Token("TEXT", "Before <"), ref, next_text]
+    result = _it().text_content(None, children)
+    # The empty Text("") should be removed; no stray ">" in output
+    full = "".join(n.value for n in result if isinstance(n, Text))
+    assert ">" not in full
+    assert "<" not in full
+
+
+def test_text_content_backslash_only_preceding_text_popped():
+    """Preceding text is exactly '\\' — after stripping it becomes empty and is popped (line 108)."""
+    from asciidoctrine.nodes import Ref
+    ref = Ref(variant="link", target="https://example.com")
+    ref.attributes["role"] = "bare"
+    # The ONLY content of the previous Text node is the backslash
+    children = [Token("TEXT", "\\"), ref]
+    result = _it().text_content(None, children)
+    # The backslash Text should be popped; ref converted to plain text of target
+    assert not any(n.value == "\\" for n in result if isinstance(n, Text))
+    combined = "".join(n.value for n in result if isinstance(n, Text))
+    assert "https://example.com" in combined
