@@ -1070,3 +1070,64 @@ def test_description_list_append_wrong_type_raises():
     p = Paragraph()
     with pytest.raises(AttributeError):
         dl.append(p)
+
+
+# ---------------------------------------------------------------------------
+# block_transformer.py L154-155: nested list second-item location update
+# ---------------------------------------------------------------------------
+
+def test_nest_list_items_nested_list_location_updated_by_second_item(transformer):
+    """Second sub-item updates the nested ASTList's end-location (lines 154-155)."""
+    t_sub1 = Token("TEXT", "A.1")
+    t_sub1.line = 2; t_sub1.column = 3; t_sub1.end_line = 2; t_sub1.end_column = 6
+    t_sub2 = Token("TEXT", "A.2")
+    t_sub2.line = 3; t_sub2.column = 3; t_sub2.end_line = 3; t_sub2.end_column = 6
+
+    items = [
+        {"level": 1, "item_type": "bullet", "marker": "*",
+         "children": [Text("A")], "checked": None},
+        {"level": 2, "item_type": "bullet", "marker": "**",
+         "children": [Text("A.1")], "checked": None, "raw_children": [t_sub1]},
+        {"level": 2, "item_type": "bullet", "marker": "**",
+         "children": [Text("A.2")], "checked": None, "raw_children": [t_sub2]},
+    ]
+    result = transformer._nest_list_items(items)
+    # result[0].blocks[0] is the nested ASTList; its end location should come from A.2
+    from asciidoctrine.nodes import List as ASTList
+    nested = result[0].blocks[0]
+    assert isinstance(nested, ASTList)
+    assert nested.location is not None
+    assert nested.location[1]["line"] == 3  # end updated to A.2's line
+
+
+# ---------------------------------------------------------------------------
+# block_transformer.py L177-179: indented_literal transformer method
+# ---------------------------------------------------------------------------
+
+def test_indented_literal_transformer(transformer):
+    """indented_literal() produces a Literal node with form='indented' (lines 177-179)."""
+    from asciidoctrine.nodes import Literal
+    content = [Text("    indented text")]
+    result = transformer.indented_literal(None, [Token("LEAD", "    "), content])
+    assert isinstance(result, Literal)
+    assert result.form == "indented"
+    assert result.inlines == content
+
+
+# ---------------------------------------------------------------------------
+# block_transformer.py L201: paragraph consolidation — first merged node has no location
+# ---------------------------------------------------------------------------
+
+def test_paragraph_consolidation_sets_location_from_second_text(transformer):
+    """When first merged Text has no location, paragraph sets it from the next (line 201)."""
+    from asciidoctrine.nodes import Paragraph
+
+    t1 = Text("hello")         # location = None
+    t2 = Text(" world")
+    t2.location = [{"line": 1, "col": 7}, {"line": 1, "col": 12}]
+
+    result = transformer.paragraph(None, [[t1, t2]])
+    assert isinstance(result, Paragraph)
+    merged = result.inlines[0]
+    assert merged.value == "hello world"
+    assert merged.location == [{"line": 1, "col": 7}, {"line": 1, "col": 12}]
