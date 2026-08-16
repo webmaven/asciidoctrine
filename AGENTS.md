@@ -132,9 +132,9 @@ Before releasing any package version to PyPI, follow this checklist sequentially
      ```bash
      venv/bin/mypy src/asciidoctrine
      ```
-   - Run the full test suite locally with coverage (note: `-n0` is required to disable `xdist` multiprocessing and prevent clashes with the `dynamic_context` configuration):
+   - Run the full test suite locally with coverage:
      ```bash
-     venv/bin/pytest -n0 --cov=src --cov-report=term-missing -k "not functional"
+     venv/bin/pytest --cov=src --cov-report=term-missing -k "not functional"
      ```
    - Run the TCK suite locally and check for 100% compliance:
      ```bash

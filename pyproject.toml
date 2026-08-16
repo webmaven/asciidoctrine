@@ -72,4 +72,3 @@ mypy_path = "src"
 ignore_missing_imports = true
 
 [tool.coverage.run]
-dynamic_context = "test_function"
