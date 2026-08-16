@@ -20,6 +20,8 @@
 === Testing
 * **Unit Test Coverage & Tier Classification**: Added 155 new direct-call unit tests across three new files (`test_inline_transformer_unit.py`, `test_transformers_unit.py`, `test_serializer_unit.py`). Classified all 32 test files with `pytestmark` (`unit`/`integration`/`functional`) and registered the `functional` mark in `pyproject.toml`, establishing a clean `-m unit` baseline at **54%** unit-only coverage.
 * **Test Suite Cleanup**: Reclassified mistiered tests, resolved cross-file name collisions, collapsed two files of near-identical test functions into `@pytest.mark.parametrize` tables, and removed leftover debug artifacts.
+* **Coverage Pipeline Optimisation**: Removed `dynamic_context` plugin from the coverage configuration, cutting full-suite coverage run time from ~326 s to ~46 s.
+* **Expanded Unit Test Coverage (572 tests, 76% unit-only on Py 3.12)**: Added ~215 new unit tests across `test_serializer_unit.py`, `test_preprocessor.py`, `test_transformers_unit.py`, `test_resolver.py`, and `test_package_api.py`, targeting previously uncovered branches in the serializer, preprocessor conditional-stack, resolver xref/footnote paths, inline-transformer angle-bracket stripping, and block-transformer list-merge location logic. Cross-Python comparison (3.12 vs 3.14) confirmed that the 3.14 instrumentation counts `def`/`class` definition lines as uncovered, accounting for ~15 percentage-point inflation in the miss count; actual logic coverage on 3.12 reaches **76% unit-only** and **96% full-suite**.
 
 
 == link:https://pypi.org/project/asciidoctrine/0.1.0a12/[0.1.0a12] - 2026-08-06
