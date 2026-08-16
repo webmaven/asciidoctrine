@@ -550,12 +550,31 @@ class DocutilsRenderer(NodeVisitor):
         img = nodes.image(uri=node.target, alt=node.attributes.get("alt", ""))
         self.current_node += img
 
+    def _append_attribution(
+        self, bq: nodes.Element, attribution: Optional[str], citetitle: Optional[str]
+    ) -> None:
+        """Append a trailing attribution paragraph to a block_quote node.
+
+        Renders as:  \u2014\u2009Author[, *citetitle*]
+        with a docutils ``attribution`` CSS class, matching the standard
+        Sphinx/HTML blockquote attribution convention.
+        """
+        if not attribution:
+            return
+        attr_para = nodes.paragraph(classes=["attribution"])
+        attr_para += nodes.Text("\u2014\u2009" + attribution)
+        if citetitle:
+            attr_para += nodes.Text(", ")
+            attr_para += nodes.emphasis("", citetitle)
+        bq += attr_para
+
     def visit_quote(self, node: Quote) -> None:
         bq = nodes.block_quote()
         old_parent = self.current_node
         self.current_node = bq
         for block in node.blocks:
             self.visit(block)
+        self._append_attribution(bq, node.attribution, node.citetitle)
         old_parent += bq
         self.current_node = old_parent
 
@@ -567,6 +586,7 @@ class DocutilsRenderer(NodeVisitor):
         self.current_node = bq
         for block in node.blocks:
             self.visit(block)
+        self._append_attribution(bq, node.attribution, node.citetitle)
         old_parent += bq
         self.current_node = old_parent
 

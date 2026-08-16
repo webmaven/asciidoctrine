@@ -682,7 +682,103 @@ This is collapsible.
     assert container[1].astext() == "This is collapsible."
 
 
+def test_quote_attribution_rendering():
+    """quote attribution and citetitle must render as a trailing attribution paragraph."""
+    import docutils.nodes as dnodes
+
+    # 1. Both attribution and citetitle present
+    doc = asciidoc_to_docutils(
+        "[quote, Ralph Waldo Emerson, Self-Reliance]\n"
+        "____\n"
+        "To be yourself in a world that is constantly trying to make you something else.\n"
+        "____"
+    )
+    bq = doc[0]
+    assert isinstance(bq, dnodes.block_quote)
+    # Last child should be the attribution paragraph
+    attr_para = bq[-1]
+    assert isinstance(attr_para, dnodes.paragraph)
+    assert "attribution" in attr_para["classes"]
+    attr_text = attr_para.astext()
+    assert "Ralph Waldo Emerson" in attr_text
+    assert "Self-Reliance" in attr_text
+
+    # 2. Attribution only (no citetitle)
+    doc2 = asciidoc_to_docutils(
+        "[quote, Winston Churchill]\n"
+        "____\n"
+        "Success is not final.\n"
+        "____"
+    )
+    bq2 = doc2[0]
+    attr_para2 = bq2[-1]
+    assert isinstance(attr_para2, dnodes.paragraph)
+    assert "attribution" in attr_para2["classes"]
+    assert "Winston Churchill" in attr_para2.astext()
+
+    # 3. No attribution — no trailing attribution paragraph beyond the content
+    doc3 = asciidoc_to_docutils(
+        "[quote]\n"
+        "____\n"
+        "Anonymous quote.\n"
+        "____"
+    )
+    bq3 = doc3[0]
+    # Should contain only the content paragraph, no extra attribution node
+    for child in bq3.children:
+        if isinstance(child, dnodes.paragraph):
+            assert "attribution" not in child.get("classes", [])
+
+
+def test_verse_attribution_rendering():
+    """verse attribution and citetitle must render as a trailing attribution paragraph."""
+    import docutils.nodes as dnodes
+
+    # 1. Both attribution and citetitle present
+    doc = asciidoc_to_docutils(
+        "[verse, Walt Whitman, Leaves of Grass]\n"
+        "____\n"
+        "I am large, I contain multitudes.\n"
+        "____"
+    )
+    bq = doc[0]
+    assert isinstance(bq, dnodes.block_quote)
+    assert "verse" in bq["classes"]
+    attr_para = bq[-1]
+    assert isinstance(attr_para, dnodes.paragraph)
+    assert "attribution" in attr_para["classes"]
+    attr_text = attr_para.astext()
+    assert "Walt Whitman" in attr_text
+    assert "Leaves of Grass" in attr_text
+
+    # 2. Attribution only
+    doc2 = asciidoc_to_docutils(
+        "[verse, Emily Dickinson]\n"
+        "____\n"
+        "Hope is the thing with feathers.\n"
+        "____"
+    )
+    bq2 = doc2[0]
+    attr_para2 = bq2[-1]
+    assert isinstance(attr_para2, dnodes.paragraph)
+    assert "attribution" in attr_para2["classes"]
+    assert "Emily Dickinson" in attr_para2.astext()
+
+    # 3. No attribution
+    doc3 = asciidoc_to_docutils(
+        "[verse]\n"
+        "____\n"
+        "Words without a name.\n"
+        "____"
+    )
+    bq3 = doc3[0]
+    for child in bq3.children:
+        if isinstance(child, dnodes.paragraph):
+            assert "attribution" not in child.get("classes", [])
+
+
 def test_index_term_conversion():
+
     # 1. Macro variant
     source = "Some text indexterm:[primary, secondary, tertiary] rest of text."
     document = asciidoc_to_docutils(source)
