@@ -1,3 +1,4 @@
+import pytest
 """
 Unit tests for InlineTransformer in asciidoctrine.
 """
@@ -11,6 +12,8 @@ from asciidoctrine.lark_parser import AsciiDocTransformer
 from asciidoctrine.nodes import Break, Span, Text
 
 
+
+pytestmark = pytest.mark.unit
 class TestInlineTransformerUnit(unittest.TestCase):
     def setUp(self):
         self.transformer = AsciiDocTransformer()

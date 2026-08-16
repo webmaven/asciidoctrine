@@ -1,7 +1,10 @@
+import pytest
 from asciidoctrine.nodes import Document, Paragraph, Ref, Section
 from asciidoctrine.resolver import ASGResolver, WorkspaceCatalog
 
 
+
+pytestmark = pytest.mark.unit
 def test_cross_reference_resolution() -> None:
     catalog = WorkspaceCatalog()
 

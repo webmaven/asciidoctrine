@@ -1,8 +1,11 @@
+import pytest
 import unittest
 
 from asciidoctrine.lark_parser import parse_to_ast
 
 
+
+pytestmark = pytest.mark.integration
 class CombinedFeaturesTest(unittest.TestCase):
     def _strip_locations(self, node):
         """Recursively strip 'location' from ASG dict."""

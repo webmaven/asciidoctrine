@@ -1,7 +1,10 @@
+import pytest
 from asciidoctrine.lark_parser import parse_to_ast
 from asciidoctrine.nodes import Listing, Literal, Text
 
 
+
+pytestmark = pytest.mark.integration
 def test_listing_block_coordinates_without_attributes():
     source = '----\nimport os\nprint("hello")\n----\n'
     ast = parse_to_ast(source)

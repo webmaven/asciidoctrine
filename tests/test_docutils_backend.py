@@ -1,8 +1,11 @@
+import pytest
 from docutils import nodes
 
 from asciidoctrine.docutils_backend import asciidoc_to_docutils
 
 
+
+pytestmark = pytest.mark.integration
 def test_basic_conversion():
     source = "== Hello\nTesting *bold* and _italic_.\n"
     document = asciidoc_to_docutils(source)

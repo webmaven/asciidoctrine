@@ -5,6 +5,8 @@ import pytest
 from asciidoctrine.lark_parser import parse_to_ast
 
 
+
+pytestmark = pytest.mark.integration
 def get_example_files():
     examples_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "examples")
     if not os.path.exists(examples_dir):

@@ -9,6 +9,8 @@ from asciidoctrine.attributes import (
 )
 from asciidoctrine.nodes import Span, Text
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.mark.unit
 class TestAttributes(unittest.TestCase):

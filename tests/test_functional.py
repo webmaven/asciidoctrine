@@ -11,6 +11,8 @@ except ImportError:
     HAS_PYODIDE = False
 
 
+
+pytestmark = pytest.mark.functional
 def _get_wheel_name():
     try:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

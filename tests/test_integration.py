@@ -1,7 +1,10 @@
+import pytest
 from asciidoctrine.lark_parser import parse_to_ast
 from asciidoctrine.resolver import ASGResolver
 
 
+
+pytestmark = pytest.mark.integration
 def test_full_pipeline_with_locations():
     source = """= Title
 :name: World

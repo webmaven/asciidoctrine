@@ -1,6 +1,9 @@
+import pytest
 from asciidoctrine import parse_to_ast
 
 
+
+pytestmark = pytest.mark.integration
 def _strip_locations(node):
     """Recursively strip 'location' from ASG dict."""
     if isinstance(node, dict):

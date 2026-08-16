@@ -1,7 +1,10 @@
+import pytest
 from asciidoctrine.nodes import Document, Paragraph, Section
 from asciidoctrine.resolver import WorkspaceCatalog
 
 
+
+pytestmark = pytest.mark.unit
 def test_workspace_catalog_indexing() -> None:
     catalog = WorkspaceCatalog()
     doc = Document()

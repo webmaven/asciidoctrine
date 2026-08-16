@@ -2,6 +2,7 @@
 Unit tests for AST Node classes in nodes.py.
 """
 
+import pytest
 import unittest
 
 from asciidoctrine.nodes import (
@@ -54,6 +55,8 @@ from asciidoctrine.nodes import (
     Verse,
     Video,
 )
+
+pytestmark = pytest.mark.unit
 
 
 class TestNodesUnit(unittest.TestCase):

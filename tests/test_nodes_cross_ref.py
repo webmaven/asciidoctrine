@@ -1,6 +1,9 @@
+import pytest
 from asciidoctrine.nodes import Ref
 
 
+
+pytestmark = pytest.mark.unit
 def test_ref_semantic_properties() -> None:
     ref = Ref(variant="xref", target="doc.adoc#intro")
     assert hasattr(ref, "resolved_strategy")

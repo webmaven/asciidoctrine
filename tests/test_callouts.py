@@ -1,6 +1,9 @@
+import pytest
 from asciidoctrine.nodes import Listing, Literal, Text
 
 
+
+pytestmark = pytest.mark.unit
 def test_listing_raw_code():
     # Listing with single text element
     node = Listing(inlines=[Text("print('hello')\n")])

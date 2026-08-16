@@ -3,6 +3,8 @@ import pytest
 from asciidoctrine import AsciiDocSyntaxError, parse_to_ast
 
 
+
+pytestmark = pytest.mark.integration
 def test_unclosed_listing_block():
     source = "[source,python]\n----\nprint('hello')\n"
     # Strict should raise exception

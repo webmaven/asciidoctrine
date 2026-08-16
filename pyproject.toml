@@ -46,6 +46,7 @@ norecursedirs = ["vendor", "venv", ".git", "docs", "tests/include_fixtures", "te
 markers = [
     "unit: Fast, isolated unit tests for core module logic.",
     "integration: Integration tests exercising full parsing, ASG transformations, and serialization.",
+    "functional: Functional/TCK tests running against the full Pyodide or Node.js environment.",
 ]
 
 [tool.ruff]

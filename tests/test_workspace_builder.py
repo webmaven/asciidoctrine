@@ -1,3 +1,4 @@
+import pytest
 import os
 import shutil
 import tempfile
@@ -6,6 +7,8 @@ from pathlib import Path
 from asciidoctrine.resolver import WorkspaceBuilder
 
 
+
+pytestmark = pytest.mark.integration
 def test_workspace_builder() -> None:
     tmp_dir = tempfile.mkdtemp()
     try:
