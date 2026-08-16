@@ -828,3 +828,281 @@ print("inner")
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# ---------------------------------------------------------------------------
+# ConditionalStack — is_active, __bool__
+# ---------------------------------------------------------------------------
+
+
+class TestConditionalStack:
+    def test_is_active_empty_stack_returns_true(self):
+        from asciidoctrine.preprocessor import ConditionalStack
+        cs = ConditionalStack()
+        assert cs.is_active() is True
+
+    def test_is_active_all_active(self):
+        from asciidoctrine.preprocessor import ConditionalStack
+        cs = ConditionalStack()
+        cs.push(True, "a", "ifdef")
+        cs.push(True, "b", "ifdef")
+        assert cs.is_active() is True
+
+    def test_is_active_one_inactive(self):
+        from asciidoctrine.preprocessor import ConditionalStack
+        cs = ConditionalStack()
+        cs.push(True, "a", "ifdef")
+        cs.push(False, "b", "ifdef")
+        assert cs.is_active() is False
+
+    def test_bool_empty_is_false(self):
+        from asciidoctrine.preprocessor import ConditionalStack
+        cs = ConditionalStack()
+        assert bool(cs) is False
+
+    def test_bool_non_empty_is_true(self):
+        from asciidoctrine.preprocessor import ConditionalStack
+        cs = ConditionalStack()
+        cs.push(True, "x", "ifdef")
+        assert bool(cs) is True
+
+    def test_pop_empty_returns_none(self):
+        from asciidoctrine.preprocessor import ConditionalStack
+        cs = ConditionalStack()
+        assert cs.pop() is None
+
+    def test_pop_named_mismatch_strict_raises(self):
+        from asciidoctrine.preprocessor import ConditionalStack, PreprocessorError
+        cs = ConditionalStack(strict=True)
+        cs.push(True, "foo", "ifdef")
+        with pytest.raises(PreprocessorError, match="Mismatched endif"):
+            cs.pop("bar")
+
+    def test_pop_named_mismatch_permissive_warns(self):
+        from asciidoctrine.preprocessor import ConditionalStack, PreprocessorWarning
+        cs = ConditionalStack(strict=False)
+        cs.push(True, "foo", "ifdef")
+        with pytest.warns(PreprocessorWarning, match="Mismatched"):
+            cs.pop("bar")
+
+    def test_pop_unnamed_target_no_check(self):
+        from asciidoctrine.preprocessor import ConditionalStack
+        cs = ConditionalStack(strict=True)
+        cs.push(True, "foo", "ifdef")
+        frame = cs.pop("")
+        assert frame is not None
+        assert frame.name == "foo"
+
+
+# ---------------------------------------------------------------------------
+# _parse_ifeval_operand — float, nil/null, unrecognised fallback
+# ---------------------------------------------------------------------------
+
+
+class TestParseIfevalOperand:
+    def _preprocessor(self):
+        import tempfile
+        from asciidoctrine.preprocessor import Preprocessor
+        return Preprocessor(base_dir=tempfile.mkdtemp())
+
+    def test_float_operand(self):
+        p = self._preprocessor()
+        assert p._parse_ifeval_operand("3.14") == pytest.approx(3.14)
+
+    def test_nil_operand(self):
+        p = self._preprocessor()
+        assert p._parse_ifeval_operand("nil") is None
+
+    def test_null_operand(self):
+        p = self._preprocessor()
+        assert p._parse_ifeval_operand("null") is None
+
+    def test_unrecognised_string_fallback(self):
+        p = self._preprocessor()
+        assert p._parse_ifeval_operand("html5") == "html5"
+
+    def test_quoted_double(self):
+        p = self._preprocessor()
+        assert p._parse_ifeval_operand('"hello"') == "hello"
+
+    def test_quoted_single(self):
+        p = self._preprocessor()
+        assert p._parse_ifeval_operand("'world'") == "world"
+
+
+# ---------------------------------------------------------------------------
+# _split_ifeval_expression — None return when no operator found
+# ---------------------------------------------------------------------------
+
+
+class TestSplitIfevalExpression:
+    def _preprocessor(self):
+        import tempfile
+        from asciidoctrine.preprocessor import Preprocessor
+        return Preprocessor(base_dir=tempfile.mkdtemp())
+
+    def test_no_operator_returns_none(self):
+        p = self._preprocessor()
+        assert p._split_ifeval_expression("just-a-string") is None
+
+    def test_operator_inside_quotes_ignored(self):
+        p = self._preprocessor()
+        # The == inside the quoted string should be ignored; the outer == should be found
+        result = p._split_ifeval_expression('"a == b" == "a == b"')
+        assert result is not None
+        left, op, right = result
+        assert op == "=="
+
+    def test_all_two_char_operators(self):
+        p = self._preprocessor()
+        for op in ("==", "!=", "<=", ">="):
+            result = p._split_ifeval_expression(f"1 {op} 2")
+            assert result is not None
+            assert result[1] == op
+
+
+# ---------------------------------------------------------------------------
+# _evaluate_ifeval_condition — attr substitution, TypeError catch
+# ---------------------------------------------------------------------------
+
+
+class TestEvaluateIfevalCondition:
+    def _preprocessor(self, attrs=None):
+        import tempfile
+        from asciidoctrine.preprocessor import Preprocessor
+        return Preprocessor(base_dir=tempfile.mkdtemp(), attributes=attrs or {})
+
+    def test_attribute_substitution_in_expression(self):
+        p = self._preprocessor({"revnumber": "2"})
+        # {revnumber} should be substituted to "2"
+        result = p._evaluate_ifeval_condition('"{revnumber}" == "2"')
+        assert result is True
+
+    def test_no_operator_returns_false(self):
+        p = self._preprocessor()
+        assert p._evaluate_ifeval_condition("no-operator-here") is False
+
+    def test_type_error_caught_returns_false(self):
+        p = self._preprocessor()
+        # Comparing incompatible types (e.g. string < int after coercion) should
+        # return False rather than propagating TypeError
+        result = p._evaluate_ifeval_condition('"text" < 5')
+        assert result is False
+
+    def test_gt_operator(self):
+        p = self._preprocessor()
+        assert p._evaluate_ifeval_condition("10 > 5") is True
+
+    def test_lt_operator(self):
+        p = self._preprocessor()
+        assert p._evaluate_ifeval_condition("3 < 10") is True
+
+    def test_ne_operator(self):
+        p = self._preprocessor()
+        assert p._evaluate_ifeval_condition('"a" != "b"') is True
+
+
+# ---------------------------------------------------------------------------
+# _update_delimiter_stack
+# ---------------------------------------------------------------------------
+
+
+class TestUpdateDelimiterStack:
+    def _preprocessor(self):
+        import tempfile
+        from asciidoctrine.preprocessor import Preprocessor
+        return Preprocessor(base_dir=tempfile.mkdtemp())
+
+    def test_pushes_new_delimiter(self):
+        p = self._preprocessor()
+        stack: list = []
+        p._update_delimiter_stack("----\n", stack)
+        assert stack == ["----"]
+
+    def test_pops_matching_delimiter(self):
+        p = self._preprocessor()
+        stack = ["----"]
+        p._update_delimiter_stack("----\n", stack)
+        assert stack == []
+
+    def test_non_delimiter_line_ignored(self):
+        p = self._preprocessor()
+        stack: list = []
+        p._update_delimiter_stack("normal text\n", stack)
+        assert stack == []
+
+    def test_different_depth_does_not_pop(self):
+        p = self._preprocessor()
+        stack = ["----"]
+        p._update_delimiter_stack("========\n", stack)
+        assert "========" in stack
+        assert "----" in stack
+
+
+# ---------------------------------------------------------------------------
+# _record_line — guard clause paths
+# ---------------------------------------------------------------------------
+
+
+class TestRecordLine:
+    def _preprocessor(self):
+        import tempfile
+        from asciidoctrine.preprocessor import Preprocessor
+        return Preprocessor(base_dir=tempfile.mkdtemp())
+
+    def test_record_line_initialises_if_missing(self):
+        p = self._preprocessor()
+        p.process("")  # initialise state normally
+        # Now delete so guard clauses in _record_line execute
+        del p.line_map
+        del p._global_line_counter
+        p._record_line("<root>", 1)
+        assert p.line_map == {1: ("<root>", 1)}
+        assert p._global_line_counter == 2
+
+    def test_record_line_increments_counter(self):
+        p = self._preprocessor()
+        p.process("")  # initialise state
+        before = p._global_line_counter
+        p._record_line("<root>", 5)
+        assert p._global_line_counter == before + 1
+
+
+# ---------------------------------------------------------------------------
+# _process_source — passthrough, comment, and other-delimiter branches
+# ---------------------------------------------------------------------------
+
+
+class TestProcessSourceDelimiters:
+    def _preprocessor(self, **kwargs):
+        import tempfile
+        from asciidoctrine.preprocessor import Preprocessor
+        return Preprocessor(base_dir=tempfile.mkdtemp(), **kwargs)
+
+    def test_passthrough_block_marked(self):
+        p = self._preprocessor()
+        src = "++++\nraw <html/>\n++++\n"
+        result = p.process(src)
+        assert "ASCIIDOCTRINE_OUTER_PASSTHROUGH_START" in result
+
+    def test_comment_block_marked(self):
+        p = self._preprocessor()
+        src = "////\nthis is a comment\n////\n"
+        result = p.process(src)
+        assert "ASCIIDOCTRINE_OUTER_COMMENT_START" in result
+
+    def test_other_delimiter_tracked(self):
+        p = self._preprocessor()
+        # ==== is a delimiter that goes through the _update_delimiter_stack path
+        src = "====\nExample content.\n====\n"
+        result = p.process(src)
+        # Content preserved unchanged
+        assert "Example content." in result
+
+    def test_nested_passthrough_inside_listing_not_marked(self):
+        """Passthrough inside a verbatim listing block is not re-processed."""
+        p = self._preprocessor()
+        src = "----\n++++\nnested\n++++\n----\n"
+        result = p.process(src)
+        # The inner ++++ lines are inside verbatim, should not be transformed
+        assert "ASCIIDOCTRINE_OUTER_PASSTHROUGH_START" not in result
