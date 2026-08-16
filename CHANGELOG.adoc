@@ -17,6 +17,24 @@
 * **List Item Continuation (`+`) Support for Description Lists (Issue #91)**:
   - Extended list continuation resolution to handle `DescriptionList` and `DescriptionListItem` nodes, correctly attaching subsequent continuation paragraphs and blocks to the active item's `blocks` list instead of leaving literal `+` tokens in paragraph text.
 
+=== Testing
+* **Test Tier Classification**:
+  - Classified all 32 test files with explicit `pytestmark` (`unit`, `integration`, or `functional`), enabling `pytest -m unit` as a reliable unit-only coverage baseline.
+  - Registered the `functional` mark in `pyproject.toml`; unit-only coverage baseline now measures **54%** (up from an apparent 41% before classification).
+* **New Unit Test Files**:
+  - `tests/test_inline_transformer_unit.py`: 49 direct-call tests for `InlineTransformer` methods, raising inline transformer unit coverage to 68%.
+  - `tests/test_transformers_unit.py`: 50 direct-call tests for `BlockTransformer`, covering `DescriptionList`/`CalloutList` merging, nested lists, verbatim callout parsing, non-default block delimiters, admonition variants, table multiplier expansion, and grid cell merging.
+  - `tests/test_serializer_unit.py`: 56 direct-call tests for `AsciiDocSerializerVisitor`, covering CRLF translation, line-ending stripping, block metadata, header, listing, literal, span, ref, image, audio/video, kbd/button/menu, callout, stem, passthrough, admonition, list items, table cells, description list items, and `generic_visit` fallback.
+* **Docutils Backend Attribution**:
+  - Added `_append_attribution` to `DocutilsRenderer` (Issue #90), rendering `Quote` and `Verse` block attributions as `nodes.paragraph` with class `attribution` and an em-dash prefix, following standard Docutils/Sphinx convention.
+* **Test Redundancy Audit & Cleanup**:
+  - Reclassified two `parse_to_ast`-dependent tests from `test_resolver.py` (unit) to `test_integration.py` (integration).
+  - Moved `test_parsed_listing_block_callouts` from `test_callouts.py` (unit) to `test_blocks_parsing.py` (integration).
+  - Resolved cross-file test name collisions: `test_description_list` → `test_description_list_roundtrip` in `test_serializer.py`; `test_literal_properties` → `test_literal_callout_extraction` in `test_callouts.py`.
+  - Collapsed `test_strict_parsing.py` from 10 near-identical strict/permissive functions into a single `@pytest.mark.parametrize` table (160 → 115 lines).
+  - Collapsed `test_location_coordinates.py` from 4 near-identical coordinate tests into a single parametrized test (82 → 73 lines).
+  - Removed leftover debug `import json` / `print(json.dumps(...))` from `test_combined.py` and dead `if __name__ == "__main__"` block from `test_resolver.py`.
+
 
 == link:https://pypi.org/project/asciidoctrine/0.1.0a12/[0.1.0a12] - 2026-08-06
 
