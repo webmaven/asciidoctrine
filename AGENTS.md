@@ -337,6 +337,41 @@ To facilitate producing a TCK-compliant Resolved Abstract Semantic Graph (ASG), 
 - **Design Decision — Literal `"##"` vs. Dedicated Terminal**: The `unconstrained_marked` rule uses the literal string `"##"` rather than a dedicated `DOUBLEHASH` terminal. This is consistent with how `unconstrained_bold` uses `"**"`, `unconstrained_italic` uses `"__"`, and `unconstrained_monospace` uses ` "``" `. Lark decomposes multi-character literals into individual token sequences during lexing, which is the desired behavior for Earley parsing. A dedicated terminal would only be warranted if there were other grammar contexts that needed to match the exact sequence `##` as a single lexer token — and there are none.
 
 
+### 12. Page Break Terminal Precedence (`PAGE_BREAK_MARKER.20`)
+- **Problem**: When a page break marker (such as `<<<` or `<<<<`) was placed standalone or surrounded by blank lines, Lark's Earley parser preferred tokenizing and parsing it as a plain `paragraph` block node containing literal string text instead of a `PageBreak` block node.
+- **Cause**: The `paragraph` rule's text terminals competed with untyped or low-priority character sequences. Because `paragraph` had a high cumulative tree score across line breaks, Lark's Earley engine selected the paragraph parse branch.
+- **Solution**:
+  1. Defined a dedicated terminal `PAGE_BREAK_MARKER.20: /<{3,}/` with explicit priority `20` in `src/asciidoctrine/grammar.lark`.
+  2. Defined rule `page_break.20: PAGE_BREAK_MARKER _NEWLINE` with priority `20` to ensure page breaks always outweigh generic text paragraph alternatives.
+
+### 13. Quote and Verse Attribution and CiteTitle Extraction
+- **Problem**: Positional and named attributes on quote and verse blocks (e.g. `[quote, author, title]` or `[quote, attribution="...", citetitle="..."]`) were previously retained only as generic string attributes or dropped, rather than assigned to semantic node properties (`attribution`, `citetitle`) on `Quote` and `Verse` AST/ASG nodes.
+- **Solution**:
+  1. Updated `Quote` and `Verse` in `src/asciidoctrine/nodes.py` to accept `attribution` and `citetitle` arguments and serialize them in `to_dict()`.
+  2. Updated `attributed_block` in `src/asciidoctrine/lark_parser.py` to inspect named keys (`attribution`, `quote_author`, `author`, `citetitle`, `quote_title`, `title`) and positional attributes (index 1 for author/attribution, index 2 for title/citetitle) when constructing `Quote` and `Verse` nodes.
+
+### 14. Description List Continuation (`+`) Handling
+- **Problem**: When a description list item contained multiple paragraphs connected by list continuation markers (`+`), the subsequent paragraphs were either dropped or left as literal `+` paragraph text instead of being appended to the `DescriptionListItem.blocks` sequence.
+- **Solution**:
+  1. Generalized `split_continuation_paragraphs()` in `src/asciidoctrine/lark_parser.py` to scan for `\n+\n` sequences within joint paragraphs and break them into distinct `Paragraph` blocks alternating with synthetic continuation tokens.
+  2. Updated `resolve_list_continuations()` to recognize and traverse `DescriptionList` and `DescriptionListItem` nodes alongside standard `List` and `ListItem` nodes.
+  3. Integrated `expand_joint_paragraphs()` into `dlist_item()` in `src/asciidoctrine/transformers/block_transformer.py` to ensure continuation tokens are consumed and attached to the active item's block list.
+
+### 15. Verbatim Inline Callout Extraction & Auto-Increment
+- **Problem**: Callout markers in code listings (such as `<1>`, `<2>`, `// <1>`, `/* <1> */`, `<!-- <.> -->`, `<!--1-->`) were retained as raw code strings rather than transformed into structured `Callout` inline nodes in `Listing.inlines`.
+- **Solution**:
+  1. Implemented `_build_verbatim_inlines()` in `src/asciidoctrine/transformers/block_transformer.py` to scan verbatim lines, identify callout delimiters across common programming and markup comment conventions, strip wrapping comments, and emit structured `Callout(number=...)` nodes.
+  2. Supported sequential auto-numbering (`<.>`) with monotonic counter tracking across mixed explicit and auto-numbered callout lines.
+  3. Updated `VerbatimBlockMixin` in `src/asciidoctrine/nodes.py` so helper properties (`code`, `stripped_code`, `callouts`) work transparently with structured inline node lists as well as raw string inputs.
+
+### 16. Document-Level Footnote Collection & Sequential Indexing in `ASGResolver`
+- **Problem**: Footnote macros (`footnote:[text]`, `footnoteref:[id, text]`, `footnoteref:[id]`) were parsed as inline `Ref` nodes, but `ASGResolver` did not collect them into a document-level catalog, leaving them without resolved sequential 1-based indices.
+- **Solution**:
+  1. Added stateful footnote tracking (`self.footnotes`, `self.footnote_counter`, `self.footnote_by_id`) in `ASGResolver` initialized and reset on each `resolve()` invocation.
+  2. In `visit_ref()`, matched `node.variant == "footnote"` to assign sequential indices, register definitions, resolve duplicate and forward references, and populate `node.index`.
+  3. Serialized the collected catalog as `Document.footnotes` in `to_dict()`, including `id`, `index`, `text`, and resolved child `inlines` AST dictionaries.
+
+
 ## 🤖 Subagent & Model Routing Strategy
 
 *   **Standing Instruction**: For all coding and coding-adjacent tasks, use your judgement to decide when a lower-power model would be appropriate and run that in a subagent.
