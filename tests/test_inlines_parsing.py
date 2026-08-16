@@ -731,7 +731,9 @@ class TestInlines(unittest.TestCase):
         # Check inlines and ref indices
         inlines = resolved["blocks"][0]["inlines"]
         refs = [
-            n for n in inlines if n.get("name") == "ref" and n.get("variant") == "footnote"
+            n
+            for n in inlines
+            if n.get("name") == "ref" and n.get("variant") == "footnote"
         ]
         self.assertEqual(len(refs), 3)
         self.assertEqual(refs[0]["index"], 1)
@@ -790,7 +792,9 @@ class TestInlines(unittest.TestCase):
 
         inlines = resolved["blocks"][0]["inlines"]
         refs = [
-            n for n in inlines if n.get("name") == "ref" and n.get("variant") == "footnote"
+            n
+            for n in inlines
+            if n.get("name") == "ref" and n.get("variant") == "footnote"
         ]
         self.assertEqual(len(refs), 2)
         self.assertEqual(refs[0]["index"], 1)
@@ -815,4 +819,3 @@ class TestInlines(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
