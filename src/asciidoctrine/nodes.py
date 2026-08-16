@@ -59,6 +59,7 @@ class Node:
             "resolved_strategy",
             "resolved_file_target",
             "resolved_anchor_target",
+            "index",
         ]:
             if hasattr(self, attr):
                 val = getattr(self, attr)
@@ -148,6 +149,7 @@ class Document(BlockNode):
         self.included_files: PyList[str] = []
         self.base_dir: Optional[str] = base_dir
         self.safe_mode: int = safe_mode
+        self.footnotes: PyList[Dict[str, Any]] = []
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize document with header and resolved attributes."""
@@ -170,6 +172,8 @@ class Document(BlockNode):
             data["header"] = self.header.to_dict()
         if hasattr(self, "docinfo") and self.docinfo:
             data["docinfo"] = self.docinfo.to_dict()
+        if hasattr(self, "footnotes") and self.footnotes:
+            data["footnotes"] = self.footnotes
         return data
 
 
@@ -497,6 +501,7 @@ class Ref(InlineNode):
     `resolved_file_target`:: Set by `ASGResolver` to the target file ID.
     `resolved_anchor_target`:: Set by `ASGResolver` to the target anchor/section ID.
     `target_node_instance`:: Direct live memory pointer to the resolved target `Node` AST instance. Excluded from `to_dict()` serialization to prevent circular references.
+    `index`:: 1-based sequential numerical index for footnote references set by `ASGResolver`.
     """
 
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
@@ -515,6 +520,7 @@ class Ref(InlineNode):
         self.resolved_file_target: Optional[str] = None
         self.resolved_anchor_target: Optional[str] = None
         self.target_node_instance: Optional[Node] = None
+        self.index: Optional[int] = None
 
 
 class Image(BlockNode):

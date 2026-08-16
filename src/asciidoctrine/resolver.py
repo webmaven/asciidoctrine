@@ -1,6 +1,6 @@
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict, Optional, Sequence, cast
 from typing import List as PyList
 
 from .attributes import resolve_attribute_map, substitute_attributes
@@ -108,6 +108,9 @@ class ASGResolver(NodeTransformer):
             if current_file_id is not None
             else (str(doc_id) if doc_id is not None else "root")
         )
+        self.footnotes: PyList[Dict[str, Any]] = []
+        self.footnote_counter: int = 0
+        self.footnote_by_id: Dict[str, Dict[str, Any]] = {}
 
     def _resolve_docinfo_files(self, doc: Document) -> tuple[str, str]:
         docinfo_attr = str(self.resolved_attributes.get("docinfo", "")).strip()
@@ -229,7 +232,14 @@ class ASGResolver(NodeTransformer):
                 )
 
         copied_node = copy.deepcopy(node)
+        self.footnotes = []
+        self.footnote_counter = 0
+        self.footnote_by_id = {}
+
         self.visit(copied_node)
+
+        if isinstance(copied_node, Document):
+            copied_node.footnotes = self.footnotes
 
         asg = copied_node.to_dict()
 
@@ -323,8 +333,69 @@ class ASGResolver(NodeTransformer):
         # Filter out comments from parent lists
         return None
 
+    def _extract_inline_text(self, nodes: Sequence[Node]) -> str:
+        parts: PyList[str] = []
+        for n in nodes:
+            if hasattr(n, "value") and getattr(n, "value") is not None:
+                parts.append(str(n.value))
+            for coll in n.get_child_collections().values():
+                parts.append(self._extract_inline_text(coll))
+        return "".join(parts)
+
     def visit_ref(self, node: Ref, **kwargs: Any) -> Node:
-        """Resolves interdocument cross-references natively."""
+        """Resolves interdocument cross-references and footnotes natively."""
+        if node.variant == "footnote":
+            self.generic_visit(node, **kwargs)
+            custom_id = node.target if node.target else None
+            if custom_id:
+                if node.inlines:
+                    # Defining footnoteref:[custom_id, text]
+                    if custom_id in self.footnote_by_id:
+                        fn_entry = self.footnote_by_id[custom_id]
+                        node.index = fn_entry["index"]
+                        if not fn_entry.get("inlines"):
+                            fn_entry["text"] = self._extract_inline_text(node.inlines)
+                            fn_entry["inlines"] = [n.to_dict() for n in node.inlines]
+                    else:
+                        self.footnote_counter += 1
+                        node.index = self.footnote_counter
+                        fn_entry = {
+                            "id": custom_id,
+                            "index": self.footnote_counter,
+                            "text": self._extract_inline_text(node.inlines),
+                            "inlines": [n.to_dict() for n in node.inlines],
+                        }
+                        self.footnote_by_id[custom_id] = fn_entry
+                        self.footnotes.append(fn_entry)
+                else:
+                    # Referencing footnoteref:[custom_id]
+                    if custom_id in self.footnote_by_id:
+                        fn_entry = self.footnote_by_id[custom_id]
+                        node.index = fn_entry["index"]
+                    else:
+                        self.footnote_counter += 1
+                        node.index = self.footnote_counter
+                        fn_entry = {
+                            "id": custom_id,
+                            "index": self.footnote_counter,
+                            "text": "",
+                            "inlines": [],
+                        }
+                        self.footnote_by_id[custom_id] = fn_entry
+                        self.footnotes.append(fn_entry)
+            else:
+                # Auto-numbered footnote:[text]
+                self.footnote_counter += 1
+                node.index = self.footnote_counter
+                fn_entry = {
+                    "id": None,
+                    "index": self.footnote_counter,
+                    "text": self._extract_inline_text(node.inlines),
+                    "inlines": [n.to_dict() for n in node.inlines],
+                }
+                self.footnotes.append(fn_entry)
+            return node
+
         if node.variant != "xref":
             return self.generic_visit(node, **kwargs)
 

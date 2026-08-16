@@ -45,6 +45,8 @@ def main():
                 for k, v in obj.items():
                     if k == "location" and not include_locations:
                         continue
+                    if k == "index":
+                        continue
                     res[k] = clean_asg_for_tck(v)
 
                 # TCK prefers omitting empty child collections in some contexts

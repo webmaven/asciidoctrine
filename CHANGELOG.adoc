@@ -4,6 +4,8 @@
 == Unreleased
 
 === Added
+* **Collect Footnote References & Catalog in ASGResolver (Issue #93)**:
+  - Added document-level footnote collection and sequential numbering (1-based index) during `ASGResolver` semantic resolution for auto-numbered (`footnote:[text]`), named definition (`footnoteref:[id, text]`), and named reference (`footnoteref:[id]`) inline macros, populating `Ref.index` and the `Document.footnotes` catalog.
 * **Resolve Inline Callouts in Listing Blocks (Issue #92)**:
   - Extracted inline callout markers (e.g. `<1>`, `<2>`, `// <1>`, `<!-- <.> -->`, `<!--1-->`) in verbatim `Listing` and `Literal` blocks into structured `Callout` AST/ASG inline nodes with auto-numbering and comment-stripping support.
 

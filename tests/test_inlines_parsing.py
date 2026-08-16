@@ -717,6 +717,102 @@ class TestInlines(unittest.TestCase):
         span2 = para2[0]
         self.assertIn("important", span2["classes"])
 
+    def test_footnote_resolution_and_catalog(self):
+        from asciidoctrine.resolver import ASGResolver
+
+        source = (
+            "First footnote:[first note]. "
+            "Second footnoteref:[fn1, second note]. "
+            "Third footnoteref:[fn1].\n"
+        )
+        ast = parse_to_ast(source)
+        resolved = ASGResolver(ast).resolve(ast)
+
+        # Check inlines and ref indices
+        inlines = resolved["blocks"][0]["inlines"]
+        refs = [
+            n for n in inlines if n.get("name") == "ref" and n.get("variant") == "footnote"
+        ]
+        self.assertEqual(len(refs), 3)
+        self.assertEqual(refs[0]["index"], 1)
+        self.assertEqual(refs[1]["index"], 2)
+        self.assertEqual(refs[2]["index"], 2)
+
+        # Check footnotes catalog on resolved Document ASG
+        self.assertIn("footnotes", resolved)
+        footnotes = resolved["footnotes"]
+        self.assertEqual(len(footnotes), 2)
+
+        # First footnote entry
+        self.assertEqual(footnotes[0]["index"], 1)
+        self.assertIsNone(footnotes[0]["id"])
+        self.assertEqual(footnotes[0]["text"], "first note")
+        self.assertEqual(footnotes[0]["inlines"][0]["value"], "first note")
+
+        # Second footnote entry
+        self.assertEqual(footnotes[1]["index"], 2)
+        self.assertEqual(footnotes[1]["id"], "fn1")
+        self.assertEqual(footnotes[1]["text"], "second note")
+        self.assertEqual(footnotes[1]["inlines"][0]["value"], "second note")
+
+    def test_footnote_nested_formatting_and_attributes(self):
+        from asciidoctrine.resolver import ASGResolver
+
+        source = (
+            ":author: John Doe\n\n"
+            "This footnote:[A note by {author} with *bold* text].\n"
+        )
+        ast = parse_to_ast(source)
+        resolved = ASGResolver(ast).resolve(ast)
+
+        self.assertIn("footnotes", resolved)
+        fn = resolved["footnotes"][0]
+        self.assertEqual(fn["index"], 1)
+        self.assertIsNone(fn["id"])
+        self.assertEqual(fn["text"], "A note by John Doe with bold text")
+        # Inlines check: Text("A note by John Doe with "), Span(variant="strong", inlines=[Text("bold")]), Text(" text")
+        self.assertEqual(len(fn["inlines"]), 3)
+        self.assertEqual(fn["inlines"][0]["value"], "A note by John Doe with ")
+        self.assertEqual(fn["inlines"][1]["name"], "span")
+        self.assertEqual(fn["inlines"][1]["variant"], "strong")
+        self.assertEqual(fn["inlines"][1]["inlines"][0]["value"], "bold")
+        self.assertEqual(fn["inlines"][2]["value"], " text")
+
+    def test_footnote_forward_reference(self):
+        from asciidoctrine.resolver import ASGResolver
+
+        source = (
+            "Ref first footnoteref:[fn-fwd], "
+            "then define footnoteref:[fn-fwd, Forward defined note].\n"
+        )
+        ast = parse_to_ast(source)
+        resolved = ASGResolver(ast).resolve(ast)
+
+        inlines = resolved["blocks"][0]["inlines"]
+        refs = [
+            n for n in inlines if n.get("name") == "ref" and n.get("variant") == "footnote"
+        ]
+        self.assertEqual(len(refs), 2)
+        self.assertEqual(refs[0]["index"], 1)
+        self.assertEqual(refs[1]["index"], 1)
+
+        self.assertIn("footnotes", resolved)
+        self.assertEqual(len(resolved["footnotes"]), 1)
+        fn = resolved["footnotes"][0]
+        self.assertEqual(fn["id"], "fn-fwd")
+        self.assertEqual(fn["index"], 1)
+        self.assertEqual(fn["text"], "Forward defined note")
+
+    def test_document_without_footnotes(self):
+        from asciidoctrine.resolver import ASGResolver
+
+        source = "Just a regular paragraph.\n"
+        ast = parse_to_ast(source)
+        resolved = ASGResolver(ast).resolve(ast)
+
+        self.assertNotIn("footnotes", resolved)
+
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -25,7 +25,7 @@ def clean_asg_for_tck(obj: Any) -> Any:
     if isinstance(obj, dict):
         res = {}
         for k, v in obj.items():
-            if k == "location":
+            if k in ("location", "index"):
                 continue
             res[k] = clean_asg_for_tck(v)
 
