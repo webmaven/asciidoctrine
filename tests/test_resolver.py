@@ -24,35 +24,6 @@ def test_resolver():
     print("Test passed!")
 
 
-def test_resolver_filters_attributes_and_comments():
-    from asciidoctrine.lark_parser import parse_to_ast
-
-    source = """:my-attr: my-value
-
-This is a paragraph.
-"""
-    ast = parse_to_ast(source)
-
-    # 1. Verify attribute_entry is present in AST blocks list
-    ast_dict = ast.to_dict()
-    ast_block_names = [b["name"] for b in ast_dict.get("blocks", [])]
-    assert "attribute_entry" in ast_block_names
-
-    # 2. Resolve to ASG and verify attribute_entry is NOT present, but 'attributes' block IS present
-    resolver = ASGResolver(ast)
-    asg = resolver.resolve(ast)
-
-    asg_block_names = [b["name"] for b in asg.get("blocks", [])]
-    assert "attribute_entry" not in asg_block_names
-    assert "attributes" in asg_block_names
-    assert "paragraph" in asg_block_names
-
-    # 3. Verify the details of the 'attributes' block
-    attr_block = [b for b in asg["blocks"] if b["name"] == "attributes"][0]
-    assert "my-attr" in attr_block["attributes"]
-    assert attr_block["attributes"]["my-attr"]["value"] == "my-value"
-    assert "location" in attr_block["attributes"]["my-attr"]
-
 
 def test_resolver_block_attribute_cleaning_and_comment_removal():
     from asciidoctrine.nodes import Node, Paragraph, Text
@@ -107,33 +78,3 @@ def test_resolver_block_attribute_cleaning_and_comment_removal():
     assert "positional" not in empty_p["attributes"]
 
 
-def test_resolver_non_destructive():
-    # Verify that resolving an AST to ASG does not mutate the original AST
-    from asciidoctrine.lark_parser import parse_to_ast
-
-    source = ":my-attr: my-value\n\n[my-block-attribute=my-val]\nThis is a paragraph.\n"
-    ast = parse_to_ast(source)
-
-    # Check that attribute_entry exists in blocks of AST
-    ast_blocks_before = [b.name for b in ast.blocks]
-    assert "attribute_entry" in ast_blocks_before
-
-    # Resolve
-    resolver = ASGResolver(ast)
-    asg = resolver.resolve(ast)
-    assert asg.get("name") == "document"
-
-    # Check that after resolution, original AST still has attribute_entry in blocks
-    ast_blocks_after = [b.name for b in ast.blocks]
-    assert "attribute_entry" in ast_blocks_after
-
-    # Check that block attributes of paragraph are still present in original AST
-    p_node = [b for b in ast.blocks if b.name == "paragraph"][0]
-    assert p_node.attributes.get("my-block-attribute") == "my-val"
-
-
-if __name__ == "__main__":
-    test_resolver()
-    test_resolver_filters_attributes_and_comments()
-    test_resolver_block_attribute_cleaning_and_comment_removal()
-    test_resolver_non_destructive()

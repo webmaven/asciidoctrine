@@ -88,7 +88,7 @@ Some content inside section.
 """
         self._assert_roundtrip(source)
 
-    def test_description_list(self):
+    def test_description_list_roundtrip(self):
         source = """Term 1:: Definition of term 1
 Term 2::
 Definition of term 2

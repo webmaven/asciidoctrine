@@ -58,3 +58,52 @@ def test_nested_list_integration():
 
     item2 = list_node["items"][1]
     assert item2["principal"][0]["value"] == "Back to 1"
+
+
+def test_resolver_filters_attributes_and_comments():
+    """parse + resolve: attribute_entry nodes are consumed; ASG gains an 'attributes' block."""
+    from asciidoctrine.lark_parser import parse_to_ast
+
+    source = """:my-attr: my-value
+
+This is a paragraph.
+"""
+    ast = parse_to_ast(source)
+
+    ast_dict = ast.to_dict()
+    ast_block_names = [b["name"] for b in ast_dict.get("blocks", [])]
+    assert "attribute_entry" in ast_block_names
+
+    resolver = ASGResolver(ast)
+    asg = resolver.resolve(ast)
+
+    asg_block_names = [b["name"] for b in asg.get("blocks", [])]
+    assert "attribute_entry" not in asg_block_names
+    assert "attributes" in asg_block_names
+    assert "paragraph" in asg_block_names
+
+    attr_block = [b for b in asg["blocks"] if b["name"] == "attributes"][0]
+    assert "my-attr" in attr_block["attributes"]
+    assert attr_block["attributes"]["my-attr"]["value"] == "my-value"
+    assert "location" in attr_block["attributes"]["my-attr"]
+
+
+def test_resolver_non_destructive():
+    """Resolving an AST to ASG must not mutate the original AST."""
+    from asciidoctrine.lark_parser import parse_to_ast
+
+    source = ":my-attr: my-value\n\n[my-block-attribute=my-val]\nThis is a paragraph.\n"
+    ast = parse_to_ast(source)
+
+    ast_blocks_before = [b.name for b in ast.blocks]
+    assert "attribute_entry" in ast_blocks_before
+
+    resolver = ASGResolver(ast)
+    asg = resolver.resolve(ast)
+    assert asg.get("name") == "document"
+
+    ast_blocks_after = [b.name for b in ast.blocks]
+    assert "attribute_entry" in ast_blocks_after
+
+    p_node = [b for b in ast.blocks if b.name == "paragraph"][0]
+    assert p_node.attributes.get("my-block-attribute") == "my-val"

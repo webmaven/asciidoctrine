@@ -27,9 +27,6 @@ class CombinedFeaturesTest(unittest.TestCase):
 Another paragraph.
 """
         ast = self._strip_locations(parse_to_ast(source).to_dict())
-        import json
-
-        print(json.dumps(ast, indent=2))
         self.maxDiff = None
         expected_ast = {
             "name": "document",

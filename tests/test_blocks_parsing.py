@@ -1103,3 +1103,23 @@ Second paragraph.
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_parsed_listing_block_callouts():
+    """Integration: callout markers inside a real parsed listing block are correctly split."""
+    source = (
+        "[source,ruby]\n"
+        "----\n"
+        "require 'json' # <1>\n"
+        "puts JSON.generate({ok: true}) # <2>\n"
+        "----\n"
+    )
+    doc = parse_to_ast(source)
+    listing = doc.blocks[0]
+    assert len(listing.inlines) == 4
+    assert listing.inlines[0].value == "require 'json'"
+    assert listing.inlines[1].value == 1
+    assert listing.inlines[2].value == "\nputs JSON.generate({ok: true})"
+    assert listing.inlines[3].value == 2
+    assert listing.callouts == {1: [1], 2: [2]}
+    assert listing.stripped_code == "require 'json'\nputs JSON.generate({ok: true})"
