@@ -799,3 +799,147 @@ def test_table_num_cols_zero_guard(transformer):
     cell.location = None  # no location → first_line lookup returns 1, sum=0 → fallback
     result = transformer.table(meta, [cell])
     assert len(result.rows) == 1
+
+
+# ---------------------------------------------------------------------------
+# BlockTransformer._merge_consecutive_lists — location-update branches
+# ---------------------------------------------------------------------------
+
+
+def _loc(l1, c1, l2, c2):
+    return [{"line": l1, "col": c1}, {"line": l2, "col": c2}]
+
+
+def test_merge_consecutive_lists_ulist_updates_location(transformer):
+    """Covers lines 59-60: end-location updated when merging adjacent unordered lists."""
+    from asciidoctrine.nodes import List as ASTList, ListItem
+
+    item1 = ListItem(marker="*", principal=[Text("A")])
+    item2 = ListItem(marker="*", principal=[Text("B")])
+    l1 = ASTList(variant="unordered", marker="*")
+    l1.items.append(item1)
+    l1.location = _loc(1, 1, 1, 5)
+    l2 = ASTList(variant="unordered", marker="*")
+    l2.items.append(item2)
+    l2.location = _loc(2, 1, 2, 9)
+
+    result = transformer._merge_consecutive_lists([l1, l2])
+    assert len(result) == 1
+    assert result[0].location[1] == {"line": 2, "col": 9}
+
+
+def test_merge_consecutive_lists_dlist_updates_location(transformer):
+    """Covers line 66: end-location updated when merging adjacent DescriptionLists."""
+    from asciidoctrine.nodes import DescriptionList
+
+    dl1 = DescriptionList()
+    dl1.location = _loc(1, 1, 2, 10)
+    dl2 = DescriptionList()
+    dl2.location = _loc(4, 1, 5, 10)
+
+    result = transformer._merge_consecutive_lists([dl1, dl2])
+    assert len(result) == 1
+    assert result[0].location[1] == {"line": 5, "col": 10}
+
+
+def test_merge_consecutive_lists_callout_updates_location(transformer):
+    """Covers line 72: end-location updated when merging adjacent CalloutLists."""
+    from asciidoctrine.nodes import CalloutList
+
+    cl1 = CalloutList()
+    cl1.location = _loc(10, 1, 10, 5)
+    cl2 = CalloutList()
+    cl2.location = _loc(11, 1, 11, 5)
+
+    result = transformer._merge_consecutive_lists([cl1, cl2])
+    assert len(result) == 1
+    assert result[0].location[1] == {"line": 11, "col": 5}
+
+
+def test_nest_list_items_stack_pops_on_level_decrease(transformer):
+    """Covers line 109: while-loop pops stack when nesting level drops."""
+    from asciidoctrine.nodes import List as ASTList
+
+    items = [
+        {"level": 1, "item_type": "bullet", "marker": "*",
+         "children": [Text("A")], "checked": None},
+        {"level": 2, "item_type": "bullet", "marker": "**",
+         "children": [Text("A.1")], "checked": None},
+        {"level": 1, "item_type": "bullet", "marker": "*",
+         "children": [Text("B")], "checked": None},
+    ]
+    result = transformer._nest_list_items(items)
+    # Two top-level items; first has a nested child
+    assert len(result) == 2
+    assert len(result[0].blocks) == 1
+    assert isinstance(result[0].blocks[0], ASTList)
+
+
+# ---------------------------------------------------------------------------
+# InlineTransformer.text_content — angle-bracket and backslash-escape paths
+# ---------------------------------------------------------------------------
+
+from asciidoctrine.transformers.inline_transformer import InlineTransformer
+
+
+def _it():
+    return InlineTransformer()
+
+
+def test_text_content_plain_token():
+    result = _it().text_content(None, [Token("TEXT", "hello")])
+    assert len(result) == 1
+    assert isinstance(result[0], Text)
+    assert result[0].value == "hello"
+
+
+def test_text_content_adjacent_tokens_merged():
+    result = _it().text_content(None, [Token("TEXT", "foo"), Token("TEXT", "bar")])
+    assert len(result) == 1
+    assert result[0].value == "foobar"
+
+
+def test_text_content_node_child_passthrough():
+    node = Span(variant="strong", form="constrained", inlines=[Text("bold")])
+    result = _it().text_content(None, [node])
+    assert result[0] is node
+
+
+def test_text_content_pending_attrs_applied_to_next_node():
+    children = [{"role": "highlight"}, Token("TEXT", "marked")]
+    result = _it().text_content(None, children)
+    assert result[0].attributes.get("role") == "highlight"
+
+
+def test_text_content_pending_attrs_no_following_node_emitted_as_text():
+    """Trailing pending attrs with no subsequent node become a literal [attr=val] Text."""
+    children = [{"role": "orphan"}]
+    result = _it().text_content(None, children)
+    assert len(result) == 1
+    assert "[" in result[0].value
+
+
+def test_text_content_bare_ref_escaped_with_backslash():
+    """Backslash before a bare URL → Ref converted to plain Text of the target."""
+    from asciidoctrine.nodes import Ref
+    ref = Ref(variant="link", target="https://example.com")
+    ref.attributes["role"] = "bare"
+    # Text ending with backslash, then bare Ref
+    children = [Token("TEXT", "Visit \\"), ref]
+    result = _it().text_content(None, children)
+    combined = "".join(n.value for n in result if isinstance(n, Text))
+    assert "https://example.com" in combined
+    assert not any(isinstance(n, Ref) for n in result)
+
+
+def test_text_content_bare_ref_angle_brackets_stripped():
+    """<URL> — angle brackets stripped when bare Ref surrounded by < and > tokens."""
+    from asciidoctrine.nodes import Ref
+    ref = Ref(variant="link", target="https://example.com")
+    ref.attributes["role"] = "bare"
+    # preceding text ends with '<', then bare Ref, then '>' token
+    children = [Token("TEXT", "See <"), ref, Token("GT", ">")]
+    result = _it().text_content(None, children)
+    full_text = "".join(n.value for n in result if isinstance(n, Text))
+    assert "<" not in full_text
+    assert ">" not in full_text

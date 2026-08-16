@@ -663,3 +663,175 @@ class TestWorkspaceBuilderIntegration(unittest.TestCase):
         self.assertEqual(ref["resolved_strategy"], "cross_file")
         self.assertEqual(ref["resolved_file_target"], "doc1.adoc")
         self.assertEqual(ref["resolved_anchor_target"], "intro")
+
+
+# ---------------------------------------------------------------------------
+# Resolver gap coverage — additional unit tests
+# ---------------------------------------------------------------------------
+
+
+class TestResolverGenericVisitBranches:
+    """Covers generic_visit branches not hit by existing tests."""
+
+    def test_all_positional_attributes_cleared(self):
+        """When every attribute is a positional/digit key, node.attributes becomes {}."""
+        doc = Document()
+        p = Paragraph(inlines=[Text("text")])
+        # Mix of digit and "positional" keys — both are stripped
+        p.attributes = {"1": "python", "positional": "source"}
+        doc.blocks.append(p)
+        resolver = ASGResolver(doc)
+        asg = resolver.resolve(doc)
+        # After resolving, the paragraph's attributes should be empty
+        para = asg["blocks"][0]
+        assert para.get("attributes", {}) == {}
+
+    def test_mixed_attributes_positional_stripped(self):
+        """Non-positional keys survive; positional/digit keys are removed."""
+        doc = Document()
+        p = Paragraph(inlines=[Text("text")])
+        p.attributes = {"id": "my-id", "positional": "source", "1": "python"}
+        doc.blocks.append(p)
+        asg = ASGResolver(doc).resolve(doc)
+        para = asg["blocks"][0]
+        # 'id' survives; positional and '1' do not
+        assert "id" in para.get("attributes", {})
+        assert "positional" not in para.get("attributes", {})
+        assert "1" not in para.get("attributes", {})
+
+
+class TestResolverFootnotePaths:
+    """Covers footnote handling branches in visit_ref."""
+
+    def _make_resolver(self) -> ASGResolver:
+        return ASGResolver(Document())
+
+    def test_auto_numbered_footnote_no_target(self):
+        """footnote:[text] — auto-numbered, no custom id."""
+        resolver = self._make_resolver()
+        ref = Ref(variant="footnote", target="")
+        ref.inlines = [Text("note text")]
+        result = resolver.visit_ref(ref)
+        assert result.index == 1
+        assert len(resolver.footnotes) == 1
+        assert resolver.footnotes[0]["text"] == "note text"
+        assert resolver.footnotes[0]["id"] is None
+
+    def test_footnoteref_first_definition_with_inlines(self):
+        """footnoteref:[id,text] — first time seen, defines the footnote."""
+        resolver = self._make_resolver()
+        ref = Ref(variant="footnote", target="fn1")
+        ref.inlines = [Text("footnote body")]
+        result = resolver.visit_ref(ref)
+        assert result.index == 1
+        assert "fn1" in resolver.footnote_by_id
+        assert resolver.footnote_by_id["fn1"]["text"] == "footnote body"
+
+    def test_footnoteref_second_definition_updates_inlines(self):
+        """footnoteref:[id,text] called twice — second call updates text if first had no inlines."""
+        resolver = self._make_resolver()
+        # First: define a placeholder with empty inlines
+        resolver.footnote_counter = 1
+        resolver.footnote_by_id["fn2"] = {
+            "id": "fn2",
+            "index": 1,
+            "text": "",
+            "inlines": [],
+        }
+        resolver.footnotes.append(resolver.footnote_by_id["fn2"])
+
+        # Second: call with inlines — should update the existing entry (lines 354-358)
+        ref2 = Ref(variant="footnote", target="fn2")
+        ref2.inlines = [Text("filled in later")]
+        result = resolver.visit_ref(ref2)
+        assert result.index == 1  # reuses existing index
+        assert resolver.footnote_by_id["fn2"]["text"] == "filled in later"
+
+    def test_footnoteref_back_reference_existing_id(self):
+        """footnoteref:[id] with no inlines, id already registered — back-reference."""
+        resolver = self._make_resolver()
+        resolver.footnote_counter = 1
+        resolver.footnote_by_id["fn3"] = {
+            "id": "fn3",
+            "index": 1,
+            "text": "original",
+            "inlines": [Text("original").to_dict()],
+        }
+        ref = Ref(variant="footnote", target="fn3")
+        ref.inlines = []  # no inlines = back-reference
+        result = resolver.visit_ref(ref)
+        assert result.index == 1  # reuses existing
+
+    def test_footnoteref_back_reference_new_id_creates_placeholder(self):
+        """footnoteref:[id] with no inlines and unknown id — creates empty placeholder."""
+        resolver = self._make_resolver()
+        ref = Ref(variant="footnote", target="new-fn")
+        ref.inlines = []
+        result = resolver.visit_ref(ref)
+        assert result.index == 1
+        assert "new-fn" in resolver.footnote_by_id
+        assert resolver.footnote_by_id["new-fn"]["text"] == ""
+
+    def test_link_variant_passes_through_generic_visit(self):
+        """A Ref with variant='link' (not footnote/xref) hits the generic_visit fallback."""
+        doc = Document()
+        ref = Ref(variant="link", target="https://example.com")
+        ref.inlines = [Text("click here")]
+        p = Paragraph(inlines=[ref])
+        doc.blocks.append(p)
+        asg = ASGResolver(doc).resolve(doc)
+        # Should survive resolution without error
+        inline = asg["blocks"][0]["inlines"][0]
+        assert inline["name"] == "ref"
+        assert inline["variant"] == "link"
+
+
+class TestResolverXrefTiers:
+    """Covers the 3-tier xref resolution paths."""
+
+    def _catalog_with(self, entries: dict) -> "WorkspaceCatalog":
+        cat = WorkspaceCatalog()
+        for fqid, node in entries.items():
+            cat.by_fqid[fqid] = node
+            local = fqid.split("#", 1)[1] if "#" in fqid else fqid
+            cat.by_local_id.setdefault(local, []).append(fqid.split("#")[0])
+        return cat
+
+    def test_xref_tier2_local_file_implicit_match(self):
+        """Tier 2: <<anchor>> resolved via current_file_id#anchor in catalog."""
+        from asciidoctrine.nodes import Section, Title
+
+        anchor_node = Section(level=1, title=Title(inlines=[Text("S")]))
+        anchor_node.id = "intro"
+        catalog = self._catalog_with({"doc.adoc#intro": anchor_node})
+
+        doc = Document()
+        ref = Ref(variant="xref", target="intro")
+        ref.inlines = []
+        p = Paragraph(inlines=[ref])
+        doc.blocks.append(p)
+
+        resolver = ASGResolver(doc, catalog=catalog, current_file_id="doc.adoc")
+        result = resolver.visit_ref(ref)
+        assert result.resolved_strategy == "same_file"
+        assert result.resolved_file_target == "doc.adoc"
+
+    def test_xref_tier3_global_lookup(self):
+        """Tier 3: <<anchor>> found uniquely in global by_local_id catalog."""
+        from asciidoctrine.nodes import Section, Title
+
+        anchor_node = Section(level=1, title=Title(inlines=[Text("G")]))
+        catalog = WorkspaceCatalog()
+        catalog.by_fqid["other.adoc#global-id"] = anchor_node
+        catalog.by_local_id["global-id"] = ["other.adoc"]
+
+        doc = Document()
+        ref = Ref(variant="xref", target="global-id")
+        ref.inlines = []
+        p = Paragraph(inlines=[ref])
+        doc.blocks.append(p)
+
+        resolver = ASGResolver(doc, catalog=catalog, current_file_id="main.adoc")
+        result = resolver.visit_ref(ref)
+        assert result.resolved_strategy == "cross_file"
+        assert result.resolved_file_target == "other.adoc"
