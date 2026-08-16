@@ -1010,3 +1010,38 @@ def test_visit_break():
     from asciidoctrine.nodes import Break
     result = _ser(Break())
     assert result == " +\n"
+
+
+# ---------------------------------------------------------------------------
+# Serializer gap — unquoted attribute value (line 98)
+# ---------------------------------------------------------------------------
+
+class TestSerializerUnquotedAttr:
+    """Attribute values without spaces/commas are written unquoted (line 98)."""
+
+    def test_unquoted_attribute_value(self):
+        """Custom key with simple value (no spaces/commas) rendered as key=val."""
+        from asciidoctrine.nodes import Paragraph, Text
+        from asciidoctrine.serializer import AsciiDocSerializerVisitor
+
+        p = Paragraph(inlines=[Text("hello")])
+        p.attributes = {"custom-key": "simple"}
+
+        vis = AsciiDocSerializerVisitor()
+        vis.write_block_metadata(p)
+        output = vis.stream.getvalue()
+        assert "custom-key=simple" in output
+        assert 'custom-key="simple"' not in output
+
+    def test_quoted_attribute_value_with_space(self):
+        """Value with a space is quoted."""
+        from asciidoctrine.nodes import Paragraph, Text
+        from asciidoctrine.serializer import AsciiDocSerializerVisitor
+
+        p = Paragraph(inlines=[Text("hello")])
+        p.attributes = {"caption": "My Title Here"}
+
+        vis = AsciiDocSerializerVisitor()
+        vis.write_block_metadata(p)
+        output = vis.stream.getvalue()
+        assert 'caption="My Title Here"' in output

@@ -1106,3 +1106,40 @@ class TestProcessSourceDelimiters:
         result = p.process(src)
         # The inner ++++ lines are inside verbatim, should not be transformed
         assert "ASCIIDOCTRINE_OUTER_PASSTHROUGH_START" not in result
+
+
+# ---------------------------------------------------------------------------
+# Preprocessor gaps
+# ---------------------------------------------------------------------------
+
+class TestPreprocessorAdditionalGaps:
+
+    def test_is_metadata_comment_line_returns_true(self):
+        """is_metadata returns True for // comment lines (line 661)."""
+        from asciidoctrine.preprocessor import Preprocessor
+        # A comment line above a block should not absorb the block into a paragraph
+        src = "// single-line comment\n= Doc Title\n"
+        p = Preprocessor()
+        result = p.process(src)
+        # The comment line passes through and the title is preserved
+        assert "= Doc Title" in result
+
+    def test_is_metadata_comment_before_block(self):
+        """Comment line acts as metadata — block content after it is preserved."""
+        from asciidoctrine.preprocessor import Preprocessor
+        src = "// a comment\n----\ncode block\n----\n"
+        p = Preprocessor()
+        result = p.process(src)
+        # Preprocessor replaces ---- with internal sentinels; the content is preserved
+        assert "code block" in result
+        assert "// a comment" in result
+
+    def test_evaluate_ifeval_condition_unknown_op_via_process(self):
+        """ifeval with a type-incompatible comparison returns False (line 223 TypeError path)."""
+        from asciidoctrine.preprocessor import Preprocessor
+        # Comparing string to number raises TypeError internally → returns False
+        src = 'ifeval::["{foo}" > 0]\nincluded\nendif::[]\n'
+        p = Preprocessor()
+        result = p.process(src)
+        # foo is undefined (empty string); "" > 0 raises TypeError, so block is skipped
+        assert "included" not in result

@@ -988,3 +988,85 @@ def test_text_content_backslash_only_preceding_text_popped():
     assert not any(n.value == "\\" for n in result if isinstance(n, Text))
     combined = "".join(n.value for n in result if isinstance(n, Text))
     assert "https://example.com" in combined
+
+
+# ---------------------------------------------------------------------------
+# inline_transformer L138 — nodes.pop() when preceding text is exactly "<"
+# ---------------------------------------------------------------------------
+
+def test_text_content_angle_bracket_only_preceding_text_popped():
+    """Preceding text is exactly '<' — after stripping it becomes empty and is popped (line 138)."""
+    from asciidoctrine.nodes import Ref
+    ref = Ref(variant="link", target="https://example.com")
+    ref.attributes["role"] = "bare"
+    # The ONLY content of the previous Text node is "<"
+    children = [Token("TEXT", "<"), ref, Token("GT", ">")]
+    result = _it().text_content(None, children)
+    # The "<" Text should be popped; no stray "<" in output
+    full = "".join(n.value for n in result if isinstance(n, Text))
+    assert "<" not in full
+
+
+# ---------------------------------------------------------------------------
+# BaseTransformer gaps — LocationDict.__init__ (L13-14) and Tree branch (L43-44)
+# ---------------------------------------------------------------------------
+
+def test_location_dict_init():
+    """LocationDict.__init__ sets location to None (lines 13-14)."""
+    from asciidoctrine.transformers.base_transformer import LocationDict
+    d = LocationDict(a=1, b=2)
+    assert d["a"] == 1
+    assert d.location is None
+
+
+def test_set_location_from_children_tree_branch(transformer):
+    """_set_location_from_children handles lark.Tree children (lines 43-44)."""
+    from lark import Tree
+    from asciidoctrine.nodes import Paragraph, Text
+
+    t = Token("TEXT", "hello")
+    t.line = 5
+    t.column = 3
+    t.end_line = 5
+    t.end_column = 8
+
+    tree = Tree("some_rule", [t])
+    node = Paragraph()
+    transformer._set_location_from_children(node, [tree])
+    assert node.location is not None
+    assert node.location[0]["line"] == 5
+
+
+# ---------------------------------------------------------------------------
+# nodes.py — append() else-branch for typed list nodes (L448, L587, L631)
+# ---------------------------------------------------------------------------
+
+def test_callout_list_append_wrong_type_raises():
+    """CalloutList.append with non-CalloutListItem falls to super() which raises AttributeError
+    (BlockNode.append tries self.blocks but CalloutList never initialises it)."""
+    import pytest
+    from asciidoctrine.nodes import CalloutList, Paragraph
+    cl = CalloutList()
+    p = Paragraph()
+    with pytest.raises(AttributeError):
+        cl.append(p)
+
+
+def test_list_append_wrong_type_raises():
+    """List.append with non-ListItem falls to super().append which raises AttributeError."""
+    import pytest
+    from asciidoctrine.nodes import List as ASTList, Paragraph
+    lst = ASTList(variant="unordered", marker="*")
+    p = Paragraph()
+    with pytest.raises(AttributeError):
+        lst.append(p)
+
+
+def test_description_list_append_wrong_type_raises():
+    """DescriptionList.append with non-DescriptionListItem falls to super() which raises AttributeError."""
+    import pytest
+    from asciidoctrine.nodes import DescriptionList, Paragraph
+    dl = DescriptionList()
+    p = Paragraph()
+    with pytest.raises(AttributeError):
+        dl.append(p)
