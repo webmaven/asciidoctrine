@@ -444,9 +444,7 @@ class AsciiDocTransformer(
                 or attrs.get("author")
             )
             citetitle = (
-                attrs.get("citetitle")
-                or attrs.get("quote_title")
-                or attrs.get("title")
+                attrs.get("citetitle") or attrs.get("quote_title") or attrs.get("title")
             )
             # Check positional attributes if not explicitly named
             pos = attrs.get("positional", [])
@@ -957,7 +955,11 @@ def split_continuation_paragraphs(
 ) -> PyList[Node]:
     expanded: PyList[Node] = []
     for block in blocks:
-        if isinstance(block, Paragraph) and len(block.inlines) == 1 and isinstance(block.inlines[0], Text):
+        if (
+            isinstance(block, Paragraph)
+            and len(block.inlines) == 1
+            and isinstance(block.inlines[0], Text)
+        ):
             text_val = block.inlines[0].value
             # Check if paragraph contains \n+\n or starts with +\n or ends with \n+
             if "\n+\n" in text_val or text_val.startswith("+\n") or text_val == "+":
