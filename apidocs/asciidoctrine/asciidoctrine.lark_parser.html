@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>asciidoctrine.lark_parser &mdash; AsciiDoctrine 0.1.0a12 documentation</title>
+  <title>asciidoctrine.lark_parser &mdash; AsciiDoctrine 0.2.0a1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=21f1c15c" />
@@ -14,14 +14,13 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=2d4dc877"></script>
+      <script src="../../_static/documentation_options.js?v=9554a033"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="asciidoctrine.resolver" href="asciidoctrine.resolver.html" />
-    <link rel="prev" title="asciidoctrine.attributes" href="asciidoctrine.attributes.html" /> 
+    <link rel="prev" title="asciidoctrine.nodes" href="asciidoctrine.nodes.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,12 +52,13 @@
 <li class="toctree-l2 current"><a class="reference internal" href="asciidoctrine.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine</span></code></a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="asciidoctrine.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.docutils_backend.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.docutils_backend</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.serializer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.serializer</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.preprocessor.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.preprocessor</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.nodes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.attributes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.attributes</span></code></a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.preprocessor.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.preprocessor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.serializer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.serializer</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.resolver.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.resolver</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.loader.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.loader</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.nodes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="asciidoctrine.html#package-contents">Package Contents</a></li>
@@ -126,7 +126,7 @@ that Lark’s permissive Earley parser falls back on (e.g. malformed paragraphs 
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.resolve_block_internals" title="asciidoctrine.lark_parser.resolve_block_internals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_block_internals</span></code></a></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.split_continuation_paragraph" title="asciidoctrine.lark_parser.split_continuation_paragraph"><code class="xref py py-obj docutils literal notranslate"><span class="pre">split_continuation_paragraph</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.split_continuation_paragraphs" title="asciidoctrine.lark_parser.split_continuation_paragraphs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">split_continuation_paragraphs</span></code></a></p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.expand_joint_paragraphs" title="asciidoctrine.lark_parser.expand_joint_paragraphs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">expand_joint_paragraphs</span></code></a></p></td>
@@ -142,10 +142,10 @@ that Lark’s permissive Earley parser falls back on (e.g. malformed paragraphs 
 <td><p>Builds the URI.3 Lark grammar terminal rule string with optional custom schemes.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.parse_to_ast" title="asciidoctrine.lark_parser.parse_to_ast"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_to_ast</span></code></a></p></td>
-<td></td>
+<td><p>Parses raw AsciiDoc source text into a structured, spec-aligned AST <code class="docutils literal notranslate"><span class="pre">Document</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.parse_inlines" title="asciidoctrine.lark_parser.parse_inlines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_inlines</span></code></a></p></td>
-<td><p>Parses a string containing only inline elements directly starting from ‘text_content’.</p></td>
+<td><p>Parses a string containing only inline formatting directly into a list of AST inline nodes.</p></td>
 </tr>
 </tbody>
 </table>
@@ -187,6 +187,11 @@ that Lark’s permissive Earley parser falls back on (e.g. malformed paragraphs 
 <p>Raised when AsciiDoc source parsing encounters a syntax error.</p>
 <p class="rubric">Initialization</p>
 <p>Initialize self.  See help(type(self)) for accurate signature.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.lark_parser.AsciiDocSyntaxError.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.AsciiDocSyntaxError.__str__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py data">
@@ -415,7 +420,7 @@ that Lark’s permissive Earley parser falls back on (e.g. malformed paragraphs 
 
 <dl class="py function">
 <dt class="sig sig-object py" id="asciidoctrine.lark_parser.find_deepest_active_list_item">
-<span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">find_deepest_active_list_item</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.ListItem" title="asciidoctrine.nodes.ListItem"><span class="pre">asciidoctrine.nodes.ListItem</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.find_deepest_active_list_item" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">find_deepest_active_list_item</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.ListItem" title="asciidoctrine.nodes.ListItem"><span class="pre">asciidoctrine.nodes.ListItem</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.DescriptionListItem" title="asciidoctrine.nodes.DescriptionListItem"><span class="pre">asciidoctrine.nodes.DescriptionListItem</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.find_deepest_active_list_item" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -424,8 +429,8 @@ that Lark’s permissive Earley parser falls back on (e.g. malformed paragraphs 
 <dd></dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="asciidoctrine.lark_parser.split_continuation_paragraph">
-<span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">split_continuation_paragraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Paragraph" title="asciidoctrine.nodes.Paragraph"><span class="pre">asciidoctrine.nodes.Paragraph</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Paragraph" title="asciidoctrine.nodes.Paragraph"><span class="pre">asciidoctrine.nodes.Paragraph</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.split_continuation_paragraph" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="asciidoctrine.lark_parser.split_continuation_paragraphs">
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">split_continuation_paragraphs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.split_continuation_paragraphs" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -467,8 +472,39 @@ that Lark’s permissive Earley parser falls back on (e.g. malformed paragraphs 
 
 <dl class="py function">
 <dt class="sig sig-object py" id="asciidoctrine.lark_parser.parse_to_ast">
-<span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">parse_to_ast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grammar_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">DEFAULT_GRAMMAR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocess_directives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_authority_schemes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_opaque_schemes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Document" title="asciidoctrine.nodes.Document"><span class="pre">asciidoctrine.nodes.Document</span></a></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.parse_to_ast" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">parse_to_ast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grammar_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">DEFAULT_GRAMMAR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocess_directives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_authority_schemes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_opaque_schemes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.loader.html#asciidoctrine.loader.FileProvider" title="asciidoctrine.loader.FileProvider"><span class="pre">asciidoctrine.loader.FileProvider</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Document" title="asciidoctrine.nodes.Document"><span class="pre">asciidoctrine.nodes.Document</span></a></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.parse_to_ast" title="Link to this definition"></a></dt>
+<dd><p>Parses raw AsciiDoc source text into a structured, spec-aligned AST <code class="docutils literal notranslate"><span class="pre">Document</span></code>.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">source</span></code></dt><dd><p>The complete raw AsciiDoc input string to parse.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">grammar_file</span></code></dt><dd><p>File path to the Lark EBNF grammar authority. Defaults to package internal <code class="docutils literal notranslate"><span class="pre">grammar.lark</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">base_dir</span></code></dt><dd><p>Base directory for resolving relative <code class="docutils literal notranslate"><span class="pre">include::</span></code> paths. Defaults to current working directory.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">safe_mode</span></code></dt><dd><p>Security confinement mode integer (0 = unsafe, 1 = safe, 2 = server). When enabled, confines file reads to <code class="docutils literal notranslate"><span class="pre">base_dir</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">preprocess_directives</span></code></dt><dd><p>If True, expands AsciiDoc preprocessing directives (<code class="docutils literal notranslate"><span class="pre">include::</span></code>, <code class="docutils literal notranslate"><span class="pre">ifdef</span></code>, <code class="docutils literal notranslate"><span class="pre">ifndef</span></code>, <code class="docutils literal notranslate"><span class="pre">ifeval</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">strict</span></code></dt><dd><p>If True, raises <code class="docutils literal notranslate"><span class="pre">AsciiDocSyntaxError</span></code> upon syntax or structural anomalies; if False, degrades gracefully.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">extra_authority_schemes</span></code></dt><dd><p>Additional URI scheme prefixes with authority syntax (e.g. <code class="docutils literal notranslate"><span class="pre">[&quot;custom://&quot;]</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">extra_opaque_schemes</span></code></dt><dd><p>Additional URI scheme prefixes with opaque syntax (e.g. <code class="docutils literal notranslate"><span class="pre">[&quot;urn:&quot;]</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">loader</span></code></dt><dd><p>Optional <code class="docutils literal notranslate"><span class="pre">FileProvider</span></code> instance (<code class="docutils literal notranslate"><span class="pre">FsLoader</span></code> or <code class="docutils literal notranslate"><span class="pre">MemoryLoader</span></code>) for resolving and loading included resources.</p>
+</dd>
+</dl>
+<p><strong>Returns:</strong></p>
+<p>A root <code class="docutils literal notranslate"><span class="pre">Document</span></code> AST node instance.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_to_ast</span>
+
+<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">&quot;= Hello</span><span class="se">\n\n</span><span class="s2">This is a *bold* paragraph.&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">blocks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="asciidoctrine.lark_parser._INLINE_PARSER">
@@ -478,7 +514,16 @@ that Lark’s permissive Earley parser falls back on (e.g. malformed paragraphs 
 <dl class="py function">
 <dt class="sig sig-object py" id="asciidoctrine.lark_parser.parse_inlines">
 <span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">parse_inlines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grammar_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">DEFAULT_GRAMMAR</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.parse_inlines" title="Link to this definition"></a></dt>
-<dd><p>Parses a string containing only inline elements directly starting from ‘text_content’.</p>
+<dd><p>Parses a string containing only inline formatting directly into a list of AST inline nodes.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">source</span></code></dt><dd><p>AsciiDoc inline formatting string (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;*bold*</span> <span class="pre">and</span> <span class="pre">_italic_&quot;</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">grammar_file</span></code></dt><dd><p>File path to the Lark EBNF grammar authority.</p>
+</dd>
+</dl>
+<p><strong>Returns:</strong></p>
+<p>List of <code class="docutils literal notranslate"><span class="pre">Node</span></code> AST inline instances.</p>
 </dd></dl>
 
 </section>
@@ -489,8 +534,7 @@ that Lark’s permissive Earley parser falls back on (e.g. malformed paragraphs 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="asciidoctrine.attributes.html" class="btn btn-neutral float-left" title="asciidoctrine.attributes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="asciidoctrine.resolver.html" class="btn btn-neutral float-right" title="asciidoctrine.resolver" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="asciidoctrine.nodes.html" class="btn btn-neutral float-left" title="asciidoctrine.nodes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

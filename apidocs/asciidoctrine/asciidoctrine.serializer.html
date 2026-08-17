@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>asciidoctrine.serializer &mdash; AsciiDoctrine 0.1.0a12 documentation</title>
+  <title>asciidoctrine.serializer &mdash; AsciiDoctrine 0.2.0a1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=21f1c15c" />
@@ -14,14 +14,14 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=2d4dc877"></script>
+      <script src="../../_static/documentation_options.js?v=9554a033"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="asciidoctrine.preprocessor" href="asciidoctrine.preprocessor.html" />
-    <link rel="prev" title="asciidoctrine.docutils_backend" href="asciidoctrine.docutils_backend.html" /> 
+    <link rel="next" title="asciidoctrine.resolver" href="asciidoctrine.resolver.html" />
+    <link rel="prev" title="asciidoctrine.preprocessor" href="asciidoctrine.preprocessor.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,12 +53,13 @@
 <li class="toctree-l2 current"><a class="reference internal" href="asciidoctrine.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine</span></code></a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="asciidoctrine.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.docutils_backend.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.docutils_backend</span></code></a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.serializer</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.preprocessor.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.preprocessor</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.nodes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.attributes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.attributes</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.lark_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.preprocessor.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.preprocessor</span></code></a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.serializer</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.resolver.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.resolver</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.loader.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.loader</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.nodes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.lark_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="asciidoctrine.html#package-contents">Package Contents</a></li>
@@ -125,6 +126,13 @@
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.serializer.</span></span><span class="sig-name descname"><span class="pre">AsciiDocSerializerVisitor</span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.NodeVisitor" title="asciidoctrine.nodes.NodeVisitor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.NodeVisitor</span></code></a></p>
 <p>A visitor that serializes an unresolved AsciiDoc AST back to AsciiDoc source string.</p>
+<p><strong>Attributes:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">stream</span></code></dt><dd><p>Internal <code class="docutils literal notranslate"><span class="pre">io.StringIO</span></code> buffer used to accumulate serialized markup text.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">line_ending</span></code></dt><dd><p>Line ending character sequence (defaults to <code class="docutils literal notranslate"><span class="pre">\n</span></code> or matches the document’s original ending).</p>
+</dd>
+</dl>
 <p class="rubric">Initialization</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.serialize">
@@ -349,6 +357,24 @@ before serializing the block content.</p>
 <dt class="sig sig-object py" id="asciidoctrine.serializer.serialize_to_asciidoc">
 <span class="sig-prename descclassname"><span class="pre">asciidoctrine.serializer.</span></span><span class="sig-name descname"><span class="pre">serialize_to_asciidoc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.serialize_to_asciidoc" title="Link to this definition"></a></dt>
 <dd><p>Public API to serialize any AST node back to its AsciiDoc string representation.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Node</span></code> AST instance to serialize (e.g. <code class="docutils literal notranslate"><span class="pre">Document</span></code>, <code class="docutils literal notranslate"><span class="pre">Section</span></code>, <code class="docutils literal notranslate"><span class="pre">Paragraph</span></code>, etc.).</p>
+</dd>
+</dl>
+<p><strong>Returns:</strong></p>
+<p>A string containing the serialized AsciiDoc markup representation.</p>
+<p><strong>Notes:</strong></p>
+<p>If serializing a preprocessed AST document (<code class="docutils literal notranslate"><span class="pre">is_preprocessed=True</span></code>), the output will be a flat, expanded document since original <code class="docutils literal notranslate"><span class="pre">include::</span></code> directives cannot be reconstructed.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.lark_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_to_ast</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.serializer</span><span class="w"> </span><span class="kn">import</span> <span class="n">serialize_to_asciidoc</span>
+
+<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">&quot;= Document Title</span><span class="se">\n\n</span><span class="s2">This is a *bold* paragraph.&quot;</span><span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">serialize_to_asciidoc</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+<span class="k">assert</span> <span class="s2">&quot;= Document Title&quot;</span> <span class="ow">in</span> <span class="n">output</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
@@ -359,8 +385,8 @@ before serializing the block content.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="asciidoctrine.docutils_backend.html" class="btn btn-neutral float-left" title="asciidoctrine.docutils_backend" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="asciidoctrine.preprocessor.html" class="btn btn-neutral float-right" title="asciidoctrine.preprocessor" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="asciidoctrine.preprocessor.html" class="btn btn-neutral float-left" title="asciidoctrine.preprocessor" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="asciidoctrine.resolver.html" class="btn btn-neutral float-right" title="asciidoctrine.resolver" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

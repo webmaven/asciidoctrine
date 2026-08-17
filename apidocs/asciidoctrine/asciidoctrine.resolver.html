@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>asciidoctrine.resolver &mdash; AsciiDoctrine 0.1.0a12 documentation</title>
+  <title>asciidoctrine.resolver &mdash; AsciiDoctrine 0.2.0a1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=21f1c15c" />
@@ -14,13 +14,14 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=2d4dc877"></script>
+      <script src="../../_static/documentation_options.js?v=9554a033"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="prev" title="asciidoctrine.lark_parser" href="asciidoctrine.lark_parser.html" /> 
+    <link rel="next" title="asciidoctrine.loader" href="asciidoctrine.loader.html" />
+    <link rel="prev" title="asciidoctrine.serializer" href="asciidoctrine.serializer.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -52,12 +53,13 @@
 <li class="toctree-l2 current"><a class="reference internal" href="asciidoctrine.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine</span></code></a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="asciidoctrine.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.docutils_backend.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.docutils_backend</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.serializer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.serializer</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.preprocessor.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.preprocessor</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.nodes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.attributes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.attributes</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.lark_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.preprocessor.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.preprocessor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.serializer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.serializer</span></code></a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.resolver</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.loader.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.loader</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.nodes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.lark_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="asciidoctrine.html#package-contents">Package Contents</a></li>
@@ -108,7 +110,7 @@
 <td><p>Resolves semantic elements in an AsciiDoc AST using a typed NodeTransformer pattern.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.resolver.WorkspaceBuilder" title="asciidoctrine.resolver.WorkspaceBuilder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WorkspaceBuilder</span></code></a></p></td>
-<td><p>Orchestrates multi-pass parsing and semantic resolution for an entire folder workspace of AsciiDoc files.</p></td>
+<td><p>Orchestrates multi-pass parsing and semantic resolution for an entire folder or virtual workspace of AsciiDoc files.</p></td>
 </tr>
 </tbody>
 </table>
@@ -205,24 +207,40 @@ interdocument cross-references (<code class="docutils literal notranslate"><span
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.resolver.ASGResolver._extract_inline_text">
+<span class="sig-name descname"><span class="pre">_extract_inline_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#asciidoctrine.resolver.ASGResolver._extract_inline_text" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.resolver.ASGResolver.visit_ref">
 <span class="sig-name descname"><span class="pre">visit_ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Ref" title="asciidoctrine.nodes.Ref"><span class="pre">asciidoctrine.nodes.Ref</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></span><a class="headerlink" href="#asciidoctrine.resolver.ASGResolver.visit_ref" title="Link to this definition"></a></dt>
-<dd><p>Resolves interdocument cross-references natively.</p>
+<dd><p>Resolves interdocument cross-references and footnotes natively.</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="asciidoctrine.resolver.WorkspaceBuilder">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.resolver.</span></span><span class="sig-name descname"><span class="pre">WorkspaceBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lark_parser_instance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.resolver.WorkspaceBuilder" title="Link to this definition"></a></dt>
-<dd><p>Orchestrates multi-pass parsing and semantic resolution for an entire folder workspace of AsciiDoc files.</p>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.resolver.</span></span><span class="sig-name descname"><span class="pre">WorkspaceBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/workspace'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lark_parser_instance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.loader.html#asciidoctrine.loader.FileProvider" title="asciidoctrine.loader.FileProvider"><span class="pre">asciidoctrine.loader.FileProvider</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.resolver.WorkspaceBuilder" title="Link to this definition"></a></dt>
+<dd><p>Orchestrates multi-pass parsing and semantic resolution for an entire folder or virtual workspace of AsciiDoc files.</p>
 <p><code class="docutils literal notranslate"><span class="pre">WorkspaceBuilder</span></code> coordinates directory discovery, raw un-mutated AST parsing, global symbol table indexing</p>
 <p>via <code class="docutils literal notranslate"><span class="pre">WorkspaceCatalog</span></code>, and interdocument reference resolution via <code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code>.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">workspace_root</span></code></dt><dd><p>Canonical path or prefix to the root directory of the AsciiDoc project (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;/docs&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;/workspace&quot;</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">lark_parser_instance</span></code></dt><dd><p>Optional custom parser engine instance overriding default <code class="docutils literal notranslate"><span class="pre">parse_to_ast</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">loader</span></code></dt><dd><p>Optional <code class="docutils literal notranslate"><span class="pre">FileProvider</span></code> (<code class="docutils literal notranslate"><span class="pre">FsLoader</span></code> or <code class="docutils literal notranslate"><span class="pre">MemoryLoader</span></code>) supplying files. Defaults to <code class="docutils literal notranslate"><span class="pre">FsLoader(workspace_root)</span></code>.</p>
+</dd>
+</dl>
 <p><strong>Attributes:</strong></p>
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">workspace_root</span></code></dt><dd><p>Absolute canonical <code class="docutils literal notranslate"><span class="pre">Path</span></code> to the root directory of the AsciiDoc project.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">workspace_root</span></code></dt><dd><p>Absolute canonical <code class="docutils literal notranslate"><span class="pre">Path</span></code> or root string identifier.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">parser</span></code></dt><dd><p>Optional custom parser engine instance overriding default <code class="docutils literal notranslate"><span class="pre">parse_to_ast</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">loader</span></code></dt><dd><p><code class="docutils literal notranslate"><span class="pre">FileProvider</span></code> resource loader.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">parser</span></code></dt><dd><p>Optional custom parser engine instance.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">catalog</span></code></dt><dd><p>Central global symbol table mapping all anchor IDs across the workspace.</p>
 </dd>
@@ -232,7 +250,14 @@ interdocument cross-references (<code class="docutils literal notranslate"><span
 </dd>
 </dl>
 <p><strong>Example:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">builder</span> <span class="o">=</span> <span class="n">WorkspaceBuilder</span><span class="p">(</span><span class="s2">&quot;/path/to/docs&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">MemoryLoader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.resolver</span><span class="w"> </span><span class="kn">import</span> <span class="n">WorkspaceBuilder</span>
+
+<span class="n">loader</span> <span class="o">=</span> <span class="n">MemoryLoader</span><span class="p">({</span>
+    <span class="s2">&quot;intro.adoc&quot;</span><span class="p">:</span> <span class="s2">&quot;= Intro</span><span class="se">\n\n</span><span class="s2">See xref:guide.adoc#setup[Setup].&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;guide.adoc&quot;</span><span class="p">:</span> <span class="s2">&quot;= Guide</span><span class="se">\n\n</span><span class="s2">[#setup]</span><span class="se">\n</span><span class="s2">== Setup</span><span class="se">\n\n</span><span class="s2">Steps.&quot;</span>
+<span class="p">})</span>
+<span class="n">builder</span> <span class="o">=</span> <span class="n">WorkspaceBuilder</span><span class="p">(</span><span class="s2">&quot;/workspace&quot;</span><span class="p">,</span> <span class="n">loader</span><span class="o">=</span><span class="n">loader</span><span class="p">)</span>
 <span class="n">graphs</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
 <span class="n">intro_asg</span> <span class="o">=</span> <span class="n">graphs</span><span class="p">[</span><span class="s2">&quot;intro.adoc&quot;</span><span class="p">]</span>
 </pre></div>
@@ -240,10 +265,10 @@ interdocument cross-references (<code class="docutils literal notranslate"><span
 <p class="rubric">Initialization</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.resolver.WorkspaceBuilder._get_file_id">
-<span class="sig-name descname"><span class="pre">_get_file_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">absolute_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">pathlib.Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#asciidoctrine.resolver.WorkspaceBuilder._get_file_id" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_get_file_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#asciidoctrine.resolver.WorkspaceBuilder._get_file_id" title="Link to this definition"></a></dt>
 <dd><p>Generates a stable, platform-agnostic string file ID relative to the workspace root.</p>
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">absolute_path</span></code></dt><dd><p>Absolute file system <code class="docutils literal notranslate"><span class="pre">Path</span></code> to a document.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">path_str</span></code></dt><dd><p>File system or virtual path to a document.</p>
 </dd>
 </dl>
 <p>Returns a Posix-style relative path string (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;subfolder/doc.adoc&quot;</span></code>).</p>
@@ -252,9 +277,8 @@ interdocument cross-references (<code class="docutils literal notranslate"><span
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.resolver.WorkspaceBuilder.discover_and_parse_project">
 <span class="sig-name descname"><span class="pre">discover_and_parse_project</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.resolver.WorkspaceBuilder.discover_and_parse_project" title="Link to this definition"></a></dt>
-<dd><p>Pass 1: Scans directory tree for <code class="docutils literal notranslate"><span class="pre">.adoc</span></code> files, runs Lark parsing loops, and stores raw ASTs.</p>
-<p>Recursively walks <code class="docutils literal notranslate"><span class="pre">workspace_root</span></code> matching <code class="docutils literal notranslate"><span class="pre">*.adoc</span></code>. Passes <code class="docutils literal notranslate"><span class="pre">base_dir</span></code> context to <code class="docutils literal notranslate"><span class="pre">parse_to_ast()</span></code></p>
-<p>so nested include directives resolve relative to their parent file’s location.</p>
+<dd><p>Pass 1: Discovers <code class="docutils literal notranslate"><span class="pre">.adoc</span></code> files via <code class="docutils literal notranslate"><span class="pre">FileProvider</span></code>, runs Lark parsing loops, and stores raw ASTs.</p>
+<p>Passes <code class="docutils literal notranslate"><span class="pre">loader</span></code> context to <code class="docutils literal notranslate"><span class="pre">parse_to_ast()</span></code> so nested include directives resolve correctly.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -286,7 +310,8 @@ interdocument cross-references (<code class="docutils literal notranslate"><span
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="asciidoctrine.lark_parser.html" class="btn btn-neutral float-left" title="asciidoctrine.lark_parser" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="asciidoctrine.serializer.html" class="btn btn-neutral float-left" title="asciidoctrine.serializer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="asciidoctrine.loader.html" class="btn btn-neutral float-right" title="asciidoctrine.loader" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

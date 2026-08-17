@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>asciidoctrine.nodes &mdash; AsciiDoctrine 0.1.0a12 documentation</title>
+  <title>asciidoctrine.nodes &mdash; AsciiDoctrine 0.2.0a1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=21f1c15c" />
@@ -14,14 +14,14 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=2d4dc877"></script>
+      <script src="../../_static/documentation_options.js?v=9554a033"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="asciidoctrine.attributes" href="asciidoctrine.attributes.html" />
-    <link rel="prev" title="asciidoctrine.preprocessor" href="asciidoctrine.preprocessor.html" /> 
+    <link rel="next" title="asciidoctrine.lark_parser" href="asciidoctrine.lark_parser.html" />
+    <link rel="prev" title="asciidoctrine.loader" href="asciidoctrine.loader.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,12 +53,13 @@
 <li class="toctree-l2 current"><a class="reference internal" href="asciidoctrine.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine</span></code></a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="asciidoctrine.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.docutils_backend.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.docutils_backend</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.serializer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.serializer</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.preprocessor.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.preprocessor</span></code></a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.attributes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.attributes</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.lark_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.preprocessor.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.preprocessor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.serializer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.serializer</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.resolver.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.resolver</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.loader.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.loader</span></code></a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.lark_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="asciidoctrine.html#package-contents">Package Contents</a></li>
@@ -103,20 +104,19 @@
 <table class="autosummary longtable docutils align-left">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Node</span></code></a></p></td>
-<td><p>Base class for all AST nodes.</p></td>
+<td><p>Base class for all Abstract Syntax Tree (AST) nodes in AsciiDoc.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.InlineNode" title="asciidoctrine.nodes.InlineNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">InlineNode</span></code></a></p></td>
-<td><p>A base class for nodes that represent inline content, such as text formatting.</p></td>
+<td><p>A base class for nodes that represent inline content and text formatting.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BlockNode</span></code></a></p></td>
-<td><p>A base class for nodes that represent block-level content, such as
-paragraphs or lists.</p></td>
+<td><p>A base class for nodes that represent block-level structural content.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Docinfo" title="asciidoctrine.nodes.Docinfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Docinfo</span></code></a></p></td>
 <td><p>Represents header and footer injected document metadata.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Document" title="asciidoctrine.nodes.Document"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Document</span></code></a></p></td>
-<td><p>The root node of the entire AsciiDoc document AST.</p></td>
+<td><p>The root node of an AsciiDoc document AST.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Title" title="asciidoctrine.nodes.Title"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Title</span></code></a></p></td>
 <td><p>Represents the title of a document or a section.</p></td>
@@ -134,7 +134,7 @@ paragraphs or lists.</p></td>
 <td><p>A container for the document’s header metadata.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Section" title="asciidoctrine.nodes.Section"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Section</span></code></a></p></td>
-<td><p>Represents a structural section of the document.</p></td>
+<td><p>A structural section container within an AsciiDoc document.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Paragraph" title="asciidoctrine.nodes.Paragraph"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Paragraph</span></code></a></p></td>
 <td><p>A block-level node representing a paragraph of text.</p></td>
@@ -170,10 +170,10 @@ paragraphs or lists.</p></td>
 <td><p>A node representing a single item in a callout list.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Span" title="asciidoctrine.nodes.Span"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Span</span></code></a></p></td>
-<td><p>An inline node for formatted text (bold, italic, code).</p></td>
+<td><p>An inline node representing formatted or stylized text spans.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Ref" title="asciidoctrine.nodes.Ref"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Ref</span></code></a></p></td>
-<td><p>An inline node for a hyperlink or cross-reference (+`… &lt;…&gt;`_+ or`… &lt;…&gt;`_+).</p></td>
+<td><p>An inline node representing hyperlinks, cross-references, and footnote references.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Image" title="asciidoctrine.nodes.Image"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Image</span></code></a></p></td>
 <td><p>A block or inline node for an image directive.</p></td>
@@ -203,7 +203,7 @@ paragraphs or lists.</p></td>
 <td><p>Mixin class for blocks containing verbatim text/code with callouts (e.g., Listing, Literal).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Listing" title="asciidoctrine.nodes.Listing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Listing</span></code></a></p></td>
-<td><p>A block for preformatted text, typically used for code listings.</p></td>
+<td><p>A block-level node representing verbatim source code or preformatted listings.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Literal" title="asciidoctrine.nodes.Literal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a></p></td>
 <td><p>A block for literal text, often used for computer output.</p></td>
@@ -239,7 +239,7 @@ paragraphs or lists.</p></td>
 <td><p>A block for content that is an anonymous container.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.nodes.Table" title="asciidoctrine.nodes.Table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Table</span></code></a></p></td>
-<td><p>A node representing a table.</p></td>
+<td><p>A block-level node representing a structured table.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.nodes.TableRow" title="asciidoctrine.nodes.TableRow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TableRow</span></code></a></p></td>
 <td><p>A node representing a single row in a table.</p></td>
@@ -295,7 +295,34 @@ paragraphs or lists.</p></td>
 <dl class="py class">
 <dt class="sig sig-object py" id="asciidoctrine.nodes.Node">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">children</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Node" title="Link to this definition"></a></dt>
-<dd><p>Base class for all AST nodes.</p>
+<dd><p>Base class for all Abstract Syntax Tree (AST) nodes in AsciiDoc.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Node</span></code> provides tree navigation, child collection indexing, attribute management,
+and serialization methods to convert nodes into ASG-compatible dictionaries or
+traverse them recursively.</p>
+<p><strong>Attributes:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">children</span></code></dt><dd><p>List of generic child <code class="docutils literal notranslate"><span class="pre">Node</span></code> instances.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">name</span></code></dt><dd><p>Canonical node name identifier (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;document&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;section&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;paragraph&quot;</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">type</span></code></dt><dd><p>Structural node categorization (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;block&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;inline&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;string&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;metadata&quot;</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">attributes</span></code></dt><dd><p>Mapping of AsciiDoc element attributes (e.g. id, role, title, style, options).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">title</span></code></dt><dd><p>Optional <code class="docutils literal notranslate"><span class="pre">Title</span></code> node or title AST representation.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">location</span></code></dt><dd><p>Optional source location coordinate map containing line and column indices.</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.nodes</span><span class="w"> </span><span class="kn">import</span> <span class="n">Paragraph</span><span class="p">,</span> <span class="n">Text</span>
+
+<span class="n">para</span> <span class="o">=</span> <span class="n">Paragraph</span><span class="p">([</span><span class="n">Text</span><span class="p">(</span><span class="s2">&quot;Hello world&quot;</span><span class="p">)])</span>
+<span class="k">assert</span> <span class="n">para</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;block&quot;</span>
+<span class="k">assert</span> <span class="n">para</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;paragraph&quot;</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">para</span><span class="o">.</span><span class="n">inlines</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+</pre></div>
+</div>
 <p class="rubric">Initialization</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="asciidoctrine.nodes.Node._should_serialize_attributes">
@@ -331,7 +358,15 @@ paragraphs or lists.</p></td>
 <dt class="sig sig-object py" id="asciidoctrine.nodes.InlineNode">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">InlineNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">children</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.InlineNode" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.Node</span></code></a></p>
-<p>A base class for nodes that represent inline content, such as text formatting.</p>
+<p>A base class for nodes that represent inline content and text formatting.</p>
+<p>Inline nodes represent character-level markup and inline macros, including
+spans (bold, italic, monospace, mark), references (hyperlinks, cross-references, footnotes),
+inline macros (kbd, button, menu), stem equations, and raw text segments.</p>
+<p><strong>Attributes:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">inlines</span></code></dt><dd><p>List of child inline-level <code class="docutils literal notranslate"><span class="pre">Node</span></code> instances contained within this node.</p>
+</dd>
+</dl>
 <p class="rubric">Initialization</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.nodes.InlineNode.append">
@@ -344,8 +379,15 @@ paragraphs or lists.</p></td>
 <dt class="sig sig-object py" id="asciidoctrine.nodes.BlockNode">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">BlockNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">children</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.BlockNode" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.Node</span></code></a></p>
-<p>A base class for nodes that represent block-level content, such as
-paragraphs or lists.</p>
+<p>A base class for nodes that represent block-level structural content.</p>
+<p>Block nodes represent structural document elements such as sections, paragraphs,
+lists, delimited blocks (listings, sidebars, quotes, examples), tables, and containers.
+They encapsulate child <code class="docutils literal notranslate"><span class="pre">blocks</span></code> or principal inline sequences.</p>
+<p><strong>Attributes:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">blocks</span></code></dt><dd><p>List of child block-level <code class="docutils literal notranslate"><span class="pre">Node</span></code> instances contained within this block.</p>
+</dd>
+</dl>
 <p class="rubric">Initialization</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.nodes.BlockNode.append">
@@ -376,7 +418,40 @@ paragraphs or lists.</p>
 <dt class="sig sig-object py" id="asciidoctrine.nodes.Document">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Document" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
-<p>The root node of the entire AsciiDoc document AST.</p>
+<p>The root node of an AsciiDoc document AST.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Document</span></code> encapsulates the top-level structure of an AsciiDoc file,
+including the optional document <code class="docutils literal notranslate"><span class="pre">Header</span></code> (with title, authors, revision, and document attributes),
+injected <code class="docutils literal notranslate"><span class="pre">Docinfo</span></code> metadata, body block elements, and footnotes.</p>
+<p><strong>Attributes:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">blocks</span></code></dt><dd><p>List of top-level <code class="docutils literal notranslate"><span class="pre">BlockNode</span></code> elements constituting the document body.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">header</span></code></dt><dd><p>Optional <code class="docutils literal notranslate"><span class="pre">Header</span></code> node containing document title, authors, and document-level attributes.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">docinfo</span></code></dt><dd><p>Optional <code class="docutils literal notranslate"><span class="pre">Docinfo</span></code> node holding injected raw HTML header/footer content.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">base_dir</span></code></dt><dd><p>Base directory path used during parsing to resolve relative file includes.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">safe_mode</span></code></dt><dd><p>Security confinement level (0 = unsafe, 1 = safe, 2 = server).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">is_preprocessed</span></code></dt><dd><p>Boolean flag indicating if directives were expanded during preprocessing.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">included_files</span></code></dt><dd><p>List of file path strings included during document preprocessing.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">footnotes</span></code></dt><dd><p>List of resolved footnote dictionaries collected across the document.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">loader</span></code></dt><dd><p>Optional <code class="docutils literal notranslate"><span class="pre">FileProvider</span></code> instance used to read source documents and included resources.</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.lark_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_to_ast</span>
+
+<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">&quot;= My Document</span><span class="se">\n</span><span class="s2">Author Name</span><span class="se">\n\n</span><span class="s2">First paragraph.&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">doc</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;document&quot;</span>
+<span class="k">assert</span> <span class="n">doc</span><span class="o">.</span><span class="n">header</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">blocks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+</pre></div>
+</div>
 <p class="rubric">Initialization</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="asciidoctrine.nodes.Document._should_serialize_attributes">
@@ -482,7 +557,28 @@ paragraphs or lists.</p>
 <dt class="sig sig-object py" id="asciidoctrine.nodes.Section">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Title" title="asciidoctrine.nodes.Title"><span class="pre">asciidoctrine.nodes.Title</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Section" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
-<p>Represents a structural section of the document.</p>
+<p>A structural section container within an AsciiDoc document.</p>
+<p>Sections correspond to headed sections (e.g.== Section Title+,=== Subsection Title+),
+storing their heading level, section title inlines, section-level metadata attributes (such as anchor IDs and roles),
+and all nested child blocks contained within the section body.</p>
+<p><strong>Attributes:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">level</span></code></dt><dd><p>1-based integer section depth (1 = <code class="docutils literal notranslate"><span class="pre">==</span></code>, 2 = <code class="docutils literal notranslate"><span class="pre">===</span></code>, etc.).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">title</span></code></dt><dd><p>Optional <code class="docutils literal notranslate"><span class="pre">Title</span></code> inline container representing the section title text.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">blocks</span></code></dt><dd><p>List of child <code class="docutils literal notranslate"><span class="pre">BlockNode</span></code> instances comprising the section body and nested subsections.</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.lark_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_to_ast</span>
+
+<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">&quot;== Getting Started</span><span class="se">\n\n</span><span class="s2">Follow these steps.&quot;</span><span class="p">)</span>
+<span class="n">section</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">section</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;section&quot;</span>
+<span class="k">assert</span> <span class="n">section</span><span class="o">.</span><span class="n">level</span> <span class="o">==</span> <span class="mi">1</span>
+</pre></div>
+</div>
 <p class="rubric">Initialization</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.nodes.Section.get_child_collections">
@@ -496,6 +592,20 @@ paragraphs or lists.</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Paragraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inlines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Paragraph" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
 <p>A block-level node representing a paragraph of text.</p>
+<p>Paragraphs are contiguous lines of text separated by blank lines or block delimiters.</p>
+<p>They contain a sequence of child inline nodes (formatted text spans, links, references, plain text).</p>
+<p><strong>Attributes:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">inlines</span></code></dt><dd><p>List of child <code class="docutils literal notranslate"><span class="pre">InlineNode</span></code> instances (e.g., <code class="docutils literal notranslate"><span class="pre">Text</span></code>, <code class="docutils literal notranslate"><span class="pre">Span</span></code>, <code class="docutils literal notranslate"><span class="pre">Ref</span></code>) forming the paragraph content.</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.nodes</span><span class="w"> </span><span class="kn">import</span> <span class="n">Paragraph</span><span class="p">,</span> <span class="n">Text</span>
+
+<span class="n">para</span> <span class="o">=</span> <span class="n">Paragraph</span><span class="p">([</span><span class="n">Text</span><span class="p">(</span><span class="s2">&quot;This is a paragraph.&quot;</span><span class="p">)])</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">para</span><span class="o">.</span><span class="n">inlines</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+</pre></div>
+</div>
 <p class="rubric">Initialization</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.nodes.Paragraph.get_child_collections">
@@ -618,7 +728,26 @@ paragraphs or lists.</p>
 <dt class="sig sig-object py" id="asciidoctrine.nodes.Span">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Span</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inlines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'constrained'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Span" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.InlineNode" title="asciidoctrine.nodes.InlineNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.InlineNode</span></code></a></p>
-<p>An inline node for formatted text (bold, italic, code).</p>
+<p>An inline node representing formatted or stylized text spans.</p>
+<p>Spans represent text styling constructs such as strong (+**bold**+,**bold**+),
+emphasis (+*italic*+,*italic*+), monospaced code (+``code``+,```code```+),
+superscript (+super+), subscript (+sub+), or custom-roled text spans (+[.role]text+).</p>
+<p><strong>Attributes:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">variant</span></code></dt><dd><p>Formatting style kind (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;strong&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;emphasis&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;code&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;superscript&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;subscript&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;mark&quot;</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">form</span></code></dt><dd><p>Syntax boundary constraint: <code class="docutils literal notranslate"><span class="pre">&quot;constrained&quot;</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">*word*</span></code>) or <code class="docutils literal notranslate"><span class="pre">&quot;unconstrained&quot;</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">**chars**</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">inlines</span></code></dt><dd><p>List of child inline nodes nested within the formatted span.</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.nodes</span><span class="w"> </span><span class="kn">import</span> <span class="n">Span</span><span class="p">,</span> <span class="n">Text</span>
+
+<span class="n">bold_span</span> <span class="o">=</span> <span class="n">Span</span><span class="p">(</span><span class="n">variant</span><span class="o">=</span><span class="s2">&quot;strong&quot;</span><span class="p">,</span> <span class="n">inlines</span><span class="o">=</span><span class="p">[</span><span class="n">Text</span><span class="p">(</span><span class="s2">&quot;important&quot;</span><span class="p">)],</span> <span class="n">form</span><span class="o">=</span><span class="s2">&quot;constrained&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">bold_span</span><span class="o">.</span><span class="n">variant</span> <span class="o">==</span> <span class="s2">&quot;strong&quot;</span>
+</pre></div>
+</div>
 <p class="rubric">Initialization</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.nodes.Span.get_child_collections">
@@ -631,24 +760,35 @@ paragraphs or lists.</p>
 <dt class="sig sig-object py" id="asciidoctrine.nodes.Ref">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inlines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Ref" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.InlineNode" title="asciidoctrine.nodes.InlineNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.InlineNode</span></code></a></p>
-<p>An inline node for a hyperlink or cross-reference (+`… &lt;…&gt;`_+ or`… &lt;…&gt;`_+).</p>
+<p>An inline node representing hyperlinks, cross-references, and footnote references.</p>
+<p><cite>Ref`</cite> handles URL links (<a href="#id1"><span class="problematic" id="id2">``</span></a><cite>Label &lt;https://example.com&gt;`_</cite>), internal cross-references (+`Label &lt;section_id&gt;`_+</p>
+<p>or <code class="docutils literal notranslate"><span class="pre">Label</span> <span class="pre">&lt;document.adoc#section_id&gt;`_`),</span> <span class="pre">anchors</span> <span class="pre">(+`anchor_id</span> <span class="pre">&lt;anchor_id&gt;`_+),</span> <span class="pre">and</span> <span class="pre">footnote</span> <span class="pre">references</span> <span class="pre">(``footnote:[text]</span></code>).</p>
 <p><strong>Attributes:</strong></p>
 <dl class="simple">
-<dt><code class="docutils literal notranslate"><span class="pre">variant</span></code></dt><dd><p>The reference variant (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;xref&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;link&quot;</span></code>).</p>
+<dt><code class="docutils literal notranslate"><span class="pre">variant</span></code></dt><dd><p>The reference variant (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;link&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;xref&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;anchor&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;footnote&quot;</span></code>).</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">target</span></code></dt><dd><p>Raw target string from source (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;chapter1.adoc#intro&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;intro&quot;</span></code>).</p>
+<dt><code class="docutils literal notranslate"><span class="pre">target</span></code></dt><dd><p>Raw target string from source (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;https://asciidoctor.org&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;chapter1.adoc#intro&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;intro&quot;</span></code>).</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">inlines</span></code></dt><dd><p>Optional child inline nodes representing custom link label text.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">inlines</span></code></dt><dd><p>Optional child inline nodes representing custom link or reference label text.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">resolved_strategy</span></code></dt><dd><p>Set by <code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;same_file&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;cross_file&quot;</span></code>.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">resolved_file_target</span></code></dt><dd><p>Set by <code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code> to the target file ID.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">resolved_file_target</span></code></dt><dd><p>Set by <code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code> to the resolved target file ID.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">resolved_anchor_target</span></code></dt><dd><p>Set by <code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code> to the target anchor/section ID.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">resolved_anchor_target</span></code></dt><dd><p>Set by <code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code> to the resolved target anchor or section ID.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">target_node_instance</span></code></dt><dd><p>Direct live memory pointer to the resolved target <code class="docutils literal notranslate"><span class="pre">Node</span></code> AST instance. Excluded from <code class="docutils literal notranslate"><span class="pre">to_dict()</span></code> serialization to prevent circular references.</p>
 </dd>
+<dt><code class="docutils literal notranslate"><span class="pre">index</span></code></dt><dd><p>1-based sequential numerical index for footnote references set by <code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code>.</p>
+</dd>
 </dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.nodes</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ref</span><span class="p">,</span> <span class="n">Text</span>
+
+<span class="n">link</span> <span class="o">=</span> <span class="n">Ref</span><span class="p">(</span><span class="n">variant</span><span class="o">=</span><span class="s2">&quot;link&quot;</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="s2">&quot;https://asciidoctor.org&quot;</span><span class="p">,</span> <span class="n">inlines</span><span class="o">=</span><span class="p">[</span><span class="n">Text</span><span class="p">(</span><span class="s2">&quot;AsciiDoctor&quot;</span><span class="p">)])</span>
+<span class="k">assert</span> <span class="n">link</span><span class="o">.</span><span class="n">target</span> <span class="o">==</span> <span class="s2">&quot;https://asciidoctor.org&quot;</span>
+</pre></div>
+</div>
 <p class="rubric">Initialization</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.nodes.Ref.get_child_collections">
@@ -796,7 +936,35 @@ paragraphs or lists.</p>
 <dt class="sig sig-object py" id="asciidoctrine.nodes.Listing">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Listing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inlines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'----'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Listing" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.VerbatimBlockMixin" title="asciidoctrine.nodes.VerbatimBlockMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.VerbatimBlockMixin</span></code></a>, <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
-<p>A block for preformatted text, typically used for code listings.</p>
+<p>A block-level node representing verbatim source code or preformatted listings.</p>
+<p>Listing blocks are enclosed in 4-or-more hyphens (+—-+ or——+) or styled with[source,language]+.
+They preserve whitespace, provide source highlighting language metadata, and support
+embedded callout markers (+&lt;1&gt;+,&lt;2&gt;+).</p>
+<p><strong>Attributes:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">inlines</span></code></dt><dd><p>List of child inline nodes (e.g. <code class="docutils literal notranslate"><span class="pre">Text</span></code>, <code class="docutils literal notranslate"><span class="pre">Callout</span></code>) containing the verbatim code and callouts.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">attributes</span></code></dt><dd><p>Block attributes mapping, containing keys such as <code class="docutils literal notranslate"><span class="pre">&quot;language&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;title&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;style&quot;</span></code>, and <code class="docutils literal notranslate"><span class="pre">&quot;id&quot;</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">delimiter</span></code></dt><dd><p>The verbatim block delimiter string (defaults to <code class="docutils literal notranslate"><span class="pre">&quot;----&quot;</span></code>).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">code</span></code></dt><dd><p>Property returning the full code content including callout markers.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">stripped_code</span></code></dt><dd><p>Property returning code content with callout markers stripped out.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">callouts</span></code></dt><dd><p>Property returning a mapping of 1-based line numbers to lists of callout integer identifiers.</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.lark_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_to_ast</span>
+
+<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">&quot;[source,python]</span><span class="se">\n</span><span class="s2">----</span><span class="se">\n</span><span class="s2">print(&#39;Hello&#39;) &lt;1&gt;</span><span class="se">\n</span><span class="s2">----&quot;</span><span class="p">)</span>
+<span class="n">listing</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">listing</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;listing&quot;</span>
+<span class="k">assert</span> <span class="n">listing</span><span class="o">.</span><span class="n">language</span> <span class="o">==</span> <span class="s2">&quot;python&quot;</span>
+<span class="k">assert</span> <span class="mi">1</span> <span class="ow">in</span> <span class="n">listing</span><span class="o">.</span><span class="n">callouts</span>
+</pre></div>
+</div>
 <p class="rubric">Initialization</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.nodes.Listing.get_child_collections">
@@ -935,7 +1103,7 @@ paragraphs or lists.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="asciidoctrine.nodes.Quote">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Quote</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'____'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Quote" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Quote</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'____'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">citetitle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Quote" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
 <p>A block representing a quotation.</p>
 <p class="rubric">Initialization</p>
@@ -974,7 +1142,7 @@ paragraphs or lists.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="asciidoctrine.nodes.Verse">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Verse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Verse" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Verse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">citetitle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Verse" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
 <p>A block for content that should be rendered as a verse.</p>
 <p class="rubric">Initialization</p>
@@ -1002,7 +1170,26 @@ paragraphs or lists.</p>
 <dt class="sig sig-object py" id="asciidoctrine.nodes.Table">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rows</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.TableRow" title="asciidoctrine.nodes.TableRow"><span class="pre">asciidoctrine.nodes.TableRow</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Table" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.BlockNode" title="asciidoctrine.nodes.BlockNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.BlockNode</span></code></a></p>
-<p>A node representing a table.</p>
+<p>A block-level node representing a structured table.</p>
+<p>Tables in AsciiDoc are enclosed in|===+ delimiters and consist of one or more <code class="docutils literal notranslate"><span class="pre">TableRow</span></code>
+elements containing <code class="docutils literal notranslate"><span class="pre">TableCell</span></code> instances. Tables support column specifications, cell alignments,
+spans (colspans, rowspans), and nested block-level content.</p>
+<p><strong>Attributes:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">rows</span></code></dt><dd><p>List of <code class="docutils literal notranslate"><span class="pre">TableRow</span></code> instances composing the rows of the table.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">attributes</span></code></dt><dd><p>Block attributes mapping (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;cols&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;options&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;title&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;id&quot;</span></code>).</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.lark_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_to_ast</span>
+
+<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">&quot;|===</span><span class="se">\n</span><span class="s2">| Header 1 | Header 2</span><span class="se">\n</span><span class="s2">| Cell 1 | Cell 2</span><span class="se">\n</span><span class="s2">|===&quot;</span><span class="p">)</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">table</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;table&quot;</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">rows</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
+</pre></div>
+</div>
 <p class="rubric">Initialization</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.nodes.Table.get_child_collections">
@@ -1154,8 +1341,8 @@ paragraphs or lists.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="asciidoctrine.preprocessor.html" class="btn btn-neutral float-left" title="asciidoctrine.preprocessor" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="asciidoctrine.attributes.html" class="btn btn-neutral float-right" title="asciidoctrine.attributes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="asciidoctrine.loader.html" class="btn btn-neutral float-left" title="asciidoctrine.loader" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="asciidoctrine.lark_parser.html" class="btn btn-neutral float-right" title="asciidoctrine.lark_parser" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

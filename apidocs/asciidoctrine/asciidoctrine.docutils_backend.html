@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>asciidoctrine.docutils_backend &mdash; AsciiDoctrine 0.1.0a12 documentation</title>
+  <title>asciidoctrine.docutils_backend &mdash; AsciiDoctrine 0.2.0a1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=21f1c15c" />
@@ -14,13 +14,13 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=2d4dc877"></script>
+      <script src="../../_static/documentation_options.js?v=9554a033"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="asciidoctrine.serializer" href="asciidoctrine.serializer.html" />
+    <link rel="next" title="asciidoctrine.attributes" href="asciidoctrine.attributes.html" />
     <link rel="prev" title="asciidoctrine" href="asciidoctrine.html" /> 
 </head>
 
@@ -53,12 +53,13 @@
 <li class="toctree-l2 current"><a class="reference internal" href="asciidoctrine.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine</span></code></a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="asciidoctrine.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.docutils_backend</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.serializer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.serializer</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.preprocessor.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.preprocessor</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.nodes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.attributes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.attributes</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.lark_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.preprocessor.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.preprocessor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.serializer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.serializer</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.resolver.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.resolver</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.loader.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.loader</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.nodes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.lark_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="asciidoctrine.html#package-contents">Package Contents</a></li>
@@ -104,7 +105,7 @@
 <table class="autosummary longtable docutils align-left">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.docutils_backend.DocutilsRenderer" title="asciidoctrine.docutils_backend.DocutilsRenderer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DocutilsRenderer</span></code></a></p></td>
-<td></td>
+<td><p>A visitor that converts an AsciiDoc AST into a Docutils document tree.</p></td>
 </tr>
 </tbody>
 </table>
@@ -114,7 +115,7 @@
 <table class="autosummary longtable docutils align-left">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.docutils_backend.asciidoc_to_docutils" title="asciidoctrine.docutils_backend.asciidoc_to_docutils"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoc_to_docutils</span></code></a></p></td>
-<td><p>Convert AsciiDoc source string to a Docutils document.</p></td>
+<td><p>Convert an AsciiDoc source string to a Docutils document tree.</p></td>
 </tr>
 </tbody>
 </table>
@@ -125,6 +126,35 @@
 <dt class="sig sig-object py" id="asciidoctrine.docutils_backend.DocutilsRenderer">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.docutils_backend.</span></span><span class="sig-name descname"><span class="pre">DocutilsRenderer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">docutils.nodes.document</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.docutils_backend.DocutilsRenderer" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.NodeVisitor" title="asciidoctrine.nodes.NodeVisitor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.NodeVisitor</span></code></a></p>
+<p>A visitor that converts an AsciiDoc AST into a Docutils document tree.</p>
+<p><code class="docutils literal notranslate"><span class="pre">DocutilsRenderer</span></code> traverses an AsciiDoc AST using the <code class="docutils literal notranslate"><span class="pre">NodeVisitor</span></code> pattern,
+mapping AsciiDoc block and inline constructs (such as sections, paragraphs, lists,
+tables, admonitions, and cross-references) directly to their Docutils element counterparts.</p>
+<p><strong>Attributes:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">document</span></code></dt><dd><p>The target <code class="docutils literal notranslate"><span class="pre">docutils.nodes.document</span></code> root node receiving the converted document tree.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">current_node</span></code></dt><dd><p>The current parent <code class="docutils literal notranslate"><span class="pre">docutils.nodes.Element</span></code> node where newly converted child elements are attached.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">footnotes</span></code></dt><dd><p>Accumulated <code class="docutils literal notranslate"><span class="pre">docutils.nodes.footnote</span></code> nodes collected during AST traversal for placement at the document bottom.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">footnote_by_custom_id</span></code></dt><dd><p>Mapping from custom footnote identifier strings to their assigned label and Docutils node IDs.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">footnote_counter</span></code></dt><dd><p>Monotonically increasing sequence counter used for auto-numbered footnote references.</p>
+</dd>
+</dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">docutils.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">new_document</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.docutils_backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocutilsRenderer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.lark_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_to_ast</span>
+
+<span class="n">ast</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">&quot;= Title</span><span class="se">\n\n</span><span class="s2">Paragraph text.&quot;</span><span class="p">)</span>
+<span class="n">docutils_doc</span> <span class="o">=</span> <span class="n">new_document</span><span class="p">(</span><span class="s2">&quot;&lt;string&gt;&quot;</span><span class="p">)</span>
+<span class="n">renderer</span> <span class="o">=</span> <span class="n">DocutilsRenderer</span><span class="p">(</span><span class="n">docutils_doc</span><span class="p">)</span>
+<span class="n">renderer</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">ast</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">Initialization</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.docutils_backend.DocutilsRenderer.visit_document">
 <span class="sig-name descname"><span class="pre">visit_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Document" title="asciidoctrine.nodes.Document"><span class="pre">asciidoctrine.nodes.Document</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.docutils_backend.DocutilsRenderer.visit_document" title="Link to this definition"></a></dt>
@@ -266,6 +296,15 @@
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.docutils_backend.DocutilsRenderer._append_attribution">
+<span class="sig-name descname"><span class="pre">_append_attribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">docutils.nodes.Element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">citetitle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.docutils_backend.DocutilsRenderer._append_attribution" title="Link to this definition"></a></dt>
+<dd><p>Append a trailing attribution paragraph to a block_quote node.</p>
+<p>Renders as:  — Author[, <strong>citetitle</strong>]
+with a docutils <code class="docutils literal notranslate"><span class="pre">`attribution`</span></code> CSS class, matching the standard
+Sphinx/HTML blockquote attribution convention.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.docutils_backend.DocutilsRenderer.visit_quote">
 <span class="sig-name descname"><span class="pre">visit_quote</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Quote" title="asciidoctrine.nodes.Quote"><span class="pre">asciidoctrine.nodes.Quote</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.docutils_backend.DocutilsRenderer.visit_quote" title="Link to this definition"></a></dt>
 <dd></dd></dl>
@@ -359,8 +398,28 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="asciidoctrine.docutils_backend.asciidoc_to_docutils">
-<span class="sig-prename descclassname"><span class="pre">asciidoctrine.docutils_backend.</span></span><span class="sig-name descname"><span class="pre">asciidoc_to_docutils</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">docutils.nodes.document</span></span></span><a class="headerlink" href="#asciidoctrine.docutils_backend.asciidoc_to_docutils" title="Link to this definition"></a></dt>
-<dd><p>Convert AsciiDoc source string to a Docutils document.</p>
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.docutils_backend.</span></span><span class="sig-name descname"><span class="pre">asciidoc_to_docutils</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">docutils.nodes.document</span></span></span><a class="headerlink" href="#asciidoctrine.docutils_backend.asciidoc_to_docutils" title="Link to this definition"></a></dt>
+<dd><p>Convert an AsciiDoc source string to a Docutils document tree.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">source</span></code></dt><dd><p>The complete raw AsciiDoc input string to parse and convert.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">base_dir</span></code></dt><dd><p>Base directory for resolving relative paths and include directives. Defaults to current working directory.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">safe_mode</span></code></dt><dd><p>Security confinement mode integer (0 = unsafe, 1 = safe, 2 = server). When enabled, restricts file access to <code class="docutils literal notranslate"><span class="pre">base_dir</span></code>. Defaults to 0.</p>
+</dd>
+</dl>
+<p><strong>Returns:</strong></p>
+<p>A <code class="docutils literal notranslate"><span class="pre">docutils.nodes.document</span></code> root node instance containing the translated Docutils document tree.</p>
+<p><strong>Notes:</strong></p>
+<p>This function coordinates parsing the AsciiDoc source into an AST via <code class="docutils literal notranslate"><span class="pre">parse_to_ast()</span></code>, resolving docinfo metadata, and walking the resulting AST with <code class="docutils literal notranslate"><span class="pre">DocutilsRenderer</span></code> to produce standard Docutils nodes.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.docutils_backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">asciidoc_to_docutils</span>
+
+<span class="n">document</span> <span class="o">=</span> <span class="n">asciidoc_to_docutils</span><span class="p">(</span><span class="s2">&quot;= Document Title</span><span class="se">\n\n</span><span class="s2">This is a paragraph.&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">document</span><span class="o">.</span><span class="n">children</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
@@ -372,7 +431,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="asciidoctrine.html" class="btn btn-neutral float-left" title="asciidoctrine" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="asciidoctrine.serializer.html" class="btn btn-neutral float-right" title="asciidoctrine.serializer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="asciidoctrine.attributes.html" class="btn btn-neutral float-right" title="asciidoctrine.attributes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

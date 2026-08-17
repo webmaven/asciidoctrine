@@ -154,13 +154,13 @@ AsciiDoctrine Support::
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-tck/-/merge_requests/42[Proposed]
 | [.status-full]#link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]#
 
-| *Quote Blocks*
+| *Quote Blocks* footnote:[Includes ASG `attribution` and `citetitle` properties per the spec outline.]
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/block-content-model.adoc#user-content-compound-block[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
 | link:https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/block/quote[Draft]
 | [.status-full]#link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]#
 
-| *Verse Blocks*
+| *Verse Blocks* footnote:[Includes ASG `attribution` and `citetitle` properties per the spec outline.]
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/block-content-model.adoc#user-content-compound-block[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
 | link:https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/block/verse[Draft]
@@ -190,7 +190,7 @@ AsciiDoctrine Support::
 | -
 | [.status-full]#link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]#
 
-| *Footnotes*
+| *Footnotes* footnote:[Footnote references are collected into a document-level `footnotes` catalog on the resolved ASG.]
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-footnote-macro[Outline]
 | -
 | link:https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/inline/footnote[Draft]
@@ -226,7 +226,7 @@ AsciiDoctrine Support::
 | -
 | [.status-full]#link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/preprocessor.py[Fully Supported]#
 
-| *Verbatim Block Callouts*
+| *Verbatim Block Callouts* footnote:[Inline callout markers (e.g. `<1>`) inside listing blocks are resolved to structured ASG `callout` inlines.]
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-callout-lists[Outline]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
 | link:https://github.com/webmaven/asciidoctrine/tree/main/tests/tck_harness/tests/block/listing/[Draft]
@@ -329,11 +329,17 @@ AsciiDoctrine Support::
 | -
 | [.status-full]#link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/preprocessor.py[Fully Supported]#
 
+| *Cross-Document References & Multi-File Workspace Resolution*
+| link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-cross-document-references[Outline]
+| -
+| -
+| [.status-full]#link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/resolver.py[Fully Supported]#
+
 | *Span Roles & Attributes (`[role]#text#`)*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/text/pages/text-span-built-in-roles.adoc[Standardized]
 | -
 | -
-| [.status-none]#Not Supported# footnote:[No span-level custom role or inline attribute parsing/AST support exists.]
+| [.status-full]#link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/transformers/inline_transformer.py[Fully Supported]#
 
 | *Smart Quotes & Typographic Apostrophes*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/text/pages/quotation-marks-and-apostrophes.adoc[Outline]

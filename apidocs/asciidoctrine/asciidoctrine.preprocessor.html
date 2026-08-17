@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>asciidoctrine.preprocessor &mdash; AsciiDoctrine 0.1.0a12 documentation</title>
+  <title>asciidoctrine.preprocessor &mdash; AsciiDoctrine 0.2.0a1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=21f1c15c" />
@@ -14,14 +14,14 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=2d4dc877"></script>
+      <script src="../../_static/documentation_options.js?v=9554a033"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="asciidoctrine.nodes" href="asciidoctrine.nodes.html" />
-    <link rel="prev" title="asciidoctrine.serializer" href="asciidoctrine.serializer.html" /> 
+    <link rel="next" title="asciidoctrine.serializer" href="asciidoctrine.serializer.html" />
+    <link rel="prev" title="asciidoctrine.attributes" href="asciidoctrine.attributes.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -53,12 +53,13 @@
 <li class="toctree-l2 current"><a class="reference internal" href="asciidoctrine.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine</span></code></a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="asciidoctrine.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.docutils_backend.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.docutils_backend</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.serializer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.serializer</span></code></a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.preprocessor</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.nodes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.attributes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.attributes</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.lark_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.preprocessor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.serializer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.serializer</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.resolver.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.resolver</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.loader.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.loader</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.nodes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.lark_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="asciidoctrine.html#package-contents">Package Contents</a></li>
@@ -111,7 +112,8 @@
 named endif matching and validation.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.preprocessor.Preprocessor" title="asciidoctrine.preprocessor.Preprocessor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Preprocessor</span></code></a></p></td>
-<td><p>Processes AsciiDoc source to handle <code class="docutils literal notranslate"><span class="pre">include::</span></code> directives.</p></td>
+<td><p>Processes AsciiDoc source to handle <code class="docutils literal notranslate"><span class="pre">include::</span></code> directives, conditional blocks
+(<code class="docutils literal notranslate"><span class="pre">ifdef</span></code>, <code class="docutils literal notranslate"><span class="pre">ifndef</span></code>, <code class="docutils literal notranslate"><span class="pre">ifeval</span></code>), and attribute substitutions.</p></td>
 </tr>
 </tbody>
 </table>
@@ -196,17 +198,24 @@ named endif matching and validation.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="asciidoctrine.preprocessor.Preprocessor">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.preprocessor.</span></span><span class="sig-name descname"><span class="pre">Preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocess_directives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.preprocessor.Preprocessor" title="Link to this definition"></a></dt>
-<dd><p>Processes AsciiDoc source to handle <code class="docutils literal notranslate"><span class="pre">include::</span></code> directives.</p>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.preprocessor.</span></span><span class="sig-name descname"><span class="pre">Preprocessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preprocess_directives</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.loader.html#asciidoctrine.loader.FileProvider" title="asciidoctrine.loader.FileProvider"><span class="pre">asciidoctrine.loader.FileProvider</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.preprocessor.Preprocessor" title="Link to this definition"></a></dt>
+<dd><p>Processes AsciiDoc source to handle <code class="docutils literal notranslate"><span class="pre">include::</span></code> directives, conditional blocks
+(<code class="docutils literal notranslate"><span class="pre">ifdef</span></code>, <code class="docutils literal notranslate"><span class="pre">ifndef</span></code>, <code class="docutils literal notranslate"><span class="pre">ifeval</span></code>), and attribute substitutions.</p>
 <p class="rubric">Initialization</p>
 <p>Initializes the preprocessor.</p>
 <dl class="simple">
-<dt>base_dir</dt><dd><p>The base directory for resolving include paths.
+<dt><code class="docutils literal notranslate"><span class="pre">base_dir</span></code></dt><dd><p>The base directory for resolving include paths.
 Defaults to the current working directory.</p>
 </dd>
-<dt>safe_mode</dt><dd><p>If True, prevents including files outside base_dir.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">safe_mode</span></code></dt><dd><p>If True (or non-zero), prevents including files outside base_dir.</p>
 </dd>
-<dt>preprocess_directives</dt><dd><p>If True, processes AsciiDoc preprocessing directives like include::.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">preprocess_directives</span></code></dt><dd><p>If True, processes AsciiDoc preprocessing directives like include::.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">attributes</span></code></dt><dd><p>Optional dictionary of predefined document attributes.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">strict</span></code></dt><dd><p>If True, missing include files or invalid directives raise PreprocessorError.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">loader</span></code></dt><dd><p>Optional <code class="docutils literal notranslate"><span class="pre">FileProvider</span></code> instance for resolving and loading included files.</p>
 </dd>
 </dl>
 <dl class="py method">
@@ -236,7 +245,7 @@ Returns None if no top-level operator is found.</p>
 <span class="sig-name descname"><span class="pre">_evaluate_ifeval_condition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#asciidoctrine.preprocessor.Preprocessor._evaluate_ifeval_condition" title="Link to this definition"></a></dt>
 <dd><p>Evaluates an ifeval condition expression (e.g. ‘“html5” == “html5”’, ‘5 &gt; 3’).
 Extracts left operand, operator (==, !=, &lt;=, &gt;=, &lt;, &gt;), and right operand,
-parses both operands via <a href="#id1"><span class="problematic" id="id2">*</span></a>parse*ifeval_operand, and performs safe comparison.</p>
+parses both operands via <code class="docutils literal notranslate"><span class="pre">_parse_ifeval_operand</span></code>, and performs safe comparison.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -312,8 +321,8 @@ Returns True if line was a conditional directive (and processed), False otherwis
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="asciidoctrine.serializer.html" class="btn btn-neutral float-left" title="asciidoctrine.serializer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="asciidoctrine.nodes.html" class="btn btn-neutral float-right" title="asciidoctrine.nodes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="asciidoctrine.attributes.html" class="btn btn-neutral float-left" title="asciidoctrine.attributes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="asciidoctrine.serializer.html" class="btn btn-neutral float-right" title="asciidoctrine.serializer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

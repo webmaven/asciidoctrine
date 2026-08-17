@@ -1073,7 +1073,7 @@ API
    .. py:method:: to_dict() -> typing.Dict[str, typing.Any]
       :canonical: asciidoctrine.nodes.Collapsible.to_dict
 
-.. py:class:: Quote(blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, delimiter: str = '____')
+.. py:class:: Quote(blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, delimiter: str = '____', attribution: typing.Optional[str] = None, citetitle: typing.Optional[str] = None, attributes: typing.Optional[typing.Dict[str, typing.Any]] = None)
    :canonical: asciidoctrine.nodes.Quote
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -1121,7 +1121,7 @@ API
    .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Sidebar.get_child_collections
 
-.. py:class:: Verse(blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, delimiter: typing.Optional[str] = None)
+.. py:class:: Verse(blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, delimiter: typing.Optional[str] = None, attribution: typing.Optional[str] = None, citetitle: typing.Optional[str] = None, attributes: typing.Optional[typing.Dict[str, typing.Any]] = None)
    :canonical: asciidoctrine.nodes.Verse
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
