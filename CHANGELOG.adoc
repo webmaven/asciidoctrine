@@ -15,8 +15,6 @@
 * **Enhanced Developer Experience (DX) & AsciiDoc Docstrings**:
   - Upgraded public API docstrings across `parse_to_ast()`, `parse_inlines()`, `WorkspaceBuilder`, `FileProvider`, `FsLoader`, and `MemoryLoader` to standardized AsciiDoc markup.
   - Enhanced error diagnostics on `AsciiDocSyntaxError` and `CircularIncludeError`.
-
-=== Added
 * **Collect Footnote References & Catalog in ASGResolver (Issue #93)**:
   - Added document-level footnote collection and sequential numbering (1-based index) during `ASGResolver` semantic resolution for auto-numbered (`footnote:[text]`), named definition (`footnoteref:[id, text]`), and named reference (`footnoteref:[id]`) inline macros, populating `Ref.index` and the `Document.footnotes` catalog.
 * **Resolve Inline Callouts in Listing Blocks (Issue #92)**:
