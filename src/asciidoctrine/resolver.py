@@ -1,10 +1,13 @@
+import os
+import posixpath
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, Optional, Sequence, cast
+from typing import Any, Dict, Optional, Sequence, Union, cast
 from typing import List as PyList
 
 from .attributes import resolve_attribute_map, substitute_attributes
 from .lark_parser import parse_to_ast
+from .loader import FileProvider, FsLoader, MemoryLoader
 from .nodes import (
     AttributeEntry,
     Attributes,
@@ -135,17 +138,30 @@ class ASGResolver(NodeTransformer):
         if not docname:
             docname = "docinfo"
 
+        doc_loader: Optional[FileProvider] = getattr(doc, "loader", None)
         base_dir_path = (
             Path(doc.base_dir).resolve() if doc.base_dir else Path.cwd().resolve()
         )
 
         docinfodir = str(self.resolved_attributes.get("docinfodir", "")).strip()
-        if docinfodir:
-            target_dir = (base_dir_path / docinfodir).resolve()
+        if doc_loader is not None:
+            base_dir_str = (
+                str(doc.base_dir)
+                if doc.base_dir
+                else getattr(doc_loader, "base_dir", os.getcwd())
+            )
+            target_dir_str = doc_loader.resolve_path(
+                docinfodir or "", base_dir=base_dir_str
+            )
+            target_dir = Path(target_dir_str)
         else:
-            target_dir = base_dir_path
+            if docinfodir:
+                target_dir = (base_dir_path / docinfodir).resolve()
+            else:
+                target_dir = base_dir_path
+            target_dir_str = str(target_dir)
 
-        if getattr(doc, "safe_mode", 0) >= 2:
+        if getattr(doc, "safe_mode", 0) >= 2 and doc_loader is None:
             try:
                 target_dir.relative_to(base_dir_path)
             except ValueError:
@@ -154,7 +170,18 @@ class ASGResolver(NodeTransformer):
         head_contents: PyList[str] = []
         footer_contents: PyList[str] = []
 
-        def safe_read(file_path: Path) -> str:
+        def safe_read(rel_filename: str) -> str:
+            if doc_loader is not None:
+                try:
+                    full_path = doc_loader.resolve_path(
+                        rel_filename, base_dir=target_dir_str
+                    )
+                    if doc_loader.is_file(full_path):
+                        return doc_loader.read_text(full_path)
+                except Exception:
+                    return ""
+                return ""
+            file_path = target_dir / rel_filename
             if not file_path.is_file():
                 return ""
             if getattr(doc, "safe_mode", 0) >= 2:
@@ -169,23 +196,21 @@ class ASGResolver(NodeTransformer):
 
         if is_shared:
             for ext in (".html", ".xml"):
-                h = safe_read(target_dir / f"docinfo{ext}") or safe_read(
-                    target_dir / f"docinfo-head{ext}"
-                )
+                h = safe_read(f"docinfo{ext}") or safe_read(f"docinfo-head{ext}")
                 if h:
                     head_contents.append(h)
-                f = safe_read(target_dir / f"docinfo-footer{ext}")
+                f = safe_read(f"docinfo-footer{ext}")
                 if f:
                     footer_contents.append(f)
 
         if is_private and docname:
             for ext in (".html", ".xml"):
-                h = safe_read(target_dir / f"{docname}-docinfo{ext}") or safe_read(
-                    target_dir / f"{docname}-docinfo-head{ext}"
+                h = safe_read(f"{docname}-docinfo{ext}") or safe_read(
+                    f"{docname}-docinfo-head{ext}"
                 )
                 if h:
                     head_contents.append(h)
-                f = safe_read(target_dir / f"{docname}-docinfo-footer{ext}")
+                f = safe_read(f"{docname}-docinfo-footer{ext}")
                 if f:
                     footer_contents.append(f)
 
@@ -193,14 +218,13 @@ class ASGResolver(NodeTransformer):
             custom_files = [
                 x.strip() for x in docinfofiles_attr.split(",") if x.strip()
             ]
-            for cfile in custom_files:
-                cpath = target_dir / cfile
-                c_content = safe_read(cpath)
-                if c_content:
-                    if "footer" in cfile:
-                        footer_contents.append(c_content)
+            for cf in custom_files:
+                content = safe_read(cf)
+                if content:
+                    if "footer" in cf:
+                        footer_contents.append(content)
                     else:
-                        head_contents.append(c_content)
+                        head_contents.append(content)
 
         head_str = "".join(head_contents)
         footer_str = "".join(footer_contents)
@@ -464,15 +488,25 @@ class ASGResolver(NodeTransformer):
 
 
 class WorkspaceBuilder:
-    """Orchestrates multi-pass parsing and semantic resolution for an entire folder workspace of AsciiDoc files.
+    """Orchestrates multi-pass parsing and semantic resolution for an entire folder or virtual workspace of AsciiDoc files.
 
     `WorkspaceBuilder` coordinates directory discovery, raw un-mutated AST parsing, global symbol table indexing
     via `WorkspaceCatalog`, and interdocument reference resolution via `ASGResolver`.
 
+    *Parameters:*
+
+    `workspace_root`::
+      Canonical path or prefix to the root directory of the AsciiDoc project (e.g. `"/docs"` or `"/workspace"`).
+    `lark_parser_instance`::
+      Optional custom parser engine instance overriding default `parse_to_ast`.
+    `loader`::
+      Optional `FileProvider` (`FsLoader` or `MemoryLoader`) supplying files. Defaults to `FsLoader(workspace_root)`.
+
     *Attributes:*
 
-    `workspace_root`:: Absolute canonical `Path` to the root directory of the AsciiDoc project.
-    `parser`:: Optional custom parser engine instance overriding default `parse_to_ast`.
+    `workspace_root`:: Absolute canonical `Path` or root string identifier.
+    `loader`:: `FileProvider` resource loader.
+    `parser`:: Optional custom parser engine instance.
     `catalog`:: Central global symbol table mapping all anchor IDs across the workspace.
     `raw_documents`:: Map of platform-agnostic file IDs to raw, un-mutated `Document` AST instances.
     `resolved_asg_graphs`:: Map of file IDs to fully-resolved ASG dictionaries.
@@ -481,48 +515,86 @@ class WorkspaceBuilder:
 
     [source,python]
     ----
-    builder = WorkspaceBuilder("/path/to/docs")
+    from asciidoctrine.loader import MemoryLoader
+    from asciidoctrine.resolver import WorkspaceBuilder
+
+    loader = MemoryLoader({
+        "intro.adoc": "= Intro\\n\\nSee xref:guide.adoc#setup[Setup].",
+        "guide.adoc": "= Guide\\n\\n[#setup]\\n== Setup\\n\\nSteps."
+    })
+    builder = WorkspaceBuilder("/workspace", loader=loader)
     graphs = builder.build()
     intro_asg = graphs["intro.adoc"]
     ----
     """
 
     def __init__(
-        self, workspace_root: str, lark_parser_instance: Optional[Any] = None
+        self,
+        workspace_root: Union[str, Path] = "/workspace",
+        lark_parser_instance: Optional[Any] = None,
+        loader: Optional[FileProvider] = None,
     ) -> None:
-        self.workspace_root = Path(workspace_root).resolve()
+        if loader is not None:
+            self.loader: FileProvider = loader
+            self.workspace_root_str = loader.resolve_path(workspace_root)
+            self.workspace_root = Path(self.workspace_root_str)
+        else:
+            self.workspace_root = Path(workspace_root).resolve()
+            self.workspace_root_str = str(self.workspace_root)
+            self.loader = FsLoader(base_dir=self.workspace_root, safe_mode=False)
+
         self.parser = lark_parser_instance
         self.catalog = WorkspaceCatalog()
         self.raw_documents: Dict[str, Document] = {}
         self.resolved_asg_graphs: Dict[str, Dict[str, Any]] = {}
 
-    def _get_file_id(self, absolute_path: Path) -> str:
+    def _get_file_id(self, path_str: Union[str, Path]) -> str:
         """Generates a stable, platform-agnostic string file ID relative to the workspace root.
 
-        `absolute_path`:: Absolute file system `Path` to a document.
+        `path_str`:: File system or virtual path to a document.
 
         Returns a Posix-style relative path string (e.g. `"subfolder/doc.adoc"`).
         """
-        return str(absolute_path.relative_to(self.workspace_root).as_posix())
+        path_str_converted = str(path_str).replace("\\", "/")
+        norm_root = self.workspace_root_str.replace("\\", "/")
+        if not norm_root.endswith("/"):
+            norm_root += "/"
+
+        if path_str_converted.startswith(norm_root):
+            return path_str_converted[len(norm_root) :]
+        if path_str_converted == self.workspace_root_str.replace("\\", "/"):
+            return posixpath.basename(path_str_converted)
+        try:
+            return str(Path(path_str).relative_to(self.workspace_root).as_posix())
+        except ValueError:
+            return path_str_converted.lstrip("/")
 
     def discover_and_parse_project(self) -> None:
-        """Pass 1: Scans directory tree for `.adoc` files, runs Lark parsing loops, and stores raw ASTs.
+        """Pass 1: Discovers `.adoc` files via `FileProvider`, runs Lark parsing loops, and stores raw ASTs.
 
-        Recursively walks `workspace_root` matching `*.adoc`. Passes `base_dir` context to `parse_to_ast()`
-        so nested include directives resolve relative to their parent file's location.
+        Passes `loader` context to `parse_to_ast()` so nested include directives resolve correctly.
         """
-        for adoc_file in sorted(self.workspace_root.rglob("*.adoc")):
-            canonical_path = adoc_file.resolve()
-            file_id = self._get_file_id(canonical_path)
+        discovered_files = self.loader.find_files(
+            "*.adoc", base_dir=self.workspace_root_str
+        )
 
-            with open(canonical_path, "r", encoding="utf-8") as f:
-                raw_content = f.read()
+        for file_path in sorted(discovered_files):
+            file_id = self._get_file_id(file_path)
+            raw_content = self.loader.read_text(file_path)
+
+            if isinstance(self.loader, MemoryLoader):
+                parent_dir = posixpath.dirname(file_path.replace("\\", "/"))
+            else:
+                parent_dir = str(Path(file_path).parent)
 
             if self.parser and hasattr(self.parser, "parse"):
                 ast_root = self.parser.parse(raw_content)
             else:
                 ast_root = parse_to_ast(
-                    raw_content, base_dir=str(canonical_path.parent)
+                    raw_content,
+                    base_dir=parent_dir,
+                    loader=self.loader,
+                    strict=False,
                 )
 
             self.raw_documents[file_id] = ast_root

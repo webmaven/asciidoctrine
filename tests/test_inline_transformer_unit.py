@@ -1,4 +1,3 @@
-import pytest
 """
 Unit tests for InlineTransformer in asciidoctrine.
 """
@@ -6,14 +5,15 @@ Unit tests for InlineTransformer in asciidoctrine.
 import unittest
 from unittest.mock import patch
 
+import pytest
 from lark import Token
 
 from asciidoctrine.lark_parser import AsciiDocTransformer
 from asciidoctrine.nodes import Break, Span, Text
 
-
-
 pytestmark = pytest.mark.unit
+
+
 class TestInlineTransformerUnit(unittest.TestCase):
     def setUp(self):
         self.transformer = AsciiDocTransformer()
@@ -294,7 +294,6 @@ class TestInlineTransformerUnit(unittest.TestCase):
         self.assertEqual(res.variant, "latexmath")
         self.assertEqual(res.value, "e=mc^2")
 
-
     def test_inline_pass_macro_and_triple_plus(self):
         """inline_pass_macro and inline_triple_plus must produce InlinePassthrough nodes."""
         from asciidoctrine.nodes import InlinePassthrough
@@ -539,7 +538,6 @@ class TestInlineTransformerUnit(unittest.TestCase):
 
     def test_text_content_merge_consecutive_text_nodes(self):
         """Adjacent Text nodes with same attributes must be merged."""
-        from asciidoctrine.nodes import Text
 
         t1 = Token("WORD", "Hello")
         t2 = Token("WORD", " World")
@@ -574,7 +572,7 @@ class TestInlineTransformerUnit(unittest.TestCase):
         """inline_indexterm_macro must strip quotes from term strings."""
         from asciidoctrine.nodes import IndexTerm
 
-        content = Token("INDEX_CONTENT", '"primary", \'secondary\'')
+        content = Token("INDEX_CONTENT", "\"primary\", 'secondary'")
         res = self.transformer.inline_indexterm_macro(None, [content])
         self.assertIsInstance(res, IndexTerm)
         self.assertEqual(res.terms, ["primary", "secondary"])

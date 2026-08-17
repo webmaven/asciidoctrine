@@ -6,7 +6,6 @@ import pytest
 from asciidoctrine import parse_to_ast
 from tests.conftest import get_all_doctest_examples
 
-
 pytestmark = pytest.mark.integration
 # List of example groups or specific examples known to be unsupported currently
 # to avoid failing the whole suite.

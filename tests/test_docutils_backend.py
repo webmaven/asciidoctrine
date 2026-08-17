@@ -3,9 +3,9 @@ from docutils import nodes
 
 from asciidoctrine.docutils_backend import asciidoc_to_docutils
 
-
-
 pytestmark = pytest.mark.integration
+
+
 def test_basic_conversion():
     source = "== Hello\nTesting *bold* and _italic_.\n"
     document = asciidoc_to_docutils(source)
@@ -708,10 +708,7 @@ def test_quote_attribution_rendering():
 
     # 2. Attribution only (no citetitle)
     doc2 = asciidoc_to_docutils(
-        "[quote, Winston Churchill]\n"
-        "____\n"
-        "Success is not final.\n"
-        "____"
+        "[quote, Winston Churchill]\n____\nSuccess is not final.\n____"
     )
     bq2 = doc2[0]
     attr_para2 = bq2[-1]
@@ -720,12 +717,7 @@ def test_quote_attribution_rendering():
     assert "Winston Churchill" in attr_para2.astext()
 
     # 3. No attribution — no trailing attribution paragraph beyond the content
-    doc3 = asciidoc_to_docutils(
-        "[quote]\n"
-        "____\n"
-        "Anonymous quote.\n"
-        "____"
-    )
+    doc3 = asciidoc_to_docutils("[quote]\n____\nAnonymous quote.\n____")
     bq3 = doc3[0]
     # Should contain only the content paragraph, no extra attribution node
     for child in bq3.children:
@@ -756,10 +748,7 @@ def test_verse_attribution_rendering():
 
     # 2. Attribution only
     doc2 = asciidoc_to_docutils(
-        "[verse, Emily Dickinson]\n"
-        "____\n"
-        "Hope is the thing with feathers.\n"
-        "____"
+        "[verse, Emily Dickinson]\n____\nHope is the thing with feathers.\n____"
     )
     bq2 = doc2[0]
     attr_para2 = bq2[-1]
@@ -768,12 +757,7 @@ def test_verse_attribution_rendering():
     assert "Emily Dickinson" in attr_para2.astext()
 
     # 3. No attribution
-    doc3 = asciidoc_to_docutils(
-        "[verse]\n"
-        "____\n"
-        "Words without a name.\n"
-        "____"
-    )
+    doc3 = asciidoc_to_docutils("[verse]\n____\nWords without a name.\n____")
     bq3 = doc3[0]
     for child in bq3.children:
         if isinstance(child, dnodes.paragraph):
@@ -803,3 +787,213 @@ def test_index_term_conversion():
     assert idx2["entries"][0][1] == "single index entry"
     # The term should be outputted in-place as well
     assert "single index entry" in para2.astext()
+
+
+def test_verse_multiline_with_inline_formatting():
+    """Verse block with multi-line content and inline markup renders as block_quote
+    with 'verse' class; inline strong/emphasis are preserved inside the paragraph."""
+    source = """\
+[verse]
+____
+First *bold* line
+Second _italic_ line
+____"""
+    document = asciidoc_to_docutils(source)
+    bq = document[0]
+    assert isinstance(bq, nodes.block_quote)
+    assert "verse" in bq["classes"]
+
+    # Content paragraph contains both strong and emphasis child nodes
+    para = bq[0]
+    assert isinstance(para, nodes.paragraph)
+    child_types = [type(c) for c in para.children]
+    assert nodes.strong in child_types, (
+        "bold markup inside verse must yield a strong node"
+    )
+    assert nodes.emphasis in child_types, (
+        "italic markup inside verse must yield an emphasis node"
+    )
+    assert "bold" in para.astext()
+    assert "italic" in para.astext()
+
+    # No attribution paragraph when none is specified
+    for child in bq.children:
+        if isinstance(child, nodes.paragraph):
+            assert "attribution" not in child.get("classes", [])
+
+
+def test_verse_multiline_with_full_attribution():
+    """Verse block with both author and cite title produces a trailing attribution
+    paragraph whose text contains the author name, with cite title in emphasis."""
+    source = """\
+[verse, William Blake, Auguries of Innocence]
+____
+To see a World in a Grain of Sand
+And a Heaven in a Wild Flower
+____"""
+    document = asciidoc_to_docutils(source)
+    bq = document[0]
+    assert isinstance(bq, nodes.block_quote)
+    assert "verse" in bq["classes"]
+
+    # Content paragraph covers multiple source lines
+    content_para = bq[0]
+    assert isinstance(content_para, nodes.paragraph)
+    text = content_para.astext()
+    assert "Grain of Sand" in text
+    assert "Wild Flower" in text
+
+    # Last child is the attribution paragraph
+    attr_para = bq[-1]
+    assert isinstance(attr_para, nodes.paragraph)
+    assert "attribution" in attr_para["classes"]
+    attr_text = attr_para.astext()
+    assert "William Blake" in attr_text
+    assert "Auguries of Innocence" in attr_text
+
+    # The cite title must be wrapped in an emphasis node
+    has_emphasis = any(isinstance(c, nodes.emphasis) for c in attr_para.children)
+    assert has_emphasis, "cite title must be wrapped in an emphasis node"
+
+
+def test_callout_list_multiple_items():
+    """A source listing with three callout markers renders an enumerated_list
+    with exactly three list_item nodes in the correct order."""
+    source = """\
+[source,python]
+----
+def greet(name):  # <1>
+    print(name)  # <2>
+    return name  # <3>
+----
+<1> Function definition.
+<2> The print call.
+<3> Returns the name.
+"""
+    document = asciidoc_to_docutils(source)
+
+    # Document has exactly two top-level nodes: literal_block and callout list
+    assert len(document) == 2
+
+    listing = document[0]
+    assert isinstance(listing, nodes.literal_block)
+    assert "python" in listing["classes"]
+
+    clist = document[1]
+    assert isinstance(clist, nodes.enumerated_list)
+    assert "callout" in clist["classes"]
+    assert len(clist) == 3
+
+    assert "Function definition." in clist[0].astext()
+    assert "The print call." in clist[1].astext()
+    assert "Returns the name." in clist[2].astext()
+
+    # Each item must be a list_item node
+    for item in clist:
+        assert isinstance(item, nodes.list_item)
+
+
+def test_callout_list_item_internal_structure():
+    """Each callout list item wraps its principal text inside a paragraph node."""
+    source = """\
+[source,bash]
+----
+echo "hello"  # <1>
+----
+<1> Prints hello to stdout.
+"""
+    document = asciidoc_to_docutils(source)
+    clist = document[1]
+    assert isinstance(clist, nodes.enumerated_list)
+
+    item = clist[0]
+    assert isinstance(item, nodes.list_item)
+
+    # Principal text is always wrapped in a paragraph
+    para = item[0]
+    assert isinstance(para, nodes.paragraph)
+    assert "Prints hello to stdout." in para.astext()
+
+
+def test_table_colspan_multiple_cells_per_row():
+    """A table row with two separate colspan cells renders correct morecols values;
+    a full-width 3-cell span renders morecols = num_cols - 1 = 2."""
+    source = """\
+[cols="1,1,1"]
+|===
+| A | B | C
+
+2+| merged AB | C-only
+
+| D
+3+| merged DEF
+|==="""
+    document = asciidoc_to_docutils(source)
+    table = document[0]
+    assert isinstance(table, nodes.table)
+
+    tgroup = table[0]
+    assert isinstance(tgroup, nodes.tgroup)
+    # The backend sets cols to the maximum sum-of-colspans across all rows.
+    # Row 2 has colspan-1 (D) + colspan-3 (merged DEF) = 4, so cols=4.
+    assert tgroup["cols"] == 4
+
+    tbody = tgroup[-1]
+    assert isinstance(tbody, nodes.tbody)
+    assert len(tbody) == 3
+
+    # Row 0: three normal cells with no colspan
+    row0 = tbody[0]
+    assert len(row0) == 3
+    assert row0[0].get("morecols") is None
+    assert row0[0].astext() == "A"
+    assert row0[1].astext() == "B"
+    assert row0[2].astext() == "C"
+
+    # Row 1: 2-cell colspan followed by a regular cell
+    row1 = tbody[1]
+    assert len(row1) == 2
+    merged_ab = row1[0]
+    assert isinstance(merged_ab, nodes.entry)
+    assert merged_ab.get("morecols") == 1, "2+ span should set morecols=1"
+    assert merged_ab.astext() == "merged AB"
+    c_only = row1[1]
+    assert c_only.get("morecols") is None
+    assert c_only.astext() == "C-only"
+
+    # Row 2: regular cell followed by a full-width 3-cell colspan
+    row2 = tbody[2]
+    assert len(row2) == 2
+    d_cell = row2[0]
+    assert d_cell.get("morecols") is None
+    assert d_cell.astext() == "D"
+    merged_def = row2[1]
+    assert isinstance(merged_def, nodes.entry)
+    assert merged_def.get("morecols") == 2, "3+ span should set morecols=2"
+    assert merged_def.astext() == "merged DEF"
+
+
+def test_table_colspan_and_rowspan_combined():
+    """A cell with both 2-column span and 2-row span sets morecols=1 and morerows=1."""
+    source = """\
+[cols="1,1,1"]
+|===
+2.2+| big cell | C1
+
+| C2
+
+| D1 | D2
+|==="""
+    document = asciidoc_to_docutils(source)
+    table = document[0]
+    assert isinstance(table, nodes.table)
+
+    tgroup = table[0]
+    tbody = tgroup[-1]
+
+    row0 = tbody[0]
+    big_cell = row0[0]
+    assert isinstance(big_cell, nodes.entry)
+    assert big_cell.get("morecols") == 1, "2-column span should give morecols=1"
+    assert big_cell.get("morerows") == 1, "2-row span should give morerows=1"
+    assert big_cell.astext() == "big cell"

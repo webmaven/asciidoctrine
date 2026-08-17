@@ -8,6 +8,8 @@ import warnings
 from dataclasses import dataclass
 from typing import Any, Optional, Union
 
+from .loader import FileProvider, FsLoader
+
 
 class PreprocessorError(Exception):
     """Custom exception for preprocessor errors."""
@@ -74,7 +76,8 @@ class ConditionalStack:
 
 class Preprocessor:
     """
-    Processes AsciiDoc source to handle `include::` directives.
+    Processes AsciiDoc source to handle `include::` directives, conditional blocks
+    (`ifdef`, `ifndef`, `ifeval`), and attribute substitutions.
     """
 
     def __init__(
@@ -84,20 +87,39 @@ class Preprocessor:
         preprocess_directives: bool = True,
         attributes: Optional[dict[str, str]] = None,
         strict: bool = True,
+        loader: Optional[FileProvider] = None,
     ) -> None:
         """
         Initializes the preprocessor.
 
-        base_dir::
+        `base_dir`::
           The base directory for resolving include paths.
           Defaults to the current working directory.
-        safe_mode::
+        `safe_mode`::
           If True (or non-zero), prevents including files outside base_dir.
-        preprocess_directives::
+        `preprocess_directives`::
           If True, processes AsciiDoc preprocessing directives like include::.
+        `attributes`::
+          Optional dictionary of predefined document attributes.
+        `strict`::
+          If True, missing include files or invalid directives raise PreprocessorError.
+        `loader`::
+          Optional `FileProvider` instance for resolving and loading included files.
         """
-        self.base_dir = os.path.abspath(base_dir) if base_dir else os.getcwd()
-        self.safe_mode = bool(safe_mode)
+        if loader is not None:
+            self.loader: FileProvider = loader
+            raw_base = (
+                base_dir
+                if base_dir is not None
+                else getattr(loader, "base_dir", os.getcwd())
+            )
+            self.base_dir = loader.resolve_path(str(raw_base))
+            self.safe_mode = getattr(loader, "safe_mode", bool(safe_mode))
+        else:
+            self.base_dir = os.path.abspath(base_dir) if base_dir else os.getcwd()
+            self.safe_mode = bool(safe_mode)
+            self.loader = FsLoader(base_dir=self.base_dir, safe_mode=self.safe_mode)
+
         self.preprocess_directives = preprocess_directives
         self.attributes = attributes or {}
         self.strict = strict
@@ -188,7 +210,7 @@ class Preprocessor:
         """
         Evaluates an ifeval condition expression (e.g. '"html5" == "html5"', '5 > 3').
         Extracts left operand, operator (==, !=, <=, >=, <, >), and right operand,
-        parses both operands via _parse_ifeval_operand, and performs safe comparison.
+        parses both operands via `_parse_ifeval_operand`, and performs safe comparison.
         """
 
         # Substitute attributes
@@ -332,24 +354,16 @@ class Preprocessor:
         include_path = match.group(1).strip()
         attr_str = match.group(2).strip()
 
-        target_file_path = os.path.abspath(os.path.join(current_dir, include_path))
+        try:
+            target_file_path = self.loader.resolve_path(
+                include_path, base_dir=current_dir
+            )
+        except PermissionError as e:
+            raise PreprocessorError(
+                f"Security error: include path '{include_path}' attempts to access files outside the base directory."
+            ) from e
 
-        # Security check: verify target is within base directory if
-        # safe_mode is on
-        if self.safe_mode:
-            try:
-                common = os.path.commonpath([target_file_path, self.base_dir])
-                is_outside = common != self.base_dir
-            except ValueError:
-                is_outside = True
-
-            if is_outside:
-                raise PreprocessorError(
-                    f"Security error: include path '{include_path}' "
-                    f"attempts to access files outside the base directory."
-                )
-
-        if not os.path.isfile(target_file_path):
+        if not self.loader.is_file(target_file_path):
             if not self.strict:
                 parent_file = (
                     os.path.relpath(current_file, self.base_dir)
@@ -376,7 +390,7 @@ class Preprocessor:
                 target_file_path,
                 current_file,
             }
-            real_cycle_files = {f for f in cycle_files if os.path.isfile(f)}
+            real_cycle_files = {f for f in cycle_files if self.loader.is_file(f)}
 
             cycle_paths = [
                 os.path.relpath(item[0], self.base_dir)
@@ -399,8 +413,7 @@ class Preprocessor:
                 file_dir = os.path.dirname(file_path)
 
                 try:
-                    with open(file_path, "r", encoding="utf-8") as f_obj:
-                        file_lines = f_obj.readlines()
+                    file_lines = self.loader.read_text(file_path).splitlines(True)
                 except Exception:
                     continue
 
@@ -410,7 +423,12 @@ class Preprocessor:
                         m = self.include_regex.match(line_text)
                         if m:
                             inc_path = m.group(1).strip()
-                            abs_inc = os.path.abspath(os.path.join(file_dir, inc_path))
+                            try:
+                                abs_inc = self.loader.resolve_path(
+                                    inc_path, base_dir=file_dir
+                                )
+                            except Exception:
+                                continue
                             if abs_inc in real_cycle_files:
                                 caret_line = "^" + "~" * (len(line_text) - 1)
                                 diagnostic_lines.append(
@@ -425,8 +443,7 @@ class Preprocessor:
             )
             raise CircularIncludeError(error_msg)
 
-        with open(target_file_path, "r", encoding="utf-8") as f:
-            content_to_include = f.read()
+        content_to_include = self.loader.read_text(target_file_path)
 
         self.included_files_set.add(target_file_path)
 

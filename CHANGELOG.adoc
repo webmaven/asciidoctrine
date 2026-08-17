@@ -3,6 +3,19 @@
 
 == Unreleased
 
+== 0.2.0a1 - 2026-08-16
+
+=== Added
+* **Resource Loader Abstraction (`FileProvider`, `FsLoader`, `MemoryLoader`)**:
+  - Introduced the `FileProvider` abstract interface in `asciidoctrine.loader` to decouple document parsing and preprocessing from physical disk I/O.
+  - Added `MemoryLoader` virtual filesystem for 100% hermetic in-memory parsing, multi-file workspace test fixtures, and Pyodide/browser execution.
+  - Updated `Preprocessor`, `parse_to_ast()`, `ASGResolver`, and `WorkspaceBuilder` to accept any `FileProvider` implementation.
+* **Hermetic In-Memory Multi-File Workspace Testing**:
+  - Added `tests/test_loader.py` and `tests/test_hermetic_workspace.py` asserting multi-document workspace discovery, cross-file xref resolution, nested in-memory includes, and in-memory docinfo head/footer resolution without touching disk.
+* **Enhanced Developer Experience (DX) & AsciiDoc Docstrings**:
+  - Upgraded public API docstrings across `parse_to_ast()`, `parse_inlines()`, `WorkspaceBuilder`, `FileProvider`, `FsLoader`, and `MemoryLoader` to standardized AsciiDoc markup.
+  - Enhanced error diagnostics on `AsciiDocSyntaxError` and `CircularIncludeError`.
+
 === Added
 * **Collect Footnote References & Catalog in ASGResolver (Issue #93)**:
   - Added document-level footnote collection and sequential numbering (1-based index) during `ASGResolver` semantic resolution for auto-numbered (`footnote:[text]`), named definition (`footnoteref:[id, text]`), and named reference (`footnoteref:[id]`) inline macros, populating `Ref.index` and the `Document.footnotes` catalog.

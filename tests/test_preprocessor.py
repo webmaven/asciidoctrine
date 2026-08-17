@@ -99,6 +99,30 @@ class PreprocessorTest(unittest.TestCase):
         self.assertIn("include::circular_a.adoc[]", err_str)
         self.assertIn("^~~~~~~~~~~~~~~~~~~~~~~~~~", err_str)
 
+    def test_circular_include_diagnostic_formatting(self):
+        from asciidoctrine.preprocessor import CircularIncludeError
+
+        preprocessor = Preprocessor(base_dir=self.base_dir)
+        source = "include::circular_a.adoc[]"
+        with self.assertRaises(CircularIncludeError) as context:
+            preprocessor.process(source)
+
+        err_str = str(context.exception)
+        # Verify cycle arrow chain and header
+        self.assertIn(
+            "Circular include detected: circular_a.adoc -> circular_b.adoc -> circular_a.adoc",
+            err_str,
+        )
+        # Verify file locations and caret pointers in diagnostic output
+        self.assertIn(
+            'File "circular_a.adoc", line 2:\n    include::circular_b.adoc[]\n    ^~~~~~~~~~~~~~~~~~~~~~~~~~',
+            err_str,
+        )
+        self.assertIn(
+            'File "circular_b.adoc", line 2:\n    include::circular_a.adoc[]\n    ^~~~~~~~~~~~~~~~~~~~~~~~~~',
+            err_str,
+        )
+
     def test_multiple_sibling_includes(self):
         # Create helper file
         helper_path = os.path.join(self.base_dir, "helper.adoc")
@@ -838,11 +862,13 @@ if __name__ == "__main__":
 class TestConditionalStack:
     def test_is_active_empty_stack_returns_true(self):
         from asciidoctrine.preprocessor import ConditionalStack
+
         cs = ConditionalStack()
         assert cs.is_active() is True
 
     def test_is_active_all_active(self):
         from asciidoctrine.preprocessor import ConditionalStack
+
         cs = ConditionalStack()
         cs.push(True, "a", "ifdef")
         cs.push(True, "b", "ifdef")
@@ -850,6 +876,7 @@ class TestConditionalStack:
 
     def test_is_active_one_inactive(self):
         from asciidoctrine.preprocessor import ConditionalStack
+
         cs = ConditionalStack()
         cs.push(True, "a", "ifdef")
         cs.push(False, "b", "ifdef")
@@ -857,22 +884,26 @@ class TestConditionalStack:
 
     def test_bool_empty_is_false(self):
         from asciidoctrine.preprocessor import ConditionalStack
+
         cs = ConditionalStack()
         assert bool(cs) is False
 
     def test_bool_non_empty_is_true(self):
         from asciidoctrine.preprocessor import ConditionalStack
+
         cs = ConditionalStack()
         cs.push(True, "x", "ifdef")
         assert bool(cs) is True
 
     def test_pop_empty_returns_none(self):
         from asciidoctrine.preprocessor import ConditionalStack
+
         cs = ConditionalStack()
         assert cs.pop() is None
 
     def test_pop_named_mismatch_strict_raises(self):
         from asciidoctrine.preprocessor import ConditionalStack, PreprocessorError
+
         cs = ConditionalStack(strict=True)
         cs.push(True, "foo", "ifdef")
         with pytest.raises(PreprocessorError, match="Mismatched endif"):
@@ -880,6 +911,7 @@ class TestConditionalStack:
 
     def test_pop_named_mismatch_permissive_warns(self):
         from asciidoctrine.preprocessor import ConditionalStack, PreprocessorWarning
+
         cs = ConditionalStack(strict=False)
         cs.push(True, "foo", "ifdef")
         with pytest.warns(PreprocessorWarning, match="Mismatched"):
@@ -887,6 +919,7 @@ class TestConditionalStack:
 
     def test_pop_unnamed_target_no_check(self):
         from asciidoctrine.preprocessor import ConditionalStack
+
         cs = ConditionalStack(strict=True)
         cs.push(True, "foo", "ifdef")
         frame = cs.pop("")
@@ -902,7 +935,9 @@ class TestConditionalStack:
 class TestParseIfevalOperand:
     def _preprocessor(self):
         import tempfile
+
         from asciidoctrine.preprocessor import Preprocessor
+
         return Preprocessor(base_dir=tempfile.mkdtemp())
 
     def test_float_operand(self):
@@ -938,7 +973,9 @@ class TestParseIfevalOperand:
 class TestSplitIfevalExpression:
     def _preprocessor(self):
         import tempfile
+
         from asciidoctrine.preprocessor import Preprocessor
+
         return Preprocessor(base_dir=tempfile.mkdtemp())
 
     def test_no_operator_returns_none(self):
@@ -969,7 +1006,9 @@ class TestSplitIfevalExpression:
 class TestEvaluateIfevalCondition:
     def _preprocessor(self, attrs=None):
         import tempfile
+
         from asciidoctrine.preprocessor import Preprocessor
+
         return Preprocessor(base_dir=tempfile.mkdtemp(), attributes=attrs or {})
 
     def test_attribute_substitution_in_expression(self):
@@ -1010,7 +1049,9 @@ class TestEvaluateIfevalCondition:
 class TestUpdateDelimiterStack:
     def _preprocessor(self):
         import tempfile
+
         from asciidoctrine.preprocessor import Preprocessor
+
         return Preprocessor(base_dir=tempfile.mkdtemp())
 
     def test_pushes_new_delimiter(self):
@@ -1047,7 +1088,9 @@ class TestUpdateDelimiterStack:
 class TestRecordLine:
     def _preprocessor(self):
         import tempfile
+
         from asciidoctrine.preprocessor import Preprocessor
+
         return Preprocessor(base_dir=tempfile.mkdtemp())
 
     def test_record_line_initialises_if_missing(self):
@@ -1076,7 +1119,9 @@ class TestRecordLine:
 class TestProcessSourceDelimiters:
     def _preprocessor(self, **kwargs):
         import tempfile
+
         from asciidoctrine.preprocessor import Preprocessor
+
         return Preprocessor(base_dir=tempfile.mkdtemp(), **kwargs)
 
     def test_passthrough_block_marked(self):
@@ -1112,11 +1157,12 @@ class TestProcessSourceDelimiters:
 # Preprocessor gaps
 # ---------------------------------------------------------------------------
 
-class TestPreprocessorAdditionalGaps:
 
+class TestPreprocessorAdditionalGaps:
     def test_is_metadata_comment_line_returns_true(self):
         """is_metadata returns True for // comment lines (line 661)."""
         from asciidoctrine.preprocessor import Preprocessor
+
         # A comment line above a block should not absorb the block into a paragraph
         src = "// single-line comment\n= Doc Title\n"
         p = Preprocessor()
@@ -1127,6 +1173,7 @@ class TestPreprocessorAdditionalGaps:
     def test_is_metadata_comment_before_block(self):
         """Comment line acts as metadata — block content after it is preserved."""
         from asciidoctrine.preprocessor import Preprocessor
+
         src = "// a comment\n----\ncode block\n----\n"
         p = Preprocessor()
         result = p.process(src)
@@ -1137,6 +1184,7 @@ class TestPreprocessorAdditionalGaps:
     def test_evaluate_ifeval_condition_unknown_op_via_process(self):
         """ifeval with a type-incompatible comparison returns False (line 223 TypeError path)."""
         from asciidoctrine.preprocessor import Preprocessor
+
         # Comparing string to number raises TypeError internally → returns False
         src = 'ifeval::["{foo}" > 0]\nincluded\nendif::[]\n'
         p = Preprocessor()

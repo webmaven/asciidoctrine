@@ -10,7 +10,34 @@ Custom Abstract Syntax Tree (AST) for AsciiDoc parsing.
 
 
 class Node:
-    """Base class for all AST nodes."""
+    """
+    Base class for all Abstract Syntax Tree (AST) nodes in AsciiDoc.
+
+    `Node` provides tree navigation, child collection indexing, attribute management,
+    and serialization methods to convert nodes into ASG-compatible dictionaries or
+    traverse them recursively.
+
+    *Attributes:*
+
+    `children`:: List of generic child `Node` instances.
+    `name`:: Canonical node name identifier (e.g. `"document"`, `"section"`, `"paragraph"`).
+    `type`:: Structural node categorization (e.g. `"block"`, `"inline"`, `"string"`, `"metadata"`).
+    `attributes`:: Mapping of AsciiDoc element attributes (e.g. id, role, title, style, options).
+    `title`:: Optional `Title` node or title AST representation.
+    `location`:: Optional source location coordinate map containing line and column indices.
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine.nodes import Paragraph, Text
+
+    para = Paragraph([Text("Hello world")])
+    assert para.type == "block"
+    assert para.name == "paragraph"
+    assert len(para.inlines) == 1
+    ----
+    """
 
     # Controls whether self.attributes is automatically serialized in to_dict()
     _should_serialize_attributes: bool = True
@@ -90,15 +117,34 @@ class Node:
 
 
 class InlineNode(Node):
-    """A base class for nodes that represent inline content, such as text formatting."""
+    """
+    A base class for nodes that represent inline content and text formatting.
+
+    Inline nodes represent character-level markup and inline macros, including
+    spans (bold, italic, monospace, mark), references (hyperlinks, cross-references, footnotes),
+    inline macros (kbd, button, menu), stem equations, and raw text segments.
+
+    *Attributes:*
+
+    `inlines`:: List of child inline-level `Node` instances contained within this node.
+    """
 
     def append(self, child: Node) -> None:
         self.inlines.append(child)  # type: ignore[attr-defined]
 
 
 class BlockNode(Node):
-    """A base class for nodes that represent block-level content, such as
-    paragraphs or lists."""
+    """
+    A base class for nodes that represent block-level structural content.
+
+    Block nodes represent structural document elements such as sections, paragraphs,
+    lists, delimited blocks (listings, sidebars, quotes, examples), tables, and containers.
+    They encapsulate child `blocks` or principal inline sequences.
+
+    *Attributes:*
+
+    `blocks`:: List of child block-level `Node` instances contained within this block.
+    """
 
     def append(self, child: Node) -> None:
         self.blocks.append(child)  # type: ignore[attr-defined]
@@ -124,7 +170,37 @@ class Docinfo(Node):
 
 
 class Document(BlockNode):
-    """The root node of the entire AsciiDoc document AST."""
+    """
+    The root node of an AsciiDoc document AST.
+
+    `Document` encapsulates the top-level structure of an AsciiDoc file,
+    including the optional document `Header` (with title, authors, revision, and document attributes),
+    injected `Docinfo` metadata, body block elements, and footnotes.
+
+    *Attributes:*
+
+    `blocks`:: List of top-level `BlockNode` elements constituting the document body.
+    `header`:: Optional `Header` node containing document title, authors, and document-level attributes.
+    `docinfo`:: Optional `Docinfo` node holding injected raw HTML header/footer content.
+    `base_dir`:: Base directory path used during parsing to resolve relative file includes.
+    `safe_mode`:: Security confinement level (0 = unsafe, 1 = safe, 2 = server).
+    `is_preprocessed`:: Boolean flag indicating if directives were expanded during preprocessing.
+    `included_files`:: List of file path strings included during document preprocessing.
+    `footnotes`:: List of resolved footnote dictionaries collected across the document.
+    `loader`:: Optional `FileProvider` instance used to read source documents and included resources.
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine.lark_parser import parse_to_ast
+
+    doc = parse_to_ast("= My Document\\nAuthor Name\\n\\nFirst paragraph.")
+    assert doc.name == "document"
+    assert doc.header is not None
+    assert len(doc.blocks) == 1
+    ----
+    """
 
     _should_serialize_attributes = False
 
@@ -150,6 +226,7 @@ class Document(BlockNode):
         self.base_dir: Optional[str] = base_dir
         self.safe_mode: int = safe_mode
         self.footnotes: PyList[Dict[str, Any]] = []
+        self.loader: Optional[Any] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize document with header and resolved attributes."""
@@ -296,7 +373,31 @@ class Header(Node):
 
 
 class Section(BlockNode):
-    """Represents a structural section of the document."""
+    """
+    A structural section container within an AsciiDoc document.
+
+    Sections correspond to headed sections (e.g. +== Section Title+, +=== Subsection Title+),
+    storing their heading level, section title inlines, section-level metadata attributes (such as anchor IDs and roles),
+    and all nested child blocks contained within the section body.
+
+    *Attributes:*
+
+    `level`:: 1-based integer section depth (1 = `==`, 2 = `===`, etc.).
+    `title`:: Optional `Title` inline container representing the section title text.
+    `blocks`:: List of child `BlockNode` instances comprising the section body and nested subsections.
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine.lark_parser import parse_to_ast
+
+    doc = parse_to_ast("== Getting Started\\n\\nFollow these steps.")
+    section = doc.blocks[0]
+    assert section.name == "section"
+    assert section.level == 1
+    ----
+    """
 
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
         return {"blocks": self.blocks}
@@ -316,7 +417,26 @@ class Section(BlockNode):
 
 
 class Paragraph(BlockNode):
-    """A block-level node representing a paragraph of text."""
+    """
+    A block-level node representing a paragraph of text.
+
+    Paragraphs are contiguous lines of text separated by blank lines or block delimiters.
+    They contain a sequence of child inline nodes (formatted text spans, links, references, plain text).
+
+    *Attributes:*
+
+    `inlines`:: List of child `InlineNode` instances (e.g., `Text`, `Span`, `Ref`) forming the paragraph content.
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine.nodes import Paragraph, Text
+
+    para = Paragraph([Text("This is a paragraph.")])
+    assert len(para.inlines) == 1
+    ----
+    """
 
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
         return {"inlines": self.inlines}
@@ -470,7 +590,29 @@ class CalloutListItem(BlockNode):
 
 
 class Span(InlineNode):
-    """An inline node for formatted text (bold, italic, code)."""
+    """
+    An inline node representing formatted or stylized text spans.
+
+    Spans represent text styling constructs such as strong (+*bold*+, +**bold**+),
+    emphasis (+_italic_+, +__italic__+), monospaced code (+`code`+, +``code``+),
+    superscript (+^super^+), subscript (+~sub~+), or custom-roled text spans (+[.role]#text#+).
+
+    *Attributes:*
+
+    `variant`:: Formatting style kind (e.g. `"strong"`, `"emphasis"`, `"code"`, `"superscript"`, `"subscript"`, `"mark"`).
+    `form`:: Syntax boundary constraint: `"constrained"` (e.g., `*word*`) or `"unconstrained"` (e.g., `**chars**`).
+    `inlines`:: List of child inline nodes nested within the formatted span.
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine.nodes import Span, Text
+
+    bold_span = Span(variant="strong", inlines=[Text("important")], form="constrained")
+    assert bold_span.variant == "strong"
+    ----
+    """
 
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
         return {"inlines": self.inlines}
@@ -490,18 +632,32 @@ class Span(InlineNode):
 
 
 class Ref(InlineNode):
-    """An inline node for a hyperlink or cross-reference (+xref:...[]+ or +<<...>>+).
+    """
+    An inline node representing hyperlinks, cross-references, and footnote references.
+
+    `Ref` handles URL links (`https://example.com[Label]`), internal cross-references (+<<section_id,Label>>+
+    or `xref:document.adoc#section_id[Label]`), anchors (+[[anchor_id]]+), and footnote references (`footnote:[text]`).
 
     *Attributes:*
 
-    `variant`:: The reference variant (e.g. `"xref"`, `"link"`).
-    `target`:: Raw target string from source (e.g. `"chapter1.adoc#intro"`, `"intro"`).
-    `inlines`:: Optional child inline nodes representing custom link label text.
+    `variant`:: The reference variant (e.g. `"link"`, `"xref"`, `"anchor"`, `"footnote"`).
+    `target`:: Raw target string from source (e.g. `"https://asciidoctor.org"`, `"chapter1.adoc#intro"`, `"intro"`).
+    `inlines`:: Optional child inline nodes representing custom link or reference label text.
     `resolved_strategy`:: Set by `ASGResolver` to `"same_file"` or `"cross_file"`.
-    `resolved_file_target`:: Set by `ASGResolver` to the target file ID.
-    `resolved_anchor_target`:: Set by `ASGResolver` to the target anchor/section ID.
+    `resolved_file_target`:: Set by `ASGResolver` to the resolved target file ID.
+    `resolved_anchor_target`:: Set by `ASGResolver` to the resolved target anchor or section ID.
     `target_node_instance`:: Direct live memory pointer to the resolved target `Node` AST instance. Excluded from `to_dict()` serialization to prevent circular references.
     `index`:: 1-based sequential numerical index for footnote references set by `ASGResolver`.
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine.nodes import Ref, Text
+
+    link = Ref(variant="link", target="https://asciidoctor.org", inlines=[Text("AsciiDoctor")])
+    assert link.target == "https://asciidoctor.org"
+    ----
     """
 
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
@@ -775,7 +931,35 @@ class VerbatimBlockMixin:
 
 
 class Listing(VerbatimBlockMixin, BlockNode):
-    """A block for preformatted text, typically used for code listings."""
+    """
+    A block-level node representing verbatim source code or preformatted listings.
+
+    Listing blocks are enclosed in 4-or-more hyphens (+----+ or +------+) or styled with +[source,language]+.
+    They preserve whitespace, provide source highlighting language metadata, and support
+    embedded callout markers (+<1>+, +<2>+).
+
+    *Attributes:*
+
+    `inlines`:: List of child inline nodes (e.g. `Text`, `Callout`) containing the verbatim code and callouts.
+    `attributes`:: Block attributes mapping, containing keys such as `"language"`, `"title"`, `"style"`, and `"id"`.
+    `delimiter`:: The verbatim block delimiter string (defaults to `"----"`).
+    `code`:: Property returning the full code content including callout markers.
+    `stripped_code`:: Property returning code content with callout markers stripped out.
+    `callouts`:: Property returning a mapping of 1-based line numbers to lists of callout integer identifiers.
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine.lark_parser import parse_to_ast
+
+    doc = parse_to_ast("[source,python]\\n----\\nprint('Hello') <1>\\n----")
+    listing = doc.blocks[0]
+    assert listing.name == "listing"
+    assert listing.language == "python"
+    assert 1 in listing.callouts
+    ----
+    """
 
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
         return {"inlines": self.inlines}
@@ -1130,7 +1314,30 @@ class Open(BlockNode):
 
 
 class Table(BlockNode):
-    """A node representing a table."""
+    """
+    A block-level node representing a structured table.
+
+    Tables in AsciiDoc are enclosed in +|===+ delimiters and consist of one or more `TableRow`
+    elements containing `TableCell` instances. Tables support column specifications, cell alignments,
+    spans (colspans, rowspans), and nested block-level content.
+
+    *Attributes:*
+
+    `rows`:: List of `TableRow` instances composing the rows of the table.
+    `attributes`:: Block attributes mapping (e.g., `"cols"`, `"options"`, `"title"`, `"id"`).
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine.lark_parser import parse_to_ast
+
+    doc = parse_to_ast("|===\\n| Header 1 | Header 2\\n| Cell 1 | Cell 2\\n|===")
+    table = doc.blocks[0]
+    assert table.name == "table"
+    assert len(table.rows) == 2
+    ----
+    """
 
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
         return {"rows": cast(PyList[Node], self.rows)}

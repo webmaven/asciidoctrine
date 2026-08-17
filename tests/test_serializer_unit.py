@@ -12,8 +12,6 @@ from asciidoctrine.nodes import (
     Break,
     Button,
     Callout,
-    CalloutList,
-    CalloutListItem,
     Comment,
     DescriptionList,
     DescriptionListItem,
@@ -21,7 +19,6 @@ from asciidoctrine.nodes import (
     Document,
     Example,
     Image,
-    IndexTerm,
     InlinePassthrough,
     InlineStem,
     Kbd,
@@ -32,7 +29,6 @@ from asciidoctrine.nodes import (
     Node,
     Open,
     Paragraph,
-    Passthrough,
     Quote,
     Ref,
     Section,
@@ -292,9 +288,7 @@ def test_visit_ref_link_bare_role():
 
 
 def test_visit_ref_link_bare_mailto():
-    ref = Ref(
-        variant="link", target="mailto:user@example.com", inlines=[Text("user")]
-    )
+    ref = Ref(variant="link", target="mailto:user@example.com", inlines=[Text("user")])
     ref.attributes["role"] = "bare"
     out = _ser(ref)
     assert out == "user@example.com"
@@ -309,18 +303,14 @@ def test_visit_ref_link_uri_no_inlines():
 
 def test_visit_ref_link_non_uri_target():
     """Non-URI target (relative path) → prefix with 'link:'."""
-    ref = Ref(
-        variant="link", target="./docs/guide.html", inlines=[Text("Guide")]
-    )
+    ref = Ref(variant="link", target="./docs/guide.html", inlines=[Text("Guide")])
     out = _ser(ref)
     assert out.startswith("link:./docs/guide.html[")
     assert "Guide" in out
 
 
 def test_visit_ref_link_with_window_blank():
-    ref = Ref(
-        variant="link", target="https://example.com", inlines=[Text("Visit")]
-    )
+    ref = Ref(variant="link", target="https://example.com", inlines=[Text("Visit")])
     ref.attributes["window"] = "_blank"
     out = _ser(ref)
     assert "^" in out
@@ -717,6 +707,7 @@ def test_write_block_metadata_role():
 
 def test_write_block_metadata_title_node():
     from asciidoctrine.nodes import Title
+
     p = Paragraph(inlines=[Text("body")])
     p.title = Title(inlines=[Text("My Para")])
     result = _ser(p)
@@ -730,6 +721,7 @@ def test_write_block_metadata_title_node():
 
 def test_visit_document_with_header():
     from asciidoctrine.nodes import Header, Title
+
     doc = Document()
     doc.header = Header(title=Title(inlines=[Text("Doc Title")]))
     doc.blocks.append(Paragraph(inlines=[Text("Body.")]))
@@ -754,6 +746,7 @@ def test_visit_document_no_header():
 
 def test_visit_section_level2():
     from asciidoctrine.nodes import Title
+
     sec = Section(level=2, title=Title(inlines=[Text("Sub")]))
     sec.blocks.append(Paragraph(inlines=[Text("Content.")]))
     result = _ser(sec)
@@ -776,6 +769,7 @@ def test_visit_section_no_title():
 
 def test_visit_title_renders_inlines():
     from asciidoctrine.nodes import Title
+
     t = Title(inlines=[Text("Hello "), Text("World")])
     result = _ser(t)
     assert result == "Hello World"
@@ -800,8 +794,7 @@ def test_visit_paragraph_with_metadata():
 
 
 def test_visit_literal_delimited_form_explicit():
-    lit = Literal(form="delimited", delimiter="....",
-                  inlines=[Text("x = 1\n")])
+    lit = Literal(form="delimited", delimiter="....", inlines=[Text("x = 1\n")])
     result = _ser(lit)
     assert result.startswith("....\n")
     assert result.endswith("....\n")
@@ -848,7 +841,7 @@ def test_visit_example():
 
 def test_visit_quote():
     q = Quote()
-    q.blocks.append(Paragraph(inlines=[Text("quote")])  )
+    q.blocks.append(Paragraph(inlines=[Text("quote")]))
     result = _ser(q)
     assert result.startswith("____\n")
     assert result.endswith("____\n")
@@ -948,12 +941,14 @@ def test_visit_cell_no_specifiers():
 
 def test_visit_thematic_break():
     from asciidoctrine.nodes import ThematicBreak
+
     result = _ser(ThematicBreak())
     assert result == "'''\n"
 
 
 def test_visit_page_break():
     from asciidoctrine.nodes import PageBreak
+
     result = _ser(PageBreak())
     assert result == "<<<\n"
 
@@ -965,6 +960,7 @@ def test_visit_page_break():
 
 def test_visit_attribute_entry_with_value():
     from asciidoctrine.nodes import AttributeEntry
+
     ae = AttributeEntry(name="author", value="Alice")
     result = _ser(ae)
     assert result == ":author: Alice\n"
@@ -972,6 +968,7 @@ def test_visit_attribute_entry_with_value():
 
 def test_visit_attribute_entry_no_value():
     from asciidoctrine.nodes import AttributeEntry
+
     ae = AttributeEntry(name="toc", value="")
     result = _ser(ae)
     assert result == ":toc:\n"
@@ -984,6 +981,7 @@ def test_visit_attribute_entry_no_value():
 
 def test_visit_include():
     from asciidoctrine.nodes import Include
+
     inc = Include(filename="sub/chapter.adoc")
     result = _ser(inc)
     assert result == "include::sub/chapter.adoc[]\n"
@@ -991,6 +989,7 @@ def test_visit_include():
 
 def test_visit_toc():
     from asciidoctrine.nodes import Toc
+
     toc = Toc(target="")
     result = _ser(toc)
     assert result == "toc::[]\n"
@@ -1007,7 +1006,7 @@ def test_visit_text():
 
 
 def test_visit_break():
-    from asciidoctrine.nodes import Break
+
     result = _ser(Break())
     assert result == " +\n"
 
@@ -1015,6 +1014,7 @@ def test_visit_break():
 # ---------------------------------------------------------------------------
 # Serializer gap — unquoted attribute value (line 98)
 # ---------------------------------------------------------------------------
+
 
 class TestSerializerUnquotedAttr:
     """Attribute values without spaces/commas are written unquoted (line 98)."""

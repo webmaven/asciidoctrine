@@ -1,15 +1,19 @@
-"""AsciiDoctrine: Pure-Python AsciiDoc parser library using Lark.
+"""
+AsciiDoctrine: High-performance, pure-Python AsciiDoc parser and semantic processor based on Lark.
 
 AsciiDoctrine provides a structured, type-safe representation of AsciiDoc documents.
 Core features include:
-- `parse_to_ast()`: Parse raw AsciiDoc source code into a syntax-level AST.
-- `ASGResolver`: Resolve AST trees into spec-compliant Abstract Semantic Graphs (ASG).
-- `WorkspaceCatalog`: Index symbols and target anchors across multi-document workspaces.
-- `WorkspaceBuilder`: Orchestrate multi-pass directory parsing and cross-reference resolution.
-- `serialize_to_asciidoc()`: Losslessly serialize AST nodes back to AsciiDoc text.
+
+* `parse_to_ast()`: Parse raw AsciiDoc source code into a syntax-level AST.
+* `FileProvider`, `FsLoader`, `MemoryLoader`: Abstract and virtual filesystem loaders for hermetic parsing.
+* `ASGResolver`: Resolve AST trees into spec-compliant Abstract Semantic Graphs (ASG).
+* `WorkspaceCatalog`: Index symbols and target anchors across multi-document workspaces.
+* `WorkspaceBuilder`: Orchestrate multi-pass directory or in-memory parsing and cross-reference resolution.
+* `serialize_to_asciidoc()`: Losslessly serialize AST nodes back to AsciiDoc text.
 """
 
 from .lark_parser import AsciiDocSyntaxError, parse_to_ast
+from .loader import FileProvider, FsLoader, MemoryLoader
 from .nodes import (
     Docinfo,
     Document,
@@ -23,12 +27,15 @@ from .nodes import (
 from .resolver import ASGResolver, WorkspaceBuilder, WorkspaceCatalog
 from .serializer import serialize_to_asciidoc
 
-__version__ = "0.1.0a12"
+__version__ = "0.2.0a1"
 
 __all__ = [
     "parse_to_ast",
     "AsciiDocSyntaxError",
     "serialize_to_asciidoc",
+    "FileProvider",
+    "FsLoader",
+    "MemoryLoader",
     "Node",
     "Docinfo",
     "Document",

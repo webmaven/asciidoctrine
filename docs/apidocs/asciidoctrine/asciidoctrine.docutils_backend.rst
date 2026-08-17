@@ -18,7 +18,9 @@ Classes
    :align: left
 
    * - :py:obj:`DocutilsRenderer <asciidoctrine.docutils_backend.DocutilsRenderer>`
-     -
+     - .. autodoc2-docstring:: asciidoctrine.docutils_backend.DocutilsRenderer
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
 
 Functions
 ~~~~~~~~~
@@ -39,6 +41,14 @@ API
    :canonical: asciidoctrine.docutils_backend.DocutilsRenderer
 
    Bases: :py:obj:`asciidoctrine.nodes.NodeVisitor`
+
+   .. autodoc2-docstring:: asciidoctrine.docutils_backend.DocutilsRenderer
+      :parser: sphinx_asciidoctrine.parser
+
+   .. rubric:: Initialization
+
+   .. autodoc2-docstring:: asciidoctrine.docutils_backend.DocutilsRenderer.__init__
+      :parser: sphinx_asciidoctrine.parser
 
    .. py:method:: visit_document(node: asciidoctrine.nodes.Document) -> None
       :canonical: asciidoctrine.docutils_backend.DocutilsRenderer.visit_document
@@ -208,6 +218,12 @@ API
       .. autodoc2-docstring:: asciidoctrine.docutils_backend.DocutilsRenderer.visit_image
          :parser: sphinx_asciidoctrine.parser
 
+   .. py:method:: _append_attribution(bq: docutils.nodes.Element, attribution: typing.Optional[str], citetitle: typing.Optional[str]) -> None
+      :canonical: asciidoctrine.docutils_backend.DocutilsRenderer._append_attribution
+
+      .. autodoc2-docstring:: asciidoctrine.docutils_backend.DocutilsRenderer._append_attribution
+         :parser: sphinx_asciidoctrine.parser
+
    .. py:method:: visit_quote(node: asciidoctrine.nodes.Quote) -> None
       :canonical: asciidoctrine.docutils_backend.DocutilsRenderer.visit_quote
 
@@ -316,7 +332,7 @@ API
       .. autodoc2-docstring:: asciidoctrine.docutils_backend.DocutilsRenderer.visit_docinfo
          :parser: sphinx_asciidoctrine.parser
 
-.. py:function:: asciidoc_to_docutils(source: str, base_dir: typing.Optional[str] = None) -> docutils.nodes.document
+.. py:function:: asciidoc_to_docutils(source: str, base_dir: typing.Optional[str] = None, safe_mode: int = 0) -> docutils.nodes.document
    :canonical: asciidoctrine.docutils_backend.asciidoc_to_docutils
 
    .. autodoc2-docstring:: asciidoctrine.docutils_backend.asciidoc_to_docutils

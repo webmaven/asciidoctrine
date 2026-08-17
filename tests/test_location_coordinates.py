@@ -20,29 +20,37 @@ LOCATION_CASES = [
         "listing_no_attributes",
         '----\nimport os\nprint("hello")\n----\n',
         Listing,
-        1, 4,   # block delimiter lines
-        2, 3,   # content lines
+        1,
+        4,  # block delimiter lines
+        2,
+        3,  # content lines
     ),
     (
         "listing_with_attributes",
         '[source,python]\n----\nimport os\nprint("hello")\n----\n',
         Listing,
-        1, 5,   # attribute line counts as block start
-        3, 4,
+        1,
+        5,  # attribute line counts as block start
+        3,
+        4,
     ),
     (
         "literal_delimited",
         "....\nliteral content\n....\n",
         Literal,
-        1, 3,
-        2, 2,
+        1,
+        3,
+        2,
+        2,
     ),
     (
         "literal_indented",
         "  indented literal\n",
         Literal,
-        1, 1,
-        1, 1,
+        1,
+        1,
+        1,
+        1,
     ),
 ]
 

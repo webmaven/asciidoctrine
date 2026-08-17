@@ -132,7 +132,9 @@ def test_legacy_open_block_strict_mode_never_errors():
         doc = parse_to_ast(source, strict=True)
     assert doc.blocks[0].name == "open"
     assert doc.blocks[0].delimiter == "--"
-    deprecation_warnings = [w for w in caught if issubclass(w.category, DeprecationWarning)]
+    deprecation_warnings = [
+        w for w in caught if issubclass(w.category, DeprecationWarning)
+    ]
     assert deprecation_warnings, "Expected a DeprecationWarning for '--' delimiter"
     assert "deprecated" in str(deprecation_warnings[0].message).lower()
 
@@ -146,3 +148,33 @@ def test_legacy_open_block_strict_mode_never_errors():
     assert deprecation_warnings_permissive, (
         "Expected a DeprecationWarning for '--' delimiter in permissive mode too"
     )
+
+
+def test_syntax_error_formatted_diagnostic():
+    """AsciiDocSyntaxError formats line, column, snippet context, and filepath cleanly."""
+    err = AsciiDocSyntaxError(
+        "Parsing failed",
+        line=14,
+        column=7,
+        context="invalid syntax here\n      ^",
+        filepath="/path/to/chapter1.adoc",
+    )
+    formatted = str(err)
+    assert "Syntax error in 'chapter1.adoc' at line 14, column 7." in formatted
+    assert "invalid syntax here\n      ^" in formatted
+
+    # When filepath is None or '<root>'
+    err_root = AsciiDocSyntaxError(
+        "Parsing failed",
+        line=2,
+        column=5,
+        context="bad inline *bold\n    ^",
+        filepath="<root>",
+    )
+    formatted_root = str(err_root)
+    assert "Syntax error at line 2, column 5." in formatted_root
+    assert "bad inline *bold\n    ^" in formatted_root
+
+    # When context is None, falls back to message
+    err_no_context = AsciiDocSyntaxError("Plain syntax error message")
+    assert str(err_no_context) == "Plain syntax error message"

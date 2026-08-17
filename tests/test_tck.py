@@ -7,9 +7,9 @@ import time
 
 import pytest
 
-
-
 pytestmark = pytest.mark.functional
+
+
 @pytest.fixture(scope="session")
 def tck_output():
     """Runs the TCK once per session and caches output in a temporary file for xdist workers."""

@@ -1,7 +1,7 @@
 import pytest
+
 from asciidoctrine.lark_parser import parse_to_ast
 from asciidoctrine.resolver import ASGResolver
-
 
 pytestmark = pytest.mark.integration
 

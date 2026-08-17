@@ -1,9 +1,10 @@
 import pytest
+
 from asciidoctrine.nodes import Listing, Literal, Text
 
-
-
 pytestmark = pytest.mark.unit
+
+
 def test_listing_raw_code():
     # Listing with single text element
     node = Listing(inlines=[Text("print('hello')\n")])
@@ -55,4 +56,3 @@ def test_literal_callout_extraction():
     assert node.code == "literal output <.>\n"
     assert node.callouts == {1: [1]}
     assert node.stripped_code == "literal output\n"
-

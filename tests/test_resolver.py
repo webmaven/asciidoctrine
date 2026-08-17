@@ -21,7 +21,6 @@ from asciidoctrine.nodes import (
 )
 from asciidoctrine.resolver import ASGResolver, WorkspaceBuilder, WorkspaceCatalog
 
-
 pytestmark = pytest.mark.unit
 
 
@@ -41,7 +40,6 @@ def test_resolver():
     print(f"Actual text: {actual_text}")
     assert actual_text == expected_text
     print("Test passed!")
-
 
 
 def test_resolver_block_attribute_cleaning_and_comment_removal():
@@ -97,11 +95,10 @@ def test_resolver_block_attribute_cleaning_and_comment_removal():
     assert "positional" not in empty_p["attributes"]
 
 
-
-
 # ---------------------------------------------------------------------------
 # Additional resolver tests (WorkspaceCatalog, WorkspaceBuilder, ASGResolver paths)
 # ---------------------------------------------------------------------------
+
 
 class TestWorkspaceCatalog:
     def test_index_document_root_indexed(self) -> None:
@@ -237,7 +234,9 @@ class TestWorkspaceBuilder:
 
 
 class TestResolveDocinfoFiles:
-    def _make_doc(self, attrs: dict[str, Any], base_dir: Optional[str] = None) -> Document:
+    def _make_doc(
+        self, attrs: dict[str, Any], base_dir: Optional[str] = None
+    ) -> Document:
         doc = Document(base_dir=base_dir)
         doc.attributes = attrs
         return doc
@@ -260,7 +259,9 @@ class TestResolveDocinfoFiles:
 
     def test_shared_docinfo_footer(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            (Path(tmpdir) / "docinfo-footer.html").write_text("<footer/>", encoding="utf-8")
+            (Path(tmpdir) / "docinfo-footer.html").write_text(
+                "<footer/>", encoding="utf-8"
+            )
             doc = self._make_doc({"docinfo": "shared"}, base_dir=tmpdir)
             resolver = ASGResolver(doc)
             head, foot = resolver._resolve_docinfo_files(doc)
@@ -268,7 +269,9 @@ class TestResolveDocinfoFiles:
 
     def test_private_docinfo_reads_docname(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            (Path(tmpdir) / "mydoc-docinfo.html").write_text("<priv/>", encoding="utf-8")
+            (Path(tmpdir) / "mydoc-docinfo.html").write_text(
+                "<priv/>", encoding="utf-8"
+            )
             doc = self._make_doc({"docinfo": "private"}, base_dir=tmpdir)
             resolver = ASGResolver(doc, current_file_id="mydoc.adoc")
             head, foot = resolver._resolve_docinfo_files(doc)
@@ -284,7 +287,9 @@ class TestResolveDocinfoFiles:
 
     def test_docinfofiles_footer_detection(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
-            (Path(tmpdir) / "docinfo-footer-extra.html").write_text("<fn/>", encoding="utf-8")
+            (Path(tmpdir) / "docinfo-footer-extra.html").write_text(
+                "<fn/>", encoding="utf-8"
+            )
             doc = self._make_doc(
                 {"docinfofiles": "docinfo-footer-extra.html"}, base_dir=tmpdir
             )
@@ -297,7 +302,9 @@ class TestResolveDocinfoFiles:
             (Path(tmpdir) / "docinfo.html").write_text(
                 "Version: {version}", encoding="utf-8"
             )
-            doc = self._make_doc({"docinfo": "shared", "version": "2.0"}, base_dir=tmpdir)
+            doc = self._make_doc(
+                {"docinfo": "shared", "version": "2.0"}, base_dir=tmpdir
+            )
             resolver = ASGResolver(doc)
             head, _ = resolver._resolve_docinfo_files(doc)
             assert "Version: 2.0" in head
@@ -504,7 +511,6 @@ class TestXrefResolution:
 class TestResolverVisitorMethods:
     def test_visit_comment_filters_out_comments(self) -> None:
         """Comments should be removed from block lists."""
-        from asciidoctrine.nodes import Comment
 
         doc = Document()
         doc.blocks.append(Paragraph(inlines=[Text("keep me")]))
@@ -529,7 +535,6 @@ class TestResolverVisitorMethods:
         assert asg["blocks"][0]["inlines"][0]["value"] == "Language: Python"
 
     def test_visit_attributes_substitutes_in_values(self) -> None:
-        from asciidoctrine.nodes import Attributes
 
         doc = Document()
         doc.attributes = {"ver": "2.0"}
@@ -599,7 +604,6 @@ class TestResolverCurrentFileId:
         doc = Document()
         resolver = ASGResolver(doc, current_file_id="explicit.adoc")
         assert resolver.current_file_id == "explicit.adoc"
-
 
 
 # ---------------------------------------------------------------------------

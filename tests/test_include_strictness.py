@@ -4,9 +4,9 @@ from asciidoctrine.lark_parser import AsciiDocSyntaxError, parse_to_ast
 from asciidoctrine.nodes import Document
 from asciidoctrine.serializer import serialize_to_asciidoc
 
-
-
 pytestmark = pytest.mark.integration
+
+
 @pytest.fixture
 def test_env(tmp_path):
     sub_adoc = tmp_path / "sub.adoc"

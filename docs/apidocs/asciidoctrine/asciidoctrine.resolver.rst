@@ -99,13 +99,19 @@ API
       .. autodoc2-docstring:: asciidoctrine.resolver.ASGResolver.visit_comment
          :parser: sphinx_asciidoctrine.parser
 
+   .. py:method:: _extract_inline_text(nodes: typing.Sequence[asciidoctrine.nodes.Node]) -> str
+      :canonical: asciidoctrine.resolver.ASGResolver._extract_inline_text
+
+      .. autodoc2-docstring:: asciidoctrine.resolver.ASGResolver._extract_inline_text
+         :parser: sphinx_asciidoctrine.parser
+
    .. py:method:: visit_ref(node: asciidoctrine.nodes.Ref, **kwargs: typing.Any) -> asciidoctrine.nodes.Node
       :canonical: asciidoctrine.resolver.ASGResolver.visit_ref
 
       .. autodoc2-docstring:: asciidoctrine.resolver.ASGResolver.visit_ref
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: WorkspaceBuilder(workspace_root: str, lark_parser_instance: typing.Optional[typing.Any] = None)
+.. py:class:: WorkspaceBuilder(workspace_root: typing.Union[str, pathlib.Path] = '/workspace', lark_parser_instance: typing.Optional[typing.Any] = None, loader: typing.Optional[asciidoctrine.loader.FileProvider] = None)
    :canonical: asciidoctrine.resolver.WorkspaceBuilder
 
    .. autodoc2-docstring:: asciidoctrine.resolver.WorkspaceBuilder
@@ -116,7 +122,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.resolver.WorkspaceBuilder.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: _get_file_id(absolute_path: pathlib.Path) -> str
+   .. py:method:: _get_file_id(path_str: typing.Union[str, pathlib.Path]) -> str
       :canonical: asciidoctrine.resolver.WorkspaceBuilder._get_file_id
 
       .. autodoc2-docstring:: asciidoctrine.resolver.WorkspaceBuilder._get_file_id

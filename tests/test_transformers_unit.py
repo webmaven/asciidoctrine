@@ -3,6 +3,7 @@ from lark import Token
 
 from asciidoctrine.nodes import Document, Node, NodeTransformer, Paragraph, Span, Text
 from asciidoctrine.transformers.block_transformer import BlockTransformer
+from asciidoctrine.transformers.inline_transformer import InlineTransformer
 
 pytestmark = pytest.mark.unit
 
@@ -374,7 +375,8 @@ def test_merge_consecutive_lists_callout_lists(transformer):
 
 
 def test_merge_consecutive_lists_different_types_not_merged(transformer):
-    from asciidoctrine.nodes import List as ASTList, Paragraph
+    from asciidoctrine.nodes import List as ASTList
+    from asciidoctrine.nodes import Paragraph
 
     ul = ASTList(variant="unordered", marker="*")
     para = Paragraph(inlines=[Text("para")])
@@ -731,7 +733,7 @@ def test_table_multiplier_expansion(transformer):
     """A cell with multiplier=2 must be cloned into 2 cells in the table."""
     from lark.tree import Meta
 
-    from asciidoctrine.nodes import TableCell, TableRow
+    from asciidoctrine.nodes import TableCell
 
     meta = Meta()
     cell = TableCell(blocks=[Paragraph(inlines=[Text("repeated")])])
@@ -812,7 +814,8 @@ def _loc(l1, c1, l2, c2):
 
 def test_merge_consecutive_lists_ulist_updates_location(transformer):
     """Covers lines 59-60: end-location updated when merging adjacent unordered lists."""
-    from asciidoctrine.nodes import List as ASTList, ListItem
+    from asciidoctrine.nodes import List as ASTList
+    from asciidoctrine.nodes import ListItem
 
     item1 = ListItem(marker="*", principal=[Text("A")])
     item2 = ListItem(marker="*", principal=[Text("B")])
@@ -861,12 +864,27 @@ def test_nest_list_items_stack_pops_on_level_decrease(transformer):
     from asciidoctrine.nodes import List as ASTList
 
     items = [
-        {"level": 1, "item_type": "bullet", "marker": "*",
-         "children": [Text("A")], "checked": None},
-        {"level": 2, "item_type": "bullet", "marker": "**",
-         "children": [Text("A.1")], "checked": None},
-        {"level": 1, "item_type": "bullet", "marker": "*",
-         "children": [Text("B")], "checked": None},
+        {
+            "level": 1,
+            "item_type": "bullet",
+            "marker": "*",
+            "children": [Text("A")],
+            "checked": None,
+        },
+        {
+            "level": 2,
+            "item_type": "bullet",
+            "marker": "**",
+            "children": [Text("A.1")],
+            "checked": None,
+        },
+        {
+            "level": 1,
+            "item_type": "bullet",
+            "marker": "*",
+            "children": [Text("B")],
+            "checked": None,
+        },
     ]
     result = transformer._nest_list_items(items)
     # Two top-level items; first has a nested child
@@ -878,8 +896,6 @@ def test_nest_list_items_stack_pops_on_level_decrease(transformer):
 # ---------------------------------------------------------------------------
 # InlineTransformer.text_content — angle-bracket and backslash-escape paths
 # ---------------------------------------------------------------------------
-
-from asciidoctrine.transformers.inline_transformer import InlineTransformer
 
 
 def _it():
@@ -922,6 +938,7 @@ def test_text_content_pending_attrs_no_following_node_emitted_as_text():
 def test_text_content_bare_ref_escaped_with_backslash():
     """Backslash before a bare URL → Ref converted to plain Text of the target."""
     from asciidoctrine.nodes import Ref
+
     ref = Ref(variant="link", target="https://example.com")
     ref.attributes["role"] = "bare"
     # Text ending with backslash, then bare Ref
@@ -935,6 +952,7 @@ def test_text_content_bare_ref_escaped_with_backslash():
 def test_text_content_bare_ref_angle_brackets_stripped():
     """<URL> — angle brackets stripped when bare Ref surrounded by < and > tokens."""
     from asciidoctrine.nodes import Ref
+
     ref = Ref(variant="link", target="https://example.com")
     ref.attributes["role"] = "bare"
     # preceding text ends with '<', then bare Ref, then '>' token
@@ -948,6 +966,7 @@ def test_text_content_bare_ref_angle_brackets_stripped():
 def test_text_content_bare_ref_angle_bracket_next_is_text_node():
     """Next item after bare Ref is a Text node starting with '>' (lines 130-133, 144-149)."""
     from asciidoctrine.nodes import Ref
+
     ref = Ref(variant="link", target="https://example.com")
     ref.attributes["role"] = "bare"
     # Next child is a Text node starting with '>' instead of a '>' Token
@@ -964,6 +983,7 @@ def test_text_content_bare_ref_angle_bracket_next_is_text_node():
 def test_text_content_bare_ref_angle_bracket_next_text_only_gt():
     """Next Text node is exactly '>' — should be removed entirely (lines 147-149)."""
     from asciidoctrine.nodes import Ref
+
     ref = Ref(variant="link", target="https://example.com")
     ref.attributes["role"] = "bare"
     # Next item is Text(">"): stripping ">" leaves an empty string → node removed
@@ -979,6 +999,7 @@ def test_text_content_bare_ref_angle_bracket_next_text_only_gt():
 def test_text_content_backslash_only_preceding_text_popped():
     """Preceding text is exactly '\\' — after stripping it becomes empty and is popped (line 108)."""
     from asciidoctrine.nodes import Ref
+
     ref = Ref(variant="link", target="https://example.com")
     ref.attributes["role"] = "bare"
     # The ONLY content of the previous Text node is the backslash
@@ -994,9 +1015,11 @@ def test_text_content_backslash_only_preceding_text_popped():
 # inline_transformer L138 — nodes.pop() when preceding text is exactly "<"
 # ---------------------------------------------------------------------------
 
+
 def test_text_content_angle_bracket_only_preceding_text_popped():
     """Preceding text is exactly '<' — after stripping it becomes empty and is popped (line 138)."""
     from asciidoctrine.nodes import Ref
+
     ref = Ref(variant="link", target="https://example.com")
     ref.attributes["role"] = "bare"
     # The ONLY content of the previous Text node is "<"
@@ -1011,9 +1034,11 @@ def test_text_content_angle_bracket_only_preceding_text_popped():
 # BaseTransformer gaps — LocationDict.__init__ (L13-14) and Tree branch (L43-44)
 # ---------------------------------------------------------------------------
 
+
 def test_location_dict_init():
     """LocationDict.__init__ sets location to None (lines 13-14)."""
     from asciidoctrine.transformers.base_transformer import LocationDict
+
     d = LocationDict(a=1, b=2)
     assert d["a"] == 1
     assert d.location is None
@@ -1022,7 +1047,8 @@ def test_location_dict_init():
 def test_set_location_from_children_tree_branch(transformer):
     """_set_location_from_children handles lark.Tree children (lines 43-44)."""
     from lark import Tree
-    from asciidoctrine.nodes import Paragraph, Text
+
+    from asciidoctrine.nodes import Paragraph
 
     t = Token("TEXT", "hello")
     t.line = 5
@@ -1041,11 +1067,14 @@ def test_set_location_from_children_tree_branch(transformer):
 # nodes.py — append() else-branch for typed list nodes (L448, L587, L631)
 # ---------------------------------------------------------------------------
 
+
 def test_callout_list_append_wrong_type_raises():
     """CalloutList.append with non-CalloutListItem falls to super() which raises AttributeError
     (BlockNode.append tries self.blocks but CalloutList never initialises it)."""
     import pytest
+
     from asciidoctrine.nodes import CalloutList, Paragraph
+
     cl = CalloutList()
     p = Paragraph()
     with pytest.raises(AttributeError):
@@ -1055,7 +1084,10 @@ def test_callout_list_append_wrong_type_raises():
 def test_list_append_wrong_type_raises():
     """List.append with non-ListItem falls to super().append which raises AttributeError."""
     import pytest
-    from asciidoctrine.nodes import List as ASTList, Paragraph
+
+    from asciidoctrine.nodes import List as ASTList
+    from asciidoctrine.nodes import Paragraph
+
     lst = ASTList(variant="unordered", marker="*")
     p = Paragraph()
     with pytest.raises(AttributeError):
@@ -1065,7 +1097,9 @@ def test_list_append_wrong_type_raises():
 def test_description_list_append_wrong_type_raises():
     """DescriptionList.append with non-DescriptionListItem falls to super() which raises AttributeError."""
     import pytest
+
     from asciidoctrine.nodes import DescriptionList, Paragraph
+
     dl = DescriptionList()
     p = Paragraph()
     with pytest.raises(AttributeError):
@@ -1076,24 +1110,49 @@ def test_description_list_append_wrong_type_raises():
 # block_transformer.py L154-155: nested list second-item location update
 # ---------------------------------------------------------------------------
 
+
 def test_nest_list_items_nested_list_location_updated_by_second_item(transformer):
     """Second sub-item updates the nested ASTList's end-location (lines 154-155)."""
     t_sub1 = Token("TEXT", "A.1")
-    t_sub1.line = 2; t_sub1.column = 3; t_sub1.end_line = 2; t_sub1.end_column = 6
+    t_sub1.line = 2
+    t_sub1.column = 3
+    t_sub1.end_line = 2
+    t_sub1.end_column = 6
     t_sub2 = Token("TEXT", "A.2")
-    t_sub2.line = 3; t_sub2.column = 3; t_sub2.end_line = 3; t_sub2.end_column = 6
+    t_sub2.line = 3
+    t_sub2.column = 3
+    t_sub2.end_line = 3
+    t_sub2.end_column = 6
 
     items = [
-        {"level": 1, "item_type": "bullet", "marker": "*",
-         "children": [Text("A")], "checked": None},
-        {"level": 2, "item_type": "bullet", "marker": "**",
-         "children": [Text("A.1")], "checked": None, "raw_children": [t_sub1]},
-        {"level": 2, "item_type": "bullet", "marker": "**",
-         "children": [Text("A.2")], "checked": None, "raw_children": [t_sub2]},
+        {
+            "level": 1,
+            "item_type": "bullet",
+            "marker": "*",
+            "children": [Text("A")],
+            "checked": None,
+        },
+        {
+            "level": 2,
+            "item_type": "bullet",
+            "marker": "**",
+            "children": [Text("A.1")],
+            "checked": None,
+            "raw_children": [t_sub1],
+        },
+        {
+            "level": 2,
+            "item_type": "bullet",
+            "marker": "**",
+            "children": [Text("A.2")],
+            "checked": None,
+            "raw_children": [t_sub2],
+        },
     ]
     result = transformer._nest_list_items(items)
     # result[0].blocks[0] is the nested ASTList; its end location should come from A.2
     from asciidoctrine.nodes import List as ASTList
+
     nested = result[0].blocks[0]
     assert isinstance(nested, ASTList)
     assert nested.location is not None
@@ -1104,9 +1163,11 @@ def test_nest_list_items_nested_list_location_updated_by_second_item(transformer
 # block_transformer.py L177-179: indented_literal transformer method
 # ---------------------------------------------------------------------------
 
+
 def test_indented_literal_transformer(transformer):
     """indented_literal() produces a Literal node with form='indented' (lines 177-179)."""
     from asciidoctrine.nodes import Literal
+
     content = [Text("    indented text")]
     result = transformer.indented_literal(None, [Token("LEAD", "    "), content])
     assert isinstance(result, Literal)
@@ -1118,11 +1179,12 @@ def test_indented_literal_transformer(transformer):
 # block_transformer.py L201: paragraph consolidation — first merged node has no location
 # ---------------------------------------------------------------------------
 
+
 def test_paragraph_consolidation_sets_location_from_second_text(transformer):
     """When first merged Text has no location, paragraph sets it from the next (line 201)."""
     from asciidoctrine.nodes import Paragraph
 
-    t1 = Text("hello")         # location = None
+    t1 = Text("hello")  # location = None
     t2 = Text(" world")
     t2.location = [{"line": 1, "col": 7}, {"line": 1, "col": 12}]
 

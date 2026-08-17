@@ -5,6 +5,7 @@ Verifies that all symbols in __all__ are importable from the package root,
 that __version__ exists and is a valid string, and that the most
 commonly-used public functions work end-to-end from the top-level import.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -113,7 +114,9 @@ class TestPackageMetadata:
         import asciidoctrine
 
         for name in asciidoctrine.__all__:
-            assert hasattr(asciidoctrine, name), f"__all__ contains {name!r} but it is not importable"
+            assert hasattr(asciidoctrine, name), (
+                f"__all__ contains {name!r} but it is not importable"
+            )
 
 
 class TestPackageEndToEnd:

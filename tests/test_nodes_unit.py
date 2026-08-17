@@ -2,15 +2,16 @@
 Unit tests for AST Node classes in nodes.py.
 """
 
-import pytest
 import unittest
+
+import pytest
 
 from asciidoctrine.nodes import (
     Admonition,
-    Audio,
-    Author,
     AttributeEntry,
     Attributes,
+    Audio,
+    Author,
     BlockNode,
     Break,
     Button,
@@ -688,6 +689,7 @@ if __name__ == "__main__":
 # Additional node type tests (constructors, properties, mixin methods)
 # ---------------------------------------------------------------------------
 
+
 class TestNodeBase:
     def test_walk_yields_self_and_children(self) -> None:
         root = Document()
@@ -962,7 +964,9 @@ class TestDescriptionList:
 
 
 class TestListingProperties:
-    def _make_listing(self, code: str, callout_numbers: list[int] | None = None) -> Listing:
+    def _make_listing(
+        self, code: str, callout_numbers: list[int] | None = None
+    ) -> Listing:
         inlines: list[Node] = [Text(code)]
         if callout_numbers:
             for n in callout_numbers:
@@ -1097,7 +1101,9 @@ class TestLiteralProperties:
     def test_literal_form_indented(self) -> None:
         lit = Literal(form="indented")
         assert lit.form == "indented"
-        assert not hasattr(lit, "delimiter") or lit.delimiter is None  # indented has no delimiter
+        assert (
+            not hasattr(lit, "delimiter") or lit.delimiter is None
+        )  # indented has no delimiter
 
     def test_literal_delimiter_explicit(self) -> None:
         lit = Literal(delimiter="....")
@@ -1473,6 +1479,7 @@ class TestListAppend:
         lst.append(item)
         assert item in lst.items
 
+
 # ---------------------------------------------------------------------------
 # CalloutList.append branching
 # ---------------------------------------------------------------------------
@@ -1505,4 +1512,3 @@ class TestImageNode:
     def test_image_form(self) -> None:
         img = Image(target="a.png", form="macro")
         assert img.form == "macro"
-

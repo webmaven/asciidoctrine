@@ -137,7 +137,7 @@ API
       .. autodoc2-docstring:: asciidoctrine.preprocessor.ConditionalStack.__bool__
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: Preprocessor(base_dir: typing.Optional[str] = None, safe_mode: bool = True, preprocess_directives: bool = True, attributes: typing.Optional[dict[str, str]] = None, strict: bool = True)
+.. py:class:: Preprocessor(base_dir: typing.Optional[str] = None, safe_mode: typing.Union[bool, int] = True, preprocess_directives: bool = True, attributes: typing.Optional[dict[str, str]] = None, strict: bool = True, loader: typing.Optional[asciidoctrine.loader.FileProvider] = None)
    :canonical: asciidoctrine.preprocessor.Preprocessor
 
    .. autodoc2-docstring:: asciidoctrine.preprocessor.Preprocessor

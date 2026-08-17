@@ -1,11 +1,12 @@
-import pytest
 import unittest
+
+import pytest
 
 from asciidoctrine.lark_parser import parse_to_ast
 
-
-
 pytestmark = pytest.mark.integration
+
+
 class TestDocBuildDiscoveries(unittest.TestCase):
     def test_monospace_with_underscores_no_nested_italics(self):
         """

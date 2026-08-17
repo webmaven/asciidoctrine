@@ -7,6 +7,13 @@ from .nodes import Node, NodeVisitor
 class AsciiDocSerializerVisitor(NodeVisitor):
     """
     A visitor that serializes an unresolved AsciiDoc AST back to AsciiDoc source string.
+
+    *Attributes:*
+
+    `stream`::
+      Internal `io.StringIO` buffer used to accumulate serialized markup text.
+    `line_ending`::
+      Line ending character sequence (defaults to `\\n` or matches the document's original ending).
     """
 
     def __init__(self) -> None:
@@ -570,6 +577,31 @@ class AsciiDocSerializerVisitor(NodeVisitor):
 def serialize_to_asciidoc(node: Node) -> str:
     """
     Public API to serialize any AST node back to its AsciiDoc string representation.
+
+    *Parameters:*
+
+    `node`::
+      The `Node` AST instance to serialize (e.g. `Document`, `Section`, `Paragraph`, etc.).
+
+    *Returns:*
+
+    A string containing the serialized AsciiDoc markup representation.
+
+    *Notes:*
+
+    If serializing a preprocessed AST document (`is_preprocessed=True`), the output will be a flat, expanded document since original `include::` directives cannot be reconstructed.
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine.lark_parser import parse_to_ast
+    from asciidoctrine.serializer import serialize_to_asciidoc
+
+    doc = parse_to_ast("= Document Title\\n\\nThis is a *bold* paragraph.")
+    output = serialize_to_asciidoc(doc)
+    assert "= Document Title" in output
+    ----
     """
     if getattr(node, "name", None) == "document" and getattr(
         node, "is_preprocessed", False

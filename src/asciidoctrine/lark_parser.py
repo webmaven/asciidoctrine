@@ -7,6 +7,7 @@ from lark import Discard, Lark, Token, Transformer, v_args
 from lark.exceptions import UnexpectedInput
 
 from .attributes import resolve_node_to_string
+from .loader import FileProvider
 from .nodes import (
     Admonition,
     AttributeEntry,
@@ -62,10 +63,27 @@ class AsciiDocSyntaxError(ValueError):
         filepath: Optional[str] = None,
     ):
         super().__init__(message)
+        self.message = message
         self.line = line
         self.column = column
         self.context = context
         self.filepath = filepath
+
+    def __str__(self) -> str:
+        if self.context:
+            header = (
+                f"Syntax error in '{os.path.basename(self.filepath)}'"
+                if self.filepath and self.filepath != "<root>"
+                else "Syntax error"
+            )
+            location = (
+                f" at line {self.line}, column {self.column}"
+                if self.line is not None and self.column is not None
+                else ""
+            )
+            return f"{header}{location}.\n{self.context}"
+        else:
+            return self.message
 
 
 Children = PyList[Any]
@@ -770,7 +788,6 @@ class ASTSyntaxAuditor(NodeVisitor):
                         f"Syntax error: Malformed block attribute list (unbalanced brackets) at line {origin_line}.",
                         line=origin_line,
                         column=1,
-                        context=line,
                         filepath=origin_file,
                     )
 
@@ -791,7 +808,6 @@ class ASTSyntaxAuditor(NodeVisitor):
                             f"Syntax error: Malformed block macro '{macro_match.group(1)}::' (missing brackets) at line {origin_line}.",
                             line=origin_line,
                             column=len(line) - len(line.lstrip()) + 1,
-                            context=line,
                             filepath=origin_file,
                         )
 
@@ -807,7 +823,6 @@ class ASTSyntaxAuditor(NodeVisitor):
                     f"Syntax error: Malformed description list marker (missing term) at line {origin_line}.",
                     line=origin_line,
                     column=1,
-                    context=line,
                     filepath=origin_file,
                 )
 
@@ -818,7 +833,6 @@ class ASTSyntaxAuditor(NodeVisitor):
                     f"Syntax error: Unclosed inline anchor at line {origin_line}.",
                     line=origin_line,
                     column=line.find("[[") + 1,
-                    context=line,
                     filepath=origin_file,
                 )
 
@@ -843,7 +857,6 @@ class ASTSyntaxAuditor(NodeVisitor):
                             f"Syntax error: Unclosed inline footnote at line {origin_line}.",
                             line=origin_line,
                             column=line.find(fn_type) + 1,
-                            context=line,
                             filepath=origin_file,
                         )
 
@@ -880,7 +893,6 @@ class ASTSyntaxAuditor(NodeVisitor):
                                     f"Syntax error: Malformed table cell specifier '{spec_content}' at line {origin_line}.",
                                     line=origin_line,
                                     column=col_idx + 1,
-                                    context=line,
                                     filepath=origin_file,
                                 )
         self.generic_visit(node)
@@ -897,7 +909,6 @@ class ASTSyntaxAuditor(NodeVisitor):
                         f"Syntax error: Malformed block macro '{node.name}::' (missing brackets) at line {origin_line}.",
                         line=origin_line,
                         column=len(line) - len(line.lstrip()) + 1,
-                        context=line,
                         filepath=origin_file,
                     )
         return super().generic_visit(node, **kwargs)
@@ -1175,7 +1186,46 @@ def parse_to_ast(
     strict: bool = True,
     extra_authority_schemes: Optional[PyList[str]] = None,
     extra_opaque_schemes: Optional[PyList[str]] = None,
+    loader: Optional[FileProvider] = None,
 ) -> Document:
+    """
+    Parses raw AsciiDoc source text into a structured, spec-aligned AST `Document`.
+
+    *Parameters:*
+
+    `source`::
+      The complete raw AsciiDoc input string to parse.
+    `grammar_file`::
+      File path to the Lark EBNF grammar authority. Defaults to package internal `grammar.lark`.
+    `base_dir`::
+      Base directory for resolving relative `include::` paths. Defaults to current working directory.
+    `safe_mode`::
+      Security confinement mode integer (0 = unsafe, 1 = safe, 2 = server). When enabled, confines file reads to `base_dir`.
+    `preprocess_directives`::
+      If True, expands AsciiDoc preprocessing directives (`include::`, `ifdef`, `ifndef`, `ifeval`).
+    `strict`::
+      If True, raises `AsciiDocSyntaxError` upon syntax or structural anomalies; if False, degrades gracefully.
+    `extra_authority_schemes`::
+      Additional URI scheme prefixes with authority syntax (e.g. `["custom://"]`).
+    `extra_opaque_schemes`::
+      Additional URI scheme prefixes with opaque syntax (e.g. `["urn:"]`).
+    `loader`::
+      Optional `FileProvider` instance (`FsLoader` or `MemoryLoader`) for resolving and loading included resources.
+
+    *Returns:*
+
+    A root `Document` AST node instance.
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine import parse_to_ast
+
+    doc = parse_to_ast("= Hello\\n\\nThis is a *bold* paragraph.")
+    assert len(doc.blocks) == 1
+    ----
+    """
     # Detect if the original document preferred Windows CRLF or standard Unix LF
     # by checking if the very first newline sequence in the file is \r\n
     first_lf = source.find("\n")
@@ -1199,6 +1249,7 @@ def parse_to_ast(
         safe_mode=safe_mode,
         preprocess_directives=preprocess_directives,
         strict=strict,
+        loader=loader,
     )
     processed_source = preprocessor.process(source)
 
@@ -1257,6 +1308,7 @@ def parse_to_ast(
     ast_root.included_files = sorted(list(preprocessor.included_files_set))
     ast_root.base_dir = base_dir
     ast_root.safe_mode = safe_mode
+    ast_root.loader = loader
 
     if strict:
         ASTSyntaxAuditor(
@@ -1274,7 +1326,18 @@ def parse_inlines(
     grammar_file: str = DEFAULT_GRAMMAR,
 ) -> PyList[Node]:
     """
-    Parses a string containing only inline elements directly starting from 'text_content'.
+    Parses a string containing only inline formatting directly into a list of AST inline nodes.
+
+    *Parameters:*
+
+    `source`::
+      AsciiDoc inline formatting string (e.g. `"*bold* and _italic_"`).
+    `grammar_file`::
+      File path to the Lark EBNF grammar authority.
+
+    *Returns:*
+
+    List of `Node` AST inline instances.
     """
     global _INLINE_PARSER
     if _INLINE_PARSER is None:

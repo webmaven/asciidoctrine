@@ -1,13 +1,14 @@
-import pytest
 import os
 import tempfile
+
+import pytest
 
 from asciidoctrine.lark_parser import parse_to_ast
 from asciidoctrine.resolver import ASGResolver
 
-
-
 pytestmark = pytest.mark.integration
+
+
 def test_docinfo_shared_files():
     with tempfile.TemporaryDirectory() as tmpdir:
         head_path = os.path.join(tmpdir, "docinfo.html")

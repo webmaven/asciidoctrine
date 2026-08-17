@@ -18,6 +18,7 @@ Submodules
    asciidoctrine.docutils_backend
    asciidoctrine.lark_parser
    asciidoctrine.preprocessor
+   asciidoctrine.loader
    asciidoctrine.resolver
    asciidoctrine.serializer
    asciidoctrine.nodes
@@ -46,14 +47,14 @@ API
 
 .. py:data:: __version__
    :canonical: asciidoctrine.__version__
-   :value: '0.1.0a11'
+   :value: '0.2.0a1'
 
    .. autodoc2-docstring:: asciidoctrine.__version__
       :parser: sphinx_asciidoctrine.parser
 
 .. py:data:: __all__
    :canonical: asciidoctrine.__all__
-   :value: ['parse_to_ast', 'AsciiDocSyntaxError', 'serialize_to_asciidoc', 'Node', 'Docinfo', 'Document', 'Sec...
+   :value: ['parse_to_ast', 'AsciiDocSyntaxError', 'serialize_to_asciidoc', 'FileProvider', 'FsLoader', 'Memory...
 
    .. autodoc2-docstring:: asciidoctrine.__all__
       :parser: sphinx_asciidoctrine.parser

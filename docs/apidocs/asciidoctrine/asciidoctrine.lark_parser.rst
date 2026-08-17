@@ -45,8 +45,8 @@ Functions
      - .. autodoc2-docstring:: asciidoctrine.lark_parser.resolve_block_internals
           :parser: sphinx_asciidoctrine.parser
           :summary:
-   * - :py:obj:`split_continuation_paragraph <asciidoctrine.lark_parser.split_continuation_paragraph>`
-     - .. autodoc2-docstring:: asciidoctrine.lark_parser.split_continuation_paragraph
+   * - :py:obj:`split_continuation_paragraphs <asciidoctrine.lark_parser.split_continuation_paragraphs>`
+     - .. autodoc2-docstring:: asciidoctrine.lark_parser.split_continuation_paragraphs
           :parser: sphinx_asciidoctrine.parser
           :summary:
    * - :py:obj:`expand_joint_paragraphs <asciidoctrine.lark_parser.expand_joint_paragraphs>`
@@ -125,6 +125,9 @@ API
 
    .. autodoc2-docstring:: asciidoctrine.lark_parser.AsciiDocSyntaxError.__init__
       :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: __str__() -> str
+      :canonical: asciidoctrine.lark_parser.AsciiDocSyntaxError.__str__
 
 .. py:data:: Children
    :canonical: asciidoctrine.lark_parser.Children
@@ -403,7 +406,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.lark_parser.is_continuation_paragraph
       :parser: sphinx_asciidoctrine.parser
 
-.. py:function:: find_deepest_active_list_item(node: asciidoctrine.nodes.Node) -> typing.Optional[asciidoctrine.nodes.ListItem]
+.. py:function:: find_deepest_active_list_item(node: asciidoctrine.nodes.Node) -> typing.Optional[typing.Union[asciidoctrine.nodes.ListItem, asciidoctrine.nodes.DescriptionListItem]]
    :canonical: asciidoctrine.lark_parser.find_deepest_active_list_item
 
    .. autodoc2-docstring:: asciidoctrine.lark_parser.find_deepest_active_list_item
@@ -415,10 +418,10 @@ API
    .. autodoc2-docstring:: asciidoctrine.lark_parser.resolve_block_internals
       :parser: sphinx_asciidoctrine.parser
 
-.. py:function:: split_continuation_paragraph(node: asciidoctrine.nodes.Node) -> typing.Optional[tuple[asciidoctrine.nodes.Paragraph, asciidoctrine.nodes.Paragraph]]
-   :canonical: asciidoctrine.lark_parser.split_continuation_paragraph
+.. py:function:: split_continuation_paragraphs(blocks: typing.List[asciidoctrine.nodes.Node]) -> typing.List[asciidoctrine.nodes.Node]
+   :canonical: asciidoctrine.lark_parser.split_continuation_paragraphs
 
-   .. autodoc2-docstring:: asciidoctrine.lark_parser.split_continuation_paragraph
+   .. autodoc2-docstring:: asciidoctrine.lark_parser.split_continuation_paragraphs
       :parser: sphinx_asciidoctrine.parser
 
 .. py:function:: expand_joint_paragraphs(blocks: typing.List[asciidoctrine.nodes.Node]) -> typing.List[asciidoctrine.nodes.Node]
@@ -466,7 +469,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.lark_parser.build_uri_terminal
       :parser: sphinx_asciidoctrine.parser
 
-.. py:function:: parse_to_ast(source: str, grammar_file: str = DEFAULT_GRAMMAR, base_dir: typing.Optional[str] = None, safe_mode: int = 0, preprocess_directives: bool = True, strict: bool = True, extra_authority_schemes: typing.Optional[typing.List[str]] = None, extra_opaque_schemes: typing.Optional[typing.List[str]] = None) -> asciidoctrine.nodes.Document
+.. py:function:: parse_to_ast(source: str, grammar_file: str = DEFAULT_GRAMMAR, base_dir: typing.Optional[str] = None, safe_mode: int = 0, preprocess_directives: bool = True, strict: bool = True, extra_authority_schemes: typing.Optional[typing.List[str]] = None, extra_opaque_schemes: typing.Optional[typing.List[str]] = None, loader: typing.Optional[asciidoctrine.loader.FileProvider] = None) -> asciidoctrine.nodes.Document
    :canonical: asciidoctrine.lark_parser.parse_to_ast
 
    .. autodoc2-docstring:: asciidoctrine.lark_parser.parse_to_ast

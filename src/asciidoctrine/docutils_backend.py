@@ -54,6 +54,41 @@ from .nodes import (
 
 
 class DocutilsRenderer(NodeVisitor):
+    """
+    A visitor that converts an AsciiDoc AST into a Docutils document tree.
+
+    `DocutilsRenderer` traverses an AsciiDoc AST using the `NodeVisitor` pattern,
+    mapping AsciiDoc block and inline constructs (such as sections, paragraphs, lists,
+    tables, admonitions, and cross-references) directly to their Docutils element counterparts.
+
+    *Attributes:*
+
+    `document`::
+      The target `docutils.nodes.document` root node receiving the converted document tree.
+    `current_node`::
+      The current parent `docutils.nodes.Element` node where newly converted child elements are attached.
+    `footnotes`::
+      Accumulated `docutils.nodes.footnote` nodes collected during AST traversal for placement at the document bottom.
+    `footnote_by_custom_id`::
+      Mapping from custom footnote identifier strings to their assigned label and Docutils node IDs.
+    `footnote_counter`::
+      Monotonically increasing sequence counter used for auto-numbered footnote references.
+
+    *Example:*
+
+    [source,python]
+    ----
+    from docutils.utils import new_document
+    from asciidoctrine.docutils_backend import DocutilsRenderer
+    from asciidoctrine.lark_parser import parse_to_ast
+
+    ast = parse_to_ast("= Title\\n\\nParagraph text.")
+    docutils_doc = new_document("<string>")
+    renderer = DocutilsRenderer(docutils_doc)
+    renderer.visit(ast)
+    ----
+    """
+
     def __init__(self, document: nodes.document):
         self.document = document
         self.current_node: nodes.Element = document
@@ -737,14 +772,45 @@ class DocutilsRenderer(NodeVisitor):
             self.document += nodes.raw("", node.footer_content, format="html")
 
 
-def asciidoc_to_docutils(source: str, base_dir: Optional[str] = None) -> nodes.document:
+def asciidoc_to_docutils(
+    source: str,
+    base_dir: Optional[str] = None,
+    safe_mode: int = 0,
+) -> nodes.document:
     """
-    Convert AsciiDoc source string to a Docutils document.
+    Convert an AsciiDoc source string to a Docutils document tree.
+
+    *Parameters:*
+
+    `source`::
+      The complete raw AsciiDoc input string to parse and convert.
+    `base_dir`::
+      Base directory for resolving relative paths and include directives. Defaults to current working directory.
+    `safe_mode`::
+      Security confinement mode integer (0 = unsafe, 1 = safe, 2 = server). When enabled, restricts file access to `base_dir`. Defaults to 0.
+
+    *Returns:*
+
+    A `docutils.nodes.document` root node instance containing the translated Docutils document tree.
+
+    *Notes:*
+
+    This function coordinates parsing the AsciiDoc source into an AST via `parse_to_ast()`, resolving docinfo metadata, and walking the resulting AST with `DocutilsRenderer` to produce standard Docutils nodes.
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine.docutils_backend import asciidoc_to_docutils
+
+    document = asciidoc_to_docutils("= Document Title\\n\\nThis is a paragraph.")
+    assert len(document.children) > 0
+    ----
     """
     from .lark_parser import parse_to_ast
     from .resolver import ASGResolver
 
-    ast = parse_to_ast(source, base_dir=base_dir)
+    ast = parse_to_ast(source, base_dir=base_dir, safe_mode=safe_mode)
     head_content, footer_content = ASGResolver(ast)._resolve_docinfo_files(ast)
     if head_content or footer_content:
         ast.docinfo = Docinfo(head_content=head_content, footer_content=footer_content)
