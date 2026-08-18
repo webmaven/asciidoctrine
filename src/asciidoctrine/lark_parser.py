@@ -1,5 +1,6 @@
 import os
 import re
+import warnings
 from typing import Any, Dict, Optional, Tuple, Union, cast
 from typing import List as PyList
 
@@ -756,6 +757,29 @@ class ASTSyntaxAuditor(NodeVisitor):
     def _get_origin(self, line_idx: int) -> Tuple[Optional[str], int]:
         return self.line_map.get(line_idx, (None, line_idx))
 
+    def visit_descriptionlist(self, node: Node) -> None:
+        """Reject list-marker text accidentally consumed as a dlist term.
+
+        Earley's permissive parse can treat ``* **Term**:: definition`` as a
+        description list.  The leading list marker then becomes an unclosed
+        strong span, leaving a literal asterisk in rendered output.  Inspect
+        the original source because the transformed inline nodes no longer
+        preserve this intent clearly.
+        """
+        if node.location:
+            line_idx = node.location[0].get("line", 1)
+            if 1 <= line_idx <= len(self.source_lines):
+                line = self.source_lines[line_idx - 1]
+                if re.match(r"^\s*\*\s+\*\*[^*\n]+\*\*::(?:\s|$)", line):
+                    origin_file, origin_line = self._get_origin(line_idx)
+                    raise AsciiDocSyntaxError(
+                        f"Syntax error: Malformed description list term (bullet marker before bold term) at line {origin_line}.",
+                        line=origin_line,
+                        column=len(line) - len(line.lstrip()) + 1,
+                        filepath=origin_file,
+                    )
+        self.generic_visit(node)
+
     def visit_paragraph(self, node: Node) -> None:
         if node.location:
             line_idx = node.location[0].get("line", 1)
@@ -912,6 +936,34 @@ class ASTSyntaxAuditor(NodeVisitor):
                         filepath=origin_file,
                     )
         return super().generic_visit(node, **kwargs)
+
+
+class PermissiveSyntaxWarningAuditor(NodeVisitor):
+    """Emit diagnostics for recoverable syntax that strict mode rejects."""
+
+    def __init__(
+        self,
+        source_lines: PyList[str],
+        line_map: Optional[Dict[int, Tuple[str, int]]] = None,
+    ) -> None:
+        super().__init__()
+        self.source_lines = source_lines
+        self.line_map = line_map or {}
+
+    def visit_descriptionlist(self, node: Node) -> None:
+        if node.location:
+            line_idx = node.location[0].get("line", 1)
+            if 1 <= line_idx <= len(self.source_lines):
+                line = self.source_lines[line_idx - 1]
+                if re.match(r"^\s*\*\s+\*\*[^*\n]+\*\*::(?:\s|$)", line):
+                    _, origin_line = self.line_map.get(line_idx, (None, line_idx))
+                    warnings.warn(
+                        "Malformed description list term (bullet marker before bold term) "
+                        f"at line {origin_line}; parsed permissively.",
+                        SyntaxWarning,
+                        stacklevel=3,
+                    )
+        self.generic_visit(node)
 
 
 def is_continuation_paragraph(node: Node) -> bool:
@@ -1310,9 +1362,12 @@ def parse_to_ast(
     ast_root.safe_mode = safe_mode
     ast_root.loader = loader
 
+    source_lines = processed_source.splitlines()
     if strict:
-        ASTSyntaxAuditor(
-            processed_source.splitlines(), line_map=preprocessor.line_map
+        ASTSyntaxAuditor(source_lines, line_map=preprocessor.line_map).visit(ast_root)
+    else:
+        PermissiveSyntaxWarningAuditor(
+            source_lines, line_map=preprocessor.line_map
         ).visit(ast_root)
 
     return ast_root

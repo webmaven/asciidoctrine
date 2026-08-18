@@ -57,6 +57,12 @@ STRICT_CASES = [
         ["paragraph"],
     ),
     (
+        "bullet_prefixed_bold_description_list_term",
+        "* **Incremental Compilation**:: Tracks dependencies via a DAG cache.\n",
+        "Malformed description list term",
+        ["descriptionList"],
+    ),
+    (
         "unclosed_inline_footnote",
         "This is a footnote:[some footnote text",
         "Unclosed inline footnote",
@@ -94,7 +100,9 @@ def test_strict_raises_permissive_succeeds(source, strict_msg, permissive_names)
         parse_to_ast(source, strict=True)
     assert strict_msg in str(exc_info.value)
 
-    doc = parse_to_ast(source, strict=False)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", SyntaxWarning)
+        doc = parse_to_ast(source, strict=False)
     if permissive_names is not None:
         assert [b.name for b in doc.blocks] == permissive_names
 
@@ -108,6 +116,16 @@ def test_valid_description_list_term_level3():
     """A valid triple-colon term is a dlist even in strict mode."""
     source = "term:::\n"
     doc = parse_to_ast(source, strict=True)
+    assert doc.blocks[0].name == "descriptionList"
+
+
+def test_permissive_bullet_prefixed_bold_description_list_warns():
+    """Recovering this malformed term must surface a diagnostic warning."""
+    source = "* **Incremental Compilation**:: Tracks dependencies via a DAG cache.\n"
+
+    with pytest.warns(SyntaxWarning, match="Malformed description list term"):
+        doc = parse_to_ast(source, strict=False)
+
     assert doc.blocks[0].name == "descriptionList"
 
 
