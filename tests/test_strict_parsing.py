@@ -63,6 +63,12 @@ STRICT_CASES = [
         ["descriptionList"],
     ),
     (
+        "bullet_prefixed_description_list_term",
+        "* Term:: definition\n",
+        "Malformed description list term",
+        ["descriptionList"],
+    ),
+    (
         "unclosed_inline_footnote",
         "This is a footnote:[some footnote text",
         "Unclosed inline footnote",
@@ -119,14 +125,26 @@ def test_valid_description_list_term_level3():
     assert doc.blocks[0].name == "descriptionList"
 
 
-def test_permissive_bullet_prefixed_bold_description_list_warns():
-    """Recovering this malformed term must surface a diagnostic warning."""
-    source = "* **Incremental Compilation**:: Tracks dependencies via a DAG cache.\n"
+@pytest.mark.parametrize(
+    "source",
+    [
+        "* **Incremental Compilation**:: Tracks dependencies via a DAG cache.\n",
+        "* Term:: definition\n",
+    ],
+    ids=["bold_term", "plain_term"],
+)
+def test_bullet_prefixed_description_list_term_has_actionable_diagnostics(source):
+    """Both recovery and strict errors must explain how to fix either form."""
+    with pytest.raises(AsciiDocSyntaxError) as exc_info:
+        parse_to_ast(source, strict=True)
+    assert "Remove the leading bullet" in str(exc_info.value)
+    assert "list continuation (+)" in str(exc_info.value)
 
-    with pytest.warns(SyntaxWarning, match="Malformed description list term"):
+    with pytest.warns(SyntaxWarning) as caught:
         doc = parse_to_ast(source, strict=False)
-
     assert doc.blocks[0].name == "descriptionList"
+    assert "Remove the leading bullet" in str(caught[0].message)
+    assert "list continuation (+)" in str(caught[0].message)
 
 
 def test_strict_default_behavior():

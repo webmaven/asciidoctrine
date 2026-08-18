@@ -4,8 +4,8 @@
 == Unreleased
 
 === Fixed
-* **Malformed Bullet-Prefixed Bold Description List Terms (Issue #94)**:
-  - Strict parsing now rejects malformed terms such as `* **Term**:: definition` with a precise `AsciiDocSyntaxError` instead of silently retaining a stray asterisk in rendered output.
+* **Malformed Bullet-Prefixed Description List Terms (Issue #94)**:
+  - Strict parsing now rejects malformed terms such as `* Term:: definition` and `* **Term**:: definition` with a precise `AsciiDocSyntaxError` instead of silently retaining a stray asterisk in rendered output.
   - Permissive parsing preserves its recovered description-list AST while emitting a `SyntaxWarning` that identifies the malformed term and source line.
 
 == 0.2.0a1 - 2026-08-16

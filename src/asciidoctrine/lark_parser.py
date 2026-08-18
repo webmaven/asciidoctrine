@@ -760,20 +760,23 @@ class ASTSyntaxAuditor(NodeVisitor):
     def visit_descriptionlist(self, node: Node) -> None:
         """Reject list-marker text accidentally consumed as a dlist term.
 
-        Earley's permissive parse can treat ``* **Term**:: definition`` as a
-        description list.  The leading list marker then becomes an unclosed
-        strong span, leaving a literal asterisk in rendered output.  Inspect
-        the original source because the transformed inline nodes no longer
-        preserve this intent clearly.
+        Earley's permissive parse can treat ``* Term:: definition`` as a
+        description list. The leading list marker is then retained literally
+        in the term (and may also form an unclosed strong span when ``Term``
+        is bold). Inspect the original source because the transformed inline
+        nodes no longer preserve this intent clearly.
         """
         if node.location:
             line_idx = node.location[0].get("line", 1)
             if 1 <= line_idx <= len(self.source_lines):
                 line = self.source_lines[line_idx - 1]
-                if re.match(r"^\s*\*\s+\*\*[^*\n]+\*\*::(?:\s|$)", line):
+                if re.match(r"^\s*\*\s+.+::(?:\s|$)", line):
                     origin_file, origin_line = self._get_origin(line_idx)
                     raise AsciiDocSyntaxError(
-                        f"Syntax error: Malformed description list term (bullet marker before bold term) at line {origin_line}.",
+                        "Syntax error: Malformed description list term "
+                        f"(bullet marker before term) at line {origin_line}. "
+                        "Remove the leading bullet or nest the description "
+                        "list using a list continuation (+).",
                         line=origin_line,
                         column=len(line) - len(line.lstrip()) + 1,
                         filepath=origin_file,
@@ -955,11 +958,13 @@ class PermissiveSyntaxWarningAuditor(NodeVisitor):
             line_idx = node.location[0].get("line", 1)
             if 1 <= line_idx <= len(self.source_lines):
                 line = self.source_lines[line_idx - 1]
-                if re.match(r"^\s*\*\s+\*\*[^*\n]+\*\*::(?:\s|$)", line):
+                if re.match(r"^\s*\*\s+.+::(?:\s|$)", line):
                     _, origin_line = self.line_map.get(line_idx, (None, line_idx))
                     warnings.warn(
-                        "Malformed description list term (bullet marker before bold term) "
-                        f"at line {origin_line}; parsed permissively.",
+                        "Malformed description list term (bullet marker before term) "
+                        f"at line {origin_line}; parsed permissively. Remove the "
+                        "leading bullet or nest the description list using a list "
+                        "continuation (+).",
                         SyntaxWarning,
                         stacklevel=3,
                     )
