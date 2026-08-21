@@ -93,7 +93,7 @@ anchor.15: "[[" WORD "]]" _NEWLINE
 
 // Tables
 table.50: TABLE_DELIM _NEWLINE (table_cell | _NEWLINE)* TABLE_DELIM _NEWLINE?
-table_cell: [table_cell_spec] TABLE_CELL
+table_cell.20000: [table_cell_spec] TABLE_CELL
 
 table_cell_spec: (span_spec | multiplier_spec)? (align_spec)? [STYLE_SPEC]
 

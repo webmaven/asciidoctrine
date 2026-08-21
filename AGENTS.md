@@ -369,8 +369,14 @@ To facilitate producing a TCK-compliant Resolved Abstract Semantic Graph (ASG), 
 - **Solution**:
   1. Added stateful footnote tracking (`self.footnotes`, `self.footnote_counter`, `self.footnote_by_id`) in `ASGResolver` initialized and reset on each `resolve()` invocation.
   2. In `visit_ref()`, matched `node.variant == "footnote"` to assign sequential indices, register definitions, resolve duplicate and forward references, and populate `node.index`.
-  3. Serialized the collected catalog as `Document.footnotes` in `to_dict()`, including `id`, `index`, `text`, and resolved child `inlines` AST dictionaries.
-
+### 17. Table Cells Containing Delimited Blocks Priority Conflict (Issue #95)
+- **Problem**: When a table contained AsciiDoc-style cells (`a|`) with delimited blocks (such as `[source,python]\n----\ndef foo():\n    pass\n----`), the entire table failed to parse as a `Table` AST node, falling back to a sequence of top-level `Paragraph` and `Listing` blocks (`<p>|===</p>`, `<p>a|</p>`, etc.).
+- **Cause**: Delimited verbatim blocks (`listing_block.10000`, `literal_block.10000`, `outer_listing_block.10000`) carry a high rule priority (`10000`) to prevent code lines from being broken down into dozens of fine-grained inline formatting nodes. The `table` container rule had a priority of `50`, while `table_cell` had the default priority of `0`. Because Lark's Earley algorithm selects the parse tree maximizing the sum of all node priorities across the tree, an alternative parse tree that splits the table into standalone top-level paragraphs and listing blocks accumulated $10000 \times N$ points, vastly outweighing the single `table.50` parse tree ($50 + 0 \times N$ points).
+- **What Didn't Work**:
+  - Increasing the container-level `table` priority alone (e.g. `table.50000`) is fragile because tables with many listing blocks ($> 5$) would still exceed the fixed threshold and flip to the split tree.
+- **Solution**:
+  - Assigned an explicit high priority of `.20000` to the `table_cell` rule in `src/asciidoctrine/grammar.lark` (`table_cell.20000: [table_cell_spec] TABLE_CELL`).
+  - Because `table_cell` matches once per cell in the table, each cell containing a delimited block contributes $20000$ points to the table parse tree, reliably outweighing the $10000$ points from top-level `listing_block` splitting regardless of how many listing cells the table contains.
 
 ## 🤖 Subagent & Model Routing Strategy
 

@@ -1100,6 +1100,47 @@ Second paragraph.
         ]
         self.assertEqual(listing["inlines"], expected_inlines)
 
+    def test_table_with_asciidoc_cells_containing_listing_blocks(self):
+        source = """[cols="1,1"]
+|===
+| Problematic | Correct
+
+a|
+[source,python]
+----
+def foo():
+    pass
+----
+
+a|
+[source,python]
+----
+def bar():
+    pass
+----
+|===
+"""
+        doc = parse_to_ast(source)
+        ast = self._strip_locations(doc.to_dict())
+        self.assertEqual(len(ast["blocks"]), 1)
+        table = ast["blocks"][0]
+        self.assertEqual(table["name"], "table")
+        self.assertEqual(len(table["rows"]), 2)
+        # Row 1 has 2 header/text cells
+        row1 = table["rows"][0]
+        self.assertEqual(len(row1["cells"]), 2)
+        # Row 2 has 2 AsciiDoc cells containing listing blocks
+        row2 = table["rows"][1]
+        self.assertEqual(len(row2["cells"]), 2)
+        cell1 = row2["cells"][0]
+        self.assertEqual(cell1["style"], "a")
+        self.assertEqual(len(cell1["blocks"]), 1)
+        self.assertEqual(cell1["blocks"][0]["name"], "listing")
+        cell2 = row2["cells"][1]
+        self.assertEqual(cell2["style"], "a")
+        self.assertEqual(len(cell2["blocks"]), 1)
+        self.assertEqual(cell2["blocks"][0]["name"], "listing")
+
 
 if __name__ == "__main__":
     unittest.main()
