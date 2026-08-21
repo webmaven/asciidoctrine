@@ -346,6 +346,13 @@ API
       .. autodoc2-docstring:: asciidoctrine.nodes.BlockNode.append
          :parser: sphinx_asciidoctrine.parser
 
+   .. py:property:: has_metadata
+      :canonical: asciidoctrine.nodes.BlockNode.has_metadata
+      :type: bool
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.BlockNode.has_metadata
+         :parser: sphinx_asciidoctrine.parser
+
 .. py:class:: Docinfo(head_content: str = '', footer_content: str = '')
    :canonical: asciidoctrine.nodes.Docinfo
 

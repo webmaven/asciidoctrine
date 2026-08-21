@@ -109,10 +109,10 @@
 <div class="python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_to_ast</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.resolver</span><span class="w"> </span><span class="kn">import</span> <span class="n">ASGResolver</span>
 
-<span class="n">source</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="n">source</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">== Section Title</span>
 <span class="s2">This is a *bold* word and a [.highlight]#key concept# in a paragraph.</span>
-<span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">"""</span>
 
 <span class="c1"># 1. Parse raw source to syntax-level AST</span>
 <span class="n">ast</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
@@ -122,12 +122,12 @@
 <span class="n">asg</span> <span class="o">=</span> <span class="n">resolver</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">ast</span><span class="p">)</span>
 
 <span class="c1"># Iterate through sections in the ASG blocks list</span>
-<span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">asg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;blocks&quot;</span><span class="p">,</span> <span class="p">[]):</span>
-    <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;section&quot;</span><span class="p">:</span>
+<span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">asg</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"blocks"</span><span class="p">,</span> <span class="p">[]):</span>
+    <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"section"</span><span class="p">:</span>
         <span class="c1"># The title is a list of inline nodes in the ASG schema</span>
-        <span class="n">title_nodes</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="p">[])</span>
-        <span class="n">title_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">title_nodes</span> <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;text&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Found section: </span><span class="si">{</span><span class="n">title_text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">title_nodes</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"title"</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="n">title_text</span> <span class="o">=</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"value"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">title_nodes</span> <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"text"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Found section: </span><span class="si">{</span><span class="n">title_text</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
 <section id="id5">
@@ -136,13 +136,13 @@
 <div class="python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine</span><span class="w"> </span><span class="kn">import</span> <span class="n">WorkspaceBuilder</span>
 
 <span class="c1"># 1. Initialize builder targeting your documentation root</span>
-<span class="n">builder</span> <span class="o">=</span> <span class="n">WorkspaceBuilder</span><span class="p">(</span><span class="s2">&quot;/path/to/docs&quot;</span><span class="p">)</span>
+<span class="n">builder</span> <span class="o">=</span> <span class="n">WorkspaceBuilder</span><span class="p">(</span><span class="s2">"/path/to/docs"</span><span class="p">)</span>
 
 <span class="c1"># 2. Run 3-pass pipeline (scan -&gt; index symbols -&gt; resolve cross-references)</span>
 <span class="n">asg_graphs</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
 
 <span class="c1"># Access resolved ASG dictionary for any relative file ID</span>
-<span class="n">doc_asg</span> <span class="o">=</span> <span class="n">asg_graphs</span><span class="p">[</span><span class="s2">&quot;subfolder/chapter1.adoc&quot;</span><span class="p">]</span>
+<span class="n">doc_asg</span> <span class="o">=</span> <span class="n">asg_graphs</span><span class="p">[</span><span class="s2">"subfolder/chapter1.adoc"</span><span class="p">]</span>
 </pre></div>
 </div>
 </section>
@@ -152,53 +152,53 @@
 <h2>ASG Representation<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
 <p>Calling <code class="docutils literal notranslate"><span class="pre">asg.to_dict()</span></code> yields a structured, spec-compliant representation matching the official AsciiDoc Language ASG schema:</p>
 <div class="json highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;document&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;block&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;blocks&quot;</span><span class="p">:</span> <span class="p">[</span>
+  <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"document"</span><span class="p">,</span>
+  <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"block"</span><span class="p">,</span>
+  <span class="s2">"blocks"</span><span class="p">:</span> <span class="p">[</span>
     <span class="p">{</span>
-      <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;section&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;block&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-      <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;title&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;inline&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;inlines&quot;</span><span class="p">:</span> <span class="p">[</span>
-          <span class="p">{</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;Section Title&quot;</span> <span class="p">}</span>
+      <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"section"</span><span class="p">,</span>
+      <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"block"</span><span class="p">,</span>
+      <span class="s2">"level"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+      <span class="s2">"title"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"title"</span><span class="p">,</span>
+        <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"inline"</span><span class="p">,</span>
+        <span class="s2">"inlines"</span><span class="p">:</span> <span class="p">[</span>
+          <span class="p">{</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"text"</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"Section Title"</span> <span class="p">}</span>
         <span class="p">]</span>
       <span class="p">},</span>
-      <span class="s2">&quot;blocks&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="s2">"blocks"</span><span class="p">:</span> <span class="p">[</span>
         <span class="p">{</span>
-          <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;paragraph&quot;</span><span class="p">,</span>
-          <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;block&quot;</span><span class="p">,</span>
-          <span class="s2">&quot;inlines&quot;</span><span class="p">:</span> <span class="p">[</span>
-            <span class="p">{</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;This is a &quot;</span> <span class="p">},</span>
+          <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"paragraph"</span><span class="p">,</span>
+          <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"block"</span><span class="p">,</span>
+          <span class="s2">"inlines"</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"text"</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"This is a "</span> <span class="p">},</span>
             <span class="p">{</span>
-              <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;span&quot;</span><span class="p">,</span>
-              <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;inline&quot;</span><span class="p">,</span>
-              <span class="s2">&quot;variant&quot;</span><span class="p">:</span> <span class="s2">&quot;strong&quot;</span><span class="p">,</span>
-              <span class="s2">&quot;form&quot;</span><span class="p">:</span> <span class="s2">&quot;constrained&quot;</span><span class="p">,</span>
-              <span class="s2">&quot;inlines&quot;</span><span class="p">:</span> <span class="p">[</span>
-                <span class="p">{</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;bold&quot;</span> <span class="p">}</span>
+              <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"span"</span><span class="p">,</span>
+              <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"inline"</span><span class="p">,</span>
+              <span class="s2">"variant"</span><span class="p">:</span> <span class="s2">"strong"</span><span class="p">,</span>
+              <span class="s2">"form"</span><span class="p">:</span> <span class="s2">"constrained"</span><span class="p">,</span>
+              <span class="s2">"inlines"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"text"</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"bold"</span> <span class="p">}</span>
               <span class="p">]</span>
             <span class="p">},</span>
-            <span class="p">{</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot; word and a &quot;</span> <span class="p">},</span>
+            <span class="p">{</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"text"</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">" word and a "</span> <span class="p">},</span>
             <span class="p">{</span>
-              <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;span&quot;</span><span class="p">,</span>
-              <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;inline&quot;</span><span class="p">,</span>
-              <span class="s2">&quot;variant&quot;</span><span class="p">:</span> <span class="s2">&quot;mark&quot;</span><span class="p">,</span>
-              <span class="s2">&quot;form&quot;</span><span class="p">:</span> <span class="s2">&quot;constrained&quot;</span><span class="p">,</span>
-              <span class="s2">&quot;inlines&quot;</span><span class="p">:</span> <span class="p">[</span>
-                <span class="p">{</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;key concept&quot;</span> <span class="p">}</span>
+              <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"span"</span><span class="p">,</span>
+              <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"inline"</span><span class="p">,</span>
+              <span class="s2">"variant"</span><span class="p">:</span> <span class="s2">"mark"</span><span class="p">,</span>
+              <span class="s2">"form"</span><span class="p">:</span> <span class="s2">"constrained"</span><span class="p">,</span>
+              <span class="s2">"inlines"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"text"</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"key concept"</span> <span class="p">}</span>
               <span class="p">],</span>
-              <span class="s2">&quot;attributes&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;highlight&quot;</span> <span class="p">}</span>
+              <span class="s2">"attributes"</span><span class="p">:</span> <span class="p">{</span> <span class="s2">"role"</span><span class="p">:</span> <span class="s2">"highlight"</span> <span class="p">}</span>
             <span class="p">},</span>
-            <span class="p">{</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot; in a paragraph.&quot;</span> <span class="p">}</span>
+            <span class="p">{</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"text"</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">" in a paragraph."</span> <span class="p">}</span>
           <span class="p">]</span>
         <span class="p">}</span>
       <span class="p">]</span>
     <span class="p">}</span>
   <span class="p">],</span>
-  <span class="s2">&quot;attributes&quot;</span><span class="p">:</span> <span class="p">{}</span>
+  <span class="s2">"attributes"</span><span class="p">:</span> <span class="p">{}</span>
 <span class="p">}</span>
 </pre></div>
 </div>

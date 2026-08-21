@@ -110,7 +110,7 @@
 <span class="n">source</span> <span class="n">venv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
 
 <span class="c1"># 3. Install in editable development mode</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="s2">&quot;.[test,docs]&quot;</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="s2">".[test,docs]"</span>
 </pre></div>
 </div>
 </section>
@@ -125,7 +125,7 @@
 <span class="n">pytest</span> <span class="n">tests</span><span class="o">/</span><span class="n">test_inlines_parsing</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">q</span>
 
 <span class="c1"># Focus on a single test function</span>
-<span class="n">pytest</span> <span class="n">tests</span><span class="o">/</span><span class="n">test_inlines_parsing</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">k</span> <span class="s2">&quot;test_custom_scheme&quot;</span> <span class="o">-</span><span class="n">q</span> <span class="o">--</span><span class="n">tb</span><span class="o">=</span><span class="n">short</span>
+<span class="n">pytest</span> <span class="n">tests</span><span class="o">/</span><span class="n">test_inlines_parsing</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">k</span> <span class="s2">"test_custom_scheme"</span> <span class="o">-</span><span class="n">q</span> <span class="o">--</span><span class="n">tb</span><span class="o">=</span><span class="n">short</span>
 </pre></div>
 </div>
 </section>
@@ -133,7 +133,7 @@
 <h3>Tier 2: Pre-Commit Check (Core Unit<br/> Local TCK Suite)<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
 <p>Use before committing code. Runs unit tests and the native Python local TCK harness (<code class="docutils literal notranslate"><span class="pre">tests/test_local_tck.py</span></code>):</p>
 <div class="bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run all stable tests quietly</span>
-<span class="n">pytest</span> <span class="o">-</span><span class="n">k</span> <span class="s2">&quot;not functional&quot;</span> <span class="o">-</span><span class="n">q</span> <span class="o">--</span><span class="n">tb</span><span class="o">=</span><span class="n">short</span>
+<span class="n">pytest</span> <span class="o">-</span><span class="n">k</span> <span class="s2">"not functional"</span> <span class="o">-</span><span class="n">q</span> <span class="o">--</span><span class="n">tb</span><span class="o">=</span><span class="n">short</span>
 </pre></div>
 </div>
 </section>
@@ -141,7 +141,7 @@
 <h3>Tier 3: Pre-Release Conformance Check (Full Suite<br/> Doctests<br/> Upstream TCK)<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
 <p>Use before tagging releases or pushing release branches:</p>
 <div class="bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. Full Pytest suite including all 244 real-world doctests</span>
-<span class="n">RUN_DOCTESTS</span><span class="o">=</span><span class="mi">1</span> <span class="n">pytest</span> <span class="o">-</span><span class="n">k</span> <span class="s2">&quot;not functional&quot;</span> <span class="o">-</span><span class="n">q</span>
+<span class="n">RUN_DOCTESTS</span><span class="o">=</span><span class="mi">1</span> <span class="n">pytest</span> <span class="o">-</span><span class="n">k</span> <span class="s2">"not functional"</span> <span class="o">-</span><span class="n">q</span>
 
 <span class="c1"># 2. Official Upstream Node.js TCK Runner</span>
 <span class="o">./</span><span class="n">run</span><span class="o">-</span><span class="n">tck</span><span class="o">.</span><span class="n">sh</span>
@@ -203,7 +203,7 @@
 <li><p>Ensure Ruff linter and formatter are completely happy.</p></li>
 <li><p>Ensure the Mypy strict type-checker passes cleanly.</p></li>
 <li><p>Run the full test suite locally with coverage (using <code class="docutils literal notranslate"><span class="pre">-n0</span></code> to disable multi-processing clashes):</p>
-<div class="bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="o">-</span><span class="n">n0</span> <span class="o">--</span><span class="n">cov</span><span class="o">=</span><span class="n">src</span> <span class="o">--</span><span class="n">cov</span><span class="o">-</span><span class="n">report</span><span class="o">=</span><span class="n">term</span><span class="o">-</span><span class="n">missing</span> <span class="o">-</span><span class="n">k</span> <span class="s2">&quot;not functional&quot;</span>
+<div class="bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="o">-</span><span class="n">n0</span> <span class="o">--</span><span class="n">cov</span><span class="o">=</span><span class="n">src</span> <span class="o">--</span><span class="n">cov</span><span class="o">-</span><span class="n">report</span><span class="o">=</span><span class="n">term</span><span class="o">-</span><span class="n">missing</span> <span class="o">-</span><span class="n">k</span> <span class="s2">"not functional"</span>
 </pre></div>
 </div>
 </li>

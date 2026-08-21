@@ -370,9 +370,9 @@ before serializing the block content.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.lark_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_to_ast</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.serializer</span><span class="w"> </span><span class="kn">import</span> <span class="n">serialize_to_asciidoc</span>
 
-<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">&quot;= Document Title</span><span class="se">\n\n</span><span class="s2">This is a *bold* paragraph.&quot;</span><span class="p">)</span>
+<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">"= Document Title</span><span class="se">\n\n</span><span class="s2">This is a *bold* paragraph."</span><span class="p">)</span>
 <span class="n">output</span> <span class="o">=</span> <span class="n">serialize_to_asciidoc</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
-<span class="k">assert</span> <span class="s2">&quot;= Document Title&quot;</span> <span class="ow">in</span> <span class="n">output</span>
+<span class="k">assert</span> <span class="s2">"= Document Title"</span> <span class="ow">in</span> <span class="n">output</span>
 </pre></div>
 </div>
 </dd></dl>

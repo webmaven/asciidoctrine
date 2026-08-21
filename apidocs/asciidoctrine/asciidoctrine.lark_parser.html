@@ -110,6 +110,9 @@ Inherits from BlockTransformer and InlineTransformer for modularity.</p></td>
 <td><p>Traverses the parsed AST to enforce strict syntax validation on elements
 that Lark’s permissive Earley parser falls back on (e.g. malformed paragraphs or blocks).</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.PermissiveSyntaxWarningAuditor" title="asciidoctrine.lark_parser.PermissiveSyntaxWarningAuditor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PermissiveSyntaxWarningAuditor</span></code></a></p></td>
+<td><p>Emit diagnostics for recoverable syntax that strict mode rejects.</p></td>
+</tr>
 </tbody>
 </table>
 </section>
@@ -397,6 +400,16 @@ that Lark’s permissive Earley parser falls back on (e.g. malformed paragraphs 
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.lark_parser.ASTSyntaxAuditor.visit_descriptionlist">
+<span class="sig-name descname"><span class="pre">visit_descriptionlist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.ASTSyntaxAuditor.visit_descriptionlist" title="Link to this definition"></a></dt>
+<dd><p>Reject list-marker text accidentally consumed as a dlist term.</p>
+<p>Earley parsing can treat bulleted description list items as</p>
+<p>description lists. The leading list marker is then retained literally
+in the term. Inspect the original source because the transformed inline
+nodes no longer preserve this intent clearly.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.lark_parser.ASTSyntaxAuditor.visit_paragraph">
 <span class="sig-name descname"><span class="pre">visit_paragraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.ASTSyntaxAuditor.visit_paragraph" title="Link to this definition"></a></dt>
 <dd></dd></dl>
@@ -409,6 +422,19 @@ that Lark’s permissive Earley parser falls back on (e.g. malformed paragraphs 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.lark_parser.ASTSyntaxAuditor.generic_visit">
 <span class="sig-name descname"><span class="pre">generic_visit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.ASTSyntaxAuditor.generic_visit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="asciidoctrine.lark_parser.PermissiveSyntaxWarningAuditor">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">PermissiveSyntaxWarningAuditor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_lines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.lark_parser.PermissiveSyntaxWarningAuditor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.NodeVisitor" title="asciidoctrine.nodes.NodeVisitor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.NodeVisitor</span></code></a></p>
+<p>Emit diagnostics for recoverable syntax that strict mode rejects.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.lark_parser.PermissiveSyntaxWarningAuditor.visit_descriptionlist">
+<span class="sig-name descname"><span class="pre">visit_descriptionlist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.PermissiveSyntaxWarningAuditor.visit_descriptionlist" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -500,7 +526,7 @@ that Lark’s permissive Earley parser falls back on (e.g. malformed paragraphs 
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_to_ast</span>
 
-<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">&quot;= Hello</span><span class="se">\n\n</span><span class="s2">This is a *bold* paragraph.&quot;</span><span class="p">)</span>
+<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">"= Hello</span><span class="se">\n\n</span><span class="s2">This is a *bold* paragraph."</span><span class="p">)</span>
 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">blocks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
 </pre></div>
 </div>

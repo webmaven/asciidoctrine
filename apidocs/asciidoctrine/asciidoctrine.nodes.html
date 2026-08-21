@@ -317,9 +317,9 @@ traverse them recursively.</p>
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.nodes</span><span class="w"> </span><span class="kn">import</span> <span class="n">Paragraph</span><span class="p">,</span> <span class="n">Text</span>
 
-<span class="n">para</span> <span class="o">=</span> <span class="n">Paragraph</span><span class="p">([</span><span class="n">Text</span><span class="p">(</span><span class="s2">&quot;Hello world&quot;</span><span class="p">)])</span>
-<span class="k">assert</span> <span class="n">para</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;block&quot;</span>
-<span class="k">assert</span> <span class="n">para</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;paragraph&quot;</span>
+<span class="n">para</span> <span class="o">=</span> <span class="n">Paragraph</span><span class="p">([</span><span class="n">Text</span><span class="p">(</span><span class="s2">"Hello world"</span><span class="p">)])</span>
+<span class="k">assert</span> <span class="n">para</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">"block"</span>
+<span class="k">assert</span> <span class="n">para</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"paragraph"</span>
 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">para</span><span class="o">.</span><span class="n">inlines</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
 </pre></div>
 </div>
@@ -394,6 +394,12 @@ They encapsulate child <code class="docutils literal notranslate"><span class="p
 <span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">child</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.nodes.BlockNode.append" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py property">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.BlockNode.has_metadata">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">has_metadata</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#asciidoctrine.nodes.BlockNode.has_metadata" title="Link to this definition"></a></dt>
+<dd><p>Return True if this block node has attached attributes or a title.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -446,8 +452,8 @@ injected <code class="docutils literal notranslate"><span class="pre">Docinfo</s
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.lark_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_to_ast</span>
 
-<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">&quot;= My Document</span><span class="se">\n</span><span class="s2">Author Name</span><span class="se">\n\n</span><span class="s2">First paragraph.&quot;</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">doc</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;document&quot;</span>
+<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">"= My Document</span><span class="se">\n</span><span class="s2">Author Name</span><span class="se">\n\n</span><span class="s2">First paragraph."</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">doc</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"document"</span>
 <span class="k">assert</span> <span class="n">doc</span><span class="o">.</span><span class="n">header</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">blocks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
 </pre></div>
@@ -573,9 +579,9 @@ and all nested child blocks contained within the section body.</p>
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.lark_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_to_ast</span>
 
-<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">&quot;== Getting Started</span><span class="se">\n\n</span><span class="s2">Follow these steps.&quot;</span><span class="p">)</span>
+<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">"== Getting Started</span><span class="se">\n\n</span><span class="s2">Follow these steps."</span><span class="p">)</span>
 <span class="n">section</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="k">assert</span> <span class="n">section</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;section&quot;</span>
+<span class="k">assert</span> <span class="n">section</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"section"</span>
 <span class="k">assert</span> <span class="n">section</span><span class="o">.</span><span class="n">level</span> <span class="o">==</span> <span class="mi">1</span>
 </pre></div>
 </div>
@@ -602,7 +608,7 @@ and all nested child blocks contained within the section body.</p>
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.nodes</span><span class="w"> </span><span class="kn">import</span> <span class="n">Paragraph</span><span class="p">,</span> <span class="n">Text</span>
 
-<span class="n">para</span> <span class="o">=</span> <span class="n">Paragraph</span><span class="p">([</span><span class="n">Text</span><span class="p">(</span><span class="s2">&quot;This is a paragraph.&quot;</span><span class="p">)])</span>
+<span class="n">para</span> <span class="o">=</span> <span class="n">Paragraph</span><span class="p">([</span><span class="n">Text</span><span class="p">(</span><span class="s2">"This is a paragraph."</span><span class="p">)])</span>
 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">para</span><span class="o">.</span><span class="n">inlines</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
 </pre></div>
 </div>
@@ -744,8 +750,8 @@ superscript (+super+), subscript (+sub+), or custom-roled text spans (+[.role]te
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.nodes</span><span class="w"> </span><span class="kn">import</span> <span class="n">Span</span><span class="p">,</span> <span class="n">Text</span>
 
-<span class="n">bold_span</span> <span class="o">=</span> <span class="n">Span</span><span class="p">(</span><span class="n">variant</span><span class="o">=</span><span class="s2">&quot;strong&quot;</span><span class="p">,</span> <span class="n">inlines</span><span class="o">=</span><span class="p">[</span><span class="n">Text</span><span class="p">(</span><span class="s2">&quot;important&quot;</span><span class="p">)],</span> <span class="n">form</span><span class="o">=</span><span class="s2">&quot;constrained&quot;</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">bold_span</span><span class="o">.</span><span class="n">variant</span> <span class="o">==</span> <span class="s2">&quot;strong&quot;</span>
+<span class="n">bold_span</span> <span class="o">=</span> <span class="n">Span</span><span class="p">(</span><span class="n">variant</span><span class="o">=</span><span class="s2">"strong"</span><span class="p">,</span> <span class="n">inlines</span><span class="o">=</span><span class="p">[</span><span class="n">Text</span><span class="p">(</span><span class="s2">"important"</span><span class="p">)],</span> <span class="n">form</span><span class="o">=</span><span class="s2">"constrained"</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">bold_span</span><span class="o">.</span><span class="n">variant</span> <span class="o">==</span> <span class="s2">"strong"</span>
 </pre></div>
 </div>
 <p class="rubric">Initialization</p>
@@ -761,8 +767,8 @@ superscript (+super+), subscript (+sub+), or custom-roled text spans (+[.role]te
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.nodes.</span></span><span class="sig-name descname"><span class="pre">Ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inlines</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.nodes.Ref" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#asciidoctrine.nodes.InlineNode" title="asciidoctrine.nodes.InlineNode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.InlineNode</span></code></a></p>
 <p>An inline node representing hyperlinks, cross-references, and footnote references.</p>
-<p><cite>Ref`</cite> handles URL links (<a href="#id1"><span class="problematic" id="id2">``</span></a><cite>Label &lt;https://example.com&gt;`_</cite>), internal cross-references (+`Label &lt;section_id&gt;`_+</p>
-<p>or <code class="docutils literal notranslate"><span class="pre">Label</span> <span class="pre">&lt;document.adoc#section_id&gt;`_`),</span> <span class="pre">anchors</span> <span class="pre">(+`anchor_id</span> <span class="pre">&lt;anchor_id&gt;`_+),</span> <span class="pre">and</span> <span class="pre">footnote</span> <span class="pre">references</span> <span class="pre">(``footnote:[text]</span></code>).</p>
+<p><code class="docutils literal notranslate"><span class="pre">Ref</span></code> handles URL links, internal cross-references, document anchors,</p>
+<p>and footnote references.</p>
 <p><strong>Attributes:</strong></p>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">variant</span></code></dt><dd><p>The reference variant (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;link&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;xref&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;anchor&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;footnote&quot;</span></code>).</p>
@@ -785,8 +791,8 @@ superscript (+super+), subscript (+sub+), or custom-roled text spans (+[.role]te
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.nodes</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ref</span><span class="p">,</span> <span class="n">Text</span>
 
-<span class="n">link</span> <span class="o">=</span> <span class="n">Ref</span><span class="p">(</span><span class="n">variant</span><span class="o">=</span><span class="s2">&quot;link&quot;</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="s2">&quot;https://asciidoctor.org&quot;</span><span class="p">,</span> <span class="n">inlines</span><span class="o">=</span><span class="p">[</span><span class="n">Text</span><span class="p">(</span><span class="s2">&quot;AsciiDoctor&quot;</span><span class="p">)])</span>
-<span class="k">assert</span> <span class="n">link</span><span class="o">.</span><span class="n">target</span> <span class="o">==</span> <span class="s2">&quot;https://asciidoctor.org&quot;</span>
+<span class="n">link</span> <span class="o">=</span> <span class="n">Ref</span><span class="p">(</span><span class="n">variant</span><span class="o">=</span><span class="s2">"link"</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="s2">"https://asciidoctor.org"</span><span class="p">,</span> <span class="n">inlines</span><span class="o">=</span><span class="p">[</span><span class="n">Text</span><span class="p">(</span><span class="s2">"AsciiDoctor"</span><span class="p">)])</span>
+<span class="k">assert</span> <span class="n">link</span><span class="o">.</span><span class="n">target</span> <span class="o">==</span> <span class="s2">"https://asciidoctor.org"</span>
 </pre></div>
 </div>
 <p class="rubric">Initialization</p>
@@ -958,10 +964,10 @@ embedded callout markers (+&lt;1&gt;+,&lt;2&gt;+).</p>
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.lark_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_to_ast</span>
 
-<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">&quot;[source,python]</span><span class="se">\n</span><span class="s2">----</span><span class="se">\n</span><span class="s2">print(&#39;Hello&#39;) &lt;1&gt;</span><span class="se">\n</span><span class="s2">----&quot;</span><span class="p">)</span>
+<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">"[source,python]</span><span class="se">\n</span><span class="s2">----</span><span class="se">\n</span><span class="s2">print('Hello') &lt;1&gt;</span><span class="se">\n</span><span class="s2">----"</span><span class="p">)</span>
 <span class="n">listing</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="k">assert</span> <span class="n">listing</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;listing&quot;</span>
-<span class="k">assert</span> <span class="n">listing</span><span class="o">.</span><span class="n">language</span> <span class="o">==</span> <span class="s2">&quot;python&quot;</span>
+<span class="k">assert</span> <span class="n">listing</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"listing"</span>
+<span class="k">assert</span> <span class="n">listing</span><span class="o">.</span><span class="n">language</span> <span class="o">==</span> <span class="s2">"python"</span>
 <span class="k">assert</span> <span class="mi">1</span> <span class="ow">in</span> <span class="n">listing</span><span class="o">.</span><span class="n">callouts</span>
 </pre></div>
 </div>
@@ -1184,9 +1190,9 @@ spans (colspans, rowspans), and nested block-level content.</p>
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.lark_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_to_ast</span>
 
-<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">&quot;|===</span><span class="se">\n</span><span class="s2">| Header 1 | Header 2</span><span class="se">\n</span><span class="s2">| Cell 1 | Cell 2</span><span class="se">\n</span><span class="s2">|===&quot;</span><span class="p">)</span>
+<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">"|===</span><span class="se">\n</span><span class="s2">| Header 1 | Header 2</span><span class="se">\n</span><span class="s2">| Cell 1 | Cell 2</span><span class="se">\n</span><span class="s2">|==="</span><span class="p">)</span>
 <span class="n">table</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">blocks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="k">assert</span> <span class="n">table</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;table&quot;</span>
+<span class="k">assert</span> <span class="n">table</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"table"</span>
 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">rows</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
 </pre></div>
 </div>

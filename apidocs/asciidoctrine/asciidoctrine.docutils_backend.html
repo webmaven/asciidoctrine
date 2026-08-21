@@ -148,8 +148,8 @@ tables, admonitions, and cross-references) directly to their Docutils element co
 <span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.docutils_backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocutilsRenderer</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.lark_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_to_ast</span>
 
-<span class="n">ast</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">&quot;= Title</span><span class="se">\n\n</span><span class="s2">Paragraph text.&quot;</span><span class="p">)</span>
-<span class="n">docutils_doc</span> <span class="o">=</span> <span class="n">new_document</span><span class="p">(</span><span class="s2">&quot;&lt;string&gt;&quot;</span><span class="p">)</span>
+<span class="n">ast</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">"= Title</span><span class="se">\n\n</span><span class="s2">Paragraph text."</span><span class="p">)</span>
+<span class="n">docutils_doc</span> <span class="o">=</span> <span class="n">new_document</span><span class="p">(</span><span class="s2">"&lt;string&gt;"</span><span class="p">)</span>
 <span class="n">renderer</span> <span class="o">=</span> <span class="n">DocutilsRenderer</span><span class="p">(</span><span class="n">docutils_doc</span><span class="p">)</span>
 <span class="n">renderer</span><span class="o">.</span><span class="n">visit</span><span class="p">(</span><span class="n">ast</span><span class="p">)</span>
 </pre></div>
@@ -416,7 +416,7 @@ Sphinx/HTML blockquote attribution convention.</p>
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.docutils_backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">asciidoc_to_docutils</span>
 
-<span class="n">document</span> <span class="o">=</span> <span class="n">asciidoc_to_docutils</span><span class="p">(</span><span class="s2">&quot;= Document Title</span><span class="se">\n\n</span><span class="s2">This is a paragraph.&quot;</span><span class="p">)</span>
+<span class="n">document</span> <span class="o">=</span> <span class="n">asciidoc_to_docutils</span><span class="p">(</span><span class="s2">"= Document Title</span><span class="se">\n\n</span><span class="s2">This is a paragraph."</span><span class="p">)</span>
 <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">document</span><span class="o">.</span><span class="n">children</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
 </pre></div>
 </div>

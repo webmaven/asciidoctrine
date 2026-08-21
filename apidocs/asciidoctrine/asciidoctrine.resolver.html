@@ -132,8 +132,8 @@
 </dl>
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">catalog</span> <span class="o">=</span> <span class="n">WorkspaceCatalog</span><span class="p">()</span>
-<span class="n">catalog</span><span class="o">.</span><span class="n">index_document</span><span class="p">(</span><span class="s2">&quot;main.adoc&quot;</span><span class="p">,</span> <span class="n">doc</span><span class="p">)</span>
-<span class="n">target_node</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">by_fqid</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;main.adoc#intro&quot;</span><span class="p">)</span>
+<span class="n">catalog</span><span class="o">.</span><span class="n">index_document</span><span class="p">(</span><span class="s2">"main.adoc"</span><span class="p">,</span> <span class="n">doc</span><span class="p">)</span>
+<span class="n">target_node</span> <span class="o">=</span> <span class="n">catalog</span><span class="o">.</span><span class="n">by_fqid</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"main.adoc#intro"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p class="rubric">Initialization</p>
@@ -254,12 +254,12 @@ interdocument cross-references (<code class="docutils literal notranslate"><span
 <span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.resolver</span><span class="w"> </span><span class="kn">import</span> <span class="n">WorkspaceBuilder</span>
 
 <span class="n">loader</span> <span class="o">=</span> <span class="n">MemoryLoader</span><span class="p">({</span>
-    <span class="s2">&quot;intro.adoc&quot;</span><span class="p">:</span> <span class="s2">&quot;= Intro</span><span class="se">\n\n</span><span class="s2">See xref:guide.adoc#setup[Setup].&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;guide.adoc&quot;</span><span class="p">:</span> <span class="s2">&quot;= Guide</span><span class="se">\n\n</span><span class="s2">[#setup]</span><span class="se">\n</span><span class="s2">== Setup</span><span class="se">\n\n</span><span class="s2">Steps.&quot;</span>
+    <span class="s2">"intro.adoc"</span><span class="p">:</span> <span class="s2">"= Intro</span><span class="se">\n\n</span><span class="s2">See xref:guide.adoc#setup[Setup]."</span><span class="p">,</span>
+    <span class="s2">"guide.adoc"</span><span class="p">:</span> <span class="s2">"= Guide</span><span class="se">\n\n</span><span class="s2">[#setup]</span><span class="se">\n</span><span class="s2">== Setup</span><span class="se">\n\n</span><span class="s2">Steps."</span>
 <span class="p">})</span>
-<span class="n">builder</span> <span class="o">=</span> <span class="n">WorkspaceBuilder</span><span class="p">(</span><span class="s2">&quot;/workspace&quot;</span><span class="p">,</span> <span class="n">loader</span><span class="o">=</span><span class="n">loader</span><span class="p">)</span>
+<span class="n">builder</span> <span class="o">=</span> <span class="n">WorkspaceBuilder</span><span class="p">(</span><span class="s2">"/workspace"</span><span class="p">,</span> <span class="n">loader</span><span class="o">=</span><span class="n">loader</span><span class="p">)</span>
 <span class="n">graphs</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
-<span class="n">intro_asg</span> <span class="o">=</span> <span class="n">graphs</span><span class="p">[</span><span class="s2">&quot;intro.adoc&quot;</span><span class="p">]</span>
+<span class="n">intro_asg</span> <span class="o">=</span> <span class="n">graphs</span><span class="p">[</span><span class="s2">"intro.adoc"</span><span class="p">]</span>
 </pre></div>
 </div>
 <p class="rubric">Initialization</p>

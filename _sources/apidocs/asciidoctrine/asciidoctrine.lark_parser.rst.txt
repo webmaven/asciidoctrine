@@ -25,6 +25,10 @@ Classes
      - .. autodoc2-docstring:: asciidoctrine.lark_parser.ASTSyntaxAuditor
           :parser: sphinx_asciidoctrine.parser
           :summary:
+   * - :py:obj:`PermissiveSyntaxWarningAuditor <asciidoctrine.lark_parser.PermissiveSyntaxWarningAuditor>`
+     - .. autodoc2-docstring:: asciidoctrine.lark_parser.PermissiveSyntaxWarningAuditor
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
 
 Functions
 ~~~~~~~~~
@@ -382,6 +386,12 @@ API
       .. autodoc2-docstring:: asciidoctrine.lark_parser.ASTSyntaxAuditor._get_origin
          :parser: sphinx_asciidoctrine.parser
 
+   .. py:method:: visit_descriptionlist(node: asciidoctrine.nodes.Node) -> None
+      :canonical: asciidoctrine.lark_parser.ASTSyntaxAuditor.visit_descriptionlist
+
+      .. autodoc2-docstring:: asciidoctrine.lark_parser.ASTSyntaxAuditor.visit_descriptionlist
+         :parser: sphinx_asciidoctrine.parser
+
    .. py:method:: visit_paragraph(node: asciidoctrine.nodes.Node) -> None
       :canonical: asciidoctrine.lark_parser.ASTSyntaxAuditor.visit_paragraph
 
@@ -398,6 +408,25 @@ API
       :canonical: asciidoctrine.lark_parser.ASTSyntaxAuditor.generic_visit
 
       .. autodoc2-docstring:: asciidoctrine.lark_parser.ASTSyntaxAuditor.generic_visit
+         :parser: sphinx_asciidoctrine.parser
+
+.. py:class:: PermissiveSyntaxWarningAuditor(source_lines: typing.List[str], line_map: typing.Optional[typing.Dict[int, typing.Tuple[str, int]]] = None)
+   :canonical: asciidoctrine.lark_parser.PermissiveSyntaxWarningAuditor
+
+   Bases: :py:obj:`asciidoctrine.nodes.NodeVisitor`
+
+   .. autodoc2-docstring:: asciidoctrine.lark_parser.PermissiveSyntaxWarningAuditor
+      :parser: sphinx_asciidoctrine.parser
+
+   .. rubric:: Initialization
+
+   .. autodoc2-docstring:: asciidoctrine.lark_parser.PermissiveSyntaxWarningAuditor.__init__
+      :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: visit_descriptionlist(node: asciidoctrine.nodes.Node) -> None
+      :canonical: asciidoctrine.lark_parser.PermissiveSyntaxWarningAuditor.visit_descriptionlist
+
+      .. autodoc2-docstring:: asciidoctrine.lark_parser.PermissiveSyntaxWarningAuditor.visit_descriptionlist
          :parser: sphinx_asciidoctrine.parser
 
 .. py:function:: is_continuation_paragraph(node: asciidoctrine.nodes.Node) -> bool

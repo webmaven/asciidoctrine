@@ -196,8 +196,8 @@ virtual dictionaries, network streams, etc.).</p>
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">FsLoader</span>
 
-<span class="n">loader</span> <span class="o">=</span> <span class="n">FsLoader</span><span class="p">(</span><span class="n">base_dir</span><span class="o">=</span><span class="s2">&quot;/docs&quot;</span><span class="p">,</span> <span class="n">safe_mode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">content</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="s2">&quot;chapter1/intro.adoc&quot;</span><span class="p">)</span>
+<span class="n">loader</span> <span class="o">=</span> <span class="n">FsLoader</span><span class="p">(</span><span class="n">base_dir</span><span class="o">=</span><span class="s2">"/docs"</span><span class="p">,</span> <span class="n">safe_mode</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">content</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="s2">"chapter1/intro.adoc"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p class="rubric">Initialization</p>
@@ -253,11 +253,11 @@ assembly, and browser-native execution without touching the disk.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">MemoryLoader</span>
 
 <span class="n">files</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;main.adoc&quot;</span><span class="p">:</span> <span class="s2">&quot;= Title</span><span class="se">\n\n</span><span class="s2">include::chapter1.adoc[]&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;chapter1.adoc&quot;</span><span class="p">:</span> <span class="s2">&quot;== Chapter 1</span><span class="se">\n\n</span><span class="s2">Content text.&quot;</span>
+    <span class="s2">"main.adoc"</span><span class="p">:</span> <span class="s2">"= Title</span><span class="se">\n\n</span><span class="s2">include::chapter1.adoc[]"</span><span class="p">,</span>
+    <span class="s2">"chapter1.adoc"</span><span class="p">:</span> <span class="s2">"== Chapter 1</span><span class="se">\n\n</span><span class="s2">Content text."</span>
 <span class="p">}</span>
-<span class="n">loader</span> <span class="o">=</span> <span class="n">MemoryLoader</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">base_dir</span><span class="o">=</span><span class="s2">&quot;/workspace&quot;</span><span class="p">)</span>
-<span class="n">content</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="s2">&quot;main.adoc&quot;</span><span class="p">)</span>
+<span class="n">loader</span> <span class="o">=</span> <span class="n">MemoryLoader</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="n">base_dir</span><span class="o">=</span><span class="s2">"/workspace"</span><span class="p">)</span>
+<span class="n">content</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="s2">"main.adoc"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p class="rubric">Initialization</p>
