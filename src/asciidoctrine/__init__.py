@@ -27,7 +27,7 @@ from .nodes import (
 from .resolver import ASGResolver, WorkspaceBuilder, WorkspaceCatalog
 from .serializer import serialize_to_asciidoc
 
-__version__ = "0.2.0a1"
+__version__ = "0.2.0a2"
 
 __all__ = [
     "parse_to_ast",

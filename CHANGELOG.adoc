@@ -1,7 +1,7 @@
 = Changelog
 :toc:
 
-== Unreleased
+== link:https://pypi.org/project/asciidoctrine/0.2.0a2/[0.2.0a2] - 2026-08-21
 
 === Fixed
 * **Consecutive List Merging with Distinct Attributes or Titles (Issue #96)**:
@@ -14,7 +14,7 @@
   - Strict parsing now rejects malformed terms such as `* Term:: definition` and `* **Term**:: definition` with a precise `AsciiDocSyntaxError` instead of silently retaining a stray asterisk in rendered output.
   - Permissive parsing preserves its recovered description-list AST while emitting a `SyntaxWarning` that identifies the malformed term and source line.
 
-== 0.2.0a1 - 2026-08-16
+== link:https://pypi.org/project/asciidoctrine/0.2.0a1/[0.2.0a1] - 2026-08-16
 
 === Added
 * **Resource Loader Abstraction (`FileProvider`, `FsLoader`, `MemoryLoader`)**:
