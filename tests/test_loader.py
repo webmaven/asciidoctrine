@@ -93,3 +93,60 @@ def test_fs_loader_real_disk(tmp_path: Path):
     # Security check: outside base_dir
     with pytest.raises(PermissionError):
         loader.read_text("../outside.adoc")
+
+
+def test_fs_loader_safe_mode_disabled(tmp_path: Path):
+    doc = tmp_path / "outside.adoc"
+    doc.write_text("Unsafe Content", encoding="utf-8")
+
+    sub_dir = tmp_path / "sub"
+    sub_dir.mkdir()
+
+    loader = FsLoader(base_dir=str(sub_dir), safe_mode=False)
+    # With safe_mode=False, accessing parent path is permitted
+    assert loader.exists(str(doc))
+    assert loader.is_file(str(doc))
+    assert loader.read_text(str(doc)) == "Unsafe Content"
+
+
+def test_fs_loader_find_files_empty_and_missing(tmp_path: Path):
+    loader = FsLoader(base_dir=str(tmp_path), safe_mode=True)
+    assert loader.find_files("*.adoc") == []
+    assert loader.find_files("*.adoc", base_dir="nonexistent_subdir") == []
+
+
+def test_fs_loader_default_cwd():
+    loader = FsLoader()
+    assert loader.base_dir == Path.cwd().resolve().as_posix() or loader.base_dir == str(
+        Path.cwd()
+    )
+
+
+def test_fs_loader_exists_and_is_file_permission_error(tmp_path: Path):
+    loader = FsLoader(base_dir=str(tmp_path), safe_mode=True)
+    # Traversal returns False instead of crashing for exists() and is_file()
+    assert not loader.exists("../outside.adoc")
+    assert not loader.is_file("../outside.adoc")
+
+
+def test_memory_loader_safe_mode_disabled():
+    loader = MemoryLoader(base_dir="/workspace", safe_mode=False)
+    loader.put("/outside/doc.adoc", "Outside Content")
+
+    assert loader.exists("/outside/doc.adoc")
+    assert loader.is_file("/outside/doc.adoc")
+    assert loader.read_text("/outside/doc.adoc") == "Outside Content"
+
+
+def test_memory_loader_windows_path_normalization():
+    loader = MemoryLoader(base_dir=r"C:\workspace", safe_mode=False)
+    loader.put(r"subdir\file.adoc", "Normalized")
+
+    assert loader.exists("subdir/file.adoc")
+    assert loader.read_text("subdir/file.adoc") == "Normalized"
+
+
+def test_memory_loader_exists_and_is_file_permission_error():
+    loader = MemoryLoader(base_dir="/workspace", safe_mode=True)
+    assert not loader.exists("../outside.adoc")
+    assert not loader.is_file("../outside.adoc")

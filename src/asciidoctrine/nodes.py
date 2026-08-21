@@ -149,6 +149,11 @@ class BlockNode(Node):
     def append(self, child: Node) -> None:
         self.blocks.append(child)  # type: ignore[attr-defined]
 
+    @property
+    def has_metadata(self) -> bool:
+        """Return True if this block node has attached attributes or a title."""
+        return bool(self.attributes) or (getattr(self, "title", None) is not None)
+
 
 class Docinfo(Node):
     """Represents header and footer injected document metadata."""
@@ -635,8 +640,8 @@ class Ref(InlineNode):
     """
     An inline node representing hyperlinks, cross-references, and footnote references.
 
-    `Ref` handles URL links (`https://example.com[Label]`), internal cross-references (+<<section_id,Label>>+
-    or `xref:document.adoc#section_id[Label]`), anchors (+[[anchor_id]]+), and footnote references (`footnote:[text]`).
+    `Ref` handles URL links, internal cross-references, document anchors,
+    and footnote references.
 
     *Attributes:*
 

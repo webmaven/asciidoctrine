@@ -4,6 +4,9 @@
 == Unreleased
 
 === Fixed
+* **Consecutive List Merging with Distinct Attributes or Titles (Issue #96)**:
+  - Fixed consecutive description lists and standard lists with distinct block attributes (e.g. `[parameters]` and `[returns]`) or titles silently merging into a single list node and dropping subsequent metadata.
+  - Updated `BlockTransformer._merge_consecutive_lists` and `resolve_list_continuations` to break list affinity and retain separate list nodes whenever a list declares its own attributes or title.
 * **Table Parsing with Delimited Blocks in AsciiDoc Cells (Issue #95)**:
   - Fixed an Earley rule priority conflict where tables containing AsciiDoc-style cells (`a|`) with delimited blocks (such as code listings `[source,python]`) failed to parse as `Table` AST nodes, incorrectly falling back to fragmented top-level paragraphs and listings.
   - Assigned explicit `table_cell.20000` rule priority in `grammar.lark` to ensure cell matching reliably outweighs top-level block splitting.

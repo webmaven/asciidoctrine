@@ -50,7 +50,14 @@ class BlockTransformer(BaseTransformer):
         for current_block in blocks[1:]:
             prev_block = merged_blocks[-1]
 
-            if (
+            has_metadata = (
+                current_block.has_metadata
+                if isinstance(current_block, BlockNode)
+                else bool(getattr(current_block, "attributes", {}))
+                or getattr(current_block, "title", None) is not None
+            )
+
+            if not has_metadata and (
                 isinstance(current_block, ASTList)
                 and isinstance(prev_block, ASTList)
                 and current_block.variant == prev_block.variant
@@ -58,14 +65,16 @@ class BlockTransformer(BaseTransformer):
                 prev_block.items.extend(current_block.items)
                 if prev_block.location and current_block.location:
                     prev_block.location[1] = current_block.location[1]
-            elif isinstance(current_block, DescriptionList) and isinstance(
-                prev_block, DescriptionList
+            elif not has_metadata and (
+                isinstance(current_block, DescriptionList)
+                and isinstance(prev_block, DescriptionList)
             ):
                 prev_block.items.extend(current_block.items)
                 if prev_block.location and current_block.location:
                     prev_block.location[1] = current_block.location[1]
-            elif isinstance(current_block, CalloutList) and isinstance(
-                prev_block, CalloutList
+            elif not has_metadata and (
+                isinstance(current_block, CalloutList)
+                and isinstance(prev_block, CalloutList)
             ):
                 prev_block.items.extend(current_block.items)
                 if prev_block.location and current_block.location:

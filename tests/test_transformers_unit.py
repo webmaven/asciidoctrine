@@ -388,6 +388,90 @@ def test_merge_consecutive_lists_empty(transformer):
     assert transformer._merge_consecutive_lists([]) == []
 
 
+def test_merge_consecutive_lists_with_attributes_not_merged(transformer):
+    from asciidoctrine.nodes import (
+        DescriptionList,
+        DescriptionListItem,
+        DescriptionListTerm,
+        ListItem,
+    )
+    from asciidoctrine.nodes import List as ASTList
+
+    # Description lists with attributes
+    term1 = DescriptionListTerm(inlines=[Text("k1")])
+    item1 = DescriptionListItem(terms=[term1], blocks=[])
+    dl1 = DescriptionList(items=[item1])
+    dl1.attributes = {"style": "parameters"}
+
+    term2 = DescriptionListTerm(inlines=[Text("k2")])
+    item2 = DescriptionListItem(terms=[term2], blocks=[])
+    dl2 = DescriptionList(items=[item2])
+    dl2.attributes = {"style": "returns"}
+
+    result_dlist = transformer._merge_consecutive_lists([dl1, dl2])
+    assert len(result_dlist) == 2
+    assert result_dlist[0].attributes == {"style": "parameters"}
+    assert result_dlist[1].attributes == {"style": "returns"}
+
+    # ASTLists with attributes
+    li1 = ListItem(marker="*", principal=[Text("item 1")])
+    li2 = ListItem(marker="*", principal=[Text("item 2")])
+    l1 = ASTList(variant="unordered", marker="*", items=[li1])
+    l1.attributes = {"role": "first"}
+    l2 = ASTList(variant="unordered", marker="*", items=[li2])
+    l2.attributes = {"role": "second"}
+
+    result_list = transformer._merge_consecutive_lists([l1, l2])
+    assert len(result_list) == 2
+    assert result_list[0].attributes == {"role": "first"}
+    assert result_list[1].attributes == {"role": "second"}
+
+
+def test_merge_consecutive_lists_with_titles_not_merged(transformer):
+    from asciidoctrine.nodes import List as ASTList
+    from asciidoctrine.nodes import (
+        ListItem,
+        Title,
+    )
+
+    title1 = Title(inlines=[Text("List 1")])
+    title2 = Title(inlines=[Text("List 2")])
+
+    li1 = ListItem(marker="*", principal=[Text("item 1")])
+    li2 = ListItem(marker="*", principal=[Text("item 2")])
+    l1 = ASTList(variant="unordered", marker="*", items=[li1])
+    l1.title = title1
+    l2 = ASTList(variant="unordered", marker="*", items=[li2])
+    l2.title = title2
+
+    result_list = transformer._merge_consecutive_lists([l1, l2])
+    assert len(result_list) == 2
+    assert result_list[0].title == title1
+    assert result_list[1].title == title2
+
+
+def test_block_node_has_metadata():
+    from asciidoctrine.nodes import DescriptionList, Paragraph, Title
+
+    # Paragraph with no attributes and no title
+    p = Paragraph(inlines=[Text("hello")])
+    assert not p.has_metadata
+
+    # Paragraph with attributes
+    p_with_attr = Paragraph(inlines=[Text("hello")])
+    p_with_attr.attributes["style"] = "tip"
+    assert p_with_attr.has_metadata
+
+    # DescriptionList without title or attributes
+    dl = DescriptionList()
+    assert not dl.has_metadata
+
+    # DescriptionList with title
+    dl_with_title = DescriptionList()
+    dl_with_title.title = Title(inlines=[Text("Params")])
+    assert dl_with_title.has_metadata
+
+
 # ---------------------------------------------------------------------------
 # _get_list_level
 # ---------------------------------------------------------------------------

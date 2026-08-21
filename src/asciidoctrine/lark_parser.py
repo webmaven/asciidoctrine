@@ -760,10 +760,9 @@ class ASTSyntaxAuditor(NodeVisitor):
     def visit_descriptionlist(self, node: Node) -> None:
         """Reject list-marker text accidentally consumed as a dlist term.
 
-        Earley's permissive parse can treat ``* Term:: definition`` as a
-        description list. The leading list marker is then retained literally
-        in the term (and may also form an unclosed strong span when ``Term``
-        is bold). Inspect the original source because the transformed inline
+        Earley parsing can treat bulleted description list items as
+        description lists. The leading list marker is then retained literally
+        in the term. Inspect the original source because the transformed inline
         nodes no longer preserve this intent clearly.
         """
         if node.location:
@@ -1080,7 +1079,19 @@ def resolve_list_continuations(blocks: PyList[Node]) -> PyList[Node]:
 
         block = resolve_block_internals(block)
 
-        if isinstance(block, List) and resolved and isinstance(resolved[-1], List):
+        block_has_metadata = (
+            block.has_metadata
+            if isinstance(block, BlockNode)
+            else bool(getattr(block, "attributes", {}))
+            or getattr(block, "title", None) is not None
+        )
+
+        if (
+            not block_has_metadata
+            and isinstance(block, List)
+            and resolved
+            and isinstance(resolved[-1], List)
+        ):
             if (
                 resolved[-1].variant == block.variant
                 and resolved[-1].marker == block.marker
@@ -1092,7 +1103,8 @@ def resolve_list_continuations(blocks: PyList[Node]) -> PyList[Node]:
                 i += 1
                 continue
         elif (
-            isinstance(block, DescriptionList)
+            not block_has_metadata
+            and isinstance(block, DescriptionList)
             and resolved
             and isinstance(resolved[-1], DescriptionList)
         ):

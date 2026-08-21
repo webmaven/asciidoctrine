@@ -376,7 +376,13 @@ To facilitate producing a TCK-compliant Resolved Abstract Semantic Graph (ASG), 
   - Increasing the container-level `table` priority alone (e.g. `table.50000`) is fragile because tables with many listing blocks ($> 5$) would still exceed the fixed threshold and flip to the split tree.
 - **Solution**:
   - Assigned an explicit high priority of `.20000` to the `table_cell` rule in `src/asciidoctrine/grammar.lark` (`table_cell.20000: [table_cell_spec] TABLE_CELL`).
-  - Because `table_cell` matches once per cell in the table, each cell containing a delimited block contributes $20000$ points to the table parse tree, reliably outweighing the $10000$ points from top-level `listing_block` splitting regardless of how many listing cells the table contains.
+### 18. Breaking List Affinity on Attributed Consecutive Lists (Issue #96)
+- **Problem**: When consecutive description lists or standard lists with distinct block attributes (e.g. `[parameters]` followed by `[returns]`) or titles were parsed, `BlockTransformer._merge_consecutive_lists` and `resolve_list_continuations` merged them into a single `DescriptionList` / `List` node, silently discarding the attributes and title of the second list.
+- **Cause**: The list-merging logic previously only checked whether adjacent list variants matched (`isinstance(current_block, ASTList) and isinstance(prev_block, ASTList)` or `isinstance(current_block, DescriptionList)`), without checking whether the subsequent list declared its own block attributes or title.
+- **Solution**:
+  1. Updated `BlockTransformer._merge_consecutive_lists` to guard against merging when `current_block` contains attributes (`bool(current_block.attributes)`) or a title (`current_block.title is not None`).
+  2. Updated `resolve_list_continuations` in `src/asciidoctrine/lark_parser.py` with identical guards so subsequent lists with metadata are not merged during continuation resolution.
+  3. Preserved normal loose list merging when adjacent list items are separated by blank lines without explicit attributes or titles.
 
 ## 🤖 Subagent & Model Routing Strategy
 
