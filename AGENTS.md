@@ -384,6 +384,23 @@ To facilitate producing a TCK-compliant Resolved Abstract Semantic Graph (ASG), 
   2. Updated `resolve_list_continuations` in `src/asciidoctrine/lark_parser.py` with identical guards so subsequent lists with metadata are not merged during continuation resolution.
   3. Preserved normal loose list merging when adjacent list items are separated by blank lines without explicit attributes or titles.
 
+### 19. Verbatim Bracket Preprocessor Warning (Issue #98)
+- **Problem**: Lines enclosed in brackets (such as Python REPL output `[2, 4, 6]`) inside verbatim listing blocks erroneously emitted a false "Same-length nesting" `PreprocessorWarning` when reaching the block's closing delimiter (`----`).
+- **Cause**: Inside `Preprocessor._process_source()`, lines were passed to `is_metadata()`. Because `is_metadata` considered any line starting with `[` and ending with `]` as pending metadata (`metadata_pending = True`), when the closing verbatim delimiter was encountered on the following line, the preprocessor falsely concluded that the bracketed line was block metadata attempting to open an invalid same-length nested block.
+- **Solution**:
+  - Removed metadata inspection for content lines within an active verbatim block (`in_verbatim is not None`) in `_process_source()`, directly recording verbatim lines as raw text without setting `metadata_pending`.
+
+### 20. Constrained Inline Emphasis Mid-Identifier Underscore Matching (Issue #97)
+- **Problem**: Identifiers containing underscores (such as `some_function_name` or `var_name_2`) were incorrectly matched as constrained inline emphasis (`italic.2`), splitting the identifier into fragmented text and emphasis AST nodes (e.g. `some` + `_function_name and var_` + `name_2`).
+- **Cause**: Lark's Earley parser decomposes plain words and underscores into multiple candidate tokenizations. Because the `italic.2` rule carried a priority score of `2` while generic plain words had `0`, Earley preferred the parse tree that constructed an `italic` node over the flat word sequence.
+- **What Didn't Work**:
+  - Adding `WORD_WITH_UNDERSCORE` alone to `?base_inline` did not prevent the split because `italic.2` still awarded $+2$ priority to the parse tree, causing Earley to choose `WORD + UNDERSCORE + WORD_WITH_UNDERSCORE + UNDERSCORE` over `WORD_WITH_UNDERSCORE`.
+  - Adding `WORD_WITH_UNDERSCORE` with double quotes included in its regex caused double-quoted emphasis (e.g. `"_quoted italic_"`) to fail parsing.
+- **Solution**:
+  1. Defined `OPEN_UNDERSCORE.2` (`/(?<![a-zA-Z0-9_\-])_(?![ \t\n])/`) and `CLOSE_UNDERSCORE.2` (`/(?<![ \t\n])_(?![a-zA-Z0-9_\-])/`) terminals with lookaround constraints enforcing AsciiDoc constrained inline formatting word-boundary rules.
+  2. Updated the `italic.2` rule to `OPEN_UNDERSCORE italic_content CLOSE_UNDERSCORE`.
+  3. Added `WORD_WITH_UNDERSCORE.3` terminal and elevated `ATTR_NAME.5` and `FN_ID.5` priorities to prevent attribute references (e.g. `{project_name}`) and footnote IDs from being tokenized as generic word tokens.
+
 ## 🤖 Subagent & Model Routing Strategy
 
 *   **Standing Instruction**: For all coding and coding-adjacent tasks, use your judgement to decide when a lower-power model would be appropriate and run that in a subagent.

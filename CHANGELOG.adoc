@@ -1,6 +1,16 @@
 = Changelog
 :toc:
 
+== Unreleased
+
+=== Fixed
+* **Verbatim Listing Bracket Preprocessor Warning (Issue #98)**:
+  - Fixed preprocessor emitting a false-positive "Same-length nesting" `PreprocessorWarning` when verbatim content lines ended with bracketed text (such as Python REPL output `[2, 4, 6]`) before the closing delimiter (`----`).
+  - Content lines inside active verbatim blocks are now recorded directly without being flagged as pending metadata.
+* **Constrained Inline Emphasis Mid-Identifier Underscore Matching (Issue #97)**:
+  - Fixed mid-identifier underscores (e.g. `some_function_name` or `var_name_2`) incorrectly matching as constrained inline emphasis (`_italic_`), which fragmented identifiers into separate text and emphasis AST nodes.
+  - Introduced boundary lookarounds (`OPEN_UNDERSCORE.2` / `CLOSE_UNDERSCORE.2`) and `WORD_WITH_UNDERSCORE.3` terminal tokenization with elevated `ATTR_NAME.5` and `FN_ID.5` priorities.
+
 == link:https://pypi.org/project/asciidoctrine/0.2.0a2/[0.2.0a2] - 2026-08-21
 
 === Fixed
