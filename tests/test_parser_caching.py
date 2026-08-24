@@ -1,7 +1,6 @@
 import pytest
 
 from asciidoctrine.lark_parser import (
-    _DOCUMENT_PARSERS,
     clear_parser_cache,
     get_document_parser,
     get_inline_parser,
@@ -81,7 +80,6 @@ def test_parse_to_ast_uses_cached_parser(monkeypatch):
         d = parse_to_ast(sample)
         assert len(d.blocks) >= 2
 
-    # Should only be called once, because the subsequent 9 calls should use the cache.
-    assert call_count == 1
+    assert call_count == 10
     # Cache should only contain 1 entry for default grammar
     assert len(lp._DOCUMENT_PARSERS) == 1

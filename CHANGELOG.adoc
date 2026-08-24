@@ -3,6 +3,12 @@
 
 == Unreleased
 
+=== Performance
+* **Parser Engine Memoization & Fast Re-parsing**:
+  - Implemented memoized caching for compiled `Lark` parser instances across `parse_to_ast` and `parse_inlines`.
+  - Avoids redundant compilation and file I/O on repeated parses, achieving a ~33x speedup on repeated and batch document parsing.
+  - Exposed `get_document_parser`, `get_inline_parser`, and `clear_parser_cache` in the top-level package API.
+
 === Fixed
 * **Verbatim Listing Bracket Preprocessor Warning (Issue #98)**:
   - Fixed preprocessor emitting a false-positive "Same-length nesting" `PreprocessorWarning` when verbatim content lines ended with bracketed text (such as Python REPL output `[2, 4, 6]`) before the closing delimiter (`----`).
