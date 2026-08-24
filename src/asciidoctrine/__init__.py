@@ -12,7 +12,14 @@ Core features include:
 * `serialize_to_asciidoc()`: Losslessly serialize AST nodes back to AsciiDoc text.
 """
 
-from .lark_parser import AsciiDocSyntaxError, parse_to_ast
+from .lark_parser import (
+    AsciiDocSyntaxError,
+    clear_parser_cache,
+    get_document_parser,
+    get_inline_parser,
+    parse_inlines,
+    parse_to_ast,
+)
 from .loader import FileProvider, FsLoader, MemoryLoader
 from .nodes import (
     Docinfo,
@@ -30,7 +37,12 @@ from .serializer import serialize_to_asciidoc
 __version__ = "0.2.0a2"
 
 __all__ = [
+    "__version__",
     "parse_to_ast",
+    "parse_inlines",
+    "get_document_parser",
+    "get_inline_parser",
+    "clear_parser_cache",
     "AsciiDocSyntaxError",
     "serialize_to_asciidoc",
     "FileProvider",
@@ -48,3 +60,4 @@ __all__ = [
     "WorkspaceCatalog",
     "WorkspaceBuilder",
 ]
+
