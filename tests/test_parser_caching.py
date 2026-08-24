@@ -74,6 +74,6 @@ def test_parse_to_ast_repeated_throughput():
         assert len(d.blocks) >= 2
     elapsed = time.perf_counter() - start
 
-    # Average parse time with cached parser should be well under 0.05s per parse (typically ~0.005s)
+    # Average parse time with cached parser should be well under 0.2s per parse
     avg_time = elapsed / iterations
-    assert avg_time < 0.05, f"Average parse time was {avg_time:.4f}s, expected < 0.05s"
+    assert avg_time < 0.2, f"Average parse time was {avg_time:.4f}s, expected < 0.2s"

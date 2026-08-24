@@ -1334,23 +1334,10 @@ def parse_to_ast(
                 f"Syntax error: Unclosed block delimiter '{preprocessor.root_delimiter_stack[-1]}'."
             )
 
-    with open(grammar_file, "r") as f:
-        grammar = f.read()
-
-    if extra_authority_schemes or extra_opaque_schemes:
-        custom_uri_rule = build_uri_terminal(
-            extra_authority_schemes, extra_opaque_schemes
-        )
-        grammar = re.sub(
-            r"^URI\.3:.*$", lambda m: custom_uri_rule, grammar, flags=re.MULTILINE
-        )
-
-    parser = Lark(
-        grammar,
-        start="document",
-        parser="earley",
-        ambiguity="resolve",
-        propagate_positions=True,
+    parser = get_document_parser(
+        grammar_file=grammar_file,
+        extra_authority_schemes=tuple(extra_authority_schemes or ()),
+        extra_opaque_schemes=tuple(extra_opaque_schemes or ()),
     )
     try:
         tree = parser.parse(processed_source)
