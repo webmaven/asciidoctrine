@@ -1390,7 +1390,76 @@ def parse_to_ast(
     return ast_root
 
 
-_INLINE_PARSER = None
+_DOCUMENT_PARSERS: Dict[Tuple[str, float, Tuple[str, ...], Tuple[str, ...]], Lark] = {}
+_INLINE_PARSERS: Dict[Tuple[str, float], Lark] = {}
+
+
+def clear_parser_cache() -> None:
+    """Clears all cached compiled Lark parser instances."""
+    _DOCUMENT_PARSERS.clear()
+    _INLINE_PARSERS.clear()
+
+
+def get_document_parser(
+    grammar_file: str = DEFAULT_GRAMMAR,
+    extra_authority_schemes: Optional[Tuple[str, ...]] = None,
+    extra_opaque_schemes: Optional[Tuple[str, ...]] = None,
+) -> Lark:
+    """
+    Returns a cached compiled Lark Earley parser for document parsing.
+    Recompiles only when grammar path, file modification timestamp, or custom URI schemes change.
+    """
+    authority_schemes = tuple(extra_authority_schemes or ())
+    opaque_schemes = tuple(extra_opaque_schemes or ())
+    mtime = os.path.getmtime(grammar_file) if os.path.exists(grammar_file) else 0.0
+    cache_key = (grammar_file, mtime, authority_schemes, opaque_schemes)
+
+    if cache_key in _DOCUMENT_PARSERS:
+        return _DOCUMENT_PARSERS[cache_key]
+
+    with open(grammar_file, "r", encoding="utf-8") as f:
+        grammar = f.read()
+
+    if authority_schemes or opaque_schemes:
+        custom_uri_rule = build_uri_terminal(authority_schemes, opaque_schemes)
+        grammar = re.sub(
+            r"^URI\.3:.*$", lambda m: custom_uri_rule, grammar, flags=re.MULTILINE
+        )
+
+    parser = Lark(
+        grammar,
+        start="document",
+        parser="earley",
+        ambiguity="resolve",
+        propagate_positions=True,
+    )
+    _DOCUMENT_PARSERS[cache_key] = parser
+    return parser
+
+
+def get_inline_parser(grammar_file: str = DEFAULT_GRAMMAR) -> Lark:
+    """
+    Returns a cached compiled Lark Earley parser for inline formatting parsing.
+    Recompiles only when grammar path or file modification timestamp changes.
+    """
+    mtime = os.path.getmtime(grammar_file) if os.path.exists(grammar_file) else 0.0
+    cache_key = (grammar_file, mtime)
+
+    if cache_key in _INLINE_PARSERS:
+        return _INLINE_PARSERS[cache_key]
+
+    with open(grammar_file, "r", encoding="utf-8") as f:
+        grammar = f.read()
+
+    parser = Lark(
+        grammar,
+        start="text_content",
+        parser="earley",
+        ambiguity="resolve",
+        propagate_positions=True,
+    )
+    _INLINE_PARSERS[cache_key] = parser
+    return parser
 
 
 def parse_inlines(
@@ -1411,19 +1480,9 @@ def parse_inlines(
 
     List of `Node` AST inline instances.
     """
-    global _INLINE_PARSER
-    if _INLINE_PARSER is None:
-        with open(grammar_file, "r") as f:
-            grammar = f.read()
-        _INLINE_PARSER = Lark(
-            grammar,
-            start="text_content",
-            parser="earley",
-            ambiguity="resolve",
-            propagate_positions=True,
-        )
+    parser = get_inline_parser(grammar_file=grammar_file)
     try:
-        tree = _INLINE_PARSER.parse(source)
+        tree = parser.parse(source)
     except UnexpectedInput as e:
         context = e.get_context(source)
         message = f"Syntax error at line {e.line}, column {e.column}.\n{context}"
