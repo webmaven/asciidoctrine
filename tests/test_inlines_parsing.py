@@ -816,6 +816,48 @@ class TestInlines(unittest.TestCase):
 
         self.assertNotIn("footnotes", resolved)
 
+    def test_mid_identifier_underscores_plain_text(self):
+        source = "The function `some_function_name` or plain some_function_name and var_name_2.\n"
+        doc = parse_to_ast(source)
+        p = doc.blocks[0]
+        # Inlines: "The function ", `some_function_name` (code span), " or plain some_function_name and var_name_2."
+        text_nodes = [node for node in p.inlines if node.name == "text"]
+        full_text = "".join(n.value for n in text_nodes)
+        assert "some_function_name" in full_text
+        assert "var_name_2" in full_text
+        # Ensure no italic span was generated from some_function_name
+        span_variants = [node.variant for node in p.inlines if node.name == "span"]
+        assert "emphasis" not in span_variants
+
+    def test_constrained_italic_with_punctuation_boundaries(self):
+        source = (
+            'This is (_italic_), "_quoted italic_", and _italic_ at word boundaries.\n'
+        )
+        doc = parse_to_ast(source)
+        p = doc.blocks[0]
+        spans = [
+            node
+            for node in p.inlines
+            if node.name == "span" and node.variant == "emphasis"
+        ]
+        assert len(spans) == 3
+        assert spans[0].inlines[0].value == "italic"
+        assert spans[1].inlines[0].value == "quoted italic"
+        assert spans[2].inlines[0].value == "italic"
+
+    def test_unconstrained_italic_inside_words(self):
+        source = "This is un__doubt__edly unconstrained.\n"
+        doc = parse_to_ast(source)
+        p = doc.blocks[0]
+        spans = [
+            node
+            for node in p.inlines
+            if node.name == "span" and node.variant == "emphasis"
+        ]
+        assert len(spans) == 1
+        assert spans[0].form == "unconstrained"
+        assert spans[0].inlines[0].value == "doubt"
+
 
 if __name__ == "__main__":
     unittest.main()

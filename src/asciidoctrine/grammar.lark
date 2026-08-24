@@ -167,7 +167,7 @@ text_content: inline_element+
 
 attribute_reference.2: LBRACE ATTR_NAME RBRACE
 
-?base_inline: attribute_reference | inline_attribute_list | double_quoted | single_quoted | inline_image | icon_inline | inline_indexterm_macro | inline_indexterm_flow_triple | inline_indexterm_flow_double | inline_anchor | inline_xref | inline_bibref | inline_link | bare_url_link | bare_email_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | inline_pass_macro | inline_triple_plus | WHITESPACE | COLON | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | BACKTICK | LT | GT | PLUS | LPAR | RPAR
+?base_inline: attribute_reference | inline_attribute_list | double_quoted | single_quoted | inline_image | icon_inline | inline_indexterm_macro | inline_indexterm_flow_triple | inline_indexterm_flow_double | inline_anchor | inline_xref | inline_bibref | inline_link | bare_url_link | bare_email_link | inline_break | inline_kbd | inline_button | inline_menu | inline_callout | inline_stem | inline_asciimath | inline_latexmath | inline_pass_macro | inline_triple_plus | WHITESPACE | COLON | WORD_WITH_UNDERSCORE | WORD | NUMBER | LBRACE | RBRACE | EQUALS | LSQB | BACKTICK | LT | GT | PLUS | LPAR | RPAR
 
 ?inline_element: unconstrained_bold | bold | unconstrained_italic | italic | unconstrained_monospace | monospace | unconstrained_marked | marked | superscript | subscript | footnote | footnoteref | base_inline | RSQB | ASTERISK | UNDERSCORE | CIRCUMFLEX | TILDE | HASH
 
@@ -220,7 +220,7 @@ literal_content: /[^\n`]+/
 
 bold.2: ASTERISK bold_content ASTERISK
 unconstrained_bold.3: "**" bold_content "**"
-italic.2: UNDERSCORE italic_content UNDERSCORE
+italic.2: OPEN_UNDERSCORE italic_content CLOSE_UNDERSCORE
 unconstrained_italic.3: "__" italic_content "__"
 
 monospace.10: "`" monospace_content "`"
@@ -328,8 +328,11 @@ _NEWLINE: "\n"
 _WS: /[ \t]/
 WHITESPACE: _WS+
 NUMBER: /[0-9]+/
-ATTR_NAME: /[a-zA-Z0-9_\-]+/
-FN_ID: /[a-zA-Z0-9_\-]+/
+ATTR_NAME.5: /[a-zA-Z0-9_\-]+/
+FN_ID.5: /[a-zA-Z0-9_\-]+/
+WORD_WITH_UNDERSCORE.3: /[^ \t\n*_`=\[\]{}:<>+()#^~"']+(_[^ \t\n*_`=\[\]{}:<>+()#^~"']+)+/
+OPEN_UNDERSCORE.2: /(?<![a-zA-Z0-9_\-])_(?![ \t\n])/
+CLOSE_UNDERSCORE.2: /(?<![ \t\n])_(?![a-zA-Z0-9_\-])/
 WORD: /[^ \t\n*_`=\[\]{}:<>+()#^~]+/  // Word characters (not whitespace or markup or parentheses)
 LBRACE: "{"
 RBRACE: "}"
