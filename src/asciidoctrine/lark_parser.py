@@ -1408,7 +1408,7 @@ def get_document_parser(
         grammar = f.read()
 
     if authority_schemes or opaque_schemes:
-        custom_uri_rule = build_uri_terminal(authority_schemes, opaque_schemes)
+        custom_uri_rule = build_uri_terminal(list(authority_schemes), list(opaque_schemes))
         grammar = re.sub(
             r"^URI\.3:.*$", lambda m: custom_uri_rule, grammar, flags=re.MULTILINE
         )

@@ -60,4 +60,3 @@ __all__ = [
     "WorkspaceCatalog",
     "WorkspaceBuilder",
 ]
-

@@ -1,15 +1,10 @@
-import os
-import time
-from typing import Tuple
-
 import pytest
 
 from asciidoctrine.lark_parser import (
-    DEFAULT_GRAMMAR,
+    _DOCUMENT_PARSERS,
     clear_parser_cache,
     get_document_parser,
     get_inline_parser,
-    parse_inlines,
     parse_to_ast,
 )
 
@@ -60,20 +55,33 @@ def test_custom_schemes_cache_separately():
     assert parser_custom is parser_custom_repeat
 
 
-def test_parse_to_ast_repeated_throughput():
-    """Verify parse_to_ast leverages cached parser for high-throughput batch parsing."""
-    sample = "= Document Title\n\nFirst paragraph with *bold* text.\n\n* Item 1\n* Item 2\n"
-    # Pre-warm
-    doc = parse_to_ast(sample)
-    assert doc is not None
+def test_parse_to_ast_uses_cached_parser(monkeypatch):
+    """Verify parse_to_ast leverages cached parser and does not recompile."""
+    import asciidoctrine.lark_parser as lp
 
-    start = time.perf_counter()
-    iterations = 20
-    for _ in range(iterations):
+    sample = (
+        "= Document Title\n\nFirst paragraph with *bold* text.\n\n* Item 1\n* Item 2\n"
+    )
+    # First call populates cache
+    doc1 = parse_to_ast(sample)
+    assert doc1 is not None
+
+    call_count = 0
+    original_get_document_parser = lp.get_document_parser
+
+    def spy_get_document_parser(*args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        return original_get_document_parser(*args, **kwargs)
+
+    monkeypatch.setattr(lp, "get_document_parser", spy_get_document_parser)
+
+    # 10 calls to parse_to_ast
+    for _ in range(10):
         d = parse_to_ast(sample)
         assert len(d.blocks) >= 2
-    elapsed = time.perf_counter() - start
 
-    # Average parse time with cached parser should be well under 0.2s per parse
-    avg_time = elapsed / iterations
-    assert avg_time < 0.2, f"Average parse time was {avg_time:.4f}s, expected < 0.2s"
+    # Should only be called once, because the subsequent 9 calls should use the cache.
+    assert call_count == 1
+    # Cache should only contain 1 entry for default grammar
+    assert len(lp._DOCUMENT_PARSERS) == 1
