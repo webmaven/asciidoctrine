@@ -488,9 +488,7 @@ print("inner")
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             preprocessor.process(source)
-            self.assertEqual(len(w), 1)
-            self.assertTrue(issubclass(w[0].category, PreprocessorWarning))
-            self.assertIn("same-length", str(w[0].message).lower())
+            self.assertEqual(len(w), 0)
 
     def test_same_length_literal_nesting_warning(self) -> None:
         source = """....
@@ -504,9 +502,7 @@ inner
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             preprocessor.process(source)
-            self.assertEqual(len(w), 1)
-            self.assertTrue(issubclass(w[0].category, PreprocessorWarning))
-            self.assertIn("same-length", str(w[0].message).lower())
+            self.assertEqual(len(w), 0)
 
     def test_is_metadata_relative_paths_no_warning(self) -> None:
         # Relative file or command paths starting with ./ or ../ or Windows counterparts
@@ -529,8 +525,8 @@ inner
         # Test various edge cases for what should be recognized as block metadata vs what should be ignored.
         preprocessor = Preprocessor(base_dir=self.base_dir)
 
-        # 1. A valid block title inside verbatim block preceding a same-length delimiter
-        # SHOULD trigger a warning because it resembles a nested block opening.
+        # 1. A block title inside verbatim block preceding a delimiter
+        # should not trigger a warning because verbatim content is literal.
         source_with_warning = """----
 .Valid Title
 ----
@@ -540,9 +536,7 @@ print("inner")
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             preprocessor.process(source_with_warning)
-            self.assertEqual(len(w), 1)
-            self.assertTrue(issubclass(w[0].category, PreprocessorWarning))
-            self.assertIn("same-length", str(w[0].message).lower())
+            self.assertEqual(len(w), 0)
 
         # 2. File paths, decimal points, spaces, and single/multiple dots inside verbatim block
         # preceding a same-length delimiter should NOT trigger any warnings.
@@ -1191,3 +1185,64 @@ class TestPreprocessorAdditionalGaps:
         result = p.process(src)
         # foo is undefined (empty string); "" > 0 raises TypeError, so block is skipped
         assert "included" not in result
+
+
+# ---------------------------------------------------------------------------
+# Verbatim blocks and bracketed content (Issue #98)
+# ---------------------------------------------------------------------------
+
+
+def test_verbatim_listing_with_bracketed_lines_no_warning():
+    import warnings
+    from asciidoctrine.preprocessor import Preprocessor, PreprocessorWarning
+
+    source = (
+        "= Document Title\n\n"
+        '[source,python,role="test"]\n'
+        "----\n"
+        ">>> [x * 2 for x in [1, 2, 3]]\n"
+        "[2, 4, 6]\n"
+        "----\n"
+    )
+    pre = Preprocessor()
+    with warnings.catch_warnings(record=True) as recorded_warnings:
+        warnings.simplefilter("always")
+        result = pre.process(source)
+        preprocessor_warnings = [
+            w for w in recorded_warnings if issubclass(w.category, PreprocessorWarning)
+        ]
+        assert not preprocessor_warnings, (
+            f"Unexpected PreprocessorWarning: {[str(w.message) for w in preprocessor_warnings]}"
+        )
+
+    assert "--ASCIIDOCTRINE_OUTER_LISTING_START_4--" in result
+    assert "--ASCIIDOCTRINE_OUTER_LISTING_END_4--" in result
+    assert "[2, 4, 6]" in result
+
+
+def test_verbatim_listing_ast_with_bracketed_lines():
+    import warnings
+    from asciidoctrine.lark_parser import parse_to_ast
+    from asciidoctrine.preprocessor import PreprocessorWarning
+
+    source = (
+        "= Document Title\n\n"
+        '[source,python,role="test"]\n'
+        "----\n"
+        ">>> [x * 2 for x in [1, 2, 3]]\n"
+        "[2, 4, 6]\n"
+        "----\n"
+    )
+    with warnings.catch_warnings(record=True) as recorded_warnings:
+        warnings.simplefilter("always")
+        doc = parse_to_ast(source)
+        preprocessor_warnings = [
+            w for w in recorded_warnings if issubclass(w.category, PreprocessorWarning)
+        ]
+        assert not preprocessor_warnings, (
+            f"Unexpected PreprocessorWarning: {[str(w.message) for w in preprocessor_warnings]}"
+        )
+
+    assert len(doc.blocks) == 1
+    assert doc.blocks[0].name == "listing"
+

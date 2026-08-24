@@ -780,10 +780,7 @@ class Preprocessor:
                         processed_lines.append(processed_content)
 
                     else:
-                        if is_metadata(line_strip):
-                            metadata_pending = True
-                        else:
-                            metadata_pending = False
+                        # Inside verbatim blocks, content lines must not be flagged as pending metadata
                         self._record_line(current_file, line_num)
                         processed_lines.append(line)
                     continue
