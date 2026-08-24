@@ -47,14 +47,14 @@ API
 
 .. py:data:: __version__
    :canonical: asciidoctrine.__version__
-   :value: '0.2.0a2'
+   :value: '0.2.0a3'
 
    .. autodoc2-docstring:: asciidoctrine.__version__
       :parser: sphinx_asciidoctrine.parser
 
 .. py:data:: __all__
    :canonical: asciidoctrine.__all__
-   :value: ['parse_to_ast', 'AsciiDocSyntaxError', 'serialize_to_asciidoc', 'FileProvider', 'FsLoader', 'Memory...
+   :value: ['__version__', 'parse_to_ast', 'parse_inlines', 'get_document_parser', 'get_inline_parser', 'clear_...
 
    .. autodoc2-docstring:: asciidoctrine.__all__
       :parser: sphinx_asciidoctrine.parser
