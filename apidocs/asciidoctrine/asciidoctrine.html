@@ -105,6 +105,7 @@
 <p>Core features include:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">parse_to_ast()</span></code>: Parse raw AsciiDoc source code into a syntax-level AST.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">parse_inlines()</span></code>: Parse raw inline AsciiDoc source code into a syntax-level AST.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">FileProvider</span></code>, <code class="docutils literal notranslate"><span class="pre">FsLoader</span></code>, <code class="docutils literal notranslate"><span class="pre">MemoryLoader</span></code>: Abstract and virtual filesystem loaders for hermetic parsing.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code>: Resolve AST trees into spec-compliant Abstract Semantic Graphs (ASG).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">WorkspaceCatalog</span></code>: Index symbols and target anchors across multi-document workspaces.</p></li>
@@ -150,7 +151,7 @@
 
 <dl class="py data">
 <dt class="sig sig-object py" id="asciidoctrine.__all__">
-<span class="sig-prename descclassname"><span class="pre">asciidoctrine.</span></span><span class="sig-name descname"><span class="pre">__all__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['parse_to_ast',</span> <span class="pre">'AsciiDocSyntaxError',</span> <span class="pre">'serialize_to_asciidoc',</span> <span class="pre">'FileProvider',</span> <span class="pre">'FsLoader',</span> <span class="pre">'Memory...</span></span><a class="headerlink" href="#asciidoctrine.__all__" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.</span></span><span class="sig-name descname"><span class="pre">__all__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['__version__',</span> <span class="pre">'parse_to_ast',</span> <span class="pre">'parse_inlines',</span> <span class="pre">'get_document_parser',</span> <span class="pre">'get_inline_parser',</span> <span class="pre">'clear_...</span></span><a class="headerlink" href="#asciidoctrine.__all__" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>

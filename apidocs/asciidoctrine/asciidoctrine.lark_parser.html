@@ -147,7 +147,18 @@ that Lark’s permissive Earley parser falls back on (e.g. malformed paragraphs 
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.parse_to_ast" title="asciidoctrine.lark_parser.parse_to_ast"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_to_ast</span></code></a></p></td>
 <td><p>Parses raw AsciiDoc source text into a structured, spec-aligned AST <code class="docutils literal notranslate"><span class="pre">Document</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.parse_inlines" title="asciidoctrine.lark_parser.parse_inlines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_inlines</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.clear_parser_cache" title="asciidoctrine.lark_parser.clear_parser_cache"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear_parser_cache</span></code></a></p></td>
+<td><p>Clears all cached compiled Lark parser instances.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.get_document_parser" title="asciidoctrine.lark_parser.get_document_parser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_document_parser</span></code></a></p></td>
+<td><p>Returns a cached compiled Lark Earley parser for document parsing.
+Recompiles only when grammar path, file modification timestamp, or custom URI schemes change.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.get_inline_parser" title="asciidoctrine.lark_parser.get_inline_parser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_inline_parser</span></code></a></p></td>
+<td><p>Returns a cached compiled Lark Earley parser for inline formatting parsing.
+Recompiles only when grammar path or file modification timestamp changes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.parse_inlines" title="asciidoctrine.lark_parser.parse_inlines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_inlines</span></code></a></p></td>
 <td><p>Parses a string containing only inline formatting directly into a list of AST inline nodes.</p></td>
 </tr>
 </tbody>
@@ -175,7 +186,10 @@ that Lark’s permissive Earley parser falls back on (e.g. malformed paragraphs 
 <tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser.RESERVED_SCHEMES_BLACKLIST" title="asciidoctrine.lark_parser.RESERVED_SCHEMES_BLACKLIST"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RESERVED_SCHEMES_BLACKLIST</span></code></a></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser._INLINE_PARSER" title="asciidoctrine.lark_parser._INLINE_PARSER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_INLINE_PARSER</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser._DOCUMENT_PARSERS" title="asciidoctrine.lark_parser._DOCUMENT_PARSERS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_DOCUMENT_PARSERS</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.lark_parser._INLINE_PARSERS" title="asciidoctrine.lark_parser._INLINE_PARSERS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_INLINE_PARSERS</span></code></a></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -533,9 +547,34 @@ nodes no longer preserve this intent clearly.</p>
 </dd></dl>
 
 <dl class="py data">
-<dt class="sig sig-object py" id="asciidoctrine.lark_parser._INLINE_PARSER">
-<span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">_INLINE_PARSER</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#asciidoctrine.lark_parser._INLINE_PARSER" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="asciidoctrine.lark_parser._DOCUMENT_PARSERS">
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">_DOCUMENT_PARSERS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">lark.Lark</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#asciidoctrine.lark_parser._DOCUMENT_PARSERS" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="asciidoctrine.lark_parser._INLINE_PARSERS">
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">_INLINE_PARSERS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">lark.Lark</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#asciidoctrine.lark_parser._INLINE_PARSERS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asciidoctrine.lark_parser.clear_parser_cache">
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">clear_parser_cache</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.clear_parser_cache" title="Link to this definition"></a></dt>
+<dd><p>Clears all cached compiled Lark parser instances.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asciidoctrine.lark_parser.get_document_parser">
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">get_document_parser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grammar_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">DEFAULT_GRAMMAR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_authority_schemes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_opaque_schemes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">lark.Lark</span></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.get_document_parser" title="Link to this definition"></a></dt>
+<dd><p>Returns a cached compiled Lark Earley parser for document parsing.
+Recompiles only when grammar path, file modification timestamp, or custom URI schemes change.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asciidoctrine.lark_parser.get_inline_parser">
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.lark_parser.</span></span><span class="sig-name descname"><span class="pre">get_inline_parser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grammar_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">DEFAULT_GRAMMAR</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">lark.Lark</span></span></span><a class="headerlink" href="#asciidoctrine.lark_parser.get_inline_parser" title="Link to this definition"></a></dt>
+<dd><p>Returns a cached compiled Lark Earley parser for inline formatting parsing.
+Recompiles only when grammar path or file modification timestamp changes.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="asciidoctrine.lark_parser.parse_inlines">
