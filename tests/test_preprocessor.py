@@ -1194,6 +1194,7 @@ class TestPreprocessorAdditionalGaps:
 
 def test_verbatim_listing_with_bracketed_lines_no_warning():
     import warnings
+
     from asciidoctrine.preprocessor import Preprocessor, PreprocessorWarning
 
     source = (
@@ -1222,6 +1223,7 @@ def test_verbatim_listing_with_bracketed_lines_no_warning():
 
 def test_verbatim_listing_ast_with_bracketed_lines():
     import warnings
+
     from asciidoctrine.lark_parser import parse_to_ast
     from asciidoctrine.preprocessor import PreprocessorWarning
 
@@ -1245,4 +1247,3 @@ def test_verbatim_listing_ast_with_bracketed_lines():
 
     assert len(doc.blocks) == 1
     assert doc.blocks[0].name == "listing"
-
