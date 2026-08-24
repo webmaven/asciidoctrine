@@ -21,6 +21,11 @@ class TestPackageImports:
 
         assert callable(parse_to_ast)
 
+    def test_parse_inlines_importable(self) -> None:
+        from asciidoctrine import parse_inlines  # noqa: F401
+
+        assert callable(parse_inlines)
+
     def test_ascii_doc_syntax_error_importable(self) -> None:
         from asciidoctrine import AsciiDocSyntaxError  # noqa: F401
 

@@ -5,6 +5,7 @@ AsciiDoctrine provides a structured, type-safe representation of AsciiDoc docume
 Core features include:
 
 * `parse_to_ast()`: Parse raw AsciiDoc source code into a syntax-level AST.
+* `parse_inlines()`: Parse raw inline AsciiDoc source code into a syntax-level AST.
 * `FileProvider`, `FsLoader`, `MemoryLoader`: Abstract and virtual filesystem loaders for hermetic parsing.
 * `ASGResolver`: Resolve AST trees into spec-compliant Abstract Semantic Graphs (ASG).
 * `WorkspaceCatalog`: Index symbols and target anchors across multi-document workspaces.
