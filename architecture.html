@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Architecture &amp; Design &mdash; AsciiDoctrine 0.2.0a3 documentation</title>
+  <title>Architecture &amp; Design &mdash; AsciiDoctrine 0.2.0a4 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/custom.css?v=21f1c15c" />
@@ -14,7 +14,7 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=06d4ae40"></script>
+      <script src="_static/documentation_options.js?v=cd5d3e8d"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -241,7 +241,7 @@
 <hr class="docutils" />
 <section id="id11">
 <h2>Multi-File Workspace Resolution Architecture<a class="headerlink" href="#id11" title="Link to this heading"></a></h2>
-<p>Parsing a single AsciiDoc file in isolation is insufficient for static site generators and documentation portals where documents cross-reference each other across directory hierarchies using `<a class="reference external" href="other-doc.html#anchor">other-doc.adoc#anchor</a><code class="docutils literal notranslate"> <span class="pre">or</span> </code><a class="reference external" href="other-doc.html#anchor">label</a>`.</p>
+<p>Parsing a single AsciiDoc file in isolation is insufficient for static site generators and documentation portals where documents cross-reference each other across directory hierarchies using `<a class="reference external" href="other-doc.html#anchor">other-doc.adoc#anchor</a>` or <code class="docutils literal notranslate"><span class="pre">&lt;&lt;other-doc.adoc#anchor,label&gt;&gt;</span></code>.</p>
 <p>AsciiDoctrine implements a <strong>3-Pass Workspace Pipeline</strong> orchestrated by <code class="docutils literal notranslate"><span class="pre">WorkspaceBuilder</span></code> and backed by a central <code class="docutils literal notranslate"><span class="pre">WorkspaceCatalog</span></code> symbol table:</p>
 <div class="text highlight-default notranslate"><div class="highlight"><pre><span></span> <span class="o">+-------------------------------------------------------------------+</span>
  <span class="o">|</span>                      <span class="n">Workspace</span> <span class="n">Directory</span>                           <span class="o">|</span>
@@ -274,7 +274,7 @@
 <h3>2. Pass 2: Global Symbol Table Indexing<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">WorkspaceCatalog.index_document()</span></code> walks each unmutated AST tree via <code class="docutils literal notranslate"><span class="pre">get_child_collections()</span></code> to populate:</p>
 <ul class="simple">
-<li><p>`by_fqid[“file_id<span class="mark">anchor_id”]<code class="docutils literal notranslate"><span class="pre">:</span> <span class="pre">Maps</span> <span class="pre">fully-qualified</span> <span class="pre">file</span> <span class="pre">and</span> <span class="pre">anchor</span> <span class="pre">keys</span> <span class="pre">directly</span> <span class="pre">to</span> <span class="pre">target</span> </code>Node<code class="docutils literal notranslate"> <span class="pre">AST</span> <span class="pre">instances.</span> <span class="pre">Document</span> <span class="pre">roots</span> <span class="pre">are</span> <span class="pre">indexed</span> <span class="pre">under</span> </code>file_id</span><code class="docutils literal notranslate"> <span class="pre">for</span> <span class="pre">file-level</span> <span class="pre">links</span> <span class="pre">(</span></code><a class="reference external" href="doc.html">doc.adoc</a>`).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">by_fqid[&quot;file_id#anchor_id&quot;]</span></code>: Maps fully-qualified file and anchor keys directly to target <code class="docutils literal notranslate"><span class="pre">Node</span></code> AST instances. Document roots are indexed under <code class="docutils literal notranslate"><span class="pre">file_id#</span></code> for file-level links (`<a class="reference external" href="doc.html">doc.adoc</a>`).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">by_local_id[&quot;anchor_id&quot;]</span></code>: Maps bare anchor strings to a list of matching file IDs.</p></li>
 </ul>
 </section>
