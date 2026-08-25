@@ -1164,3 +1164,53 @@ def test_parsed_listing_block_callouts():
     assert listing.inlines[3].value == 2
     assert listing.callouts == {1: [1], 2: [2]}
     assert listing.stripped_code == "require 'json'\nputs JSON.generate({ok: true})"
+
+
+def test_table_inside_listing_block_remains_literal():
+    from asciidoctrine.nodes import Listing
+
+    content = """[source,asciidoc]
+----
+[cols="1,2"]
+|===
+| A | B
+| 1 | 2
+|===
+----"""
+    doc = parse_to_ast(content)
+    assert len(doc.blocks) == 1
+    assert isinstance(doc.blocks[0], Listing)
+    assert "|===" in doc.blocks[0].code
+    assert "ASCIIDOCTRINE_OUTER" not in doc.blocks[0].code
+
+
+def test_table_inside_literal_block_remains_literal():
+    from asciidoctrine.nodes import Literal
+
+    content = """....
+|===
+| A | B
+|===
+...."""
+    doc = parse_to_ast(content)
+    assert len(doc.blocks) == 1
+    assert isinstance(doc.blocks[0], Literal)
+    assert "|===" in doc.blocks[0].code
+    assert "ASCIIDOCTRINE_OUTER" not in doc.blocks[0].code
+
+
+def test_table_inside_passthrough_block_remains_literal():
+    from asciidoctrine.nodes import Passthrough
+
+    content = """++++
+|===
+| A | B
+|===
+++++"""
+    doc = parse_to_ast(content)
+    assert len(doc.blocks) == 1
+    assert isinstance(doc.blocks[0], Passthrough)
+    assert "|===" in doc.blocks[0].inlines[0].value
+    assert "ASCIIDOCTRINE_OUTER" not in doc.blocks[0].inlines[0].value
+
+

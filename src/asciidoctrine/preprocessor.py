@@ -786,7 +786,8 @@ class Preprocessor:
                     continue
 
             # We are not in a verbatim block
-            if is_listing_delim:
+            in_table = any(d == "|===" for d in delimiter_stack)
+            if is_listing_delim and not in_table:
                 line = f"--ASCIIDOCTRINE_OUTER_LISTING_START_{len(line_strip)}--\n"
                 in_verbatim = "listing"
                 expected_closer = line_strip
@@ -795,7 +796,7 @@ class Preprocessor:
                 self._record_line(current_file, line_num)
                 processed_lines.append(line)
                 continue
-            elif is_literal_delim:
+            elif is_literal_delim and not in_table:
                 line = f"--ASCIIDOCTRINE_OUTER_LITERAL_START_{len(line_strip)}--\n"
                 in_verbatim = "literal"
                 expected_closer = line_strip
@@ -804,7 +805,7 @@ class Preprocessor:
                 self._record_line(current_file, line_num)
                 processed_lines.append(line)
                 continue
-            elif is_passthrough_delim:
+            elif is_passthrough_delim and not in_table:
                 line = f"--ASCIIDOCTRINE_OUTER_PASSTHROUGH_START_{len(line_strip)}--\n"
                 in_verbatim = "passthrough"
                 expected_closer = line_strip
@@ -813,7 +814,7 @@ class Preprocessor:
                 self._record_line(current_file, line_num)
                 processed_lines.append(line)
                 continue
-            elif is_comment_delim:
+            elif is_comment_delim and not in_table:
                 line = f"--ASCIIDOCTRINE_OUTER_COMMENT_START_{len(line_strip)}--\n"
                 in_verbatim = "comment"
                 expected_closer = line_strip
@@ -823,7 +824,7 @@ class Preprocessor:
                 processed_lines.append(line)
                 continue
             elif self.delimiter_regex.match(line_strip):
-                # Other delimiters (e.g. ====, ****)
+                # Other delimiters (e.g. ====, ****, |===)
                 self._update_delimiter_stack(line_strip, delimiter_stack)
                 metadata_pending = False
                 self._record_line(current_file, line_num)
