@@ -401,14 +401,28 @@ To facilitate producing a TCK-compliant Resolved Abstract Semantic Graph (ASG), 
   2. Updated the `italic.2` rule to `OPEN_UNDERSCORE italic_content CLOSE_UNDERSCORE`.
   3. Added `WORD_WITH_UNDERSCORE.3` terminal and elevated `ATTR_NAME.5` and `FN_ID.5` priorities to prevent attribute references (e.g. `{project_name}`) and footnote IDs from being tokenized as generic word tokens.
 
-### 21. Parser Engine Memoization & Cache Key Design
-- **Problem**: Full document parsing throughput was bottlenecked by constant recompilation of the `Lark` EBNF grammar (Earley parser initialization) on every invocation of `parse_to_ast()` and `parse_inlines()`.
+### 22. Verbatim Block Delimiter Protection Against Table Cells (Issue #116)
+- **Problem**: When a table delimiter (`|===`) or table rows appeared inside a verbatim block (such as `[source,asciidoc]\n----\n|===\n| A | B\n|===\n----`), the block was broken into multiple AST nodes (`Paragraph` + `Table` + `Paragraph`), and preprocessor outer markers (like `--ASCIIDOCTRINE_OUTER_LISTING_START_4--`) leaked as plain text into the output.
+- **Cause**: In `grammar.lark`, `TABLE_CELL.20` had priority `.20` while `OUTER_LISTING_CONTENT.10` had priority `.10`. Lark tokenized table cell characters before `OUTER_LISTING_CONTENT` could consume the raw verbatim body. Additionally, verbatim delimiters inside table cells needed to be distinguished from outer document-level verbatim blocks.
+- **What Didn't Work**:
+  - Simply raising the rule priority of `listing_block` didn't work because tokenization happens at the terminal level; `TABLE_CELL` still matched first.
 - **Solution**:
-  1. **Memoized Parser Factories**: Introduced module-level `_DOCUMENT_PARSERS` and `_INLINE_PARSERS` dictionaries in `lark_parser.py`, managed by `get_document_parser()` and `get_inline_parser()`, with a `clear_parser_cache()` helper.
-  2. **Cache Key Formulation**: Parsers are cached using a tuple of `(grammar_file, file_mtime, authority_schemes, opaque_schemes)`. This ensures parsers are safely reused and recompiled only when the grammar file modification timestamp or custom URI scheme configurations change.
-  3. **Throughput Impact**: This memoization eliminated repetitive grammar parsing and compilation overhead, resulting in a ~33x throughput increase for batch and repeated parsing operations.
+  1. Raised terminal priorities for `OUTER_LISTING_START.50`, `OUTER_LISTING_END.50`, `OUTER_LISTING_CONTENT.50` (and corresponding literal, passthrough, and comment outer terminals) so they strictly outrank `TABLE_CELL.20` and `TABLE_DELIM.30`.
+  2. Reduced `table_cell` rule priority to `.100` and normalized basic block priorities to prevent Earley tree scoring interference.
+  3. Added `in_table = any(d == "|===" for d in delimiter_stack)` guard in `Preprocessor._process_source()` so verbatim delimiters within table cells remain raw for cell-local parsing while outer document verbatim blocks are protected.
+
+### 23. Constrained Inline Monospace Boundary Terminals (Issue #117)
+- **Problem**: When 4 or more backtick-enclosed inline code spans appeared consecutively on a line separated by commas (e.g. `(`hook_0`, `hook_1`, `hook_2`, `hook_3`)`), the parser inverted the grouping, creating code spans that wrapped the interstitial commas and spaces (`", "`) instead of the words.
+- **Cause**: `monospace.10` matched backticks with `MONOSPACE_TEXT: /[^`{\n]+/`. Because `monospace_content` allowed whitespace and punctuation, and closing backticks were followed by comma-spaces, Lark's Earley parser found alternative valid parse trees. When 4+ spans were present, the score of the inverted grouping outweighed the intended spans.
+- **What Didn't Work**:
+  - Disallowing commas in `MONOSPACE_TEXT` broke inline code spans containing commas (e.g. `` `fn(a, b)` ``).
+  - Simply raising or lowering `monospace` rule priority didn't fix the grouping inversion because both trees had monospace nodes.
+- **Solution**:
+  1. Enforced AsciiDoc constrained formatting boundary rules at the lexer terminal level by defining `OPEN_BACKTICK.2` (`/(?<![a-zA-Z0-9_`])`(?![ \t\n`])/`) and `CLOSE_BACKTICK.2` (`/(?<![ \t\n`])`(?![a-zA-Z0-9_`])/`).
+  2. Updated `monospace.10: OPEN_BACKTICK monospace_content CLOSE_BACKTICK` so that backticks adjacent to whitespace or invalid boundaries cannot act as span delimiters.
 
 ## 🤖 Subagent & Model Routing Strategy
 
 *   **Standing Instruction**: For all coding and coding-adjacent tasks, use your judgement to decide when a lower-power model would be appropriate and run that in a subagent.
+
 
