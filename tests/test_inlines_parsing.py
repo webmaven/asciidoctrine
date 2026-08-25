@@ -878,9 +878,7 @@ class TestInlines(unittest.TestCase):
         doc = parse_to_ast(source)
         p = doc.blocks[0]
         spans = [
-            node
-            for node in p.inlines
-            if node.name == "span" and node.variant == "code"
+            node for node in p.inlines if node.name == "span" and node.variant == "code"
         ]
         assert len(spans) == 3
         assert spans[0].inlines[0].value == "code"
@@ -892,9 +890,7 @@ class TestInlines(unittest.TestCase):
         doc = parse_to_ast(source)
         p = doc.blocks[0]
         spans = [
-            node
-            for node in p.inlines
-            if node.name == "span" and node.variant == "code"
+            node for node in p.inlines if node.name == "span" and node.variant == "code"
         ]
         assert len(spans) == 1
         assert spans[0].form == "unconstrained"
@@ -923,4 +919,3 @@ class TestInlines(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

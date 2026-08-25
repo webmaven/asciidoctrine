@@ -1,6 +1,16 @@
 = Changelog
 :toc:
 
+== link:https://pypi.org/project/asciidoctrine/0.2.0a4/[0.2.0a4] - 2026-08-25
+
+=== Fixed
+* **Verbatim Block Delimiter Protection Against Table Cells (Issue #116)**:
+  - Fixed verbatim blocks (`Listing`, `Literal`, `Passthrough`, `Comment`) containing table delimiters (`|===`) and cell pipes (`| A | B`) being prematurely broken by Lark's lexer into separate paragraphs and tables while leaking internal preprocessor markers (`--ASCIIDOCTRINE_OUTER_LISTING_START_N--`).
+  - Elevated terminal priorities for `OUTER_*` verbatim content and delimiters to `.50` to strictly outrank `TABLE_CELL.20` and `TABLE_DELIM.30`, and guarded inner table cells in the preprocessor.
+* **Constrained Inline Monospace Boundary Terminals (Issue #117)**:
+  - Fixed Earley parser ambiguity where 4 or more backtick-enclosed inline code spans on a line separated by commas (e.g. ``(`hook_0`, `hook_1`, `hook_2`, `hook_3`)``) inverted span grouping and wrapped interstitial commas in `<code>` tags.
+  - Enforced AsciiDoc constrained formatting boundary rules at the lexer level with `OPEN_BACKTICK.2` and `CLOSE_BACKTICK.2` lookarounds.
+
 == link:https://pypi.org/project/asciidoctrine/0.2.0a3/[0.2.0a3] - 2026-08-24
 
 === Performance

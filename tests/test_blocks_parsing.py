@@ -1212,5 +1212,3 @@ def test_table_inside_passthrough_block_remains_literal():
     assert isinstance(doc.blocks[0], Passthrough)
     assert "|===" in doc.blocks[0].inlines[0].value
     assert "ASCIIDOCTRINE_OUTER" not in doc.blocks[0].inlines[0].value
-
-
