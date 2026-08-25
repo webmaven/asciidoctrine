@@ -272,7 +272,12 @@ class InlineTransformer(BaseTransformer):
 
     @v_args(meta=True)
     def monospace(self, meta: Any, children: PyList[Any]) -> Span:
-        span = Span(variant="code", form="constrained", inlines=children[0])
+        content = [c for c in children if isinstance(c, list)]
+        span = Span(
+            variant="code",
+            form="constrained",
+            inlines=content[0] if content else [],
+        )
         return cast(Span, self._set_location_from_children(span, children))
 
     @v_args(meta=True)

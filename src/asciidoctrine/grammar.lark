@@ -223,7 +223,7 @@ unconstrained_bold.3: "**" bold_content "**"
 italic.2: OPEN_UNDERSCORE italic_content CLOSE_UNDERSCORE
 unconstrained_italic.3: "__" italic_content "__"
 
-monospace.10: "`" monospace_content "`"
+monospace.10: OPEN_BACKTICK monospace_content CLOSE_BACKTICK
 unconstrained_monospace.10: "``" unconstrained_monospace_content "``"
 
 monospace_content: (attribute_reference | MONOSPACE_TEXT)+
@@ -333,6 +333,8 @@ FN_ID.5: /[a-zA-Z0-9_\-]+/
 WORD_WITH_UNDERSCORE.3: /[^ \t\n*_`=\[\]{}:<>+()#^~"']+(_[^ \t\n*_`=\[\]{}:<>+()#^~"']+)+/
 OPEN_UNDERSCORE.2: /(?<![a-zA-Z0-9_\-])_(?![ \t\n])/
 CLOSE_UNDERSCORE.2: /(?<![ \t\n])_(?![a-zA-Z0-9_\-])/
+OPEN_BACKTICK.2: /(?<![a-zA-Z0-9_\`])\`(?![ \t\n\`])/
+CLOSE_BACKTICK.2: /(?<![ \t\n\`])\`(?![a-zA-Z0-9_\`])/
 WORD: /[^ \t\n*_`=\[\]{}:<>+()#^~]+/  // Word characters (not whitespace or markup or parentheses)
 LBRACE: "{"
 RBRACE: "}"

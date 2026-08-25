@@ -7,6 +7,7 @@ import unittest
 import pytest
 
 from asciidoctrine.lark_parser import parse_to_ast
+from asciidoctrine.nodes import Span
 
 pytestmark = pytest.mark.integration
 
@@ -858,6 +859,68 @@ class TestInlines(unittest.TestCase):
         assert spans[0].form == "unconstrained"
         assert spans[0].inlines[0].value == "doubt"
 
+    def test_consecutive_comma_separated_backtick_spans(self):
+        content = "hooks (`hook_0`, `hook_1`, `hook_2`, `hook_3`) end."
+        doc = parse_to_ast(content)
+        para = doc.blocks[0]
+        # Check that inlines contain 4 separate code spans with comma/space separators
+        code_spans = [
+            span
+            for span in para.inlines
+            if isinstance(span, Span) and span.variant == "code"
+        ]
+        assert len(code_spans) == 4
+        for i, span in enumerate(code_spans):
+            assert span.inlines[0].value == f"hook_{i}"
+
+    def test_constrained_monospace_with_punctuation_boundaries(self):
+        source = 'This is (`code`), "`quoted code`", and `code` at word boundaries.\n'
+        doc = parse_to_ast(source)
+        p = doc.blocks[0]
+        spans = [
+            node
+            for node in p.inlines
+            if node.name == "span" and node.variant == "code"
+        ]
+        assert len(spans) == 3
+        assert spans[0].inlines[0].value == "code"
+        assert spans[1].inlines[0].value == "quoted code"
+        assert spans[2].inlines[0].value == "code"
+
+    def test_unconstrained_monospace_inside_words(self):
+        source = "This is un``doubt``edly unconstrained.\n"
+        doc = parse_to_ast(source)
+        p = doc.blocks[0]
+        spans = [
+            node
+            for node in p.inlines
+            if node.name == "span" and node.variant == "code"
+        ]
+        assert len(spans) == 1
+        assert spans[0].form == "unconstrained"
+        assert spans[0].inlines[0].value == "doubt"
+
+    def test_monospace_whitespace_boundary_non_match(self):
+        # Leading or trailing whitespace within constrained backticks should not produce code spans
+        source1 = "Not a ` code` span.\n"
+        doc1 = parse_to_ast(source1)
+        spans1 = [
+            node
+            for node in doc1.blocks[0].inlines
+            if node.name == "span" and node.variant == "code"
+        ]
+        assert len(spans1) == 0
+
+        source2 = "Not a `code ` span.\n"
+        doc2 = parse_to_ast(source2)
+        spans2 = [
+            node
+            for node in doc2.blocks[0].inlines
+            if node.name == "span" and node.variant == "code"
+        ]
+        assert len(spans2) == 0
+
 
 if __name__ == "__main__":
     unittest.main()
+
