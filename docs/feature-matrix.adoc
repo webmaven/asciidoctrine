@@ -112,11 +112,11 @@ AsciiDoctrine Support::
 | -
 | [.status-full]#link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]#
 
-| *Tables*
+| *Tables* footnote:[Includes native `cols` attribute DSL parsing (multipliers, horizontal/vertical alignments, styles, and normalized percentage widths) resolved into structured ASG `columns` collections.]
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/block-content-model.adoc#user-content-compound-block[Standardized]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
 | -
-| [.status-full]#link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]#
+| [.status-full]#link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/columns.py[Fully Supported]#
 
 | *Block Macros*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/modules/ROOT/pages/block-macro.adoc[Standardized]

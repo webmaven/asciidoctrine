@@ -18,6 +18,7 @@ Submodules
    asciidoctrine.docutils_backend
    asciidoctrine.lark_parser
    asciidoctrine.preprocessor
+   asciidoctrine.columns
    asciidoctrine.loader
    asciidoctrine.resolver
    asciidoctrine.serializer
@@ -47,7 +48,7 @@ API
 
 .. py:data:: __version__
    :canonical: asciidoctrine.__version__
-   :value: '0.2.0a3'
+   :value: '0.2.0a5'
 
    .. autodoc2-docstring:: asciidoctrine.__version__
       :parser: sphinx_asciidoctrine.parser
