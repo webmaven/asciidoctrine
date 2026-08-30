@@ -849,13 +849,27 @@ class TestTableResolution:
 
     def test_table_node_to_dict_columns(self):
         """Table.to_dict() includes columns when set, omits when None."""
-        table_no_cols = Table(rows=[TableRow(cells=[TableCell(blocks=[Paragraph(inlines=[Text("A")])])])])
+        table_no_cols = Table(
+            rows=[TableRow(cells=[TableCell(blocks=[Paragraph(inlines=[Text("A")])])])]
+        )
         assert table_no_cols.columns is None
         assert "columns" not in table_no_cols.to_dict()
 
         cols_data = [
-            {"index": 0, "width": "50%", "halign": "left", "valign": "top", "style": "default"},
-            {"index": 1, "width": "50%", "halign": "right", "valign": "middle", "style": "strong"},
+            {
+                "index": 0,
+                "width": "50%",
+                "halign": "left",
+                "valign": "top",
+                "style": "default",
+            },
+            {
+                "index": 1,
+                "width": "50%",
+                "halign": "right",
+                "valign": "middle",
+                "style": "strong",
+            },
         ]
         table_with_cols = Table(
             rows=[TableRow(cells=[TableCell(blocks=[Paragraph(inlines=[Text("A")])])])],
@@ -968,7 +982,9 @@ class TestTableResolution:
                 "style": "default",
             },
         ]
-        assert "attributes" not in table_asg or "cols" not in table_asg.get("attributes", {})
+        assert "attributes" not in table_asg or "cols" not in table_asg.get(
+            "attributes", {}
+        )
 
     def test_table_resolution_fallback_with_colspan(self):
         """Fallback column count takes cell colspan into account."""
@@ -1083,4 +1099,3 @@ class TestTableResolution:
                 "style": "default",
             },
         ]
-

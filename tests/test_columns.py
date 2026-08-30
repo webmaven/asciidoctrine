@@ -292,4 +292,3 @@ def test_parse_cols_mixed_sparse_ratios():
             "style": "default",
         },
     ]
-
