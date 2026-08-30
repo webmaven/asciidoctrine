@@ -9,6 +9,15 @@
   - Normalizes integer column ratios into proportional percentage strings (e.g., `1,3,1` -> `20%`, `60%`, `20%`) and passes through explicit percentage strings.
   - Emits structured `columns` dictionary collection on the resolved `Table` ASG node while preserving raw `attributes['cols']` for round-tripping.
 
+=== Fixed
+* **Block Title Attachment Preceded by Another Block (Issue #119)**:
+  - Fixed `.Title` block title lines being incorrectly parsed as standalone `paragraph` nodes instead of being attached to subsequent blocks (listings, admonitions, tables, examples, sidebars) when preceded by another block.
+  - Elevated grammar priority on `block_title` to ensure correct attachment across consecutive blocks.
+* **Inline Macros Attached to Words and Punctuation (Issue #120)**:
+  - Fixed inline macros (such as `footnote:[...]`, `footnoteref:[...]`, `indexterm:[...]`, `kbd:[...]`, `btn:[...]`, `pass:[...]`, and URI schemes) degrading to raw text when attached directly to preceding words or punctuation without whitespace (e.g., `statement.footnote:[Note text]`).
+  - Added lookaheads to the `WORD` lexer terminal to prevent eager consumption of attached inline macro prefixes, while preserving block macro syntax (`image::`, etc.).
+  - Added diagnostic detection for unclosed inline footnotes in strict and permissive parsing modes.
+
 == link:https://pypi.org/project/asciidoctrine/0.2.0a4/[0.2.0a4] - 2026-08-25
 
 === Fixed
