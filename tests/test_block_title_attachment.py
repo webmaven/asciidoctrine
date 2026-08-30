@@ -38,7 +38,7 @@ def test_block_title_attaches_when_preceded_by_titled_block():
         "[source,python]\n"
         "----\n"
         "print('first')\n"
-        "----\n"
+        "----\n\n"
         ".Title for next\n"
         "[source,python]\n"
         "----\n"
