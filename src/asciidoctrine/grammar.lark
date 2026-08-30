@@ -24,7 +24,7 @@ attributed_block: (block_metadata)* (section | ulist | olist | dlist | colist | 
 attributed_simple_block: (block_metadata)* (ulist | olist | dlist | colist | listing_block | literal_block | passthrough_block | outer_listing_block | outer_literal_block | outer_passthrough_block | outer_comment_block | shorthand_admonition | indented_literal | paragraph)
 
 block_metadata: block_title | attribute_list | anchor
-block_title: "." text_content _NEWLINE
+block_title.5: "." text_content _NEWLINE
 
 // Sections and Titles
 section: section_title
