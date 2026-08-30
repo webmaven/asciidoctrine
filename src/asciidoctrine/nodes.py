@@ -87,6 +87,7 @@ class Node:
             "resolved_file_target",
             "resolved_anchor_target",
             "index",
+            "columns",
         ]:
             if hasattr(self, attr):
                 val = getattr(self, attr)
@@ -1329,6 +1330,7 @@ class Table(BlockNode):
     *Attributes:*
 
     `rows`:: List of `TableRow` instances composing the rows of the table.
+    `columns`:: Optional list of resolved column metadata dictionaries.
     `attributes`:: Block attributes mapping (e.g., `"cols"`, `"options"`, `"title"`, `"id"`).
 
     *Example:*
@@ -1347,11 +1349,18 @@ class Table(BlockNode):
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
         return {"rows": cast(PyList[Node], self.rows)}
 
-    def __init__(self, rows: Optional[Sequence[TableRow]] = None) -> None:
+    def __init__(
+        self,
+        rows: Optional[Sequence[TableRow]] = None,
+        columns: Optional[Sequence[Dict[str, Any]]] = None,
+    ) -> None:
         super().__init__()
         self.name = "table"
         self.type = "block"
         self.rows: PyList[TableRow] = list(rows) if rows else []
+        self.columns: Optional[PyList[Dict[str, Any]]] = (
+            list(columns) if columns is not None else None
+        )
 
     def append(self, child: Node) -> None:
         if isinstance(child, TableRow):

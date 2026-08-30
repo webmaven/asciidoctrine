@@ -156,10 +156,10 @@ def parse_cols(
 
     ratio_sum = sum(
         int(col["raw_width"])
+        if (col["raw_width"] and col["raw_width"].isdigit())
+        else 1
         for col in raw_cols
-        if col["raw_width"]
-        and not col["raw_width"].endswith("%")
-        and col["raw_width"].isdigit()
+        if not (col["raw_width"] and col["raw_width"].endswith("%"))
     )
 
     result: list[dict[str, Any]] = []

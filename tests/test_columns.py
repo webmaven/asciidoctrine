@@ -265,3 +265,31 @@ def test_parse_cols_empty_and_fallback():
             "style": "default",
         },
     ]
+
+
+def test_parse_cols_mixed_sparse_ratios():
+    result = parse_cols("^,2,>")
+    assert result == [
+        {
+            "index": 0,
+            "width": "25%",
+            "halign": "center",
+            "valign": "top",
+            "style": "default",
+        },
+        {
+            "index": 1,
+            "width": "50%",
+            "halign": "left",
+            "valign": "top",
+            "style": "default",
+        },
+        {
+            "index": 2,
+            "width": "25%",
+            "halign": "right",
+            "valign": "top",
+            "style": "default",
+        },
+    ]
+

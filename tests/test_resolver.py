@@ -16,6 +16,9 @@ from asciidoctrine.nodes import (
     Paragraph,
     Ref,
     Section,
+    Table,
+    TableCell,
+    TableRow,
     Text,
     Title,
 )
@@ -839,3 +842,245 @@ class TestResolverXrefTiers:
         result = resolver.visit_ref(ref)
         assert result.resolved_strategy == "cross_file"
         assert result.resolved_file_target == "other.adoc"
+
+
+class TestTableResolution:
+    """Test suite for Table columns resolution in ASGResolver."""
+
+    def test_table_node_to_dict_columns(self):
+        """Table.to_dict() includes columns when set, omits when None."""
+        table_no_cols = Table(rows=[TableRow(cells=[TableCell(blocks=[Paragraph(inlines=[Text("A")])])])])
+        assert table_no_cols.columns is None
+        assert "columns" not in table_no_cols.to_dict()
+
+        cols_data = [
+            {"index": 0, "width": "50%", "halign": "left", "valign": "top", "style": "default"},
+            {"index": 1, "width": "50%", "halign": "right", "valign": "middle", "style": "strong"},
+        ]
+        table_with_cols = Table(
+            rows=[TableRow(cells=[TableCell(blocks=[Paragraph(inlines=[Text("A")])])])],
+            columns=cols_data,
+        )
+        assert table_with_cols.columns == cols_data
+        asg_dict = table_with_cols.to_dict()
+        assert "columns" in asg_dict
+        assert asg_dict["columns"] == cols_data
+
+    def test_table_resolution_with_cols_dsl(self):
+        """Resolver parses cols DSL and sets columns on Table while preserving attributes['cols']."""
+        table = Table(
+            rows=[
+                TableRow(
+                    cells=[
+                        TableCell(blocks=[Paragraph(inlines=[Text("1")])]),
+                        TableCell(blocks=[Paragraph(inlines=[Text("2")])]),
+                        TableCell(blocks=[Paragraph(inlines=[Text("3")])]),
+                    ]
+                )
+            ]
+        )
+        table.attributes = {"cols": "1,3,>1s"}
+
+        doc = Document()
+        doc.blocks.append(table)
+
+        resolver = ASGResolver(doc)
+        asg = resolver.resolve(doc)
+
+        table_asg = asg["blocks"][0]
+        assert table_asg["name"] == "table"
+        assert "columns" in table_asg
+        assert table_asg["columns"] == [
+            {
+                "index": 0,
+                "width": "20%",
+                "halign": "left",
+                "valign": "top",
+                "style": "default",
+            },
+            {
+                "index": 1,
+                "width": "60%",
+                "halign": "left",
+                "valign": "top",
+                "style": "default",
+            },
+            {
+                "index": 2,
+                "width": "20%",
+                "halign": "right",
+                "valign": "top",
+                "style": "strong",
+            },
+        ]
+        assert "attributes" in table_asg
+        assert table_asg["attributes"]["cols"] == "1,3,>1s"
+
+    def test_table_resolution_fallback_col_count_from_rows(self):
+        """Resolver calculates fallback column count from rows when cols attribute is missing."""
+        table = Table(
+            rows=[
+                TableRow(
+                    cells=[
+                        TableCell(blocks=[Paragraph(inlines=[Text("A")])]),
+                        TableCell(blocks=[Paragraph(inlines=[Text("B")])]),
+                        TableCell(blocks=[Paragraph(inlines=[Text("C")])]),
+                    ]
+                ),
+                TableRow(
+                    cells=[
+                        TableCell(blocks=[Paragraph(inlines=[Text("1")])]),
+                        TableCell(blocks=[Paragraph(inlines=[Text("2")])]),
+                        TableCell(blocks=[Paragraph(inlines=[Text("3")])]),
+                    ]
+                ),
+            ]
+        )
+
+        doc = Document()
+        doc.blocks.append(table)
+
+        resolver = ASGResolver(doc)
+        asg = resolver.resolve(doc)
+
+        table_asg = asg["blocks"][0]
+        assert "columns" in table_asg
+        assert table_asg["columns"] == [
+            {
+                "index": 0,
+                "width": "33.3333%",
+                "halign": "left",
+                "valign": "top",
+                "style": "default",
+            },
+            {
+                "index": 1,
+                "width": "33.3333%",
+                "halign": "left",
+                "valign": "top",
+                "style": "default",
+            },
+            {
+                "index": 2,
+                "width": "33.3333%",
+                "halign": "left",
+                "valign": "top",
+                "style": "default",
+            },
+        ]
+        assert "attributes" not in table_asg or "cols" not in table_asg.get("attributes", {})
+
+    def test_table_resolution_fallback_with_colspan(self):
+        """Fallback column count takes cell colspan into account."""
+        cell1 = TableCell(blocks=[Paragraph(inlines=[Text("Span")])])
+        cell1.colspan = 2
+        cell2 = TableCell(blocks=[Paragraph(inlines=[Text("Single")])])
+        cell2.colspan = 1
+
+        table = Table(rows=[TableRow(cells=[cell1, cell2])])
+
+        doc = Document()
+        doc.blocks.append(table)
+
+        resolver = ASGResolver(doc)
+        asg = resolver.resolve(doc)
+
+        table_asg = asg["blocks"][0]
+        assert len(table_asg["columns"]) == 3
+        for col in table_asg["columns"]:
+            assert col["width"] == "33.3333%"
+
+    def test_table_resolution_empty_table(self):
+        """Empty table resolves to empty columns list."""
+        table = Table()
+
+        doc = Document()
+        doc.blocks.append(table)
+
+        resolver = ASGResolver(doc)
+        asg = resolver.resolve(doc)
+
+        table_asg = asg["blocks"][0]
+        assert "columns" in table_asg
+        assert table_asg["columns"] == []
+
+    def test_table_resolution_attribute_substitution_in_cols(self):
+        """Resolver performs attribute substitution on cols attribute string."""
+        table = Table(
+            rows=[
+                TableRow(
+                    cells=[
+                        TableCell(blocks=[Paragraph(inlines=[Text("A")])]),
+                        TableCell(blocks=[Paragraph(inlines=[Text("B")])]),
+                    ]
+                )
+            ]
+        )
+        table.attributes = {"cols": "{custom_cols}"}
+
+        doc = Document()
+        doc.attributes = {"custom_cols": "2,1"}
+        doc.blocks.append(table)
+
+        resolver = ASGResolver(doc)
+        asg = resolver.resolve(doc)
+
+        table_asg = asg["blocks"][0]
+        assert table_asg["columns"] == [
+            {
+                "index": 0,
+                "width": "66.6667%",
+                "halign": "left",
+                "valign": "top",
+                "style": "default",
+            },
+            {
+                "index": 1,
+                "width": "33.3333%",
+                "halign": "left",
+                "valign": "top",
+                "style": "default",
+            },
+        ]
+
+    def test_table_resolution_integration_from_parser(self):
+        """End-to-end integration: parse AsciiDoc table syntax and resolve into ASG."""
+        from asciidoctrine.lark_parser import parse_to_ast
+
+        content = """[cols="2*^.<20%s,>60%"]
+|===
+| Header 1 | Header 2 | Header 3
+| Cell 1 | Cell 2 | Cell 3
+|===
+"""
+        doc = parse_to_ast(content)
+        resolver = ASGResolver(doc)
+        asg = resolver.resolve(doc)
+
+        table_asg = asg["blocks"][0]
+        assert table_asg["name"] == "table"
+        assert table_asg["attributes"]["cols"] == "2*^.<20%s,>60%"
+        assert table_asg["columns"] == [
+            {
+                "index": 0,
+                "width": "20%",
+                "halign": "center",
+                "valign": "top",
+                "style": "strong",
+            },
+            {
+                "index": 1,
+                "width": "20%",
+                "halign": "center",
+                "valign": "top",
+                "style": "strong",
+            },
+            {
+                "index": 2,
+                "width": "60%",
+                "halign": "right",
+                "valign": "top",
+                "style": "default",
+            },
+        ]
+

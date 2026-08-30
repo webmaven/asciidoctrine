@@ -6,6 +6,7 @@ from typing import Any, Dict, Optional, Sequence, Union, cast
 from typing import List as PyList
 
 from .attributes import resolve_attribute_map, substitute_attributes
+from .columns import parse_cols
 from .lark_parser import parse_to_ast
 from .loader import FileProvider, FsLoader, MemoryLoader
 from .nodes import (
@@ -16,6 +17,7 @@ from .nodes import (
     Node,
     NodeTransformer,
     Ref,
+    Table,
     Text,
 )
 
@@ -356,6 +358,29 @@ class ASGResolver(NodeTransformer):
     def visit_comment(self, node: Node, **kwargs: Any) -> Optional[Node]:
         # Filter out comments from parent lists
         return None
+
+    def visit_table(self, node: Table, **kwargs: Any) -> Node:
+        self.generic_visit(node, **kwargs)
+        raw_cols = node.attributes.get("cols")
+        cols_str = (
+            substitute_attributes(str(raw_cols), self.resolved_attributes)
+            if raw_cols is not None
+            else None
+        )
+
+        fallback_count = 0
+        if getattr(node, "rows", None):
+            fallback_count = max(
+                (
+                    sum(getattr(cell, "colspan", 1) or 1 for cell in row.cells)
+                    for row in node.rows
+                    if getattr(row, "cells", None)
+                ),
+                default=0,
+            )
+
+        node.columns = parse_cols(cols_str, fallback_col_count=fallback_count)
+        return node
 
     def _extract_inline_text(self, nodes: Sequence[Node]) -> str:
         parts: PyList[str] = []
