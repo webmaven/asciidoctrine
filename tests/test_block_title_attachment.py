@@ -23,7 +23,9 @@ def test_block_title_attaches_after_paragraph():
     assert len(doc.blocks) >= 2
 
     listing = doc.blocks[1]
-    assert getattr(listing, "title", None) is not None, "Listing should have an attached title"
+    assert getattr(listing, "title", None) is not None, (
+        "Listing should have an attached title"
+    )
 
     title = listing.title
     title_text = "".join(getattr(n, "value", "") for n in title.inlines)
@@ -49,7 +51,11 @@ def test_block_title_attaches_when_preceded_by_titled_block():
     doc = parse_to_ast(source, strict=False)
 
     # Expect two listings; both should have titles attached
-    listings = [b for b in doc.blocks if getattr(b, 'name', '') == 'listing' or b.__class__.__name__ == 'Listing']
+    listings = [
+        b
+        for b in doc.blocks
+        if getattr(b, "name", "") == "listing" or b.__class__.__name__ == "Listing"
+    ]
     assert len(listings) >= 2
 
     first_title = listings[0].title
@@ -57,7 +63,7 @@ def test_block_title_attaches_when_preceded_by_titled_block():
     assert first_title is not None, "First listing should have a title"
     assert second_title is not None, "Second listing should have a title"
 
-    first_text = "".join(getattr(n, 'value', '') for n in first_title.inlines)
-    second_text = "".join(getattr(n, 'value', '') for n in second_title.inlines)
+    first_text = "".join(getattr(n, "value", "") for n in first_title.inlines)
+    second_text = "".join(getattr(n, "value", "") for n in second_title.inlines)
     assert first_text.strip() == "Prev Title"
     assert second_text.strip() == "Title for next"
