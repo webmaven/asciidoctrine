@@ -68,12 +68,7 @@ STRICT_CASES = [
         "Malformed description list term",
         ["descriptionList"],
     ),
-    (
-        "unclosed_inline_footnote",
-        "This is a footnote:[some footnote text",
-        "Unclosed inline footnote",
-        ["paragraph"],
-    ),
+
     (
         "broken_table_unclosed",
         "|===\n| Cell 1 | Cell 2\n",
@@ -123,6 +118,24 @@ def test_valid_description_list_term_level3():
     source = "term:::\n"
     doc = parse_to_ast(source, strict=True)
     assert doc.blocks[0].name == "descriptionList"
+
+
+def test_unclosed_inline_footnote_always_raises():
+    """An unclosed footnote:[ is a hard grammar error in both strict and permissive mode.
+
+    Since `footnote:` is now a proper grammar terminal (not raw text), the Earley
+    parser fails to match the closing `]` and raises a parse error before the AST
+    is even built.  Both strict=True and strict=False must raise AsciiDocSyntaxError
+    with the friendly 'Unclosed inline footnote' diagnostic.
+    """
+    source = "This is a footnote:[some footnote text"
+    for strict in (True, False):
+        with pytest.raises(AsciiDocSyntaxError) as exc_info:
+            parse_to_ast(source, strict=strict)
+        assert "Unclosed inline footnote" in str(exc_info.value), (
+            f"Expected 'Unclosed inline footnote' in error (strict={strict}), "
+            f"got: {exc_info.value}"
+        )
 
 
 @pytest.mark.parametrize(

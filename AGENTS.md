@@ -421,7 +421,22 @@ To facilitate producing a TCK-compliant Resolved Abstract Semantic Graph (ASG), 
   1. Enforced AsciiDoc constrained formatting boundary rules at the lexer terminal level by defining `OPEN_BACKTICK.2` (`/(?<![a-zA-Z0-9_`])`(?![ \t\n`])/`) and `CLOSE_BACKTICK.2` (`/(?<![ \t\n`])`(?![a-zA-Z0-9_`])/`).
   2. Updated `monospace.10: OPEN_BACKTICK monospace_content CLOSE_BACKTICK` so that backticks adjacent to whitespace or invalid boundaries cannot act as span delimiters.
 
-## 🤖 Subagent & Model Routing Strategy
+### 24. Inline Macro Tokenization When Attached to Preceding Text/Punctuation (Issue #120)
+- **Problem**: Inline macros such as `footnote:[...]`, `footnoteref:[...]`, and `indexterm:[...]` failed to parse when attached directly to a preceding word or punctuation character without whitespace (e.g. `statement.footnote:[Note]`). Instead, the entire prefix `statement.footnote` was consumed as a single `WORD` token, leaving only `:[Note]` which did not match any grammar rule. The macro degraded to raw inline text.
+- **Cause**: The `WORD` terminal was defined as `/[^ \t\n*_`=\[\]{}:<>+()#^~]+/` — a greedy character class that included `.`, `-`, letters, and digits. Since it contained no lookahead, the lexer eagerly consumed characters across macro-name boundaries without stopping.
+- **What Didn't Work**:
+  - Splitting characters like `.` into a dedicated `DOT` terminal and removing them from `WORD` works at the lexer level but pushes the disambiguation burden onto the Earley parser — this produces thousands of extra `DOT` tokens for ordinary text and causes a severe slowdown (~3× more parse time for typical documents).
+  - Raising the priority of inline macro rules (`footnote.10`, etc.) does not help because the problem occurs at the *lexer tokenization* stage, before any Earley rule can be evaluated.
+- **Solution**: Added a negative lookahead group inside the `WORD` regex that forces the lexer to stop before any recognised inline macro prefix or URI scheme. The new definition is:
+  ```
+  WORD: /(?:(?!(?:footnote:|footnoteref:|indexterm:|image:(?!:)|...))WORD_CHAR)+/
+  ```
+  Each character is still drawn from the original `WORD` character class, so matching behaviour for normal prose is unchanged. The lookahead fires only at positions where a macro prefix begins.
+- **Critical Refinement — `prefix:(?!:)` for Block-Macro-Shared Prefixes**: Several macro prefixes (`image:`, `icon:`, `link:`, `anchor:`, `xref:`, `menu:`) also appear as block macro names in rules like `WORD "::" MACRO_TARGET [...]`. Using a plain `image:` lookahead broke these block macro rules because `image` itself could no longer be consumed as a WORD (since `image:` starts at position 0 of `image::logo.png`). The fix: use `image:(?!:)` for these shared prefixes so WORD stops only before a *single-colon* inline invocation and not before a double-colon block macro.
+  - **Prefixes exclusive to inline use** (i.e., they never appear as block macro names): `footnote:`, `footnoteref:`, `indexterm:`, `kbd:[`, `btn:[`, `stem:[`, `asciimath:[`, `latexmath:[`, `pass:[` — use a plain `prefix:` lookahead.
+  - **Prefixes shared with block macros**: `image:`, `icon:`, `link:`, `anchor:`, `xref:`, `menu:` — use `prefix:(?!:)`.
+- **Behaviour Change — Unclosed Footnotes Now Always Hard Errors**: Previously, `footnote:[unclosed text` (missing `]`) was silently consumed as raw `WORD + COLON + LSQB + ...` tokens and produced a `Paragraph` AST node. The strict-mode `ASTSyntaxAuditor.visit_paragraph` then scanned paragraph text for the `footnote:[` pattern and raised "Unclosed inline footnote". In permissive mode, the malformed text just became a paragraph. After this fix, `footnote:` is a proper grammar terminal, so `footnote:[unclosed` is a hard grammar-level `UnexpectedInput`/`UnexpectedCharacters` in both strict and permissive modes. The friendly "Unclosed inline footnote" message is now detected in the `except UnexpectedInput` handler in `parse_to_ast()`, which scans the source lines for unclosed `footnote:[` and raises `AsciiDocSyntaxError` with the original diagnostic. The strict test case was updated accordingly to expect the error in both modes.
+
 
 *   **Standing Instruction**: For all coding and coding-adjacent tasks, use your judgement to decide when a lower-power model would be appropriate and run that in a subagent.
 

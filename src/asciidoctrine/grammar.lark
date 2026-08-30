@@ -335,7 +335,14 @@ OPEN_UNDERSCORE.2: /(?<![a-zA-Z0-9_\-])_(?![ \t\n])/
 CLOSE_UNDERSCORE.2: /(?<![ \t\n])_(?![a-zA-Z0-9_\-])/
 OPEN_BACKTICK.2: /(?<![a-zA-Z0-9_\`])\`(?![ \t\n\`])/
 CLOSE_BACKTICK.2: /(?<![ \t\n\`])\`(?![a-zA-Z0-9_\`])/
-WORD: /[^ \t\n*_`=\[\]{}:<>+()#^~]+/  // Word characters (not whitespace or markup or parentheses)
+// WORD stops before any inline macro prefix or URI scheme so that constructs
+// like `statement.footnote:[...]` or `word.http://...` tokenise correctly.
+// Prefixes that also appear as block macro names (image, icon, link, anchor,
+// xref, menu) use `:(?!:)` so WORD is only stopped before a single-colon
+// inline invocation, not before a `::` double-colon block macro.
+// Prefixes exclusive to inline use (footnote, footnoteref, indexterm,
+// kbd:[, btn:[, stem:[, asciimath:[, latexmath:[, pass:[) use plain `:`.
+WORD: /(?:(?!(?:footnote:|footnoteref:|indexterm:|image:(?!:)|icon:(?!:)|link:(?!:)|anchor:(?!:)|xref:(?!:)|menu:(?!:)|kbd:\[|btn:\[|stem:\[|asciimath:\[|latexmath:\[|pass:\[|https?:\/\/|ftps?:\/\/|file:\/\/|ircs?:\/\/|wss?:\/\/|git:\/\/|ssh:\/\/|mailto:|data:|tel:|sms:))[^ \t\n*_`=\[\]{}:<>+()#^~])+/
 LBRACE: "{"
 RBRACE: "}"
 LSQB: "["

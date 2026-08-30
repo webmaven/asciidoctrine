@@ -917,5 +917,62 @@ class TestInlines(unittest.TestCase):
         assert len(spans2) == 0
 
 
+class TestInlineMacroAttachedToPunctuation(unittest.TestCase):
+    """Tests for issue #120: inline macros attached directly to preceding words/punctuation."""
+
+    def _inlines(self, source: str):
+        return parse_to_ast(source).blocks[0].inlines
+
+    # ── footnote ──────────────────────────────────────────────────────────────
+
+    def test_footnote_attached_to_period(self):
+        """statement.footnote:[Note] → text("statement.") + ref(footnote)"""
+        nodes = self._inlines("This is a statement.footnote:[Note text]\n")
+        ref_nodes = [n for n in nodes if n.name == "ref" and n.variant == "footnote"]
+        self.assertEqual(len(ref_nodes), 1)
+        text_nodes = [n for n in nodes if n.name == "text"]
+        combined = "".join(n.value for n in text_nodes)
+        self.assertIn("statement", combined)
+        self.assertNotIn("footnote", combined)
+
+    def test_footnote_attached_to_word(self):
+        """word directly followed by footnote: (lowercase, no punctuation gap) → text + ref.
+        Note: macro names are case-sensitive; 'Footnote:' is not a macro."""
+        nodes = self._inlines("wordfootnote:[Note text]\n")
+        # 'footnote' is reached as an inline macro; 'word' remains as text
+        ref_nodes = [n for n in nodes if n.name == "ref" and n.variant == "footnote"]
+        self.assertEqual(len(ref_nodes), 1)
+        text_nodes = [n for n in nodes if n.name == "text"]
+        combined = "".join(n.value for n in text_nodes)
+        self.assertIn("word", combined)
+
+    def test_footnoteref_attached_to_period(self):
+        """statement.footnoteref:[id,text] → text + ref(footnote)"""
+        nodes = self._inlines("See statement.footnoteref:[fn1, Some text]\n")
+        ref_nodes = [n for n in nodes if n.name == "ref" and n.variant == "footnote"]
+        self.assertEqual(len(ref_nodes), 1)
+
+    # ── indexterm ─────────────────────────────────────────────────────────────
+
+    def test_indexterm_attached_to_word(self):
+        """term.indexterm:[primary] → text + indexterm node"""
+        nodes = self._inlines("IndexTermindexterm:[primary term]\n")
+        idx_nodes = [n for n in nodes if n.name == "indexterm"]
+        self.assertEqual(len(idx_nodes), 1)
+
+    # ── preceded by space (regression: these must still work) ─────────────────
+
+    def test_footnote_preceded_by_space_still_works(self):
+        """Whitespace-separated footnote must continue to parse correctly."""
+        nodes = self._inlines("This is a statement. footnote:[Note text]\n")
+        ref_nodes = [n for n in nodes if n.name == "ref" and n.variant == "footnote"]
+        self.assertEqual(len(ref_nodes), 1)
+
+    def test_footnoteref_preceded_by_space_still_works(self):
+        nodes = self._inlines("See this. footnoteref:[fn1, Some text]\n")
+        ref_nodes = [n for n in nodes if n.name == "ref" and n.variant == "footnote"]
+        self.assertEqual(len(ref_nodes), 1)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1347,6 +1347,37 @@ def parse_to_ast(
         message = f"Syntax error at line {origin_line}, column {e.column}.\n{context}"
         if origin_file and origin_file != "<root>":
             message = f"Syntax error in {os.path.basename(origin_file)} at line {origin_line}, column {e.column}.\n{context}"
+        # Before raising a generic syntax error, check whether the parse failure
+        # was caused by a well-known pattern that has a friendlier message.
+        # Unclosed inline footnote: now that `footnote:` is properly tokenised
+        # as a literal, an unclosed `footnote:[...` raises UnexpectedInput at
+        # the grammar level rather than producing a Paragraph node.
+        raw_lines = processed_source.splitlines()
+        for raw_ln_idx, raw_line in enumerate(raw_lines, start=1):
+            line_strip = raw_line.strip()
+            for fn_type in ("footnote:[", "footnoteref:["):
+                if fn_type in line_strip:
+                    start_i = line_strip.find(fn_type)
+                    sub = line_strip[start_i:]
+                    open_cnt, closed = 0, False
+                    for ch in sub:
+                        if ch == "[":
+                            open_cnt += 1
+                        elif ch == "]":
+                            open_cnt -= 1
+                            if open_cnt == 0:
+                                closed = True
+                                break
+                    if not closed:
+                        fn_origin_file, fn_origin_line = preprocessor.line_map.get(
+                            raw_ln_idx, (None, raw_ln_idx)
+                        )
+                        raise AsciiDocSyntaxError(
+                            f"Syntax error: Unclosed inline footnote at line {fn_origin_line}.",
+                            line=fn_origin_line,
+                            column=raw_line.find(fn_type) + 1,
+                            filepath=fn_origin_file,
+                        ) from e
         raise AsciiDocSyntaxError(
             message,
             line=origin_line,
