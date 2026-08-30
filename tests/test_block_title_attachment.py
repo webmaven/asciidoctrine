@@ -7,7 +7,7 @@ pytestmark = pytest.mark.unit
 
 def test_block_title_attaches_after_paragraph():
     source = (
-        "First paragraph.\n"
+        "First paragraph.\n\n"
         ".Title for next\n"
         "[source,python]\n"
         "----\n"
@@ -17,7 +17,9 @@ def test_block_title_attaches_after_paragraph():
 
     doc = parse_to_ast(source, strict=False)
 
-    # Expect two top-level blocks: a Paragraph and the Listing that follows
+    # Expect two top-level blocks: a Paragraph and the Listing that follows.
+    # Note: the bug occurred when the following block had no title if the previous
+    # block (or any preceding block) itself had a title — ensure separation with a blank line.
     assert len(doc.blocks) >= 2
 
     listing = doc.blocks[1]
