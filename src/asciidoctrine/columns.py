@@ -53,7 +53,9 @@ def _format_percentage(val: float) -> str:
     return f"{formatted}%"
 
 
-def parse_cols(cols_str: Optional[str], fallback_col_count: int = 0) -> list[dict[str, Any]]:
+def parse_cols(
+    cols_str: Optional[str], fallback_col_count: int = 0
+) -> list[dict[str, Any]]:
     """
     Parse an AsciiDoc `cols` attribute string into structured column definitions.
 
@@ -106,12 +108,14 @@ def parse_cols(cols_str: Optional[str], fallback_col_count: int = 0) -> list[dic
         match = COL_SPEC_REGEX.match(token)
         if not match:
             # Fallback for unrecognized token: 1 default col
-            raw_cols.append({
-                "raw_width": None,
-                "halign": "left",
-                "valign": "top",
-                "style": "default",
-            })
+            raw_cols.append(
+                {
+                    "raw_width": None,
+                    "halign": "left",
+                    "valign": "top",
+                    "style": "default",
+                }
+            )
             continue
 
         groups = match.groupdict()
@@ -126,12 +130,14 @@ def parse_cols(cols_str: Optional[str], fallback_col_count: int = 0) -> list[dic
         raw_width = groups.get("width")
 
         for _ in range(multiplier):
-            raw_cols.append({
-                "raw_width": raw_width,
-                "halign": halign,
-                "valign": valign,
-                "style": style,
-            })
+            raw_cols.append(
+                {
+                    "raw_width": raw_width,
+                    "halign": halign,
+                    "valign": valign,
+                    "style": style,
+                }
+            )
 
     total_cols = len(raw_cols)
     if total_cols == 0:
@@ -142,14 +148,18 @@ def parse_cols(cols_str: Optional[str], fallback_col_count: int = 0) -> list[dic
     # 2. If integer ratios (e.g. 1, 3, 1), compute ratio / sum(ratios) * 100%
     # 3. If no width specified across all columns, equal distribution (100 / N)%
     has_numeric_ratio = any(
-        col["raw_width"] and not col["raw_width"].endswith("%") and col["raw_width"].isdigit()
+        col["raw_width"]
+        and not col["raw_width"].endswith("%")
+        and col["raw_width"].isdigit()
         for col in raw_cols
     )
 
     ratio_sum = sum(
         int(col["raw_width"])
         for col in raw_cols
-        if col["raw_width"] and not col["raw_width"].endswith("%") and col["raw_width"].isdigit()
+        if col["raw_width"]
+        and not col["raw_width"].endswith("%")
+        and col["raw_width"].isdigit()
     )
 
     result: list[dict[str, Any]] = []
@@ -163,12 +173,14 @@ def parse_cols(cols_str: Optional[str], fallback_col_count: int = 0) -> list[dic
         else:
             width_str = _format_percentage(100.0 / total_cols)
 
-        result.append({
-            "index": i,
-            "width": width_str,
-            "halign": col["halign"],
-            "valign": col["valign"],
-            "style": col["style"],
-        })
+        result.append(
+            {
+                "index": i,
+                "width": width_str,
+                "halign": col["halign"],
+                "valign": col["valign"],
+                "style": col["style"],
+            }
+        )
 
     return result

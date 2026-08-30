@@ -68,7 +68,6 @@ STRICT_CASES = [
         "Malformed description list term",
         ["descriptionList"],
     ),
-
     (
         "broken_table_unclosed",
         "|===\n| Cell 1 | Cell 2\n",

@@ -1,6 +1,6 @@
 = AsciiDoctrine Documentation
 Michael R. Bernstein <zopemaven@gmail.com>
-v0.2.0a4
+v0.2.0a5
 :docinfo: shared
 
 Welcome to the official documentation for *AsciiDoctrine*, a native Python implementation of the AsciiDoc Language Specification.

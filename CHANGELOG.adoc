@@ -1,6 +1,14 @@
 = Changelog
 :toc:
 
+== link:https://pypi.org/project/asciidoctrine/0.2.0a5/[0.2.0a5] - 2026-08-30
+
+=== Added
+* **AsciiDoc Table `cols` DSL Parser & ASG Resolution (Issue #118)**:
+  - Added native AsciiDoc `cols` attribute DSL parser (`src/asciidoctrine/columns.py`) resolving column multipliers (`N*`), horizontal alignments (`<`, `^`, `>`), vertical alignments (`.<`, `.^`, `.>`), styles (`d`, `e`, `s`, `l`, `m`, `h`, `a`), and widths.
+  - Normalizes integer column ratios into proportional percentage strings (e.g., `1,3,1` -> `20%`, `60%`, `20%`) and passes through explicit percentage strings.
+  - Emits structured `columns` dictionary collection on the resolved `Table` ASG node while preserving raw `attributes['cols']` for round-tripping.
+
 == link:https://pypi.org/project/asciidoctrine/0.2.0a4/[0.2.0a4] - 2026-08-25
 
 === Fixed
