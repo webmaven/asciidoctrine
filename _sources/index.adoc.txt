@@ -1,6 +1,6 @@
 = AsciiDoctrine Documentation
 Michael R. Bernstein <zopemaven@gmail.com>
-v0.2.0a4
+v0.2.0a5
 :docinfo: shared
 
 Welcome to the official documentation for *AsciiDoctrine*, a native Python implementation of the AsciiDoc Language Specification.
@@ -230,7 +230,7 @@ The path to 1:1 syntactic specification compliance is tracked through the follow
 | *0* | *Foundations*: PEG/Earley grammar, structured AST, and TCK test harness. | ✅
 | *1* | *Advanced Blocks*: Admonitions ✅, Sidebars ✅, Source blocks ✅, Example blocks ✅, and Open blocks ✅. | ✅
 | *2* | *Document Infra*: Headers ✅, dynamic attribute resolution ✅, and multi-file includes ✅. | ✅
-| *3* | *Tables & Description Lists*: Nested/mixed description lists, checklists ✅, and advanced table formatting/spans ✅. | ✅
+| *3* | *Tables & Description Lists*: Nested/mixed description lists, checklists ✅, and table `cols` DSL parsing & ASG columns resolution ✅. | ✅
 | *4* | *Testing & Developer Experience*: Callout stripping, strict AST syntax auditing ✅, and precise source location coordinate tracking ✅. | ✅
 | *5* | *Structural Resolution & SSG*: TOC outline extraction ✅, cross-references (`xref`) ✅, and bare URL/email autolinks ✅. | ✅
 | *6* | *Sphinx Extension Support*: 100% Docutils node visitor coverage ✅, metadata alignment ✅, and permissive error recovery ✅. | ✅

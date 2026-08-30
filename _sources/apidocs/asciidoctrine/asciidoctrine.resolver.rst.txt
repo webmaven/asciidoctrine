@@ -99,6 +99,12 @@ API
       .. autodoc2-docstring:: asciidoctrine.resolver.ASGResolver.visit_comment
          :parser: sphinx_asciidoctrine.parser
 
+   .. py:method:: visit_table(node: asciidoctrine.nodes.Table, **kwargs: typing.Any) -> asciidoctrine.nodes.Node
+      :canonical: asciidoctrine.resolver.ASGResolver.visit_table
+
+      .. autodoc2-docstring:: asciidoctrine.resolver.ASGResolver.visit_table
+         :parser: sphinx_asciidoctrine.parser
+
    .. py:method:: _extract_inline_text(nodes: typing.Sequence[asciidoctrine.nodes.Node]) -> str
       :canonical: asciidoctrine.resolver.ASGResolver._extract_inline_text
 

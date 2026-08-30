@@ -1160,7 +1160,7 @@ API
    .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Open.get_child_collections
 
-.. py:class:: Table(rows: typing.Optional[typing.Sequence[asciidoctrine.nodes.TableRow]] = None)
+.. py:class:: Table(rows: typing.Optional[typing.Sequence[asciidoctrine.nodes.TableRow]] = None, columns: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = None)
    :canonical: asciidoctrine.nodes.Table
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
