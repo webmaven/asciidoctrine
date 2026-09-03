@@ -1,7 +1,28 @@
 = Changelog
 :toc:
 
+== link:https://pypi.org/project/asciidoctrine/0.2.0a6/[0.2.0a6] - 2026-09-03
+
+=== Added
+* **Human-Readable Syntax Error Diagnostics (Feature #78 Phase 1)**:
+  - Added internal terminal translation dictionary (`_TERMINAL_NAMES`) in `lark_parser.py` converting cryptic Lark tokens (e.g. `_NEWLINE`, `DLIST_MARKER_2`, `SECTION_TITLE_LEAD`, `ATTR_LIST_CONTENT`, `EQUALS`) into user-friendly names in compiler diagnostics while suppressing internal anonymous rules.
+* **Graceful Cross-Reference Resolution (Feature #78 Phase 1)**:
+  - Improved `ASGResolver.visit_ref()` to record structured warnings in `resolver.warnings` and mark `node.resolved_strategy = "unresolved"` instead of crashing with an unhandled Python `KeyError` on missing catalog targets.
+  - Added warning accumulation to `WorkspaceBuilder.warnings`.
+
+=== Fixed
+* **Block Title Whitespace Ambiguity with Dot-Ordered Lists (Issue #122)**:
+  - Fixed `block_title` grammar rule matching `. text` with a leading space, which previously caused dot-ordered list items to be consumed as block titles attached to subsequent items. Introduced `BLOCK_TITLE_PREFIX.10` enforcing non-whitespace immediately following the dot while preserving title content.
+* **`WORD` Tokenizer URI Scheme Suffix Fragmentation (Issue #123)**:
+  - Added `(?<![a-zA-Z0-9])` negative lookbehind to single-colon URI scheme alternatives (`mailto:`, `data:`, `tel:`, `sms:`) in the `WORD` lexer terminal, preventing premature token truncation on words whose suffixes match URI schemes (e.g. `Metadata:`, `Subdata:`).
+* **Backslash Inline Macro Escaping (Issue #124, Feature #113)**:
+  - Escaping inline macros with a leading backslash (e.g. `\xref:...`, `\link:...`) now suppresses active `Ref` AST node creation and emits literal text with the escaping backslash stripped.
+  - Supported inside monospace spans (e.g. `\`\xref:...\``) without registering active cross-references.
+* **Indented Literal Structural Attachment in List Items (Issue #125)**:
+  - Fixed indented literal lines immediately following a list item without a blank line being ejected as top-level blocks outside the list. Extended list item grammar rules and AST transformation to attach them into `ListItem.blocks` and `CalloutListItem.blocks`, preserving list continuity.
+
 == link:https://pypi.org/project/asciidoctrine/0.2.0a5/[0.2.0a5] - 2026-08-30
+
 
 === Added
 * **AsciiDoc Table `cols` DSL Parser & ASG Resolution (Issue #118)**:

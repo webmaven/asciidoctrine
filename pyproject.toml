@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "asciidoctrine"
-version = "0.2.0a5"
+version = "0.2.0a6"
 authors = [
   { name = "Michael R. Bernstein", email = "zopemaven@gmail.com" },
 ]
