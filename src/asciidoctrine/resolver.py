@@ -116,6 +116,7 @@ class ASGResolver(NodeTransformer):
         self.footnotes: PyList[Dict[str, Any]] = []
         self.footnote_counter: int = 0
         self.footnote_by_id: Dict[str, Dict[str, Any]] = {}
+        self.warnings: PyList[Dict[str, Any]] = []
 
     def _resolve_docinfo_files(self, doc: Document) -> tuple[str, str]:
         docinfo_attr = str(self.resolved_attributes.get("docinfo", "")).strip()
@@ -261,6 +262,7 @@ class ASGResolver(NodeTransformer):
         self.footnotes = []
         self.footnote_counter = 0
         self.footnote_by_id = {}
+        self.warnings = []
 
         self.visit(copied_node)
 
@@ -504,9 +506,16 @@ class ASGResolver(NodeTransformer):
                 "same_file" if matching_file == self.current_file_id else "cross_file"
             )
         else:
-            raise KeyError(
-                f"Cross-reference error: '{target_str}' not found in workspace."
+            self.warnings.append(
+                {
+                    "type": "unresolved_xref",
+                    "target": target_str,
+                    "message": f"Unresolved cross-reference: {target_str}",
+                }
             )
+            node.resolved_strategy = "unresolved"
+            if resolved_file:
+                node.resolved_file_target = resolved_file
 
         node.resolved_anchor_target = target_anchor
         return self.generic_visit(node, **kwargs)
@@ -572,6 +581,7 @@ class WorkspaceBuilder:
         self.catalog = WorkspaceCatalog()
         self.raw_documents: Dict[str, Document] = {}
         self.resolved_asg_graphs: Dict[str, Dict[str, Any]] = {}
+        self.warnings: PyList[Dict[str, Any]] = []
 
     def _get_file_id(self, path_str: Union[str, Path]) -> str:
         """Generates a stable, platform-agnostic string file ID relative to the workspace root.
@@ -636,12 +646,14 @@ class WorkspaceBuilder:
                 ast_tree, catalog=self.catalog, current_file_id=file_id
             )
             self.resolved_asg_graphs[file_id] = resolver.resolve(ast_tree)
+            self.warnings.extend(resolver.warnings)
 
     def build(self) -> Dict[str, Dict[str, Any]]:
         """Runs the complete multi-pass orchestration sequence sequentially (Pass 1 -> Pass 2 -> Pass 3).
 
         Returns a dictionary mapping relative file IDs (e.g., `"doc.adoc"`) to their fully-resolved, spec-compliant ASG dictionaries.
         """
+        self.warnings = []
         self.discover_and_parse_project()
         self.index_workspace_symbols()
         self.resolve_workspace_semantics()

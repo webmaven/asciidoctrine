@@ -478,6 +478,7 @@ class TestXrefResolution:
         assert asg["name"] == "document"
 
     def test_xref_missing_raises_key_error(self) -> None:
+        """Unresolved cross-reference emits structured warning and sets strategy to unresolved."""
         catalog = WorkspaceCatalog()
         doc = Document()
         catalog.index_document("only.adoc", doc)
@@ -487,8 +488,11 @@ class TestXrefResolution:
         doc2.blocks.append(Paragraph(inlines=[xref]))
 
         resolver = ASGResolver(doc2, catalog=catalog, current_file_id="only.adoc")
-        with pytest.raises(KeyError, match="Cross-reference error"):
-            resolver.resolve(doc2)
+        asg = resolver.resolve(doc2)
+        assert len(resolver.warnings) == 1
+        assert resolver.warnings[0]["type"] == "unresolved_xref"
+        assert resolver.warnings[0]["target"] == "nonexistent#anchor"
+        assert asg["blocks"][0]["inlines"][0]["resolved_strategy"] == "unresolved"
 
     def test_xref_file_only_target(self) -> None:
         """xref to file with no anchor (e.g. xref:guide.adoc[])."""

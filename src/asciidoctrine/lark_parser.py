@@ -87,6 +87,136 @@ class AsciiDocSyntaxError(ValueError):
             return self.message
 
 
+_TERMINAL_NAMES: Dict[str, str] = {
+    "_NEWLINE": "newline",
+    "NEWLINE": "newline",
+    "WHITESPACE": "whitespace",
+    "_WS": "whitespace",
+    "WS": "whitespace",
+    "DOC_TITLE_LEAD": "document title marker (=)",
+    "SECTION_TITLE_LEAD": "section title marker (=)",
+    "BLOCK_TITLE_PREFIX": "block title prefix (.)",
+    "ULIST_MARKER": "unordered list marker (* or -)",
+    "OLIST_MARKER": "ordered list marker (1. or .)",
+    "CHECKBOX": "task list checkbox",
+    "DLIST_MARKER_2": ":: (description list marker)",
+    "DLIST_MARKER_3": "::: (description list marker)",
+    "DLIST_MARKER_4": ":::: (description list marker)",
+    "DLIST_MARKER_5": "::::: (description list marker)",
+    "LISTING_DELIM": "listing block delimiter (----)",
+    "LITERAL_DELIM": "literal block delimiter (....)",
+    "PASSTHROUGH_BLOCK_DELIM": "passthrough block delimiter (++++)",
+    "TABLE_DELIM": "table delimiter (|===)",
+    "TABLE_CELL": "table cell",
+    "THEMATIC_BREAK_MARKER": "thematic break (' ' ' or * * * or - - -)",
+    "PAGE_BREAK_MARKER": "page break (<<<)",
+    "OPEN_BLOCK_DELIM": "open block delimiter (--)",
+    "OPEN_BLOCK_DELIM_4": "open block delimiter (~~~~)",
+    "OPEN_BLOCK_DELIM_5": "open block delimiter (~~~~~)",
+    "OPEN_BLOCK_DELIM_6": "open block delimiter (~~~~~~)",
+    "OPEN_BLOCK_DELIM_LONG": "open block delimiter (~~~~~~~+)",
+    "QUOTE_DELIM_4": "quote delimiter (____)",
+    "QUOTE_DELIM_5": "quote delimiter (_____)",
+    "QUOTE_DELIM_6": "quote delimiter (______)",
+    "QUOTE_DELIM_LONG": "quote delimiter (_______+)",
+    "SIDEBAR_DELIM_4": "sidebar delimiter (****)",
+    "SIDEBAR_DELIM_5": "sidebar delimiter (*****)",
+    "SIDEBAR_DELIM_6": "sidebar delimiter (******)",
+    "SIDEBAR_DELIM_LONG": "sidebar delimiter (*******+)",
+    "ADMONITION_START": "admonition marker ([NOTE], [TIP], etc.)",
+    "ADMONITION_TYPE": "admonition type (NOTE, TIP, etc.)",
+    "ADMONITION_DELIM_4": "admonition delimiter (====)",
+    "ADMONITION_DELIM_5": "admonition delimiter (=====)",
+    "ADMONITION_DELIM_6": "admonition delimiter (======)",
+    "ADMONITION_DELIM_LONG": "admonition delimiter (=======+)",
+    "INDENTED_LITERAL_LEAD": "indented literal lead",
+    "COMMENT_CONTENT": "comment content",
+    "LISTING_CONTENT": "listing block content",
+    "LITERAL_CONTENT": "literal block content",
+    "PASSTHROUGH_CONTENT": "passthrough block content",
+    "ATTR_LIST_CONTENT": "attribute list content",
+    "ATTR_NAME": "attribute name",
+    "FN_ID": "footnote identifier",
+    "MACRO_TARGET": "macro target",
+    "TARGET": "target",
+    "URI": "URI",
+    "EMAIL": "email address",
+    "AUTHOR_SPECIAL_CHARS": "author special characters",
+    "STYLE_SPEC": "style specifier",
+    "HORIZ_ALIGN": "horizontal alignment",
+    "VERT_ALIGN": "vertical alignment",
+    "EQUALS": "=",
+    "ASTERISK": "*",
+    "UNDERSCORE": "_",
+    "OPEN_UNDERSCORE": "_ (italic start)",
+    "CLOSE_UNDERSCORE": "_ (italic end)",
+    "BACKTICK": "`",
+    "OPEN_BACKTICK": "` (monospace start)",
+    "CLOSE_BACKTICK": "` (monospace end)",
+    "CIRCUMFLEX": "^ (superscript)",
+    "TILDE": "~ (subscript)",
+    "HASH": "# (mark)",
+    "COLON": ":",
+    "LT": "<",
+    "GT": ">",
+    "PLUS": "+",
+    "INLINE_BREAK": "inline break ( +)",
+    "LSQB": "[",
+    "RSQB": "]",
+    "LBRACE": "{",
+    "RBRACE": "}",
+    "LPAR": "(",
+    "RPAR": ")",
+    "BANG": "!",
+    "NUMBER": "number",
+    "WORD": "word",
+    "WORD_WITH_UNDERSCORE": "word",
+    "MONOSPACE_TEXT": "monospace text",
+    "UNCONSTRAINED_MONOSPACE_TEXT": "monospace text",
+    "PASS_MACRO_CONTENT": "passthrough macro content",
+    "PASS_TRIPLE_CONTENT": "triple-plus passthrough content",
+    "IMAGE_PREFIX": "image: (inline image prefix)",
+    "ICON_PREFIX": "icon: (inline icon prefix)",
+    "ANCHOR_PREFIX": "anchor: (inline anchor prefix)",
+    "XREF_PREFIX": "xref: (inline xref prefix)",
+    "LINK_PREFIX": "link: (inline link prefix)",
+    "OUTER_LISTING_START": "outer listing block start",
+    "OUTER_LISTING_END": "outer listing block end",
+    "OUTER_LISTING_CONTENT": "outer listing block content",
+    "OUTER_LITERAL_START": "outer literal block start",
+    "OUTER_LITERAL_END": "outer literal block end",
+    "OUTER_LITERAL_CONTENT": "outer literal block content",
+    "OUTER_PASSTHROUGH_START": "outer passthrough block start",
+    "OUTER_PASSTHROUGH_END": "outer passthrough block end",
+    "OUTER_PASSTHROUGH_CONTENT": "outer passthrough block content",
+    "OUTER_COMMENT_START": "outer comment block start",
+    "OUTER_COMMENT_END": "outer comment block end",
+    "OUTER_COMMENT_CONTENT": "outer comment block content",
+}
+
+
+def _format_expected_terminals(e: UnexpectedInput) -> str:
+    """Formats expected tokens from Lark's UnexpectedInput into human-readable descriptions."""
+    raw_expected = (
+        getattr(e, "expected", None)
+        or getattr(e, "accepts", None)
+        or getattr(e, "allowed", None)
+    )
+    if not raw_expected:
+        return ""
+    translated: PyList[str] = []
+    for tok in raw_expected:
+        tok_str = str(tok)
+        if tok_str in _TERMINAL_NAMES:
+            translated.append(_TERMINAL_NAMES[tok_str])
+        elif not tok_str.startswith("__ANON_"):
+            translated.append(tok_str)
+    if not translated:
+        return ""
+    unique_sorted = sorted(set(translated))
+    return f"Expected one of: {', '.join(unique_sorted)}"
+
+
 Children = PyList[Any]
 Transformed = Union[Node, Any, Dict[str, Any], PyList[Any], str]
 
@@ -1388,9 +1518,13 @@ def parse_to_ast(
     except UnexpectedInput as e:
         context = e.get_context(processed_source)
         origin_file, origin_line = preprocessor.line_map.get(e.line, (None, e.line))
-        message = f"Syntax error at line {origin_line}, column {e.column}.\n{context}"
+        expected_str = _format_expected_terminals(e)
+        context_display = f"{context}\n{expected_str}" if expected_str else context
+        message = (
+            f"Syntax error at line {origin_line}, column {e.column}.\n{context_display}"
+        )
         if origin_file and origin_file != "<root>":
-            message = f"Syntax error in {os.path.basename(origin_file)} at line {origin_line}, column {e.column}.\n{context}"
+            message = f"Syntax error in {os.path.basename(origin_file)} at line {origin_line}, column {e.column}.\n{context_display}"
         # Before raising a generic syntax error, check whether the parse failure
         # was caused by a well-known pattern that has a friendlier message.
         # Unclosed inline footnote: now that `footnote:` is properly tokenised
@@ -1426,7 +1560,7 @@ def parse_to_ast(
             message,
             line=origin_line,
             column=e.column,
-            context=context,
+            context=context_display,
             filepath=origin_file,
         ) from e
     ast_root = AsciiDocTransformer().transform(tree)
@@ -1549,9 +1683,13 @@ def parse_inlines(
         tree = parser.parse(source)
     except UnexpectedInput as e:
         context = e.get_context(source)
-        message = f"Syntax error at line {e.line}, column {e.column}.\n{context}"
+        expected_str = _format_expected_terminals(e)
+        context_display = f"{context}\n{expected_str}" if expected_str else context
+        message = (
+            f"Syntax error at line {e.line}, column {e.column}.\n{context_display}"
+        )
         raise AsciiDocSyntaxError(
-            message, line=e.line, column=e.column, context=context
+            message, line=e.line, column=e.column, context=context_display
         ) from e
     result = AsciiDocTransformer().transform(tree)
     if isinstance(result, list):
