@@ -974,5 +974,49 @@ class TestInlineMacroAttachedToPunctuation(unittest.TestCase):
         self.assertEqual(len(ref_nodes), 1)
 
 
+def test_word_tokenizer_with_uri_scheme_suffixes():
+    # Metadata ends in data:
+    # Subdata ends in data:
+    text1 = "* *Metadata:*"
+    ast1 = parse_to_ast(text1)
+    assert len(ast1.blocks) == 1
+    # Ensure no unexpected characters error and word is parsed properly
+
+    text2 = "Subdata: something"
+    ast2 = parse_to_ast(text2)
+    assert len(ast2.blocks) == 1
+
+    # Control case
+    text3 = "* *Metadat:*"
+    ast3 = parse_to_ast(text3)
+    assert len(ast3.blocks) == 1
+
+    # Additional URI schemes: tel:, sms:, mailto:
+    text_tel = "* *Cartel:*"
+    ast_tel = parse_to_ast(text_tel)
+    assert len(ast_tel.blocks) == 1
+
+    text_sms = "* *Cosms:*"
+    ast_sms = parse_to_ast(text_sms)
+    assert len(ast_sms.blocks) == 1
+
+    text_mailto = "* *sendmailto:*"
+    ast_mailto = parse_to_ast(text_mailto)
+    assert len(ast_mailto.blocks) == 1
+
+    # Ensure valid URI schemes still match properly
+    text_uri1 = "data:image/png;base64,iVBORw0KGgo= image"
+    ast_uri1 = parse_to_ast(text_uri1)
+    assert len(ast_uri1.blocks) == 1
+
+    text_uri2 = "Contact mailto:user@example.com for info"
+    ast_uri2 = parse_to_ast(text_uri2)
+    assert len(ast_uri2.blocks) == 1
+
+    text_uri3 = "Call tel:+123456789 now"
+    ast_uri3 = parse_to_ast(text_uri3)
+    assert len(ast_uri3.blocks) == 1
+
+
 if __name__ == "__main__":
     unittest.main()

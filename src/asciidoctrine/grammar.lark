@@ -343,7 +343,7 @@ CLOSE_BACKTICK.2: /(?<![ \t\n\`])\`(?![a-zA-Z0-9_\`])/
 // inline invocation, not before a `::` double-colon block macro.
 // Prefixes exclusive to inline use (footnote, footnoteref, indexterm,
 // kbd:[, btn:[, stem:[, asciimath:[, latexmath:[, pass:[) use plain `:`.
-WORD: /(?:(?!(?:footnote:|footnoteref:|indexterm:|image:(?!:)|icon:(?!:)|link:(?!:)|anchor:(?!:)|xref:(?!:)|menu:(?!:)|kbd:\[|btn:\[|stem:\[|asciimath:\[|latexmath:\[|pass:\[|https?:\/\/|ftps?:\/\/|file:\/\/|ircs?:\/\/|wss?:\/\/|git:\/\/|ssh:\/\/|mailto:|data:|tel:|sms:))[^ \t\n*_`=\[\]{}:<>+()#^~])+/
+WORD: /(?:(?!(?:footnote:|footnoteref:|indexterm:|image:(?!:)|icon:(?!:)|link:(?!:)|anchor:(?!:)|xref:(?!:)|menu:(?!:)|kbd:\[|btn:\[|stem:\[|asciimath:\[|latexmath:\[|pass:\[|https?:\/\/|ftps?:\/\/|file:\/\/|ircs?:\/\/|wss?:\/\/|git:\/\/|ssh:\/\/|(?<![a-zA-Z0-9])mailto:|(?<![a-zA-Z0-9])data:|(?<![a-zA-Z0-9])tel:|(?<![a-zA-Z0-9])sms:))[^ \t\n*_`=\[\]{}:<>+()#^~])+/
 LBRACE: "{"
 RBRACE: "}"
 LSQB: "["
