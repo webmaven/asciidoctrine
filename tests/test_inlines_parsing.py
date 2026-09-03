@@ -1152,6 +1152,30 @@ class TestInlineParsing(TestInlines):
         self.assertEqual(len(text_nodes), 1)
         self.assertEqual(text_nodes[0].value, "\\")
 
+    def test_backslash_preservation(self):
+        source = "foo \\ bar\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        paragraph = ast["blocks"][0]
+        self.assertIn("foo \\ bar", paragraph["inlines"][0]["value"])
+
+    def test_escaped_formatting_preservation(self):
+        source = "\\*bold*\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        paragraph = ast["blocks"][0]
+        # In AsciiDoc, \*bold* should result in *bold* as plain text.
+        # The parser likely puts it into a Text node.
+        # Let's inspect what's there if it fails.
+        inlines = paragraph["inlines"]
+        # Check that there is no bold node (variant == 'strong')
+        for inline in inlines:
+            self.assertNotEqual(
+                inline.get("variant"), "strong", f"Found bold node: {inline}"
+            )
+
+        # Check that the text value contains *bold*
+        full_text = "".join(i.get("value", "") for i in inlines if isinstance(i, dict))
+        self.assertIn("*bold*", full_text)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -110,7 +110,7 @@ class InlineTransformer(BaseTransformer):
                             IndexTerm,
                         ),
                     )
-                    or hasattr(node, "_source_text")
+                    or getattr(node, "_source_text", None) is not None
                 )
                 if is_bare:
                     # Escaping check: if previous text ends with '\'
@@ -684,6 +684,7 @@ class InlineTransformer(BaseTransformer):
     @v_args(meta=True)
     def inline_callout(self, meta: Any, children: PyList[Any]) -> Callout:
         co = Callout(int(children[0].value))
+        co._source_text = f"<{children[0].value}>"
         return cast(Callout, self._set_location_from_children(co, children))
 
     @v_args(meta=True)
