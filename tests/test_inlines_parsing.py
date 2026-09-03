@@ -1158,14 +1158,20 @@ class TestInlineParsing(TestInlines):
         paragraph = ast["blocks"][0]
         self.assertIn("foo \\ bar", paragraph["inlines"][0]["value"])
 
+    @unittest.expectedFailure
     def test_escaped_formatting_preservation(self):
         source = "\\*bold*\n"
         ast = self._strip_locations(parse_to_ast(source).to_dict())
         paragraph = ast["blocks"][0]
-        # Verify that preceding backslash does not erase the subsequent formatted span or crash
+        # In AsciiDoc, \*bold* should result in *bold* as literal text without strong span.
+        # Tracked as expectedFailure until delimiter escaping is implemented.
         inlines = paragraph["inlines"]
-        self.assertTrue(len(inlines) >= 1)
-        self.assertTrue(any(i.get("variant") == "strong" for i in inlines))
+        for inline in inlines:
+            self.assertNotEqual(
+                inline.get("variant"), "strong", f"Found bold node: {inline}"
+            )
+        full_text = "".join(i.get("value", "") for i in inlines if isinstance(i, dict))
+        self.assertIn("*bold*", full_text)
 
 
 if __name__ == "__main__":

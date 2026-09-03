@@ -1285,3 +1285,17 @@ def test_callout_list_item_with_indented_literal():
     assert len(item1.blocks) == 1
     assert type(item1.blocks[0]).__name__ == "Literal"
     assert item1.blocks[0].code == "indented literal"
+
+
+def test_indented_literal_with_blank_line_not_attached_to_list_item():
+    """An indented literal separated by a blank line is not attached to the list item;
+    the list closes and the literal is a top-level block."""
+    text = "* Item 1\n\n  indented literal\n* Item 2\n"
+    ast = parse_to_ast(text)
+    # List is broken by the blank line + indented literal
+    assert len(ast.blocks) == 3
+    assert ast.blocks[0].name == "list"
+    assert len(ast.blocks[0].items) == 1
+    assert ast.blocks[1].name == "literal"
+    assert ast.blocks[2].name == "list"
+    assert len(ast.blocks[2].items) == 1
