@@ -45,10 +45,11 @@ olist: olist_item+
 ?dlist: dlist_5 | dlist_4 | dlist_3 | dlist_2
 colist: colist_item+
 
-ulist_item.5: ULIST_MARKER [CHECKBOX] text_content _NEWLINE
-olist_item.5: OLIST_MARKER text_content _NEWLINE
+ulist_item.5: ULIST_MARKER [CHECKBOX] text_content _NEWLINE indented_literal*
+olist_item.5: OLIST_MARKER text_content _NEWLINE indented_literal*
 
-colist_item.5: "<" NUMBER ">" [WHITESPACE] text_content _NEWLINE
+colist_item.5: "<" NUMBER ">" [WHITESPACE] text_content _NEWLINE indented_literal*
+
 
 ?dlist_nested_2: dlist_5 | dlist_4 | dlist_3
 ?dlist_nested_3: dlist_5 | dlist_4 | dlist_2

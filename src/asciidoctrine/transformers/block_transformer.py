@@ -102,6 +102,50 @@ class BlockTransformer(BaseTransformer):
         level += indent // 2
         return level
 
+    def _merge_indented_literals(
+        self, blocks: Sequence[BlockNode]
+    ) -> PyList[BlockNode]:
+        if not blocks:
+            return []
+        merged: PyList[BlockNode] = []
+        for block in blocks:
+            if (
+                isinstance(block, Literal)
+                and block.form == "indented"
+                and merged
+                and isinstance(merged[-1], Literal)
+                and merged[-1].form == "indented"
+            ):
+                prev_lit = merged[-1]
+                prev_lit.inlines.append(Text("\n"))
+                prev_lit.inlines.extend(block.inlines)
+                # Consolidate adjacent text nodes
+                consolidated: PyList[Node] = []
+                for node in prev_lit.inlines:
+                    if (
+                        consolidated
+                        and isinstance(consolidated[-1], Text)
+                        and isinstance(node, Text)
+                        and consolidated[-1].attributes == node.attributes
+                    ):
+                        consolidated[-1].value += node.value
+                        if node.location:
+                            if not consolidated[-1].location:
+                                consolidated[-1].location = node.location
+                            else:
+                                consolidated[-1].location[1] = node.location[1]
+                    else:
+                        consolidated.append(node)
+                prev_lit.inlines = consolidated
+                if block.location:
+                    if not prev_lit.location:
+                        prev_lit.location = block.location
+                    else:
+                        prev_lit.location[1] = block.location[1]
+            else:
+                merged.append(block)
+        return merged
+
     def _nest_list_items(self, items: PyList[Dict[str, Any]]) -> PyList[ListItem]:
         if not items:
             return []
@@ -151,8 +195,10 @@ class BlockTransformer(BaseTransformer):
             item = ListItem(
                 marker=marker,
                 principal=item_data["children"],
+                blocks=item_data.get("blocks", []),
                 checked=item_data.get("checked"),
             )
+
             if "raw_children" in item_data:
                 self._set_location_from_children(item, item_data["raw_children"])
             list_node.items.append(item)
@@ -298,10 +344,13 @@ class BlockTransformer(BaseTransformer):
         nodes = [
             c
             for c in children[1:]
-            if not (hasattr(c, "type") and getattr(c, "type") == "WHITESPACE")
+            if c is not None
+            and not (hasattr(c, "type") and getattr(c, "type") == "WHITESPACE")
         ]
         content = nodes[0] if nodes else []
-        item = CalloutListItem(number=number, principal=content)
+        blocks = [c for c in nodes[1:] if isinstance(c, BlockNode)]
+        blocks = self._merge_indented_literals(blocks)
+        item = CalloutListItem(number=number, principal=content, blocks=blocks)
         return cast(CalloutListItem, self._set_location_from_children(item, children))
 
     @v_args(meta=True)
@@ -310,18 +359,25 @@ class BlockTransformer(BaseTransformer):
         level = self._get_list_level(marker_token)
 
         checkbox = None
-        content = None
-        if len(children) == 3:
+        if len(children) >= 3 and (
+            children[1] is None
+            or (isinstance(children[1], Token) and children[1].type == "CHECKBOX")
+        ):
             checkbox = children[1]
             content = children[2]
+            blocks = [c for c in children[3:] if isinstance(c, BlockNode)]
         else:
-            content = children[1]
+            content = children[1] if len(children) > 1 else []
+            blocks = [c for c in children[2:] if isinstance(c, BlockNode)]
 
-        item_data = {
+        blocks = self._merge_indented_literals(blocks)
+
+        item_data: Dict[str, Any] = {
             "level": level,
             "item_type": "bullet",
             "marker": marker_token.value.strip(),
             "children": content,
+            "blocks": blocks,
             "raw_children": children,
             "meta": meta,
         }
@@ -335,12 +391,15 @@ class BlockTransformer(BaseTransformer):
     def olist_item(self, meta: Any, children: PyList[Any]) -> Dict[str, Any]:
         marker_token = children[0]
         level = self._get_list_level(marker_token)
-        content = children[1]
+        content = children[1] if len(children) > 1 else []
+        blocks = [c for c in children[2:] if isinstance(c, BlockNode)]
+        blocks = self._merge_indented_literals(blocks)
         return {
             "level": level,
             "item_type": "enumerated",
             "marker": marker_token.value.strip(),
             "children": content,
+            "blocks": blocks,
             "raw_children": children,
             "meta": meta,
         }

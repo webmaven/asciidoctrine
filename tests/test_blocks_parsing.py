@@ -1224,3 +1224,64 @@ def test_ordered_list_with_leading_dots_not_eaten_as_titles():
     assert ast.blocks[0].title is None
     for i, item in enumerate(ast.blocks[0].items, 1):
         assert item.title is None
+
+
+def test_indented_literal_attached_inside_list_item():
+    text = "* Item 1\n  indented literal of item 1\n* Item 2\n"
+    ast = parse_to_ast(text)
+    # List is intact — not broken into multiple top-level lists
+    assert len(ast.blocks) == 1
+    assert ast.blocks[0].name == "list"
+    assert len(ast.blocks[0].items) == 2
+    # Literal is inside item 1 blocks, not at the document root
+    item1 = ast.blocks[0].items[0]
+    assert any(type(n).__name__ == "Literal" for n in item1.blocks)
+
+
+def test_indented_literal_attached_inside_ordered_list_item():
+    text = ". Item 1\n  indented literal of item 1\n. Item 2\n"
+    ast = parse_to_ast(text)
+    assert len(ast.blocks) == 1
+    assert ast.blocks[0].name == "list"
+    assert ast.blocks[0].variant == "ordered"
+    assert len(ast.blocks[0].items) == 2
+    item1 = ast.blocks[0].items[0]
+    assert any(type(n).__name__ == "Literal" for n in item1.blocks)
+
+
+def test_multiple_indented_literals_attached_inside_list_item():
+    text = "* Item 1\n  line 1\n  line 2\n* Item 2\n"
+    ast = parse_to_ast(text)
+    assert len(ast.blocks) == 1
+    assert ast.blocks[0].name == "list"
+    assert len(ast.blocks[0].items) == 2
+    item1 = ast.blocks[0].items[0]
+    assert len(item1.blocks) == 1
+    assert type(item1.blocks[0]).__name__ == "Literal"
+    assert item1.blocks[0].code == "line 1\nline 2"
+
+
+def test_checkbox_list_item_with_indented_literal():
+    text = "* [*] Item 1\n  indented literal\n* [ ] Item 2\n"
+    ast = parse_to_ast(text)
+    assert len(ast.blocks) == 1
+    assert ast.blocks[0].name == "list"
+    assert len(ast.blocks[0].items) == 2
+    item1 = ast.blocks[0].items[0]
+    assert item1.checked is True
+    assert len(item1.blocks) == 1
+    assert type(item1.blocks[0]).__name__ == "Literal"
+    assert item1.blocks[0].code == "indented literal"
+
+
+def test_callout_list_item_with_indented_literal():
+    text = "<1> Item 1\n  indented literal\n<2> Item 2\n"
+    ast = parse_to_ast(text)
+    assert len(ast.blocks) == 1
+    assert ast.blocks[0].name == "calloutList"
+    assert len(ast.blocks[0].items) == 2
+    item1 = ast.blocks[0].items[0]
+    assert item1.value == 1
+    assert len(item1.blocks) == 1
+    assert type(item1.blocks[0]).__name__ == "Literal"
+    assert item1.blocks[0].code == "indented literal"
