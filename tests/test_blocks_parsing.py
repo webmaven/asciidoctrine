@@ -1212,3 +1212,15 @@ def test_table_inside_passthrough_block_remains_literal():
     assert isinstance(doc.blocks[0], Passthrough)
     assert "|===" in doc.blocks[0].inlines[0].value
     assert "ASCIIDOCTRINE_OUTER" not in doc.blocks[0].inlines[0].value
+
+
+def test_ordered_list_with_leading_dots_not_eaten_as_titles():
+    text = ". Item 1\n. Item 2\n. Item 3\n. Item 4\n"
+    ast = parse_to_ast(text)
+    assert len(ast.blocks) == 1
+    assert ast.blocks[0].name == "list"
+    assert ast.blocks[0].variant == "ordered"
+    assert len(ast.blocks[0].items) == 4
+    assert ast.blocks[0].title is None
+    for i, item in enumerate(ast.blocks[0].items, 1):
+        assert item.title is None

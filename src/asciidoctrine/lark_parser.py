@@ -486,7 +486,50 @@ class AsciiDocTransformer(
 
     @v_args(meta=True)
     def block_title(self, meta: Any, children: Children) -> Title:
-        title = Title(children[0])
+        prefix_token = children[0]
+        first_char = (
+            str(prefix_token.value)[1:]
+            if isinstance(prefix_token, Token)
+            else str(prefix_token)[1:]
+        )
+
+        inlines: PyList[Node] = []
+        if len(children) > 1 and children[1] is not None:
+            if isinstance(children[1], list):
+                inlines = list(children[1])
+            elif isinstance(children[1], Node):
+                inlines = [children[1]]
+
+        if inlines and isinstance(inlines[0], Text):
+            inlines[0].value = first_char + inlines[0].value
+            if (
+                inlines[0].location
+                and isinstance(prefix_token, Token)
+                and prefix_token.line is not None
+                and prefix_token.column is not None
+            ):
+                inlines[0].location[0]["col"] = prefix_token.column + 1
+        else:
+            first_node = Text(first_char)
+            if (
+                isinstance(prefix_token, Token)
+                and prefix_token.line is not None
+                and prefix_token.column is not None
+            ):
+                first_node.location = [
+                    {"line": prefix_token.line, "col": prefix_token.column + 1},
+                    {
+                        "line": prefix_token.end_line or prefix_token.line,
+                        "col": (
+                            prefix_token.end_column - 1
+                            if prefix_token.end_column is not None
+                            else prefix_token.column + 1
+                        ),
+                    },
+                ]
+            inlines.insert(0, first_node)
+
+        title = Title(inlines)
         return cast(Title, self._set_location_from_children(title, children))
 
     @v_args(meta=True)

@@ -24,7 +24,7 @@ attributed_block: (block_metadata)* (section | ulist | olist | dlist | colist | 
 attributed_simple_block: (block_metadata)* (ulist | olist | dlist | colist | listing_block | literal_block | passthrough_block | outer_listing_block | outer_literal_block | outer_passthrough_block | outer_comment_block | shorthand_admonition | indented_literal | paragraph)
 
 block_metadata: block_title | attribute_list | anchor
-block_title.5: "." text_content _NEWLINE
+block_title.5: BLOCK_TITLE_PREFIX [text_content] _NEWLINE
 
 // Sections and Titles
 section: section_title
@@ -263,6 +263,7 @@ subscript_content: subscript_inline_element+
 // Block Terminals
 DOC_TITLE_LEAD.3: "="
 SECTION_TITLE_LEAD.2: /=+/
+BLOCK_TITLE_PREFIX.10: /\.[^\s]/
 ULIST_MARKER: /[ \t]*(\*+|[-])[ \t]+/
 OLIST_MARKER: /[ \t]*([0-9]+\.|[\.]+)[ \t]+/
 DLIST_MARKER_5: /[ \t]*:::::(?!:)(?=[ \t\n]|$)/
