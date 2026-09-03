@@ -284,6 +284,14 @@ API
       .. autodoc2-docstring:: asciidoctrine.nodes.Node._should_serialize_attributes
          :parser: sphinx_asciidoctrine.parser
 
+   .. py:attribute:: _source_text
+      :canonical: asciidoctrine.nodes.Node._source_text
+      :type: typing.Optional[str]
+      :value: None
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.Node._source_text
+         :parser: sphinx_asciidoctrine.parser
+
    .. py:method:: append(child: asciidoctrine.nodes.Node) -> None
       :canonical: asciidoctrine.nodes.Node.append
 

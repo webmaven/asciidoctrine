@@ -48,7 +48,7 @@ API
 
 .. py:data:: __version__
    :canonical: asciidoctrine.__version__
-   :value: '0.2.0a5'
+   :value: '0.2.0a6'
 
    .. autodoc2-docstring:: asciidoctrine.__version__
       :parser: sphinx_asciidoctrine.parser
