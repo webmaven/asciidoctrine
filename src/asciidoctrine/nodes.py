@@ -651,7 +651,7 @@ class Ref(InlineNode):
     `variant`:: The reference variant (e.g. `"link"`, `"xref"`, `"anchor"`, `"footnote"`).
     `target`:: Raw target string from source (e.g. `"https://asciidoctor.org"`, `"chapter1.adoc#intro"`, `"intro"`).
     `inlines`:: Optional child inline nodes representing custom link or reference label text.
-    `resolved_strategy`:: Set by `ASGResolver` to `"same_file"` or `"cross_file"`.
+    `resolved_strategy`:: Set by `ASGResolver` to `"same_file"`, `"cross_file"`, or `"unresolved"`.
     `resolved_file_target`:: Set by `ASGResolver` to the resolved target file ID.
     `resolved_anchor_target`:: Set by `ASGResolver` to the resolved target anchor or section ID.
     `target_node_instance`:: Direct live memory pointer to the resolved target `Node` AST instance. Excluded from `to_dict()` serialization to prevent circular references.

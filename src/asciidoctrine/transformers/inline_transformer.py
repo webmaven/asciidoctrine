@@ -223,6 +223,8 @@ class InlineTransformer(BaseTransformer):
                                     form="constrained",
                                     inlines=[text_node],
                                 )
+                                if text_node.location:
+                                    node.location = text_node.location
                             else:
                                 nodes[-1].value = nodes[-1].value[:-1]
                                 if not nodes[-1].value:
