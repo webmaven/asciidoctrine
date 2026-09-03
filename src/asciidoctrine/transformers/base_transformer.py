@@ -8,10 +8,12 @@ class LocationDict(dict[str, Any]):
     """A dictionary subclass that can hold location coordinates."""
 
     location: Optional[PyList[dict[str, Any]]]
+    raw: str
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.location = None
+        self.raw = ""
 
 
 class BaseTransformer:

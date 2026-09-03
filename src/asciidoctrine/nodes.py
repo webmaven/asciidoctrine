@@ -41,6 +41,7 @@ class Node:
 
     # Controls whether self.attributes is automatically serialized in to_dict()
     _should_serialize_attributes: bool = True
+    _source_text: Optional[str] = None
 
     def __init__(self, children: Optional[Sequence[Node]] = None):
         self.children: PyList[Node] = list(children) if children else []
@@ -49,6 +50,7 @@ class Node:
         self.attributes: Dict[str, Any] = {}
         self.title: Optional[Title] = None
         self.location: Optional[PyList[Dict[str, int]]] = None
+        self._source_text: Optional[str] = None
 
     def append(self, child: Node) -> None:
         self.children.append(child)

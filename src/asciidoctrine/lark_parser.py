@@ -577,6 +577,7 @@ class AsciiDocTransformer(
                 attr_str = c
                 break
 
+        attrs.raw = attr_str
         if not attr_str:
             return attrs
 

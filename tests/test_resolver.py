@@ -1099,3 +1099,25 @@ class TestTableResolution:
                 "style": "default",
             },
         ]
+
+
+def test_resolver_escaped_xref_macro_does_not_fail_resolution():
+    """An escaped inline macro (e.g. \\xref:...) emits literal text and is never
+    evaluated as an active cross-reference against the workspace catalog (#124, #113)."""
+    from asciidoctrine.lark_parser import parse_to_ast
+
+    source = (
+        "= Document Title\n\n"
+        "Here is an example: \\xref:nonexistent-chapter.adoc#missing[Chapter 2]\n\n"
+        "And in monospace: `\\xref:another-missing.adoc[Another]`\n"
+    )
+    doc = parse_to_ast(source)
+    resolver = ASGResolver(doc)
+    asg = resolver.resolve(doc)
+    assert asg is not None
+    p1 = asg["blocks"][0]
+    combined_p1 = "".join(
+        n.get("value", "") for n in p1["inlines"] if n.get("name") == "text"
+    )
+    assert "xref:nonexistent-chapter.adoc#missing[Chapter 2]" in combined_p1
+    assert "\\xref" not in combined_p1

@@ -90,10 +90,27 @@ class InlineTransformer(BaseTransformer):
                 node = child
 
             if node:
-                # Handle escaping and angle bracket stripping for bare links
+                # Handle escaping and angle bracket stripping for bare links and inline macros
                 is_bare = (
                     isinstance(node, Ref)
                     and getattr(node, "attributes", {}).get("role") == "bare"
+                )
+                is_macro = (
+                    isinstance(node, Ref)
+                    or isinstance(node, Image)
+                    or isinstance(
+                        node,
+                        (
+                            Kbd,
+                            Button,
+                            Menu,
+                            Callout,
+                            InlineStem,
+                            InlinePassthrough,
+                            IndexTerm,
+                        ),
+                    )
+                    or hasattr(node, "_source_text")
                 )
                 if is_bare:
                     # Escaping check: if previous text ends with '\'
@@ -147,6 +164,76 @@ class InlineTransformer(BaseTransformer):
                                     if not next_child.value:
                                         # Remove the empty Text node from flat_children
                                         flat_children.pop(i + 1)
+                elif is_macro:
+                    # Macro escaping check: if previous text ends with '\'
+                    if (
+                        nodes
+                        and isinstance(nodes[-1], Text)
+                        and nodes[-1].value.endswith("\\")
+                    ):
+                        trailing_slashes = len(nodes[-1].value) - len(
+                            nodes[-1].value.rstrip("\\")
+                        )
+                        if trailing_slashes % 2 == 1:
+                            raw_text = getattr(node, "_source_text", None)
+                            if raw_text is None:
+                                if isinstance(node, Ref):
+                                    label = "".join(
+                                        getattr(n, "value", "")
+                                        for n in getattr(node, "inlines", [])
+                                        if hasattr(n, "value")
+                                    )
+                                    raw_text = f"{node.variant}:{node.target}[{label}]"
+                                else:
+                                    raw_text = getattr(node, "value", "")
+
+                            # Check if this macro was wrapped in backticks (e.g. `\xref:...`)
+                            is_monospace_wrapped = (
+                                nodes[-1].value.endswith("`\\")
+                                and (i + 1 < len(flat_children))
+                                and (
+                                    (
+                                        isinstance(flat_children[i + 1], Token)
+                                        and str(flat_children[i + 1].value) == "`"
+                                    )
+                                    or (
+                                        isinstance(flat_children[i + 1], Text)
+                                        and flat_children[i + 1].value.startswith("`")
+                                    )
+                                )
+                            )
+
+                            raw_text_str = str(raw_text or "")
+                            if is_monospace_wrapped:
+                                nodes[-1].value = nodes[-1].value[:-2]
+                                if not nodes[-1].value:
+                                    nodes.pop()
+                                next_child = flat_children[i + 1]
+                                if isinstance(next_child, Token):
+                                    i += 1
+                                elif isinstance(next_child, Text):
+                                    next_child.value = next_child.value[1:]
+                                    if not next_child.value:
+                                        flat_children.pop(i + 1)
+                                text_node = Text(raw_text_str)
+                                if node.location:
+                                    text_node.location = node.location
+                                node = Span(
+                                    variant="code",
+                                    form="constrained",
+                                    inlines=[text_node],
+                                )
+                            else:
+                                nodes[-1].value = nodes[-1].value[:-1]
+                                if not nodes[-1].value:
+                                    nodes.pop()
+                                text_node = Text(raw_text_str)
+                                if node.location:
+                                    text_node.location = node.location
+                                node = text_node
+                        else:
+                            # Even number of backslashes: strip one backslash, keep macro active
+                            nodes[-1].value = nodes[-1].value[:-1]
 
                 if pending_attrs:
                     for k, v in pending_attrs.items():
@@ -320,6 +407,10 @@ class InlineTransformer(BaseTransformer):
     @v_args(meta=True)
     def footnote(self, meta: Any, children: PyList[Any]) -> Ref:
         ref = Ref(variant="footnote", target="", inlines=children[0])
+        fn_text = "".join(
+            getattr(n, "value", "") for n in children[0] if hasattr(n, "value")
+        )
+        ref._source_text = f"footnote:[{fn_text}]"
         return cast(Ref, self._set_location_from_children(ref, children))
 
     @v_args(meta=True)
@@ -332,6 +423,13 @@ class InlineTransformer(BaseTransformer):
             elif isinstance(c, list):
                 inlines = c
         ref = Ref(variant="footnote", target=target, inlines=inlines)
+        fn_text = "".join(
+            getattr(n, "value", "") for n in inlines if hasattr(n, "value")
+        )
+        if fn_text:
+            ref._source_text = f"footnoteref:[{target}, {fn_text}]"
+        else:
+            ref._source_text = f"footnoteref:[{target}]"
         return cast(Ref, self._set_location_from_children(ref, children))
 
     @v_args(meta=True)
@@ -359,6 +457,8 @@ class InlineTransformer(BaseTransformer):
         img.attributes.update(attrs)
         if "style" in img.attributes:
             img.attributes["alt"] = img.attributes.pop("style")
+        raw_attr = getattr(attrs, "raw", alt)
+        img._source_text = f"image:{target}[{raw_attr}]"
         return cast(Image, self._set_location_from_children(img, children))
 
     @v_args(meta=True)
@@ -374,6 +474,8 @@ class InlineTransformer(BaseTransformer):
         img = Image(target=target, alt="", form="macro", type="inline")
         img.name = "icon"
         img.attributes.update(attrs)
+        raw_attr = getattr(attrs, "raw", "")
+        img._source_text = f"icon:{target}[{raw_attr}]"
         return cast(Image, self._set_location_from_children(img, children))
 
     @v_args(meta=True)
@@ -391,14 +493,18 @@ class InlineTransformer(BaseTransformer):
             )
             label = attrs.get("style", target)
             ref = Ref(variant="anchor", target=target.strip(), inlines=[Text(label)])
+            raw_attr = getattr(attrs, "raw", "")
+            ref._source_text = f"anchor:{target}[{raw_attr}]"
         else:
             nodes = children[0]
             target = "".join(
                 [getattr(n, "value", "") for n in nodes if hasattr(n, "value")]
             )
+            raw_target = target
             if "," in target:
                 target, _ = target.split(",", 1)
             ref = Ref(variant="anchor", target=target.strip(), inlines=nodes)
+            ref._source_text = f"[[{raw_target}]]"
         return cast(Ref, self._set_location_from_children(ref, children))
 
     @v_args(meta=True)
@@ -416,17 +522,21 @@ class InlineTransformer(BaseTransformer):
             )
             label = attrs.get("style", target)
             ref = Ref(variant="xref", target=target.strip(), inlines=[Text(label)])
+            raw_attr = getattr(attrs, "raw", label if label != target else "")
+            ref._source_text = f"xref:{target}[{raw_attr}]"
         else:
             nodes = children[0]
             target_str = "".join(
                 [getattr(n, "value", "") for n in nodes if hasattr(n, "value")]
             )
             label_nodes = nodes
+            raw_content = target_str
             if "," in target_str:
                 target_str, label_text = target_str.split(",", 1)
                 label_nodes = [Text(label_text.strip())]
 
             ref = Ref(variant="xref", target=target_str.strip(), inlines=label_nodes)
+            ref._source_text = f"<<{raw_content}>>"
         return cast(Ref, self._set_location_from_children(ref, children))
 
     @v_args(meta=True)
@@ -436,11 +546,13 @@ class InlineTransformer(BaseTransformer):
         # When the bare URI branch matches, children[0] is the URI directly.
         from lark import Token
 
+        is_macro_prefix = False
         if (
             len(children) > 0
             and isinstance(children[0], Token)
             and children[0].type == "LINK_PREFIX"
         ):
+            is_macro_prefix = True
             target = str(children[1].value)
             attrs = (
                 children[2]
@@ -486,6 +598,12 @@ class InlineTransformer(BaseTransformer):
         ref = Ref(variant="link", target=target.strip(), inlines=inlines)
         if window:
             ref.attributes["window"] = window
+
+        raw_attr = getattr(attrs, "raw", label)
+        if is_macro_prefix:
+            ref._source_text = f"link:{target}[{raw_attr}]"
+        else:
+            ref._source_text = f"{target}[{raw_attr}]"
 
         return cast(Ref, self._set_location_from_children(ref, children))
 
@@ -545,11 +663,13 @@ class InlineTransformer(BaseTransformer):
         content = str(children[0].value)
         keys = [k.strip() for k in content.split("+")]
         kbd = Kbd(keys)
+        kbd._source_text = f"kbd:[{content}]"
         return cast(Kbd, self._set_location_from_children(kbd, children))
 
     @v_args(meta=True)
     def inline_button(self, meta: Any, children: PyList[Any]) -> Button:
         btn = Button(str(children[0].value))
+        btn._source_text = f"btn:[{str(children[0].value)}]"
         return cast(Button, self._set_location_from_children(btn, children))
 
     @v_args(meta=True)
@@ -558,6 +678,7 @@ class InlineTransformer(BaseTransformer):
         items_str = str(children[1].value) if len(children) > 1 and children[1] else ""
         items = [i.strip() for i in items_str.split(">")] if items_str else []
         menu = Menu(menu_name, items)
+        menu._source_text = f"menu:{menu_name}[{items_str}]"
         return cast(Menu, self._set_location_from_children(menu, children))
 
     @v_args(meta=True)
@@ -575,18 +696,21 @@ class InlineTransformer(BaseTransformer):
 
         content = str(children[0].value) if children and children[0] else ""
         stem = InlineStem(variant=variant, value=content)
+        stem._source_text = f"stem:[{content}]"
         return cast(InlineStem, self._set_location_from_children(stem, children))
 
     @v_args(meta=True)
     def inline_asciimath(self, meta: Any, children: PyList[Any]) -> InlineStem:
         content = str(children[0].value) if children and children[0] else ""
         stem = InlineStem(variant="asciimath", value=content)
+        stem._source_text = f"asciimath:[{content}]"
         return cast(InlineStem, self._set_location_from_children(stem, children))
 
     @v_args(meta=True)
     def inline_latexmath(self, meta: Any, children: PyList[Any]) -> InlineStem:
         content = str(children[0].value) if children and children[0] else ""
         stem = InlineStem(variant="latexmath", value=content)
+        stem._source_text = f"latexmath:[{content}]"
         return cast(InlineStem, self._set_location_from_children(stem, children))
 
     @v_args(meta=True)
@@ -594,6 +718,7 @@ class InlineTransformer(BaseTransformer):
         content = str(children[0].value) if children and children[0] else ""
         pass_node = InlinePassthrough(value=content)
         pass_node.form = "macro"
+        pass_node._source_text = f"pass:[{content}]"
         return cast(
             InlinePassthrough, self._set_location_from_children(pass_node, children)
         )
@@ -616,6 +741,7 @@ class InlineTransformer(BaseTransformer):
             t.strip().strip('"').strip("'") for t in content.split(",") if t.strip()
         ]
         indexterm = IndexTerm(terms=terms, variant="macro")
+        indexterm._source_text = f"indexterm:[{content}]"
         return cast(IndexTerm, self._set_location_from_children(indexterm, children))
 
     @v_args(meta=True)

@@ -1024,5 +1024,134 @@ class TestInlineMacroAttachedToPunctuation(TestInlines):
         self.assertEqual(ref3["target"], "tel:+123456789")
 
 
+class TestInlineParsing(TestInlines):
+    """Tests for inline macro backslash escaping (#124, #113)."""
+
+    def test_backslash_escaped_inline_macro(self):
+        # 1. Plain paragraph with backslash-escaped xref macro
+        source_plain = r"\xref:chapter-02.adoc#anchor[Chapter 2]" + "\n"
+        doc_plain = parse_to_ast(source_plain)
+        p_plain = doc_plain.blocks[0]
+        # Must not contain any Ref nodes
+        ref_nodes = [n for n in p_plain.inlines if n.name == "ref"]
+        self.assertEqual(len(ref_nodes), 0)
+        # Must emit literal text without leading backslash
+        text_nodes = [n for n in p_plain.inlines if n.name == "text"]
+        self.assertEqual(len(text_nodes), 1)
+        self.assertEqual(text_nodes[0].value, "xref:chapter-02.adoc#anchor[Chapter 2]")
+
+        # 2. Escaped xref preceded by text
+        source_preceded = (
+            r"See \xref:chapter-02.adoc#anchor[Chapter 2] for details." + "\n"
+        )
+        doc_preceded = parse_to_ast(source_preceded)
+        p_preceded = doc_preceded.blocks[0]
+        ref_nodes = [n for n in p_preceded.inlines if n.name == "ref"]
+        self.assertEqual(len(ref_nodes), 0)
+        text_nodes = [n for n in p_preceded.inlines if n.name == "text"]
+        combined = "".join(n.value for n in text_nodes)
+        self.assertEqual(
+            combined, "See xref:chapter-02.adoc#anchor[Chapter 2] for details."
+        )
+
+        # 3. Escaped link macro
+        source_link = r"\link:https://asciidoc.org[AsciiDoc Site]" + "\n"
+        doc_link = parse_to_ast(source_link)
+        p_link = doc_link.blocks[0]
+        ref_nodes = [n for n in p_link.inlines if n.name == "ref"]
+        self.assertEqual(len(ref_nodes), 0)
+        text_nodes = [n for n in p_link.inlines if n.name == "text"]
+        combined = "".join(n.value for n in text_nodes)
+        self.assertEqual(combined, "link:https://asciidoc.org[AsciiDoc Site]")
+
+        # 4. Monospace span with escaped xref macro
+        source_mono = r"`\xref:chapter-02.adoc#anchor[Chapter 2]`" + "\n"
+        doc_mono = parse_to_ast(source_mono)
+        p_mono = doc_mono.blocks[0]
+
+        def _get_all_refs(nodes):
+            refs = []
+            for n in nodes:
+                if n.name == "ref":
+                    refs.append(n)
+                if hasattr(n, "inlines"):
+                    refs.extend(_get_all_refs(n.inlines))
+            return refs
+
+        self.assertEqual(len(_get_all_refs(p_mono.inlines)), 0)
+        code_spans = [
+            n for n in p_mono.inlines if n.name == "span" and n.variant == "code"
+        ]
+        self.assertEqual(len(code_spans), 1)
+        self.assertEqual(
+            code_spans[0].inlines[0].value, "xref:chapter-02.adoc#anchor[Chapter 2]"
+        )
+
+        # 5. ASGResolver does not fail on escaped xref macros
+        from asciidoctrine.resolver import ASGResolver
+
+        resolver = ASGResolver(doc_plain)
+        resolved = resolver.resolve(doc_plain)
+        self.assertIsNotNone(resolved)
+
+    def test_backslash_escaped_inline_macro_in_monospace_with_surrounding_text(self):
+        source = (
+            r"Refer to `\xref:chapter-02.adoc#anchor[Chapter 2]` in the manual." + "\n"
+        )
+        doc = parse_to_ast(source)
+        p = doc.blocks[0]
+        # No active Ref nodes
+        refs = [n for n in p.inlines if n.name == "ref"]
+        self.assertEqual(len(refs), 0)
+        # Check inlines structure: text, code span, text
+        self.assertEqual(len(p.inlines), 3)
+        self.assertEqual(p.inlines[0].value, "Refer to ")
+        self.assertEqual(p.inlines[1].name, "span")
+        self.assertEqual(p.inlines[1].variant, "code")
+        self.assertEqual(
+            p.inlines[1].inlines[0].value, "xref:chapter-02.adoc#anchor[Chapter 2]"
+        )
+        self.assertEqual(p.inlines[2].value, " in the manual.")
+
+    def test_backslash_escaped_inline_macro_other_types(self):
+        # Image macro escaped
+        doc_img = parse_to_ast(r"\image:sunset.png[Sunset]" + "\n")
+        p_img = doc_img.blocks[0]
+        images = [n for n in p_img.inlines if n.name == "image"]
+        self.assertEqual(len(images), 0)
+        self.assertEqual(p_img.inlines[0].value, "image:sunset.png[Sunset]")
+
+        # Footnote macro escaped
+        doc_fn = parse_to_ast(r"Text \footnote:[Footnote content] here." + "\n")
+        p_fn = doc_fn.blocks[0]
+        fn_refs = [
+            n for n in p_fn.inlines if n.name == "ref" and n.variant == "footnote"
+        ]
+        self.assertEqual(len(fn_refs), 0)
+        combined_fn = "".join(n.value for n in p_fn.inlines if n.name == "text")
+        self.assertEqual(combined_fn, "Text footnote:[Footnote content] here.")
+
+        # Kbd macro escaped
+        doc_kbd = parse_to_ast(r"Press \kbd:[Ctrl+S] to save." + "\n")
+        p_kbd = doc_kbd.blocks[0]
+        kbds = [n for n in p_kbd.inlines if n.name == "kbd"]
+        self.assertEqual(len(kbds), 0)
+        combined_kbd = "".join(n.value for n in p_kbd.inlines if n.name == "text")
+        self.assertEqual(combined_kbd, "Press kbd:[Ctrl+S] to save.")
+
+    def test_double_backslash_preserves_active_macro(self):
+        # Two backslashes: first escapes second, leaving active macro preceded by literal '\'
+        source = r"\\xref:target[Label]" + "\n"
+        doc = parse_to_ast(source)
+        p = doc.blocks[0]
+        ref_nodes = [n for n in p.inlines if n.name == "ref"]
+        self.assertEqual(len(ref_nodes), 1)
+        self.assertEqual(ref_nodes[0].variant, "xref")
+        self.assertEqual(ref_nodes[0].target, "target")
+        text_nodes = [n for n in p.inlines if n.name == "text"]
+        self.assertEqual(len(text_nodes), 1)
+        self.assertEqual(text_nodes[0].value, "\\")
+
+
 if __name__ == "__main__":
     unittest.main()
