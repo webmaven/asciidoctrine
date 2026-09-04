@@ -438,6 +438,50 @@ To facilitate producing a TCK-compliant Resolved Abstract Semantic Graph (ASG), 
 - **Behaviour Change — Unclosed Footnotes Now Always Hard Errors**: Previously, `footnote:[unclosed text` (missing `]`) was silently consumed as raw `WORD + COLON + LSQB + ...` tokens and produced a `Paragraph` AST node. The strict-mode `ASTSyntaxAuditor.visit_paragraph` then scanned paragraph text for the `footnote:[` pattern and raised "Unclosed inline footnote". In permissive mode, the malformed text just became a paragraph. After this fix, `footnote:` is a proper grammar terminal, so `footnote:[unclosed` is a hard grammar-level `UnexpectedInput`/`UnexpectedCharacters` in both strict and permissive modes. The friendly "Unclosed inline footnote" message is now detected in the `except UnexpectedInput` handler in `parse_to_ast()`, which scans the source lines for unclosed `footnote:[` and raises `AsciiDocSyntaxError` with the original diagnostic. The strict test case was updated accordingly to expect the error in both modes.
 
 
+### 25. Block Title Dot-Space Disambiguation with Dot-Ordered Lists (Issue #122)
+- **Problem**: When an ordered list item used dot syntax (such as `. First item\n. Second item`), the leading dot and space were parsed as a block title (`block_title: "." text_content _NEWLINE`) attached to the subsequent block rather than an ordered list item.
+- **Cause**: In `grammar.lark`, `block_title.5: "." text_content _NEWLINE` allowed `text_content` to match leading whitespace (e.g. ` First item`), causing `. First item` to match both `block_title` and `olist_item`. Lark's Earley parser preferred the higher priority `block_title.5` branch.
+- **What Didn't Work**:
+  - Restricting `text_content` globally broke other inline rules that rely on leading whitespace or inline formatting.
+  - Simply lowering `block_title` rule priority broke valid block titles (e.g. `.My Title`) preceding listings or admonitions.
+- **Solution**:
+  1. Defined a dedicated terminal `BLOCK_TITLE_PREFIX.10: /\.[^\s]/` that strictly requires a non-whitespace character immediately following the leading period.
+  2. Updated `block_title.5: BLOCK_TITLE_PREFIX text_content? _NEWLINE`.
+  3. In `AsciiDocTransformer.block_title()`, re-injected the matched non-whitespace character from `BLOCK_TITLE_PREFIX` back into the title's leading inline `Text` node while maintaining accurate starting column coordinates.
+
+### 26. WORD Tokenizer URI Scheme Suffix Lookbehind Boundary (Issue #123)
+- **Problem**: Words ending in characters that matched single-colon URI schemes (such as `Metadata:`, `Subdata:`, `Cartel:`) were prematurely split by the lexer into two tokens: `Meta` and `data:`, causing `UnexpectedCharacters` parse errors in standard paragraphs.
+- **Cause**: In `grammar.lark`, the `WORD` terminal contained a negative lookahead `(?:mailto:|data:|tel:|sms:)` to avoid consuming URI schemes into plain words. Because there was no word boundary or lookbehind, whenever a word had `data:` or `tel:` as a suffix, the lookahead triggered inside the word.
+- **What Didn't Work**:
+  - Removing URI schemes from the lookahead caused valid standalone URIs (like `mailto:user@example.com` or `data:image/png;...`) to be eagerly eaten as plain `WORD` tokens rather than parsed into `Ref` link nodes.
+- **Solution**: Added a negative lookbehind `(?<![a-zA-Z0-9])` before each single-colon URI scheme alternative (`(?<![a-zA-Z0-9])(?:mailto:|data:|tel:|sms:)`), ensuring the lookahead only matches when preceded by non-alphanumeric boundaries.
+
+### 27. Backslash Inline Macro Escaping (Issue #124, Feature #113)
+- **Problem**: Escaped inline macros (such as `\xref:target[label]` or `\link:url[label]`, and monospace spans like `\`\xref:target[]\``) were evaluated as active `Ref` AST nodes or crashed the catalog resolver during cross-reference lookup.
+- **Cause**: Inline macros were parsed as grammar structures without checking whether an escaping backslash preceded them. In `InlineTransformer.text_content()`, backslashes were not tracked across macro boundaries.
+- **Solution**:
+  1. Captured the unmutated raw source representation of all inline macros in `_source_text` on the generated nodes.
+  2. In `InlineTransformer.text_content()`, inspected the preceding child for trailing backslashes. If an odd count of backslashes precedes the macro, stripped one backslash and converted the macro into a literal `Text` node (or wrapped in a code `Span` if enclosed in monospace backticks `\`\macro:...\``). If an even count precedes it, stripped one backslash to represent the escaped backslash and preserved the active macro.
+  3. Propagated source location coordinates to the enclosing `Span` and literal `Text` nodes.
+
+### 28. Indented Literal Structural Attachment inside List Items (Issue #125)
+- **Problem**: When indented literal lines immediately followed a list item without an intervening blank line (e.g. `* Item 1\n  literal code\n* Item 2\n`), the literal lines were parsed as an independent top-level `indented_literal` block, fracturing the single list into two disconnected lists.
+- **Cause**: `ulist_item`, `olist_item`, and `colist_item` only matched the principal line and continuation blocks (`list_continuation`), with no grammar rule to swallow immediately following indented lines.
+- **Solution**:
+  1. Extended `ulist_item.5`, `olist_item.5`, and `colist_item.5` in `grammar.lark` with `indented_literal*`.
+  2. In `BlockTransformer`, added `_merge_indented_literals()` to consolidate consecutive indented literal lines into a single `Literal` block with `form="indented"`.
+  3. Appended the merged `Literal` block to `ListItem.blocks` (and `CalloutListItem.blocks`), preserving list continuity without breaking loose list boundary behavior on blank lines.
+
+### 29. Human-Readable Syntax Error Diagnostics & Graceful ASG Resolution (Feature #78 Phase 1)
+- **Problem**:
+  1. Lark syntax error diagnostics exposed internal lexer/parser terminal names (`_NEWLINE`, `DLIST_MARKER_2`, `ATTR_LIST_CONTENT`, `SECTION_TITLE_LEAD`, `EQUALS`) and internal anonymous rules (`__ANON_*`) to end users.
+  2. Missing cross-reference targets in `ASGResolver.visit_ref()` raised unhandled Python `KeyError` exceptions, crashing multi-file document compilation when targets were unresolved.
+- **Solution**:
+  1. Added `_TERMINAL_NAMES` translation dictionary in `lark_parser.py` mapping >70 internal Lark tokens to clear human-readable strings. Created `_format_expected_terminals()` which suppresses anonymous rules and formats expected token sets into user-friendly error messages in `AsciiDocSyntaxError`.
+  2. Updated `ASGResolver.visit_ref()` to record structured warnings in `self.warnings` (`{"type": "unresolved_xref", "target": target_str, "message": f"Unresolved cross-reference: {target_str}"}`) and set `node.resolved_strategy = "unresolved"` instead of raising `KeyError`.
+  3. Accumulated child warnings in `WorkspaceBuilder.warnings` to support permissive, graceful multi-document compilation.
+
 *   **Standing Instruction**: For all coding and coding-adjacent tasks, use your judgement to decide when a lower-power model would be appropriate and run that in a subagent.
+
 
 
