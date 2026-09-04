@@ -293,7 +293,7 @@ AsciiDoctrine Support::
 | [.status-full]#link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py[Fully Supported]#
 
 
-| *Literal Paragraphs (Indented Lines)*
+| *Literal Paragraphs (Indented Lines)* footnote:[Includes automatic structural attachment to preceding list items (`ListItem.blocks`) when indented without an intervening blank line.]
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-literal-paragraphs[Outline]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs[Peggy Blocks]
 | -
@@ -329,7 +329,7 @@ AsciiDoctrine Support::
 | -
 | [.status-full]#link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/preprocessor.py[Fully Supported]#
 
-| *Cross-Document References & Multi-File Workspace Resolution*
+| *Cross-Document References & Multi-File Workspace Resolution* footnote:[Provides full multi-file catalog indexing, 3-tier resolution, and graceful non-fatal warning collection for unresolved targets.]
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-cross-document-references[Outline]
 | -
 | -
@@ -351,7 +351,7 @@ AsciiDoctrine Support::
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/subs/pages/prevent.adoc[Outline]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs#L171[Peggy Inlines]
 | -
-| [.status-none]#Not Supported# footnote:[Backslash escaping of formatting nodes and attribute references is not fully integrated.]
+| [.status-partial]#link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/transformers/inline_transformer.py[Partially Supported]# footnote:[Backslash escaping of inline macros (\xref, \link) is fully supported, including within monospace spans. Escaping of basic formatting quotes is in progress.]
 
 | *Table Data Formats (CSV / TSV / DSV)*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/tables/pages/data-format.adoc[Outline]

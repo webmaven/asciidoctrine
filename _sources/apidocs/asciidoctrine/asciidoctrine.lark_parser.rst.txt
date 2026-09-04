@@ -37,6 +37,10 @@ Functions
    :class: autosummary longtable
    :align: left
 
+   * - :py:obj:`_format_expected_terminals <asciidoctrine.lark_parser._format_expected_terminals>`
+     - .. autodoc2-docstring:: asciidoctrine.lark_parser._format_expected_terminals
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
    * - :py:obj:`is_continuation_paragraph <asciidoctrine.lark_parser.is_continuation_paragraph>`
      - .. autodoc2-docstring:: asciidoctrine.lark_parser.is_continuation_paragraph
           :parser: sphinx_asciidoctrine.parser
@@ -97,6 +101,10 @@ Data
    :class: autosummary longtable
    :align: left
 
+   * - :py:obj:`_TERMINAL_NAMES <asciidoctrine.lark_parser._TERMINAL_NAMES>`
+     - .. autodoc2-docstring:: asciidoctrine.lark_parser._TERMINAL_NAMES
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
    * - :py:obj:`Children <asciidoctrine.lark_parser.Children>`
      - .. autodoc2-docstring:: asciidoctrine.lark_parser.Children
           :parser: sphinx_asciidoctrine.parser
@@ -148,6 +156,20 @@ API
 
    .. py:method:: __str__() -> str
       :canonical: asciidoctrine.lark_parser.AsciiDocSyntaxError.__str__
+
+.. py:data:: _TERMINAL_NAMES
+   :canonical: asciidoctrine.lark_parser._TERMINAL_NAMES
+   :type: typing.Dict[str, str]
+   :value: None
+
+   .. autodoc2-docstring:: asciidoctrine.lark_parser._TERMINAL_NAMES
+      :parser: sphinx_asciidoctrine.parser
+
+.. py:function:: _format_expected_terminals(e: lark.exceptions.UnexpectedInput) -> str
+   :canonical: asciidoctrine.lark_parser._format_expected_terminals
+
+   .. autodoc2-docstring:: asciidoctrine.lark_parser._format_expected_terminals
+      :parser: sphinx_asciidoctrine.parser
 
 .. py:data:: Children
    :canonical: asciidoctrine.lark_parser.Children

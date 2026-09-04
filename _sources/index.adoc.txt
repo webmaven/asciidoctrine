@@ -1,6 +1,6 @@
 = AsciiDoctrine Documentation
 Michael R. Bernstein <zopemaven@gmail.com>
-v0.2.0a5
+v0.2.0a6
 :docinfo: shared
 
 Welcome to the official documentation for *AsciiDoctrine*, a native Python implementation of the AsciiDoc Language Specification.
@@ -12,8 +12,8 @@ AsciiDoctrine is designed to provide a structured, type-safe representation of A
 == Key Capabilities
 
 * *TCK Validation*: Ensures standard-compliant rendering by validating its pipeline against the official AsciiDoc Technology Compatibility Kit (TCK) test suites.
-* *Precise Source Coordinate Mapping*: Enables robust IDE integrations, precise diagnostic errors, and syntactical formatting tools by attaching optional line and column coordinates to every structural block and inline element.
-* *Attribute and Macro Resolution*: Implements standard AsciiDoc dynamic attribute substitutions, conditional preprocessor passes, multi-file includes, and block/inline macros.
+* *Precise Source Coordinate Mapping & User-Friendly Diagnostics*: Enables robust IDE integrations, clear human-readable compiler error diagnostics with translated terminal tokens, and syntactical formatting tools by attaching optional line and column coordinates to every structural block and inline element.
+* *Attribute and Macro Resolution & Graceful Cross-References*: Implements standard AsciiDoc dynamic attribute substitutions, conditional preprocessor passes, multi-file includes, block/inline macros, and resilient cross-reference resolution that records non-fatal warnings instead of hard crashes.
 * *Docinfo Metadata Integration*: Discovers shared and private docinfo files (`docinfo.html`, `<docname>-docinfo.html`), performs attribute substitution, and injects header/footer markup into HTML output while respecting `safe_mode` boundaries.
 * *Docutils & Sphinx Power*: Integrates cleanly with the Python documentation ecosystem by compiling AsciiDoc files natively into the Docutils component tree.
 * *Wasm and Pyodide Portability*: Runs seamlessly inside browsers and serverless sandboxes via pure-Python, zero-native-dependency Pyodide builds.
@@ -160,6 +160,7 @@ apidocs/index
 * xref:how-to-custom-renderer.adoc[Custom ASG Renderer Tutorial]: Walkthrough and fully executable Python implementation of a custom Markdown converter.
 * xref:feature-matrix.adoc[Feature Matrix]: Complete comparison of supported language features, specification documents, and test coverage.
 * xref:contributing.adoc[Contributor's Guide]: Virtualenv setup, Pytest protocols, Mypy type checks, and pre-release packaging verification checklists.
+* xref:changelog.adoc[Changelog]: Detailed release history, standard compliance milestones, and bug fixes across versions.
 
 ---
 

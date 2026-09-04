@@ -1,6 +1,6 @@
 = Architecture & Design
 Michael R. Bernstein <zopemaven@gmail.com>
-v0.1.0
+v0.2.0a6
 :idprefix:
 :idseparator: -
 :sectanchors:

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AsciiDoctrine Documentation &mdash; AsciiDoctrine 0.2.0a5 documentation</title>
+  <title>AsciiDoctrine Documentation &mdash; AsciiDoctrine 0.2.0a6 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="_static/custom.css?v=21f1c15c" />
@@ -14,7 +14,7 @@
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=6925ba94"></script>
+      <script src="_static/documentation_options.js?v=5edd30fe"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -78,7 +78,7 @@
   <section id="id1">
 <h1>AsciiDoctrine Documentation<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>Michael R. Bernstein <a class="reference external" href="mailto:zopemaven&#37;&#52;&#48;gmail&#46;com">zopemaven<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
-<p>v0.2.0a5</p>
+<p>v0.2.0a6</p>
 <p>Welcome to the official documentation for <strong>AsciiDoctrine</strong>, a native Python implementation of the AsciiDoc Language Specification.</p>
 <p>AsciiDoctrine is designed to provide a structured, type-safe representation of AsciiDoc documents, perfect for building custom renderers, IDE plugins, and static site generator backends.</p>
 <hr class="docutils" />
@@ -86,8 +86,8 @@
 <h2>Key Capabilities<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p><strong>TCK Validation</strong>: Ensures standard-compliant rendering by validating its pipeline against the official AsciiDoc Technology Compatibility Kit (TCK) test suites.</p></li>
-<li><p><strong>Precise Source Coordinate Mapping</strong>: Enables robust IDE integrations, precise diagnostic errors, and syntactical formatting tools by attaching optional line and column coordinates to every structural block and inline element.</p></li>
-<li><p><strong>Attribute and Macro Resolution</strong>: Implements standard AsciiDoc dynamic attribute substitutions, conditional preprocessor passes, multi-file includes, and block/inline macros.</p></li>
+<li><p><strong>Precise Source Coordinate Mapping &amp; User-Friendly Diagnostics</strong>: Enables robust IDE integrations, clear human-readable compiler error diagnostics with translated terminal tokens, and syntactical formatting tools by attaching optional line and column coordinates to every structural block and inline element.</p></li>
+<li><p><strong>Attribute and Macro Resolution &amp; Graceful Cross-References</strong>: Implements standard AsciiDoc dynamic attribute substitutions, conditional preprocessor passes, multi-file includes, block/inline macros, and resilient cross-reference resolution that records non-fatal warnings instead of hard crashes.</p></li>
 <li><p><strong>Docinfo Metadata Integration</strong>: Discovers shared and private docinfo files (<code class="docutils literal notranslate"><span class="pre">docinfo.html</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;docname&gt;-docinfo.html</span></code>), performs attribute substitution, and injects header/footer markup into HTML output while respecting <code class="docutils literal notranslate"><span class="pre">safe_mode</span></code> boundaries.</p></li>
 <li><p><strong>Docutils &amp; Sphinx Power</strong>: Integrates cleanly with the Python documentation ecosystem by compiling AsciiDoc files natively into the Docutils component tree.</p></li>
 <li><p><strong>Wasm and Pyodide Portability</strong>: Runs seamlessly inside browsers and serverless sandboxes via pure-Python, zero-native-dependency Pyodide builds.</p></li>
@@ -212,6 +212,7 @@
 <li><p><a class="reference external" href="how-to-custom-renderer.html">Custom ASG Renderer Tutorial</a>: Walkthrough and fully executable Python implementation of a custom Markdown converter.</p></li>
 <li><p><a class="reference external" href="feature-matrix.html">Feature Matrix</a>: Complete comparison of supported language features, specification documents, and test coverage.</p></li>
 <li><p><a class="reference external" href="contributing.html">Contributor’s Guide</a>: Virtualenv setup, Pytest protocols, Mypy type checks, and pre-release packaging verification checklists.</p></li>
+<li><p><a class="reference external" href="changelog.html">Changelog</a>: Detailed release history, standard compliance milestones, and bug fixes across versions.</p></li>
 </ul>
 </section>
 <hr class="docutils" />

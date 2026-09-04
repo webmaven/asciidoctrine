@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>asciidoctrine.nodes &mdash; AsciiDoctrine 0.2.0a5 documentation</title>
+  <title>asciidoctrine.nodes &mdash; AsciiDoctrine 0.2.0a6 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=21f1c15c" />
@@ -14,14 +14,14 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=6925ba94"></script>
+      <script src="../../_static/documentation_options.js?v=5edd30fe"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="asciidoctrine.lark_parser" href="asciidoctrine.lark_parser.html" />
-    <link rel="prev" title="asciidoctrine.loader" href="asciidoctrine.loader.html" /> 
+    <link rel="next" title="asciidoctrine.docutils_backend" href="asciidoctrine.docutils_backend.html" />
+    <link rel="prev" title="asciidoctrine.columns" href="asciidoctrine.columns.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -52,14 +52,14 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../index.html">API Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="asciidoctrine.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine</span></code></a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="asciidoctrine.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.resolver.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.resolver</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.preprocessor.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.preprocessor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.serializer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.serializer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.loader.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.loader</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.columns.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.columns</span></code></a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.docutils_backend.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.docutils_backend</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.attributes.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.attributes</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.preprocessor.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.preprocessor</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.columns.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.columns</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.serializer.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.serializer</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.resolver.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.resolver</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="asciidoctrine.loader.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.loader</span></code></a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.nodes</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="asciidoctrine.lark_parser.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">asciidoctrine.lark_parser</span></code></a></li>
 </ul>
 </li>
@@ -328,6 +328,11 @@ traverse them recursively.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="asciidoctrine.nodes.Node._should_serialize_attributes">
 <span class="sig-name descname"><span class="pre">_should_serialize_attributes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#asciidoctrine.nodes.Node._should_serialize_attributes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asciidoctrine.nodes.Node._source_text">
+<span class="sig-name descname"><span class="pre">_source_text</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#asciidoctrine.nodes.Node._source_text" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -778,7 +783,7 @@ superscript (+super+), subscript (+sub+), or custom-roled text spans (+[.role]te
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">inlines</span></code></dt><dd><p>Optional child inline nodes representing custom link or reference label text.</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">resolved_strategy</span></code></dt><dd><p>Set by <code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;same_file&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;cross_file&quot;</span></code>.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">resolved_strategy</span></code></dt><dd><p>Set by <code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;same_file&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;cross_file&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;unresolved&quot;</span></code>.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">resolved_file_target</span></code></dt><dd><p>Set by <code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code> to the resolved target file ID.</p>
 </dd>
@@ -1350,8 +1355,8 @@ spans (colspans, rowspans), and nested block-level content.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="asciidoctrine.loader.html" class="btn btn-neutral float-left" title="asciidoctrine.loader" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="asciidoctrine.lark_parser.html" class="btn btn-neutral float-right" title="asciidoctrine.lark_parser" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="asciidoctrine.columns.html" class="btn btn-neutral float-left" title="asciidoctrine.columns" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="asciidoctrine.docutils_backend.html" class="btn btn-neutral float-right" title="asciidoctrine.docutils_backend" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
