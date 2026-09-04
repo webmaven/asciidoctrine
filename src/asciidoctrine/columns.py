@@ -56,21 +56,14 @@ def _format_percentage(val: float) -> str:
 def parse_cols(
     cols_str: Optional[str], fallback_col_count: int = 0
 ) -> list[dict[str, Any]]:
-    """
-    Parse an AsciiDoc `cols` attribute string into structured column definitions.
+    """Parse an AsciiDoc `cols` attribute string into structured column definitions.
 
-    Parameters
-    ----------
-    cols_str : Optional[str]
-        The raw `cols` string from block attributes (e.g. "1,3,>1s" or "2*^.<20%a,>80%").
-    fallback_col_count : int, optional
-        Number of default columns to generate if `cols_str` is empty or None.
+    [parameters]
+    `cols_str` (Optional[str]):: The raw `cols` string from block attributes (e.g. "1,3,>1s" or "2*^.<20%a,>80%").
+    `fallback_col_count` (int, optional):: Number of default columns to generate if `cols_str` is empty or None. Defaults to `0`.
 
-    Returns
-    -------
-    list[dict[str, Any]]
-        List of column metadata dictionaries with keys:
-        'index', 'width', 'halign', 'valign', 'style'.
+    [returns]
+    `list[dict[str, Any]]`:: List of column metadata dictionaries with keys: 'index', 'width', 'halign', 'valign', 'style'.
     """
     if not cols_str or not cols_str.strip():
         if fallback_col_count <= 0:
