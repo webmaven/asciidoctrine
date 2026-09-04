@@ -17,7 +17,7 @@
   - Added `(?<![a-zA-Z0-9])` negative lookbehind to single-colon URI scheme alternatives (`mailto:`, `data:`, `tel:`, `sms:`) in the `WORD` lexer terminal, preventing premature token truncation on words whose suffixes match URI schemes (e.g. `Metadata:`, `Subdata:`).
 * **Backslash Inline Macro Escaping (Issue #124, Feature #113)**:
   - Escaping inline macros with a leading backslash (e.g. `\xref:...`, `\link:...`) now suppresses active `Ref` AST node creation and emits literal text with the escaping backslash stripped.
-  - Supported inside monospace spans (e.g. `\`\xref:...\``) without registering active cross-references.
+  - Supported inside monospace spans (e.g. `\xref:...[]`) without registering active cross-references.
 * **Indented Literal Structural Attachment in List Items (Issue #125)**:
   - Fixed indented literal lines immediately following a list item without a blank line being ejected as top-level blocks outside the list. Extended list item grammar rules and AST transformation to attach them into `ListItem.blocks` and `CalloutListItem.blocks`, preserving list continuity.
 
