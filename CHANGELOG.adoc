@@ -1,6 +1,22 @@
 = Changelog
 :toc:
 
+== link:https://pypi.org/project/asciidoctrine/0.2.0a7/[0.2.0a7] - 2026-09-04
+
+=== Added
+* **Backslash Escaping for Inline Formatting Delimiters (Feature #113, follow-up)**:
+  - A backslash preceding a constrained formatting delimiter (e.g. `\*bold*`, `\_italic_`, `\`code\``, `\#marked#`, `\^super^`, `\~sub~`) now suppresses span creation and emits the delimiter characters as plain text with the escape backslash consumed.
+  - Unconstrained formatting delimiters (e.g. `\**bold**`, `\__italic__`, `\``code```, `\##marked##`) are likewise escapable with a single leading backslash.
+  - Asciidoctor-compatible double-backslash escaping for unconstrained delimiters (e.g. `\\__func__`) is also supported, consuming both backslashes.
+  - Double-backslash before a _constrained_ delimiter (e.g. `\\*bold*`) continues to resolve to a literal `\` followed by active bold formatting.
+  - Nested formatting inside an escaped span (e.g. `\*bold and _italic_*`) is preserved and processed normally.
+
+=== Fixed
+* **Indented Continuation Lines in List Item Principal Text (Issue #125, reopened)**:
+  - Spec-correct fix: contiguous indented lines immediately following a list item marker (with no blank line) are now folded into the item's `principal` text field, not stored as `Literal` nodes in `blocks`.
+  - The previous `0.2.0a6` fix was structurally correct (preserved list continuity) but placed continuation content in the wrong location per the AsciiDoc specification's "Multiline principal text" rule.
+  - Blank-line separation still correctly terminates the list and produces a standalone literal block.
+
 == link:https://pypi.org/project/asciidoctrine/0.2.0a6/[0.2.0a6] - 2026-09-03
 
 === Added
