@@ -283,6 +283,12 @@ class InlineTransformer(BaseTransformer):
 
                         if slashes_to_remove > 0:
                             nodes[-1].value = nodes[-1].value[:-slashes_to_remove]
+                            if (
+                                nodes[-1].location
+                                and len(nodes[-1].location) == 2
+                                and "col" in nodes[-1].location[1]
+                            ):
+                                nodes[-1].location[1]["col"] -= slashes_to_remove
                             if not nodes[-1].value:
                                 nodes.pop()
 
