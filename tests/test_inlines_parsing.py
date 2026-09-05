@@ -1158,20 +1158,97 @@ class TestInlineParsing(TestInlines):
         paragraph = ast["blocks"][0]
         self.assertIn("foo \\ bar", paragraph["inlines"][0]["value"])
 
-    @unittest.expectedFailure
     def test_escaped_formatting_preservation(self):
         source = "\\*bold*\n"
         ast = self._strip_locations(parse_to_ast(source).to_dict())
         paragraph = ast["blocks"][0]
-        # In AsciiDoc, \*bold* should result in *bold* as literal text without strong span.
-        # Tracked as expectedFailure until delimiter escaping is implemented.
         inlines = paragraph["inlines"]
         for inline in inlines:
             self.assertNotEqual(
                 inline.get("variant"), "strong", f"Found bold node: {inline}"
             )
         full_text = "".join(i.get("value", "") for i in inlines if isinstance(i, dict))
-        self.assertIn("*bold*", full_text)
+        self.assertEqual(full_text, "*bold*")
+
+    def test_escaped_formatting_constrained(self):
+        cases = [
+            ("\\*bold*\n", "*bold*"),
+            ("\\_italic_\n", "_italic_"),
+            ("\\`code`\n", "`code`"),
+            ("\\#marked#\n", "#marked#"),
+            ("\\^super^\n", "^super^"),
+            ("\\~sub~\n", "~sub~"),
+        ]
+        for source, expected_text in cases:
+            with self.subTest(source=source):
+                ast = self._strip_locations(parse_to_ast(source).to_dict())
+                inlines = ast["blocks"][0]["inlines"]
+                span_nodes = [i for i in inlines if i.get("name") == "span"]
+                self.assertEqual(span_nodes, [], f"Expected no spans in {source}")
+                full_text = "".join(
+                    i.get("value", "") for i in inlines if isinstance(i, dict)
+                )
+                self.assertEqual(full_text, expected_text)
+
+    def test_escaped_formatting_unconstrained(self):
+        cases = [
+            ("\\**bold**\n", "**bold**"),
+            ("\\__italic__\n", "__italic__"),
+            ("\\``code``\n", "``code``"),
+            ("\\##marked##\n", "##marked##"),
+        ]
+        for source, expected_text in cases:
+            with self.subTest(source=source):
+                ast = self._strip_locations(parse_to_ast(source).to_dict())
+                inlines = ast["blocks"][0]["inlines"]
+                span_nodes = [i for i in inlines if i.get("name") == "span"]
+                self.assertEqual(span_nodes, [], f"Expected no spans in {source}")
+                full_text = "".join(
+                    i.get("value", "") for i in inlines if isinstance(i, dict)
+                )
+                self.assertEqual(full_text, expected_text)
+
+    def test_escaped_formatting_double_backslash_unconstrained(self):
+        source = "\\\\__func__\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        inlines = ast["blocks"][0]["inlines"]
+        span_nodes = [i for i in inlines if i.get("name") == "span"]
+        self.assertEqual(span_nodes, [], f"Expected no spans in {source}")
+        full_text = "".join(i.get("value", "") for i in inlines if isinstance(i, dict))
+        self.assertEqual(full_text, "__func__")
+
+    def test_escaped_formatting_double_backslash_constrained(self):
+        source = "\\\\*bold*\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        inlines = ast["blocks"][0]["inlines"]
+        self.assertEqual(len(inlines), 2)
+        self.assertEqual(inlines[0]["name"], "text")
+        self.assertEqual(inlines[0]["value"], "\\")
+        self.assertEqual(inlines[1]["name"], "span")
+        self.assertEqual(inlines[1]["variant"], "strong")
+        self.assertEqual(inlines[1]["inlines"][0]["value"], "bold")
+
+    def test_escaped_formatting_surrounding_text(self):
+        source = "hello \\*bold* world\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        inlines = ast["blocks"][0]["inlines"]
+        span_nodes = [i for i in inlines if i.get("name") == "span"]
+        self.assertEqual(span_nodes, [], "Expected no spans")
+        full_text = "".join(i.get("value", "") for i in inlines if isinstance(i, dict))
+        self.assertEqual(full_text, "hello *bold* world")
+
+    def test_escaped_formatting_nested(self):
+        source = "\\*bold and _italic_*\n"
+        ast = self._strip_locations(parse_to_ast(source).to_dict())
+        inlines = ast["blocks"][0]["inlines"]
+        self.assertEqual(len(inlines), 3)
+        self.assertEqual(inlines[0]["name"], "text")
+        self.assertEqual(inlines[0]["value"], "*bold and ")
+        self.assertEqual(inlines[1]["name"], "span")
+        self.assertEqual(inlines[1]["variant"], "emphasis")
+        self.assertEqual(inlines[1]["inlines"][0]["value"], "italic")
+        self.assertEqual(inlines[2]["name"], "text")
+        self.assertEqual(inlines[2]["value"], "*")
 
 
 if __name__ == "__main__":

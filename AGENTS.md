@@ -464,13 +464,17 @@ To facilitate producing a TCK-compliant Resolved Abstract Semantic Graph (ASG), 
   2. In `InlineTransformer.text_content()`, inspected the preceding child for trailing backslashes. If an odd count of backslashes precedes the macro, stripped one backslash and converted the macro into a literal `Text` node (or wrapped in a code `Span` if enclosed in monospace backticks `\`\macro:...\``). If an even count precedes it, stripped one backslash to represent the escaped backslash and preserved the active macro.
   3. Propagated source location coordinates to the enclosing `Span` and literal `Text` nodes.
 
-### 28. Indented Literal Structural Attachment inside List Items (Issue #125)
-- **Problem**: When indented literal lines immediately followed a list item without an intervening blank line (e.g. `* Item 1\n  literal code\n* Item 2\n`), the literal lines were parsed as an independent top-level `indented_literal` block, fracturing the single list into two disconnected lists.
-- **Cause**: `ulist_item`, `olist_item`, and `colist_item` only matched the principal line and continuation blocks (`list_continuation`), with no grammar rule to swallow immediately following indented lines.
-- **Solution**:
-  1. Extended `ulist_item.5`, `olist_item.5`, and `colist_item.5` in `grammar.lark` with `indented_literal*`.
-  2. In `BlockTransformer`, added `_merge_indented_literals()` to consolidate consecutive indented literal lines into a single `Literal` block with `form="indented"`.
-  3. Appended the merged `Literal` block to `ListItem.blocks` (and `CalloutListItem.blocks`), preserving list continuity without breaking loose list boundary behavior on blank lines.
+### 28. Indented Continuation Lines in List Item Principal Text (Issue #125, reopened)
+- **Problem**: Contiguous indented lines immediately following a list item marker (no blank line between) must be folded into the list item's **principal text**, not stored as a `Literal` block. The AsciiDoc spec ("Multiline principal text") is explicit: *"the principal text in a list item can span any number of lines as long as those lines are contiguous… This behavior holds even if the lines are indented."*
+- **First (incorrect) fix**: Commit `5b59e74` kept the `indented_literal*` tail in all list item rules and appended the resulting `Literal(form="indented")` nodes to `ListItem.blocks`. This kept the list structurally intact (no fracture), but placed the continuation text in the wrong location per the spec.
+- **What Didn't Work in the First Fix**: Appending to `blocks` rather than folding into `principal` is wrong because `blocks` is reserved for explicitly-attached blocks (via the `+` continuation operator). Contiguous indented lines with no blank line and no `+` are not attached blocks — they are continuation lines of the same principal text.
+- **Correct Fix (grammar-level)**:
+  1. Removed `indented_literal*` from `ulist_item.5`, `olist_item.5`, and `colist_item.5` in `grammar.lark`.
+  2. Added a new rule `list_item_principal_content: text_content (_NEWLINE INDENTED_LITERAL_LEAD text_content)*` that captures the first-line text plus any number of contiguous indented continuation lines as a single CST node. The `INDENTED_LITERAL_LEAD` tokens (leading whitespace) are silently dropped.
+  3. Updated all three item rules to use `list_item_principal_content _NEWLINE` as their content production.
+  4. Added a `list_item_principal_content` transformer method in `block_transformer.py` that joins all `text_content` lists with `Text("\n")` separators and consolidates adjacent `Text` nodes — exactly the same approach used by the `paragraph` transformer for multi-line paragraphs.
+  5. Simplified `ulist_item`, `olist_item`, and `colist_item` transformers to set `blocks=[]` (no `Literal` children to collect) and removed the `_merge_indented_literals()` calls from these paths.
+- **Key Invariant Preserved**: A blank line between the list item line and an indented line still breaks list continuity (the blank terminates the list before the indented line is reached), so `* Item 1\n\n  indented\n* Item 2` correctly produces two separate lists with the indented line as a top-level literal block. That behavior is unchanged.
 
 ### 29. Human-Readable Syntax Error Diagnostics & Graceful ASG Resolution (Feature #78 Phase 1)
 - **Problem**:
@@ -481,7 +485,22 @@ To facilitate producing a TCK-compliant Resolved Abstract Semantic Graph (ASG), 
   2. Updated `ASGResolver.visit_ref()` to record structured warnings in `self.warnings` (`{"type": "unresolved_xref", "target": target_str, "message": f"Unresolved cross-reference: {target_str}"}`) and set `node.resolved_strategy = "unresolved"` instead of raising `KeyError`.
   3. Accumulated child warnings in `WorkspaceBuilder.warnings` to support permissive, graceful multi-document compilation.
 
+### 30. Inline Formatting Delimiter Escaping (Task 7)
+- **Problem**: Formatting delimiters preceded by backslashes (such as `\*bold*`, `\_italic_`, `\`code\``, `\#marked#`, `\^super^`, `\~sub~`, and unconstrained markers `\**bold**`, `\\__func__`) were parsed as active `Span` formatting nodes rather than literal text. Furthermore, Asciidoctor compatibility requires double-backslash unconstrained escaping (where `\\__func__` unescapes to plain text `__func__`) while double backslashes before constrained formatting (`\\*bold*`) resolves to a literal `\` followed by active bold formatting.
+- **Solution**:
+  1. Defined `SPAN_DELIMITERS` mapping `(variant, form)` tuples to opening/closing delimiter pairs for constrained and unconstrained `strong`, `emphasis`, `code`, `mark`, `superscript`, and `subscript`.
+  2. In `InlineTransformer.text_content()`, when encountering a `Span` preceded by a `Text` node ending in `\`:
+     - Calculated `trailing_slashes = len(nodes[-1].value) - len(nodes[-1].value.rstrip("\\"))`.
+     - Evaluated escape condition:
+       - Odd slash count (`trailing_slashes % 2 == 1`): `is_escaped = True`, `slashes_to_remove = (trailing_slashes + 1) // 2`.
+       - Double backslash on unconstrained delimiters (`len(open_delim) > 1 and trailing_slashes == 2`): `is_escaped = True`, `slashes_to_remove = 2` (Asciidoctor compatibility for `\\__func__`).
+       - Even slash count on constrained delimiters: `is_escaped = False`, `slashes_to_remove = trailing_slashes // 2`.
+     - Removed `slashes_to_remove` from `nodes[-1].value` (popping empty nodes).
+     - When `is_escaped`: decomposed `Span` into an opening `Text(open_delim)`, spliced `[*node.inlines, Text(close_delim)]` into `flat_children[i + 1 : i + 1]`, mapped precise bounding location coordinates to `open_node` and `close_node`, and replaced `node` with `open_node`.
+  3. Subsequent loop iterations process nested inlines naturally and consolidate adjacent `Text` nodes into single continuous strings.
+
 *   **Standing Instruction**: For all coding and coding-adjacent tasks, use your judgement to decide when a lower-power model would be appropriate and run that in a subagent.
+
 
 
 

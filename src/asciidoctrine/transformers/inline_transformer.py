@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict, Optional, Tuple, cast
 from typing import List as PyList
 
 from lark import Token, v_args
@@ -20,6 +20,19 @@ from ..nodes import (
     Text,
 )
 from .base_transformer import BaseTransformer
+
+SPAN_DELIMITERS: Dict[Tuple[str, str], Tuple[str, str]] = {
+    ("strong", "constrained"): ("*", "*"),
+    ("strong", "unconstrained"): ("**", "**"),
+    ("emphasis", "constrained"): ("_", "_"),
+    ("emphasis", "unconstrained"): ("__", "__"),
+    ("code", "constrained"): ("`", "`"),
+    ("code", "unconstrained"): ("``", "``"),
+    ("mark", "constrained"): ("#", "#"),
+    ("mark", "unconstrained"): ("##", "##"),
+    ("superscript", "constrained"): ("^", "^"),
+    ("subscript", "constrained"): ("~", "~"),
+}
 
 
 class InlineTransformer(BaseTransformer):
@@ -236,6 +249,78 @@ class InlineTransformer(BaseTransformer):
                         else:
                             # Even number of backslashes: strip one backslash, keep macro active
                             nodes[-1].value = nodes[-1].value[:-1]
+                elif (
+                    isinstance(node, Span)
+                    and (
+                        node.variant,
+                        getattr(node, "form", "constrained") or "constrained",
+                    )
+                    in SPAN_DELIMITERS
+                ):
+                    open_delim, close_delim = SPAN_DELIMITERS[
+                        (
+                            node.variant,
+                            getattr(node, "form", "constrained") or "constrained",
+                        )
+                    ]
+                    if (
+                        nodes
+                        and isinstance(nodes[-1], Text)
+                        and nodes[-1].value.endswith("\\")
+                    ):
+                        trailing_slashes = len(nodes[-1].value) - len(
+                            nodes[-1].value.rstrip("\\")
+                        )
+                        if trailing_slashes % 2 == 1:
+                            is_escaped = True
+                            slashes_to_remove = (trailing_slashes + 1) // 2
+                        elif len(open_delim) > 1 and trailing_slashes == 2:
+                            is_escaped = True
+                            slashes_to_remove = 2
+                        else:
+                            is_escaped = False
+                            slashes_to_remove = trailing_slashes // 2
+
+                        if slashes_to_remove > 0:
+                            nodes[-1].value = nodes[-1].value[:-slashes_to_remove]
+                            if not nodes[-1].value:
+                                nodes.pop()
+
+                        if is_escaped:
+                            open_node = Text(open_delim)
+                            close_node = Text(close_delim)
+                            if (
+                                node.location
+                                and len(node.location) == 2
+                                and "line" in node.location[0]
+                                and "col" in node.location[0]
+                                and "line" in node.location[1]
+                                and "col" in node.location[1]
+                            ):
+                                start_loc = node.location[0]
+                                end_loc = node.location[1]
+                                open_node.location = [
+                                    {
+                                        "line": start_loc["line"],
+                                        "col": start_loc["col"],
+                                    },
+                                    {
+                                        "line": start_loc["line"],
+                                        "col": start_loc["col"] + len(open_delim) - 1,
+                                    },
+                                ]
+                                close_node.location = [
+                                    {
+                                        "line": end_loc["line"],
+                                        "col": end_loc["col"] - len(close_delim) + 1,
+                                    },
+                                    {
+                                        "line": end_loc["line"],
+                                        "col": end_loc["col"],
+                                    },
+                                ]
+                            flat_children[i + 1 : i + 1] = [*node.inlines, close_node]
+                            node = open_node
 
                 if pending_attrs:
                     for k, v in pending_attrs.items():
