@@ -108,11 +108,7 @@
 <td><p>Format a percentage cleanly, e.g. 20% or 33.3333%.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.columns.parse_cols" title="asciidoctrine.columns.parse_cols"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parse_cols</span></code></a></p></td>
-<td><div class="admonition error">
-<p class="admonition-title">Error</p>
-<p>AsciiDoc Docstring Error: AsciiDoc Parse Error: Syntax error: Unclosed verbatim block ‘listing’.</p>
-</div>
-</td>
+<td><p>Parse an AsciiDoc <code class="docutils literal notranslate"><span class="pre">cols</span></code> attribute string into structured column definitions.</p></td>
 </tr>
 </tbody>
 </table>
@@ -167,28 +163,15 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="asciidoctrine.columns.parse_cols">
 <span class="sig-prename descclassname"><span class="pre">asciidoctrine.columns.</span></span><span class="sig-name descname"><span class="pre">parse_cols</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cols_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fallback_col_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.columns.parse_cols" title="Link to this definition"></a></dt>
-<dd><div class="admonition error">
-<p class="admonition-title">Error</p>
-<p>AsciiDoc Docstring Error: AsciiDoc Parse Error: Syntax error: Unclosed verbatim block ‘listing’.</p>
-</div>
-<p>Parse an AsciiDoc <cite>cols</cite> attribute string into structured column definitions.</p>
-<section id="parameters">
-<h4>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h4>
+<dd><p>Parse an AsciiDoc <code class="docutils literal notranslate"><span class="pre">cols</span></code> attribute string into structured column definitions.</p>
 <dl class="simple">
-<dt>cols_str<span class="classifier">Optional[str]</span></dt><dd><p>The raw <cite>cols</cite> string from block attributes (e.g. “1,3,&gt;1s” or “2*^.&lt;20%a,&gt;80%”).</p>
+<dt><code class="docutils literal notranslate"><span class="pre">cols_str</span></code> (Optional[str])</dt><dd><p>The raw <code class="docutils literal notranslate"><span class="pre">cols</span></code> string from block attributes (e.g. “1,3,&gt;1s” or “2*^.&lt;20%a,&gt;80%”).</p>
 </dd>
-<dt>fallback_col_count<span class="classifier">int, optional</span></dt><dd><p>Number of default columns to generate if <cite>cols_str</cite> is empty or None.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">fallback_col_count</span></code> (int, optional)</dt><dd><p>Number of default columns to generate if <code class="docutils literal notranslate"><span class="pre">cols_str</span></code> is empty or None. Defaults to <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">list[dict[str,</span> <span class="pre">Any]]</span></code></dt><dd><p>List of column metadata dictionaries with keys: ‘index’, ‘width’, ‘halign’, ‘valign’, ‘style’.</p>
 </dd>
 </dl>
-</section>
-<section id="returns">
-<h4>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h4>
-<dl class="simple">
-<dt>list[dict[str, Any]]</dt><dd><p>List of column metadata dictionaries with keys:
-‘index’, ‘width’, ‘halign’, ‘valign’, ‘style’.</p>
-</dd>
-</dl>
-</section>
 </dd></dl>
 
 </section>
