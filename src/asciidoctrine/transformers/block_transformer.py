@@ -234,6 +234,51 @@ class BlockTransformer(BaseTransformer):
         return cast(Literal, self._set_location_from_children(node, children))
 
     @v_args(meta=True)
+    def list_item_principal_content(
+        self, meta: Any, children: PyList[Any]
+    ) -> PyList[Node]:
+        """Fold the first text_content line plus any contiguous indented continuation
+        lines into a single flat inline list.
+
+        Grammar: text_content (_NEWLINE INDENTED_LITERAL_LEAD text_content)*
+
+        The children Lark delivers are:
+          children[0]           -- first text_content (list of inline Node)
+          children[1], [2], ... -- alternating INDENTED_LITERAL_LEAD tokens and
+                                   text_content lists for each continuation line.
+        We insert a Text("\\n") separator between lines and drop the lead tokens.
+        """
+        all_inlines: PyList[Node] = []
+        first = True
+        for child in children:
+            if isinstance(child, list):
+                # text_content always comes back as a plain Python list of Nodes
+                if not first:
+                    all_inlines.append(Text("\n"))
+                all_inlines.extend(child)
+                first = False
+            # Token children (INDENTED_LITERAL_LEAD) are silently dropped
+
+        # Consolidate adjacent plain Text nodes
+        consolidated: PyList[Node] = []
+        for node in all_inlines:
+            if (
+                consolidated
+                and isinstance(consolidated[-1], Text)
+                and isinstance(node, Text)
+                and consolidated[-1].attributes == node.attributes
+            ):
+                consolidated[-1].value += node.value
+                if node.location:
+                    if not consolidated[-1].location:
+                        consolidated[-1].location = node.location
+                    else:
+                        consolidated[-1].location[1] = node.location[1]
+            else:
+                consolidated.append(node)
+        return consolidated
+
+    @v_args(meta=True)
     def paragraph(self, meta: Any, children: PyList[Any]) -> Paragraph:
         actual_lines = [c for c in children if isinstance(c, list)]
         all_inlines: PyList[Node] = []
@@ -340,17 +385,16 @@ class BlockTransformer(BaseTransformer):
     @v_args(meta=True)
     def colist_item(self, meta: Any, children: PyList[Any]) -> CalloutListItem:
         number = int(children[0].value)
-        # Filter out WHITESPACE tokens to find the actual list of inline text nodes
+        # Filter out WHITESPACE tokens to find the principal content list
         nodes = [
             c
             for c in children[1:]
             if c is not None
             and not (hasattr(c, "type") and getattr(c, "type") == "WHITESPACE")
         ]
+        # list_item_principal_content transformer returns a plain list of inline Nodes
         content = nodes[0] if nodes else []
-        blocks = [c for c in nodes[1:] if isinstance(c, BlockNode)]
-        blocks = self._merge_indented_literals(blocks)
-        item = CalloutListItem(number=number, principal=content, blocks=blocks)
+        item = CalloutListItem(number=number, principal=content, blocks=[])
         return cast(CalloutListItem, self._set_location_from_children(item, children))
 
     @v_args(meta=True)
@@ -359,25 +403,23 @@ class BlockTransformer(BaseTransformer):
         level = self._get_list_level(marker_token)
 
         checkbox = None
-        if len(children) >= 3 and (
+        if len(children) >= 2 and (
             children[1] is None
             or (isinstance(children[1], Token) and children[1].type == "CHECKBOX")
         ):
             checkbox = children[1]
-            content = children[2]
-            blocks = [c for c in children[3:] if isinstance(c, BlockNode)]
+            # list_item_principal_content returns a plain list of inline Nodes
+            content = children[2] if len(children) > 2 else []
         else:
+            # list_item_principal_content returns a plain list of inline Nodes
             content = children[1] if len(children) > 1 else []
-            blocks = [c for c in children[2:] if isinstance(c, BlockNode)]
-
-        blocks = self._merge_indented_literals(blocks)
 
         item_data: Dict[str, Any] = {
             "level": level,
             "item_type": "bullet",
             "marker": marker_token.value.strip(),
             "children": content,
-            "blocks": blocks,
+            "blocks": [],
             "raw_children": children,
             "meta": meta,
         }
@@ -391,15 +433,14 @@ class BlockTransformer(BaseTransformer):
     def olist_item(self, meta: Any, children: PyList[Any]) -> Dict[str, Any]:
         marker_token = children[0]
         level = self._get_list_level(marker_token)
+        # list_item_principal_content transformer returns a plain list of inline Nodes
         content = children[1] if len(children) > 1 else []
-        blocks = [c for c in children[2:] if isinstance(c, BlockNode)]
-        blocks = self._merge_indented_literals(blocks)
         return {
             "level": level,
             "item_type": "enumerated",
             "marker": marker_token.value.strip(),
             "children": content,
-            "blocks": blocks,
+            "blocks": [],
             "raw_children": children,
             "meta": meta,
         }

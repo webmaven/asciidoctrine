@@ -36,6 +36,11 @@ paragraph: (text_content _NEWLINE)+
 indented_literal: INDENTED_LITERAL_LEAD text_content _NEWLINE
 INDENTED_LITERAL_LEAD: /[ \t]+/
 
+// Multiline principal text for list items: first text line plus any number of
+// contiguous indented continuation lines (per AsciiDoc spec "Multiline principal text").
+// The indented lead tokens are stripped; the content is merged into one principal.
+list_item_principal_content: text_content (_NEWLINE INDENTED_LITERAL_LEAD text_content)*
+
 shorthand_admonition: ADMONITION_TYPE COLON [WHITESPACE] text_content _NEWLINE
 ADMONITION_TYPE: "NOTE" | "TIP" | "IMPORTANT" | "WARNING" | "CAUTION"
 
@@ -45,10 +50,10 @@ olist: olist_item+
 ?dlist: dlist_5 | dlist_4 | dlist_3 | dlist_2
 colist: colist_item+
 
-ulist_item.5: ULIST_MARKER [CHECKBOX] text_content _NEWLINE indented_literal*
-olist_item.5: OLIST_MARKER text_content _NEWLINE indented_literal*
+ulist_item.5: ULIST_MARKER [CHECKBOX] list_item_principal_content _NEWLINE
+olist_item.5: OLIST_MARKER list_item_principal_content _NEWLINE
 
-colist_item.5: "<" NUMBER ">" [WHITESPACE] text_content _NEWLINE indented_literal*
+colist_item.5: "<" NUMBER ">" [WHITESPACE] list_item_principal_content _NEWLINE
 
 
 ?dlist_nested_2: dlist_5 | dlist_4 | dlist_3

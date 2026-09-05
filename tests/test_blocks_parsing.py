@@ -1226,65 +1226,85 @@ def test_ordered_list_with_leading_dots_not_eaten_as_titles():
         assert item.title is None
 
 
-def test_indented_literal_attached_inside_list_item():
-    text = "* Item 1\n  indented literal of item 1\n* Item 2\n"
+def test_indented_continuation_merged_into_unordered_list_item_principal():
+    """Contiguous indented line directly following a ulist marker is folded
+    into the list item's principal text (AsciiDoc spec: Multiline principal text)."""
+    text = "* Item 1\n  continuation of item 1\n* Item 2\n"
     ast = parse_to_ast(text)
     # List is intact — not broken into multiple top-level lists
     assert len(ast.blocks) == 1
     assert ast.blocks[0].name == "list"
     assert len(ast.blocks[0].items) == 2
-    # Literal is inside item 1 blocks, not at the document root
     item1 = ast.blocks[0].items[0]
-    assert any(type(n).__name__ == "Literal" for n in item1.blocks)
+    # Continuation line is in principal, NOT in blocks
+    assert item1.blocks == []
+    principal_text = "".join(n.value for n in item1.principal if hasattr(n, "value"))
+    assert "Item 1" in principal_text
+    assert "continuation of item 1" in principal_text
 
 
-def test_indented_literal_attached_inside_ordered_list_item():
-    text = ". Item 1\n  indented literal of item 1\n. Item 2\n"
+def test_indented_continuation_merged_into_ordered_list_item_principal():
+    """Contiguous indented line directly following an olist marker is folded
+    into the list item's principal text."""
+    text = ". Item 1\n  continuation of item 1\n. Item 2\n"
     ast = parse_to_ast(text)
     assert len(ast.blocks) == 1
     assert ast.blocks[0].name == "list"
     assert ast.blocks[0].variant == "ordered"
     assert len(ast.blocks[0].items) == 2
     item1 = ast.blocks[0].items[0]
-    assert any(type(n).__name__ == "Literal" for n in item1.blocks)
+    assert item1.blocks == []
+    principal_text = "".join(n.value for n in item1.principal if hasattr(n, "value"))
+    assert "Item 1" in principal_text
+    assert "continuation of item 1" in principal_text
 
 
-def test_multiple_indented_literals_attached_inside_list_item():
+def test_multiple_indented_continuations_merged_into_list_item_principal():
+    """Multiple consecutive indented continuation lines are all folded into
+    principal, joined by newline characters."""
     text = "* Item 1\n  line 1\n  line 2\n* Item 2\n"
     ast = parse_to_ast(text)
     assert len(ast.blocks) == 1
     assert ast.blocks[0].name == "list"
     assert len(ast.blocks[0].items) == 2
     item1 = ast.blocks[0].items[0]
-    assert len(item1.blocks) == 1
-    assert type(item1.blocks[0]).__name__ == "Literal"
-    assert item1.blocks[0].code == "line 1\nline 2"
+    assert item1.blocks == []
+    principal_text = "".join(n.value for n in item1.principal if hasattr(n, "value"))
+    assert "Item 1" in principal_text
+    assert "line 1" in principal_text
+    assert "line 2" in principal_text
 
 
-def test_checkbox_list_item_with_indented_literal():
-    text = "* [*] Item 1\n  indented literal\n* [ ] Item 2\n"
+def test_checkbox_list_item_with_indented_continuation_in_principal():
+    """Indented continuation line after a checkbox list item is folded into
+    the item's principal text, not placed in blocks."""
+    text = "* [*] Item 1\n  continuation\n* [ ] Item 2\n"
     ast = parse_to_ast(text)
     assert len(ast.blocks) == 1
     assert ast.blocks[0].name == "list"
     assert len(ast.blocks[0].items) == 2
     item1 = ast.blocks[0].items[0]
     assert item1.checked is True
-    assert len(item1.blocks) == 1
-    assert type(item1.blocks[0]).__name__ == "Literal"
-    assert item1.blocks[0].code == "indented literal"
+    assert item1.blocks == []
+    principal_text = "".join(n.value for n in item1.principal if hasattr(n, "value"))
+    assert "Item 1" in principal_text
+    assert "continuation" in principal_text
 
 
-def test_callout_list_item_with_indented_literal():
-    text = "<1> Item 1\n  indented literal\n<2> Item 2\n"
+def test_callout_list_item_with_indented_continuation_in_principal():
+    """Indented continuation line after a callout list item is folded into
+    the item's principal text, not placed in blocks."""
+    text = "<1> Item 1\n  continuation\n<2> Item 2\n"
     ast = parse_to_ast(text)
     assert len(ast.blocks) == 1
     assert ast.blocks[0].name == "calloutList"
     assert len(ast.blocks[0].items) == 2
     item1 = ast.blocks[0].items[0]
     assert item1.value == 1
-    assert len(item1.blocks) == 1
-    assert type(item1.blocks[0]).__name__ == "Literal"
-    assert item1.blocks[0].code == "indented literal"
+    assert item1.blocks == []
+    principal_text = "".join(n.value for n in item1.principal if hasattr(n, "value"))
+    assert "Item 1" in principal_text
+    assert "continuation" in principal_text
 
 
 def test_indented_literal_with_blank_line_not_attached_to_list_item():
