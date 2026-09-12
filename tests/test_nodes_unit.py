@@ -163,7 +163,9 @@ class TestNodesUnit(unittest.TestCase):
     def test_floating_title(self):
         title = Title([Text("Discrete Title")])
         ft = FloatingTitle(level=2, title=title)
-        self.assertEqual(ft.name, "floatingTitle")
+        self.assertEqual(
+            ft.name, "heading"
+        )  # FloatingTitle is now an alias for DiscreteHeading
         self.assertEqual(ft.level, 2)
         self.assertEqual(ft.get_child_collections(), {"inlines": title.inlines})
 
@@ -565,8 +567,9 @@ class TestNodesUnit(unittest.TestCase):
         ft = FloatingTitle(level=2, title=t)
         self.assertEqual(ft.get_child_collections(), {"inlines": t.inlines})
         d_ft = ft.to_dict()
-        self.assertEqual(d_ft["name"], "floatingTitle")
+        self.assertEqual(d_ft["name"], "heading")
         self.assertEqual(d_ft["level"], 2)
+        self.assertNotIn("inlines", d_ft)
 
         # Audio
         audio = Audio(target="music.mp3", attributes={"autoplay": "true"})
@@ -845,7 +848,7 @@ class TestFloatingTitle:
     def test_init(self) -> None:
         t = Title(inlines=[Text("Floating")])
         ft = FloatingTitle(level=2, title=t)
-        assert ft.name == "floatingTitle"
+        assert ft.name == "heading"
         assert ft.level == 2
         assert ft.title is t
 

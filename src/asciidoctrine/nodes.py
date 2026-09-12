@@ -332,18 +332,63 @@ class Revision(BlockNode):
         self.inlines.append(child)
 
 
-class FloatingTitle(BlockNode):
-    """Represents a discrete or floating title that does not start a section."""
+class DiscreteHeading(BlockNode):
+    """
+    Represents a discrete (floating) heading that does not start a structural section.
+
+    In AsciiDoc, discrete headings are block elements that render visually as headings
+    but do not create a new nesting level or affect the document's outline or TOC.
+    They are typically created by applying the `[discrete]` block attribute to a heading.
+
+    *Attributes:*
+
+    `level`:: 1-based integer heading level (1 = `==`, 2 = `===`, etc.).
+    `title`:: A `Title` node containing the inline elements of the heading text.
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine.nodes import DiscreteHeading, Title
+    from asciidoctrine.nodes import Text
+
+    heading = DiscreteHeading(level=2, title=Title([Text("My Floating Heading")]))
+    assert heading.name == "heading"
+    ----
+    """
 
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
-        return {"inlines": self.title.inlines} if self.title else {}
+        if self.title is not None:
+            return {"inlines": self.title.inlines}
+        return {}
 
-    def __init__(self, level: int, title: Title):
+    def __init__(self, level: int, title: Optional[Title] = None):
         super().__init__()
-        self.name = "floatingTitle"
+        self.name = "heading"
         self.type = "block"
         self.level = level
         self.title = title
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Serialize the discrete heading to an ASG-compatible dictionary representation.
+
+        Emits the standard heading ASG structure with `name`, `type`, `level`, and `title`,
+        omitting redundant `inlines` child collection keys.
+
+        *Returns:*
+
+        A dictionary containing the ASG representation of this discrete heading.
+        """
+        data = super().to_dict()
+        data.pop("inlines", None)
+        if "title" not in data:
+            data["title"] = []
+        return data
+
+
+# Keep FloatingTitle as a one-release deprecated alias
+FloatingTitle = DiscreteHeading
 
 
 class Header(Node):

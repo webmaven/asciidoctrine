@@ -18,9 +18,9 @@ from .nodes import (
     Collapsible,
     DescriptionList,
     DescriptionListItem,
+    DiscreteHeading,
     Document,
     Example,
-    FloatingTitle,
     Header,
     Image,
     Include,
@@ -446,7 +446,7 @@ class AsciiDocTransformer(
                                 block.attributes["style"] = v
                         elif variant in ["discrete", "float"]:
                             if isinstance(block, Section) and block.title:
-                                block = FloatingTitle(
+                                block = DiscreteHeading(
                                     level=block.level, title=block.title
                                 )
                             else:

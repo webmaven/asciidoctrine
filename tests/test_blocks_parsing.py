@@ -1319,3 +1319,32 @@ def test_indented_literal_with_blank_line_not_attached_to_list_item():
     assert ast.blocks[1].name == "literal"
     assert ast.blocks[2].name == "list"
     assert len(ast.blocks[2].items) == 1
+
+
+def test_discrete_heading_parsing():
+    """Verify that a [discrete] heading produces a DiscreteHeading node with correct attributes and to_dict serialization."""
+    from asciidoctrine.nodes import DiscreteHeading, Text, Title
+
+    source = "[discrete]\n== Discrete Heading\n"
+    doc = parse_to_ast(source)
+    assert len(doc.blocks) == 1
+    heading = doc.blocks[0]
+    assert isinstance(heading, DiscreteHeading)
+    assert heading.name == "heading"
+    assert heading.level == 1
+
+    d = heading.to_dict()
+    assert d["name"] == "heading"
+    assert d["type"] == "block"
+    assert d["level"] == 1
+    assert "inlines" not in d
+    assert d["title"][0]["value"] == "Discrete Heading"
+
+    # Also verify isolated to_dict() matches ASG schema exactly
+    standalone = DiscreteHeading(level=2, title=Title([Text("Standalone")]))
+    assert standalone.to_dict() == {
+        "name": "heading",
+        "type": "block",
+        "level": 2,
+        "title": [{"name": "text", "type": "string", "value": "Standalone"}],
+    }

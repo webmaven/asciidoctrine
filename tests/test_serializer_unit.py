@@ -1045,3 +1045,20 @@ class TestSerializerUnquotedAttr:
         vis.write_block_metadata(p)
         output = vis.stream.getvalue()
         assert 'caption="My Title Here"' in output
+
+
+def test_discrete_heading_serialization():
+    """Discrete heading serializes as [discrete] attribute followed by heading marker and title."""
+    from asciidoctrine.nodes import DiscreteHeading, Document, Text, Title
+    from asciidoctrine.serializer import AsciiDocSerializerVisitor
+
+    doc = Document(
+        blocks=[
+            DiscreteHeading(level=1, title=Title([Text("Discrete Title")])),
+            DiscreteHeading(level=2, title=Title([Text("Level Two")])),
+        ]
+    )
+    visitor = AsciiDocSerializerVisitor()
+    serialized = visitor.serialize(doc)
+    expected = "[discrete]\n== Discrete Title\n\n[discrete]\n=== Level Two\n"
+    assert serialized == expected

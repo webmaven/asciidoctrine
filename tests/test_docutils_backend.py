@@ -255,6 +255,15 @@ def test_floating_title_and_break_conversion():
     assert para.children[1].astext() == "<br/>"
 
 
+def test_discrete_heading_docutils_conversion():
+    source = "[discrete]\n== Section Heading\n"
+    document = asciidoc_to_docutils(source)
+    rubric = document[0]
+    assert isinstance(rubric, nodes.rubric)
+    assert rubric.astext() == "Section Heading"
+    assert "level-1" in rubric["classes"]
+
+
 def test_special_inline_macros_conversion():
     source = (
         "Press kbd:[Ctrl+Alt+Del] or btn:[Save] or select menu:File[New > Project]."

@@ -169,7 +169,30 @@ class AsciiDocSerializerVisitor(NodeVisitor):
             self.write("\n")
             self.visit(block)
 
+    def visit_heading(self, node: Node) -> None:
+        """
+        Serialize a discrete heading node back to AsciiDoc source markup.
+
+        Emits the `[discrete]` attribute directive followed by the heading marker
+        at the specified depth level and the heading title inlines.
+
+        *Parameters:*
+
+        `node`:: The `DiscreteHeading` node to serialize.
+        """
+        level = getattr(node, "level", 1)
+        prefix = "=" * (level + 1)
+        self.write("[discrete]\n")
+        self.write(f"{prefix} ")
+        title = getattr(node, "title", None)
+        if title:
+            self.visit(title)
+        self.write("\n")
+
+    visit_floatingtitle = visit_heading
+
     def visit_title(self, node: Node) -> None:
+
         for inline in getattr(node, "inlines", []):
             self.visit(inline)
 

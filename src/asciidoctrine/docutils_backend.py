@@ -19,9 +19,9 @@ from .nodes import (
     DescriptionList,
     DescriptionListItem,
     DescriptionListTerm,
+    DiscreteHeading,
     Docinfo,
     Document,
-    FloatingTitle,
     Image,
     IndexTerm,
     InlineStem,
@@ -153,7 +153,18 @@ class DocutilsRenderer(NodeVisitor):
         old_parent += section
         self.current_node = old_parent
 
-    def visit_floatingtitle(self, node: FloatingTitle) -> None:
+    def visit_heading(self, node: DiscreteHeading) -> None:
+        """
+        Render a discrete heading AST node into a Docutils rubric element.
+
+        Discrete headings are mapped to `docutils.nodes.rubric` elements decorated with
+        a CSS class denoting their original heading level (e.g. `level-1`, `level-2`),
+        preserving visual hierarchy without affecting document outline structure.
+
+        *Parameters:*
+
+        `node`:: The `DiscreteHeading` AST node to render.
+        """
         rubric = nodes.rubric()
         if hasattr(node, "level") and node.level is not None:
             rubric["classes"].append(f"level-{node.level}")
@@ -164,6 +175,8 @@ class DocutilsRenderer(NodeVisitor):
                 self.visit(inline)
         old_parent += rubric
         self.current_node = old_parent
+
+    visit_floatingtitle = visit_heading
 
     def visit_paragraph(self, node: Paragraph) -> None:
         para = nodes.paragraph()
