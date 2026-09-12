@@ -1,8 +1,29 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, Iterator, Optional, Sequence, cast
+from typing import TYPE_CHECKING, Any, Dict, Iterator, Optional, Sequence, Union, cast
 from typing import List as PyList
+
+if TYPE_CHECKING:
+    from typing import Protocol, runtime_checkable
+
+    from .loader import FileProvider
+else:
+    Protocol = object
+
+    def runtime_checkable(cls):
+        return cls
+
+
+@runtime_checkable
+class ChildCollection(Protocol):
+    """
+    A protocol defining the interface for nodes that can accept child nodes.
+    """
+
+    def append(self, child: "Node") -> None: ...
+    def __len__(self) -> int: ...
+
 
 """
 Custom Abstract Syntax Tree (AST) for AsciiDoc parsing.
@@ -133,7 +154,7 @@ class InlineNode(Node):
     """
 
     def append(self, child: Node) -> None:
-        self.inlines.append(child)  # type: ignore[attr-defined]
+        cast(ChildCollection, getattr(self, "inlines")).append(child)
 
 
 class BlockNode(Node):
@@ -150,7 +171,7 @@ class BlockNode(Node):
     """
 
     def append(self, child: Node) -> None:
-        self.blocks.append(child)  # type: ignore[attr-defined]
+        cast(ChildCollection, getattr(self, "blocks")).append(child)
 
     @property
     def has_metadata(self) -> bool:
@@ -196,6 +217,7 @@ class Document(BlockNode):
     `included_files`:: List of file path strings included during document preprocessing.
     `footnotes`:: List of resolved footnote dictionaries collected across the document.
     `loader`:: Optional `FileProvider` instance used to read source documents and included resources.
+    `title`:: Optional document title, represented as a `Title` node or a list of inline AST nodes.
 
     *Example:*
 
@@ -234,7 +256,8 @@ class Document(BlockNode):
         self.base_dir: Optional[str] = base_dir
         self.safe_mode: int = safe_mode
         self.footnotes: PyList[Dict[str, Any]] = []
-        self.loader: Optional[Any] = None
+        self.loader: Optional[FileProvider] = None
+        self.title: Optional[Union[Title, PyList[Node]]] = None  # type: ignore[assignment]
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize document with header and resolved attributes."""

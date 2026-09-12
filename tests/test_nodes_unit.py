@@ -1512,3 +1512,30 @@ class TestImageNode:
     def test_image_form(self) -> None:
         img = Image(target="a.png", form="macro")
         assert img.form == "macro"
+
+
+def test_document_loader_type_enforcement():
+    from asciidoctrine.loader import MemoryLoader
+
+    doc = Document()
+    loader = MemoryLoader({"test.adoc": "test"})
+    doc.loader = loader
+    assert doc.loader is loader
+
+    doc.loader = None
+    assert doc.loader is None
+
+
+def test_document_title_type_enforcement():
+    from asciidoctrine.nodes import Text, Title
+
+    doc = Document()
+    title_node = Title([Text("My Title")])
+    doc.title = title_node
+    assert doc.title is title_node
+
+    doc.title = [Text("My Title")]
+    assert doc.title[0].value == "My Title"
+
+    doc.title = None
+    assert doc.title is None
