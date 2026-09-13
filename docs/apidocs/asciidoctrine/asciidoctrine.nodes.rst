@@ -443,6 +443,13 @@ API
    .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Document.get_child_collections
 
+   .. py:property:: title
+      :canonical: asciidoctrine.nodes.Document.title
+      :type: asciidoctrine.nodes.Title | None
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.Document.title
+         :parser: sphinx_asciidoctrine.parser
+
    .. py:method:: to_dict() -> dict[str, typing.Any]
       :canonical: asciidoctrine.nodes.Document.to_dict
 
