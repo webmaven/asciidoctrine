@@ -81,6 +81,67 @@ class AsciiDocSerializerVisitor(NodeVisitor):
         language = attrs.get("language")
 
         attr_parts = []
+        is_list = getattr(node, "name", "") == "list"
+        if is_list:
+            ignored_keys.update({"numeration", "start", "reversed"})
+            # 1. Numeration style
+            numeration = (
+                getattr(node, "numeration", None)
+                or attrs.get("numeration")
+                or (
+                    style
+                    if style
+                    in (
+                        "loweralpha",
+                        "upperalpha",
+                        "lowerroman",
+                        "upperroman",
+                        "arabic",
+                    )
+                    else None
+                )
+            )
+            if numeration:
+                attr_parts.append(numeration)
+                ignored_keys.add("style")
+                if style == numeration:
+                    style = None
+
+            # 2. Start offset
+            start = getattr(node, "start", None)
+            if start is None and "start" in attrs:
+                try:
+                    start = int(attrs["start"])
+                except (ValueError, TypeError):
+                    pass
+            if start is not None:
+                attr_parts.append(f"start={start}")
+                ignored_keys.add("start")
+
+            # 3. Reversed option
+            is_reversed = (
+                getattr(node, "reversed", False)
+                or "reversed" in str(attrs.get("options", "")).split(",")
+                or attrs.get("reversed") is not None
+                or style == "reversed"
+            )
+            if is_reversed:
+                attr_parts.append("%reversed")
+                ignored_keys.add("reversed")
+                if style == "reversed":
+                    style = None
+                if "options" in attrs:
+                    opts = [
+                        o.strip()
+                        for o in str(attrs["options"]).split(",")
+                        if o.strip() and o.strip() != "reversed"
+                    ]
+                    if not opts:
+                        ignored_keys.add("options")
+                    else:
+                        attrs = dict(attrs)
+                        attrs["options"] = ",".join(opts)
+
         if style:
             # Avoid duplicating style if it is already represented
             if style.lower() != getattr(node, "name", "").lower():
@@ -346,11 +407,31 @@ class AsciiDocSerializerVisitor(NodeVisitor):
         self.write(f"{delim}\n")
 
     def visit_list(self, node: Node) -> None:
+        """
+        Serialize a list AST node back to AsciiDoc source markup.
+
+        Emits preceding block metadata lines (such as `[loweralpha]`, `[start=N]`,
+        `[%reversed]`, anchor ID, and title), followed by each child list item.
+
+        *Parameters:*
+
+        `node`:: The `List` node to serialize.
+        """
         self.write_block_metadata(node)
         for item in getattr(node, "items", []):
             self.visit(item)
 
     def visit_listitem(self, node: Node) -> None:
+        """
+        Serialize a single list item node back to AsciiDoc source markup.
+
+        Emits the item marker string, optional checklist prefix (`[x]` or `[ ]`),
+        principal inline nodes, and attached continuation blocks (`+`).
+
+        *Parameters:*
+
+        `node`:: The `ListItem` node to serialize.
+        """
         marker = getattr(node, "marker", "*")
         self.write(marker)
         checked = getattr(node, "checked", None)

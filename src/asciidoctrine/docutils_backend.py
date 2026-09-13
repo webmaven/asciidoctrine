@@ -294,9 +294,46 @@ class DocutilsRenderer(NodeVisitor):
         self.current_node = old_parent
 
     def visit_list(self, node: ASTList) -> None:
+        """
+        Convert an AsciiDoc list block to Docutils nodes.
+
+        Maps ordered list variant to `nodes.enumerated_list`, applying `enumtype`
+        from `numeration`, `start` offset, and `reversed` CSS class.
+        Maps unordered and callout lists to `nodes.bullet_list`.
+        Appends checklist CSS classes when items carry checkbox state.
+
+        *Parameters:*
+
+        `node`:: The `ASTList` node to convert.
+        """
         list_node: Union[nodes.bullet_list, nodes.enumerated_list]
         if node.variant == "ordered":
             list_node = nodes.enumerated_list()
+            numeration = (
+                getattr(node, "numeration", None)
+                or getattr(node, "attributes", {}).get("numeration")
+                or getattr(node, "attributes", {}).get("style")
+            )
+            if numeration:
+                list_node["enumtype"] = numeration
+
+            start = getattr(node, "start", None)
+            if start is None and "start" in getattr(node, "attributes", {}):
+                try:
+                    start = int(node.attributes["start"])
+                except (ValueError, TypeError):
+                    pass
+            if start is not None:
+                list_node["start"] = start
+
+            is_reversed = (
+                getattr(node, "reversed", False)
+                or "reversed"
+                in str(getattr(node, "attributes", {}).get("options", "")).split(",")
+                or getattr(node, "attributes", {}).get("reversed") is not None
+            )
+            if is_reversed:
+                list_node["classes"].append("reversed")
         else:
             list_node = nodes.bullet_list()
 
@@ -372,6 +409,16 @@ class DocutilsRenderer(NodeVisitor):
         self._cell_style = old_style
 
     def visit_listitem(self, node: ListItem) -> None:
+        """
+        Convert an AsciiDoc list item node to a Docutils `nodes.list_item`.
+
+        Attaches task-list-item CSS classes and checkbox glyphs (`\u2610` / `\u2611`)
+        when `node.checked` is boolean. Converts principal inline nodes and attached blocks.
+
+        *Parameters:*
+
+        `node`:: The `ListItem` node to convert.
+        """
         item = nodes.list_item()
         old_parent = self.current_node
         self.current_node = item

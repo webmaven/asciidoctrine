@@ -371,3 +371,35 @@ It should roundtrip.
 ////
 """
         self._assert_roundtrip(source)
+
+    def test_ordered_list_attributes_serialization(self):
+        # Roundtrip single attributes
+        self._assert_roundtrip("[loweralpha]\n. First\n. Second\n")
+        self._assert_roundtrip("[start=5]\n. First\n. Second\n")
+        self._assert_roundtrip("[%reversed]\n. First\n. Second\n")
+        self._assert_roundtrip("[loweralpha, start=3, %reversed]\n. First\n. Second\n")
+
+        # Programmatic List AST node serialization
+        from asciidoctrine.nodes import Document, List, ListItem, Text
+        from asciidoctrine.serializer import serialize_to_asciidoc
+
+        list_node = List(
+            variant="ordered",
+            marker=".",
+            items=[
+                ListItem(marker=".", principal=[Text("Item A")]),
+                ListItem(marker=".", principal=[Text("Item B")]),
+            ],
+            numeration="upperroman",
+            start=4,
+            reversed=True,
+        )
+        doc = Document(blocks=[list_node])
+        output = serialize_to_asciidoc(doc)
+        self.assertEqual(
+            output, "[upperroman, start=4, %reversed]\n. Item A\n. Item B\n"
+        )
+
+    def test_checklist_items_serialization(self):
+        source = "* [ ] Unchecked item\n* [x] Checked item\n"
+        self._assert_roundtrip(source)

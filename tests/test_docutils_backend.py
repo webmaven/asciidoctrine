@@ -1006,3 +1006,22 @@ def test_table_colspan_and_rowspan_combined():
     assert big_cell.get("morecols") == 1, "2-column span should give morecols=1"
     assert big_cell.get("morerows") == 1, "2-row span should give morerows=1"
     assert big_cell.astext() == "big cell"
+
+
+def test_ordered_list_enumtype_and_start_conversion():
+    """Verify ordered lists map numeration to docutils enumtype and start offset."""
+    styles = {
+        "loweralpha": "loweralpha",
+        "upperalpha": "upperalpha",
+        "lowerroman": "lowerroman",
+        "upperroman": "upperroman",
+        "arabic": "arabic",
+    }
+    for style, expected_enumtype in styles.items():
+        src = f"[{style}, start=3, %reversed]\n. First\n. Second\n"
+        doc = asciidoc_to_docutils(src)
+        elist = doc[0]
+        assert isinstance(elist, nodes.enumerated_list)
+        assert elist.get("enumtype") == expected_enumtype
+        assert elist.get("start") == 3
+        assert "reversed" in elist.get("classes", [])

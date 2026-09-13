@@ -1,0 +1,40 @@
+{
+  "name": "document",
+  "type": "block",
+  "blocks": [
+    {
+      "name": "list",
+      "type": "block",
+      "variant": "unordered",
+      "marker": "*",
+      "items": [
+        {
+          "name": "listItem",
+          "type": "block",
+          "marker": "*",
+          "checked": false,
+          "principal": [
+            {
+              "name": "text",
+              "type": "string",
+              "value": "todo"
+            }
+          ]
+        },
+        {
+          "name": "listItem",
+          "type": "block",
+          "marker": "*",
+          "checked": true,
+          "principal": [
+            {
+              "name": "text",
+              "type": "string",
+              "value": "done"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

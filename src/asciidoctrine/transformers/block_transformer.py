@@ -397,6 +397,56 @@ class BlockTransformer(BaseTransformer):
         item = CalloutListItem(number=number, principal=content, blocks=[])
         return cast(CalloutListItem, self._set_location_from_children(item, children))
 
+    def _apply_list_attributes(self, block: ASTList, metadata: Sequence[Any]) -> None:
+        """
+        Apply block metadata attributes to a List node.
+
+        Maps numeration styles (`"loweralpha"`, `"upperalpha"`, `"lowerroman"`,
+        `"upperroman"`, `"arabic"`), start offsets (`start=N`), and reversed
+        options (`%reversed`) onto `List.numeration`, `List.start`, and `List.reversed`.
+
+        *Parameters:*
+
+        `block`:: The target `List` AST node to modify.
+        `metadata`:: Sequence of block metadata items (attribute dicts or titles).
+        """
+        for item in metadata:
+            if isinstance(item, dict):
+                style = item.get("style")
+                if style:
+                    style_lower = style.lower()
+                    if style_lower in (
+                        "loweralpha",
+                        "upperalpha",
+                        "lowerroman",
+                        "upperroman",
+                        "arabic",
+                    ):
+                        block.numeration = style_lower
+                    elif style_lower == "reversed":
+                        block.reversed = True
+
+                start_val = item.get("start")
+                if start_val is not None:
+                    try:
+                        block.start = int(start_val)
+                    except (ValueError, TypeError):
+                        pass
+
+                options = item.get("options")
+                if options:
+                    opts = [
+                        opt.strip()
+                        for opt in (
+                            options.split(",") if isinstance(options, str) else options
+                        )
+                    ]
+                    if "reversed" in opts:
+                        block.reversed = True
+
+                if item.get("reversed") is not None:
+                    block.reversed = True
+
     @v_args(meta=True)
     def ulist_item(self, meta: Any, children: PyList[Any]) -> Dict[str, Any]:
         marker_token = children[0]
@@ -424,7 +474,7 @@ class BlockTransformer(BaseTransformer):
             "meta": meta,
         }
         if checkbox:
-            val = checkbox.value.strip("[] ")
+            val = checkbox.value.strip("[] \t")
             item_data["checked"] = val.lower() in ["x", "*"]
 
         return item_data
@@ -433,9 +483,20 @@ class BlockTransformer(BaseTransformer):
     def olist_item(self, meta: Any, children: PyList[Any]) -> Dict[str, Any]:
         marker_token = children[0]
         level = self._get_list_level(marker_token)
-        # list_item_principal_content transformer returns a plain list of inline Nodes
-        content = children[1] if len(children) > 1 else []
-        return {
+
+        checkbox = None
+        if len(children) >= 2 and (
+            children[1] is None
+            or (isinstance(children[1], Token) and children[1].type == "CHECKBOX")
+        ):
+            checkbox = children[1]
+            # list_item_principal_content returns a plain list of inline Nodes
+            content = children[2] if len(children) > 2 else []
+        else:
+            # list_item_principal_content returns a plain list of inline Nodes
+            content = children[1] if len(children) > 1 else []
+
+        item_data: Dict[str, Any] = {
             "level": level,
             "item_type": "enumerated",
             "marker": marker_token.value.strip(),
@@ -444,6 +505,11 @@ class BlockTransformer(BaseTransformer):
             "raw_children": children,
             "meta": meta,
         }
+        if checkbox:
+            val = checkbox.value.strip("[] \t")
+            item_data["checked"] = val.lower() in ["x", "*"]
+
+        return item_data
 
     @v_args(meta=True)
     def basic_block(self, meta: Any, children: PyList[Any]) -> Any:

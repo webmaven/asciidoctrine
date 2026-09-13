@@ -111,6 +111,8 @@ class Node:
             "resolved_anchor_target",
             "index",
             "columns",
+            "numeration",
+            "start",
         ]:
             if hasattr(self, attr):
                 val = getattr(self, attr)
@@ -896,7 +898,47 @@ class Video(BlockNode):
 
 
 class List(BlockNode):
-    """A block node representing a list (ordered or unordered)."""
+    """
+    A block node representing a list (ordered, unordered, or callout).
+
+    Encapsulates child `ListItem` elements, list variant (`"ordered"`, `"unordered"`,
+    or `"callout"`), list marker string, and optional ordered list properties
+    including `numeration`, start offset `start`, and `reversed` order.
+
+    *Attributes:*
+
+    `variant`:: List variant string (`"ordered"`, `"unordered"`, or `"callout"`).
+    `marker`:: Repeating marker character string (e.g. `"."`, `"*"`).
+    `items`:: List of child `ListItem` nodes contained within this list.
+    `numeration`:: Optional numeration style for ordered lists (`"arabic"`,
+      `"loweralpha"`, `"upperalpha"`, `"lowerroman"`, `"upperroman"`).
+    `start`:: Optional starting number offset for ordered lists.
+    `reversed`:: Boolean flag indicating whether ordered list numbering is reversed.
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine.nodes import List, ListItem, Text
+
+    item = ListItem(marker=".", principal=[Text("First item")])
+    olist = List(
+        variant="ordered",
+        marker=".",
+        items=[item],
+        numeration="loweralpha",
+        start=3,
+        reversed=True,
+    )
+    assert olist.name == "list"
+    assert olist.numeration == "loweralpha"
+    assert olist.start == 3
+    assert olist.reversed is True
+    assert olist.to_dict()["numeration"] == "loweralpha"
+    assert olist.to_dict()["start"] == 3
+    assert olist.to_dict()["reversed"] is True
+    ----
+    """
 
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
         return {"items": cast(PyList[Node], self.items)}
@@ -906,6 +948,9 @@ class List(BlockNode):
         variant: str,
         marker: str,
         items: Optional[Sequence[ListItem]] = None,
+        numeration: Optional[str] = None,
+        start: Optional[int] = None,
+        reversed: bool = False,
     ):
         super().__init__()
         self.name = "list"
@@ -913,6 +958,19 @@ class List(BlockNode):
         self.variant = variant
         self.marker = marker
         self.items: PyList[ListItem] = list(items) if items else []
+        self.numeration = numeration
+        self.start = start
+        self.reversed = reversed
+
+    @property
+    def has_metadata(self) -> bool:
+        """Return True if this list has attached attributes, title, numeration, start, or reversed."""
+        return (
+            super().has_metadata
+            or self.numeration is not None
+            or self.start is not None
+            or self.reversed
+        )
 
     def append(self, child: Node) -> None:
         if isinstance(child, ListItem):
@@ -920,9 +978,46 @@ class List(BlockNode):
         else:
             super().append(child)
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize list block to ASG-compatible dictionary."""
+        data = super().to_dict()
+        if self.numeration is not None:
+            data["numeration"] = self.numeration
+        if self.start is not None:
+            data["start"] = self.start
+        if self.reversed:
+            data["reversed"] = True
+        return data
+
 
 class ListItem(BlockNode):
-    """A node representing a single item within a list. It can contain blocks."""
+    """
+    A block node representing a single item within a list.
+
+    Can contain principal inline nodes representing the item's primary text content
+    as well as child block nodes attached via list continuation (`+`).
+    When part of a checklist, the `checked` attribute indicates the checkbox state.
+
+    *Attributes:*
+
+    `marker`:: Repeating marker character string identifying the list level.
+    `principal`:: Sequence of inline nodes representing the primary text of the item.
+    `blocks`:: Sequence of child block nodes attached to the item.
+    `checked`:: Optional boolean indicating checklist state (`True` for checked,
+      `False` for unchecked, `None` for standard non-checklist items).
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine.nodes import ListItem, Text
+
+    item = ListItem(marker="*", principal=[Text("Task item")], checked=False)
+    assert item.name == "listItem"
+    assert item.checked is False
+    assert item.to_dict()["checked"] is False
+    ----
+    """
 
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
         return {"principal": self.principal, "blocks": self.blocks}
@@ -941,6 +1036,13 @@ class ListItem(BlockNode):
         self.principal: PyList[Node] = list(principal) if principal else []
         self.blocks: PyList[Node] = list(blocks) if blocks else []
         self.checked = checked
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize list item to ASG-compatible dictionary."""
+        data = super().to_dict()
+        if self.checked is not None:
+            data["checked"] = self.checked
+        return data
 
 
 class DescriptionList(BlockNode):

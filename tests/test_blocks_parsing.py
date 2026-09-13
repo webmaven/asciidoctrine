@@ -1641,3 +1641,121 @@ def test_macro_target_attribute_substitution():
     assert resolved_macros[2]["name"] == "video"
     assert resolved_macros[2]["target"] == "movies/movie.mp4"
     assert resolved_macros[2]["form"] == "macro"
+
+
+def test_ordered_list_numeration_styles():
+    """Verify ordered lists parse [loweralpha], [upperalpha], [lowerroman], [upperroman], and [arabic]."""
+    for style in ("loweralpha", "upperalpha", "lowerroman", "upperroman", "arabic"):
+        src = f"[{style}]\n. First\n. Second\n"
+        doc = parse_to_ast(src)
+        olist = doc.blocks[0]
+        assert getattr(olist, "name", "") == "list"
+        assert getattr(olist, "variant", "") == "ordered"
+        assert getattr(olist, "numeration", None) == style
+        d = olist.to_dict()
+        assert d["numeration"] == style
+
+
+def test_ordered_list_start_offset():
+    """Verify ordered lists parse start=N attribute and set List.start."""
+    src = "[start=5]\n. First\n. Second\n"
+    doc = parse_to_ast(src)
+    olist = doc.blocks[0]
+    assert getattr(olist, "start", None) == 5
+    d = olist.to_dict()
+    assert d["start"] == 5
+
+
+def test_ordered_list_reversed_option():
+    """Verify ordered lists parse %reversed option and set List.reversed."""
+    for header in ("[%reversed]", "[reversed]", "[options=reversed]"):
+        src = f"{header}\n. First\n. Second\n"
+        doc = parse_to_ast(src)
+        olist = doc.blocks[0]
+        assert getattr(olist, "reversed", False) is True
+        d = olist.to_dict()
+        assert d.get("reversed") is True
+
+
+def test_ordered_list_combined_attributes():
+    """Verify combined style, start offset, and %reversed on an ordered list."""
+    src = "[loweralpha, start=3, %reversed]\n. Gamma\n. Beta\n. Alpha\n"
+    doc = parse_to_ast(src)
+    olist = doc.blocks[0]
+    assert getattr(olist, "numeration", None) == "loweralpha"
+    assert getattr(olist, "start", None) == 3
+    assert getattr(olist, "reversed", False) is True
+    d = olist.to_dict()
+    assert d["numeration"] == "loweralpha"
+    assert d["start"] == 3
+    assert d.get("reversed") is True
+
+
+def test_checklist_item_checked_attribute_in_asg():
+    """Verify checklist items carry checked boolean in ASG to_dict()."""
+    src = "* [ ] Unchecked\n* [x] Checked x\n* [*] Checked star\n* [X] Checked upper X\n* Plain item\n"
+    doc = parse_to_ast(src)
+    ulist = doc.blocks[0]
+    items = ulist.items
+    assert len(items) == 5
+
+    assert items[0].checked is False
+    assert items[0].to_dict()["checked"] is False
+
+    assert items[1].checked is True
+    assert items[1].to_dict()["checked"] is True
+
+    assert items[2].checked is True
+    assert items[2].to_dict()["checked"] is True
+
+    assert items[3].checked is True
+    assert items[3].to_dict()["checked"] is True
+
+    assert items[4].checked is None
+    assert "checked" not in items[4].to_dict()
+
+
+def test_ordered_list_with_checklist():
+    """Verify checklist syntax works on ordered list items as well."""
+    src = ". [ ] Step 1\n. [x] Step 2\n"
+    doc = parse_to_ast(src)
+    olist = doc.blocks[0]
+    assert len(olist.items) == 2
+    assert olist.items[0].checked is False
+    assert olist.items[0].to_dict()["checked"] is False
+    assert olist.items[1].checked is True
+    assert olist.items[1].to_dict()["checked"] is True
+
+
+def test_list_and_listitem_nodes_isolated_to_dict():
+    """Verify List and ListItem class attributes and isolated to_dict conform to specs."""
+    from asciidoctrine.nodes import List, ListItem, Text
+
+    item1 = ListItem(marker=".", principal=[Text("Item 1")], checked=False)
+    item2 = ListItem(marker=".", principal=[Text("Item 2")], checked=True)
+    item3 = ListItem(marker=".", principal=[Text("Plain item")])
+
+    assert item1.to_dict()["checked"] is False
+    assert item2.to_dict()["checked"] is True
+    assert "checked" not in item3.to_dict()
+
+    olist = List(
+        variant="ordered",
+        marker=".",
+        items=[item1, item2],
+        numeration="lowerroman",
+        start=4,
+        reversed=True,
+    )
+    assert olist.numeration == "lowerroman"
+    assert olist.start == 4
+    assert olist.reversed is True
+
+    d = olist.to_dict()
+    assert d["name"] == "list"
+    assert d["type"] == "block"
+    assert d["variant"] == "ordered"
+    assert d["marker"] == "."
+    assert d["numeration"] == "lowerroman"
+    assert d["start"] == 4
+    assert d["reversed"] is True

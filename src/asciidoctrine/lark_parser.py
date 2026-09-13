@@ -396,6 +396,9 @@ class AsciiDocTransformer(
         metadata = [c for c in children[:-1] if c is not Discard]
         block = cast(BlockNode, children[-1])
 
+        if isinstance(block, List):
+            self._apply_list_attributes(block, metadata)
+
         for item in metadata:
             if isinstance(item, Title):
                 block.title = item
@@ -472,10 +475,37 @@ class AsciiDocTransformer(
                                 )
                             else:
                                 block.attributes["style"] = v
+                        elif isinstance(block, List) and (
+                            variant
+                            in (
+                                "loweralpha",
+                                "upperalpha",
+                                "lowerroman",
+                                "upperroman",
+                                "arabic",
+                            )
+                            or variant == "reversed"
+                        ):
+                            continue
                         else:
                             block.attributes["style"] = v
+                    elif isinstance(block, List) and k in ("start", "reversed"):
+                        continue
+                    elif isinstance(block, List) and k == "options":
+                        opts = [
+                            opt.strip()
+                            for opt in str(v).split(",")
+                            if opt.strip() and opt.strip() != "reversed"
+                        ]
+                        if opts:
+                            block.attributes["options"] = ",".join(opts)
+                    elif isinstance(block, List) and (
+                        (isinstance(k, str) and k.isdigit()) or k == "positional"
+                    ):
+                        continue
                     else:
                         block.attributes[k] = v
+
         if isinstance(block, Table) and "cols" in block.attributes:
             try:
                 cols_val = block.attributes["cols"]
