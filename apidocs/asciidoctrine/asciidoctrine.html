@@ -64,6 +64,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#package-contents">Package Contents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#functions">Functions</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#data">Data</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#api">API</a></li>
 </ul>
@@ -109,9 +110,14 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">parse_inlines()</span></code>: Parse raw inline AsciiDoc source code into a syntax-level AST.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">FileProvider</span></code>, <code class="docutils literal notranslate"><span class="pre">FsLoader</span></code>, <code class="docutils literal notranslate"><span class="pre">MemoryLoader</span></code>: Abstract and virtual filesystem loaders for hermetic parsing.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code>: Resolve AST trees into spec-compliant Abstract Semantic Graphs (ASG).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">resolve_to_ast()</span></code>: Resolve semantic elements and attributes in-place on an AST Document.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">WorkspaceCatalog</span></code>: Index symbols and target anchors across multi-document workspaces.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">WorkspaceBuilder</span></code>: Orchestrate multi-pass directory or in-memory parsing and cross-reference resolution.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">clear_parser_cache()</span></code>: Clear compiled Lark parser instances.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">clear_ast_cache()</span></code>: Clear the in-process LRU cache for snippet ASTs.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">serialize_to_asciidoc()</span></code>: Losslessly serialize AST nodes back to AsciiDoc text.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dumps()</span></code>: Convenience wrapper around <code class="docutils literal notranslate"><span class="pre">serialize_to_asciidoc()</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">loads()</span></code>: Convenience wrapper around <code class="docutils literal notranslate"><span class="pre">parse_to_ast()</span></code>.</p></li>
 </ul>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
@@ -131,6 +137,19 @@
 </section>
 <section id="package-contents">
 <h2>Package Contents<a class="headerlink" href="#package-contents" title="Link to this heading"></a></h2>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
+<table class="autosummary longtable docutils align-left">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.dumps" title="asciidoctrine.dumps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dumps</span></code></a></p></td>
+<td><p>Serialize an AST Document node back to its AsciiDoc string representation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#asciidoctrine.loads" title="asciidoctrine.loads"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loads</span></code></a></p></td>
+<td><p>Parse an AsciiDoc source string into a syntax-level AST Document.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
 <section id="data">
 <h3>Data<a class="headerlink" href="#data" title="Link to this heading"></a></h3>
 <table class="autosummary longtable docutils align-left">
@@ -151,9 +170,55 @@
 <span class="sig-prename descclassname"><span class="pre">asciidoctrine.</span></span><span class="sig-name descname"><span class="pre">__version__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'0.2.0a7'</span></span><a class="headerlink" href="#asciidoctrine.__version__" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="asciidoctrine.dumps">
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.</span></span><span class="sig-name descname"><span class="pre">dumps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Document" title="asciidoctrine.nodes.Document"><span class="pre">asciidoctrine.nodes.Document</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#asciidoctrine.dumps" title="Link to this definition"></a></dt>
+<dd><p>Serialize an AST Document node back to its AsciiDoc string representation.</p>
+<p>Convenience wrapper around <code class="docutils literal notranslate"><span class="pre">serialize_to_asciidoc</span></code>.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">doc</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Document</span></code> AST instance to serialize.</p>
+</dd>
+</dl>
+<p><strong>Returns:</strong></p>
+<p>A string containing the serialized AsciiDoc markup representation.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asciidoctrine</span>
+
+<span class="n">doc</span> <span class="o">=</span> <span class="n">asciidoctrine</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="s2">"= Document Title</span><span class="se">\n\n</span><span class="s2">First paragraph."</span><span class="p">)</span>
+<span class="n">text</span> <span class="o">=</span> <span class="n">asciidoctrine</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+<span class="k">assert</span> <span class="s2">"= Document Title"</span> <span class="ow">in</span> <span class="n">text</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asciidoctrine.loads">
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.</span></span><span class="sig-name descname"><span class="pre">loads</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Document" title="asciidoctrine.nodes.Document"><span class="pre">asciidoctrine.nodes.Document</span></a></span></span><a class="headerlink" href="#asciidoctrine.loads" title="Link to this definition"></a></dt>
+<dd><p>Parse an AsciiDoc source string into a syntax-level AST Document.</p>
+<p>Convenience wrapper around <code class="docutils literal notranslate"><span class="pre">parse_to_ast</span></code>.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">source</span></code></dt><dd><p>The raw AsciiDoc source text to parse.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">**kwargs</span></code></dt><dd><p>Optional configuration keyword arguments forwarded to <code class="docutils literal notranslate"><span class="pre">parse_to_ast</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">strict</span></code>, <code class="docutils literal notranslate"><span class="pre">line_ending</span></code>).</p>
+</dd>
+</dl>
+<p><strong>Returns:</strong></p>
+<p>A <code class="docutils literal notranslate"><span class="pre">Document</span></code> AST node representing the parsed structure.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asciidoctrine</span>
+
+<span class="n">doc</span> <span class="o">=</span> <span class="n">asciidoctrine</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="s2">"= Document Title</span><span class="se">\n\n</span><span class="s2">First paragraph."</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">doc</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"document"</span>
+<span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">blocks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="asciidoctrine.__all__">
-<span class="sig-prename descclassname"><span class="pre">asciidoctrine.</span></span><span class="sig-name descname"><span class="pre">__all__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['__version__',</span> <span class="pre">'parse_to_ast',</span> <span class="pre">'parse_inlines',</span> <span class="pre">'get_document_parser',</span> <span class="pre">'get_inline_parser',</span> <span class="pre">'clear_...</span></span><a class="headerlink" href="#asciidoctrine.__all__" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.</span></span><span class="sig-name descname"><span class="pre">__all__</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['__version__',</span> <span class="pre">'dumps',</span> <span class="pre">'loads',</span> <span class="pre">'parse_to_ast',</span> <span class="pre">'parse_inlines',</span> <span class="pre">'get_document_parser',</span> <span class="pre">'get_inlin...</span></span><a class="headerlink" href="#asciidoctrine.__all__" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>

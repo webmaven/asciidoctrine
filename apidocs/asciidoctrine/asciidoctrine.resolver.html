@@ -116,6 +116,16 @@
 </tbody>
 </table>
 </section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
+<table class="autosummary longtable docutils align-left">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.resolver.resolve_to_ast" title="asciidoctrine.resolver.resolve_to_ast"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_to_ast</span></code></a></p></td>
+<td><p>Convenience function resolving semantic elements and attributes in-place on a Document AST.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
 <section id="api">
 <h3>API<a class="headerlink" href="#api" title="Link to this heading"></a></h3>
 <dl class="py class">
@@ -154,7 +164,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="asciidoctrine.resolver.ASGResolver">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.resolver.</span></span><span class="sig-name descname"><span class="pre">ASGResolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Document" title="asciidoctrine.nodes.Document"><span class="pre">asciidoctrine.nodes.Document</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">catalog</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#asciidoctrine.resolver.WorkspaceCatalog" title="asciidoctrine.resolver.WorkspaceCatalog"><span class="pre">asciidoctrine.resolver.WorkspaceCatalog</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_file_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.resolver.ASGResolver" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.resolver.</span></span><span class="sig-name descname"><span class="pre">ASGResolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Document" title="asciidoctrine.nodes.Document"><span class="pre">asciidoctrine.nodes.Document</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">catalog</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#asciidoctrine.resolver.WorkspaceCatalog" title="asciidoctrine.resolver.WorkspaceCatalog"><span class="pre">asciidoctrine.resolver.WorkspaceCatalog</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_file_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.resolver.ASGResolver" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.NodeTransformer" title="asciidoctrine.nodes.NodeTransformer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.NodeTransformer</span></code></a></p>
 <p>Resolves semantic elements in an AsciiDoc AST using a typed NodeTransformer pattern.</p>
 <p><code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code> evaluates document-level and block-level attribute substitutions, filters out
@@ -169,6 +179,16 @@ interdocument cross-references (<code class="docutils literal notranslate"><span
 </dd>
 </dl>
 <p class="rubric">Initialization</p>
+<p>Initializes the ASGResolver with an optional Document, catalog, and file ID.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">document</span></code></dt><dd><p>Optional root <code class="docutils literal notranslate"><span class="pre">Document</span></code> AST node instance to resolve.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">catalog</span></code></dt><dd><p>Optional <code class="docutils literal notranslate"><span class="pre">WorkspaceCatalog</span></code> containing symbol tables for multi-file workspace resolution. Defaults to a new empty catalog if omitted.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">current_file_id</span></code></dt><dd><p>The relative file ID of the document being resolved (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;chapter1/intro.adoc&quot;</span></code>). Used for resolving relative path targets and local file resolution fallbacks.</p>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.resolver.ASGResolver._resolve_docinfo_files">
 <span class="sig-name descname"><span class="pre">_resolve_docinfo_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Document" title="asciidoctrine.nodes.Document"><span class="pre">asciidoctrine.nodes.Document</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.resolver.ASGResolver._resolve_docinfo_files" title="Link to this definition"></a></dt>
@@ -176,7 +196,7 @@ interdocument cross-references (<code class="docutils literal notranslate"><span
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.resolver.ASGResolver.resolve">
-<span class="sig-name descname"><span class="pre">resolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.resolver.ASGResolver.resolve" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">resolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.resolver.ASGResolver.resolve" title="Link to this definition"></a></dt>
 <dd><p>Converts an AST node tree to a fully-resolved ASG dictionary without mutating the original input AST.</p>
 <p>Performs a pure deep copy of the input node tree before applying transformations, ensuring the</p>
 <p>syntax-level AST remains unmutated for coordinate tracking and serialization tools.</p>
@@ -188,9 +208,38 @@ interdocument cross-references (<code class="docutils literal notranslate"><span
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.resolver.ASGResolver.resolve_to_ast">
+<span class="sig-name descname"><span class="pre">resolve_to_ast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Document" title="asciidoctrine.nodes.Document"><span class="pre">asciidoctrine.nodes.Document</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Document" title="asciidoctrine.nodes.Document"><span class="pre">asciidoctrine.nodes.Document</span></a></span></span><a class="headerlink" href="#asciidoctrine.resolver.ASGResolver.resolve_to_ast" title="Link to this definition"></a></dt>
+<dd><p>Resolves semantic elements, attributes, and cross-references in-place on a typed Document AST.</p>
+<p>Performs full attribute substitution, footnote numbering, and reference indexing directly on
+the provided <code class="docutils literal notranslate"><span class="pre">Document</span></code> tree. Standalone comment and attribute entry blocks are filtered/consumed
+as during ASG resolution, while structural blocks remain typed AST <code class="docutils literal notranslate"><span class="pre">Node</span></code> instances.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">doc</span></code></dt><dd><p>The root <code class="docutils literal notranslate"><span class="pre">Document</span></code> AST node instance to resolve in-place.</p>
+</dd>
+</dl>
+<p><strong>Returns:</strong></p>
+<p>The resolved <code class="docutils literal notranslate"><span class="pre">Document</span></code> AST instance (the same object as <code class="docutils literal notranslate"><span class="pre">doc</span></code>).</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.resolver.ASGResolver.generic_visit">
 <span class="sig-name descname"><span class="pre">generic_visit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></span><a class="headerlink" href="#asciidoctrine.resolver.ASGResolver.generic_visit" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Recursively visits AST nodes, resolving block attributes, target substitutions, and child collections.</p>
+<p><strong>Target Attribute Substitution:</strong></p>
+<p>Any node with a string <code class="docutils literal notranslate"><span class="pre">target</span></code> attribute (such as <code class="docutils literal notranslate"><span class="pre">Image</span></code>, <code class="docutils literal notranslate"><span class="pre">Audio</span></code>,</p>
+<p><code class="docutils literal notranslate"><span class="pre">Video</span></code>, or <code class="docutils literal notranslate"><span class="pre">Include</span></code> macros) receives document attribute substitution
+via <code class="docutils literal notranslate"><span class="pre">substitute_attributes</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">image::{imagesdir}/photo.jpg[]</span></code>
+expands <code class="docutils literal notranslate"><span class="pre">{imagesdir}</span></code> to its resolved document attribute value).</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The AST node being traversed and transformed.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">kwargs</span></code></dt><dd><p>Optional context passed during AST traversal.</p>
+</dd>
+</dl>
+<p>Returns the visited (and potentially mutated in-place) AST node.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.resolver.ASGResolver.visit_text">
@@ -204,8 +253,24 @@ interdocument cross-references (<code class="docutils literal notranslate"><span
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.resolver.ASGResolver.visit_comment">
-<span class="sig-name descname"><span class="pre">visit_comment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.resolver.ASGResolver.visit_comment" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">visit_comment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.resolver.ASGResolver.visit_comment" title="Link to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.resolver.ASGResolver.visit_indexterm">
+<span class="sig-name descname"><span class="pre">visit_indexterm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.IndexTerm" title="asciidoctrine.nodes.IndexTerm"><span class="pre">asciidoctrine.nodes.IndexTerm</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></span><a class="headerlink" href="#asciidoctrine.resolver.ASGResolver.visit_indexterm" title="Link to this definition"></a></dt>
+<dd><p>Visits an <code class="docutils literal notranslate"><span class="pre">IndexTerm</span></code> AST node during resolution.</p>
+<p>Ensures the index term node is preserved across AST and ASG resolution passes,
+applies document-level and block-level attribute substitutions to its terms,
+and traverses any nested child inline nodes.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">IndexTerm</span></code> AST node to resolve.</p>
+</dd>
+</dl>
+<p><strong>Returns:</strong></p>
+<p>The resolved <code class="docutils literal notranslate"><span class="pre">IndexTerm</span></code> AST node.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.resolver.ASGResolver.visit_table">
@@ -214,7 +279,7 @@ interdocument cross-references (<code class="docutils literal notranslate"><span
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.resolver.ASGResolver._extract_inline_text">
-<span class="sig-name descname"><span class="pre">_extract_inline_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#asciidoctrine.resolver.ASGResolver._extract_inline_text" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_extract_inline_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">collections.abc.Sequence</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#asciidoctrine.resolver.ASGResolver._extract_inline_text" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -227,7 +292,7 @@ interdocument cross-references (<code class="docutils literal notranslate"><span
 
 <dl class="py class">
 <dt class="sig sig-object py" id="asciidoctrine.resolver.WorkspaceBuilder">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.resolver.</span></span><span class="sig-name descname"><span class="pre">WorkspaceBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/workspace'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lark_parser_instance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="asciidoctrine.loader.html#asciidoctrine.loader.FileProvider" title="asciidoctrine.loader.FileProvider"><span class="pre">asciidoctrine.loader.FileProvider</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.resolver.WorkspaceBuilder" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.resolver.</span></span><span class="sig-name descname"><span class="pre">WorkspaceBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workspace_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">pathlib.Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'/workspace'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lark_parser_instance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.loader.html#asciidoctrine.loader.FileProvider" title="asciidoctrine.loader.FileProvider"><span class="pre">asciidoctrine.loader.FileProvider</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#asciidoctrine.resolver.WorkspaceBuilder" title="Link to this definition"></a></dt>
 <dd><p>Orchestrates multi-pass parsing and semantic resolution for an entire folder or virtual workspace of AsciiDoc files.</p>
 <p><code class="docutils literal notranslate"><span class="pre">WorkspaceBuilder</span></code> coordinates directory discovery, raw un-mutated AST parsing, global symbol table indexing</p>
 <p>via <code class="docutils literal notranslate"><span class="pre">WorkspaceCatalog</span></code>, and interdocument reference resolution via <code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code>.</p>
@@ -271,7 +336,7 @@ interdocument cross-references (<code class="docutils literal notranslate"><span
 <p class="rubric">Initialization</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.resolver.WorkspaceBuilder._get_file_id">
-<span class="sig-name descname"><span class="pre">_get_file_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">pathlib.Path</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#asciidoctrine.resolver.WorkspaceBuilder._get_file_id" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_get_file_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">pathlib.Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#asciidoctrine.resolver.WorkspaceBuilder._get_file_id" title="Link to this definition"></a></dt>
 <dd><p>Generates a stable, platform-agnostic string file ID relative to the workspace root.</p>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">path_str</span></code></dt><dd><p>File system or virtual path to a document.</p>
@@ -301,11 +366,24 @@ interdocument cross-references (<code class="docutils literal notranslate"><span
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.resolver.WorkspaceBuilder.build">
-<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.resolver.WorkspaceBuilder.build" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">build</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#asciidoctrine.resolver.WorkspaceBuilder.build" title="Link to this definition"></a></dt>
 <dd><p>Runs the complete multi-pass orchestration sequence sequentially (Pass 1 -&gt; Pass 2 -&gt; Pass 3).</p>
 <p>Returns a dictionary mapping relative file IDs (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;doc.adoc&quot;</span></code>) to their fully-resolved, spec-compliant ASG dictionaries.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="asciidoctrine.resolver.resolve_to_ast">
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.resolver.</span></span><span class="sig-name descname"><span class="pre">resolve_to_ast</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Document" title="asciidoctrine.nodes.Document"><span class="pre">asciidoctrine.nodes.Document</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Document" title="asciidoctrine.nodes.Document"><span class="pre">asciidoctrine.nodes.Document</span></a></span></span><a class="headerlink" href="#asciidoctrine.resolver.resolve_to_ast" title="Link to this definition"></a></dt>
+<dd><p>Convenience function resolving semantic elements and attributes in-place on a Document AST.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">doc</span></code></dt><dd><p>The root <code class="docutils literal notranslate"><span class="pre">Document</span></code> AST node instance to resolve in-place.</p>
+</dd>
+</dl>
+<p><strong>Returns:</strong></p>
+<p>The resolved <code class="docutils literal notranslate"><span class="pre">Document</span></code> AST instance.</p>
 </dd></dl>
 
 </section>

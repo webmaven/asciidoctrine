@@ -1,6 +1,6 @@
 = How-to: Custom ASG Renderer Tutorial
 Michael R. Bernstein <zopemaven@gmail.com>
-v0.2.0a6
+v0.2.0a8
 :idprefix:
 :idseparator: -
 :sectanchors:

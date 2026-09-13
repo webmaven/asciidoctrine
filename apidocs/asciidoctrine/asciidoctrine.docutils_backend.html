@@ -164,11 +164,35 @@ tables, admonitions, and cross-references) directly to their Docutils element co
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.docutils_backend.DocutilsRenderer.visit_section">
 <span class="sig-name descname"><span class="pre">visit_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Section" title="asciidoctrine.nodes.Section"><span class="pre">asciidoctrine.nodes.Section</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.docutils_backend.DocutilsRenderer.visit_section" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Render a structural section AST node into a Docutils section element.</p>
+<p>Constructs a <code class="docutils literal notranslate"><span class="pre">docutils.nodes.section</span></code> element, attaches its title inlines
+to a child <code class="docutils literal notranslate"><span class="pre">docutils.nodes.title</span></code>, and recursively visits child blocks.
+If <code class="docutils literal notranslate"><span class="pre">node.absolute_level</span></code> is set, it overrides document-relative depth.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Section</span></code> AST node to render.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="asciidoctrine.docutils_backend.DocutilsRenderer.visit_floatingtitle">
-<span class="sig-name descname"><span class="pre">visit_floatingtitle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.FloatingTitle" title="asciidoctrine.nodes.FloatingTitle"><span class="pre">asciidoctrine.nodes.FloatingTitle</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.docutils_backend.DocutilsRenderer.visit_floatingtitle" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="asciidoctrine.docutils_backend.DocutilsRenderer.visit_heading">
+<span class="sig-name descname"><span class="pre">visit_heading</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.DiscreteHeading" title="asciidoctrine.nodes.DiscreteHeading"><span class="pre">asciidoctrine.nodes.DiscreteHeading</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.docutils_backend.DocutilsRenderer.visit_heading" title="Link to this definition"></a></dt>
+<dd><p>Render a discrete heading AST node into a Docutils rubric element.</p>
+<p>Discrete headings are mapped to <code class="docutils literal notranslate"><span class="pre">docutils.nodes.rubric</span></code> elements decorated with</p>
+<p>a CSS class denoting their original heading level (e.g. <code class="docutils literal notranslate"><span class="pre">level-1</span></code>, <code class="docutils literal notranslate"><span class="pre">level-2</span></code>),
+preserving visual hierarchy without affecting document outline structure.
+If <code class="docutils literal notranslate"><span class="pre">node.absolute_level</span></code> is set, it overrides document-relative heading depth.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">DiscreteHeading</span></code> AST node to render.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asciidoctrine.docutils_backend.DocutilsRenderer.visit_discreteheading">
+<span class="sig-name descname"><span class="pre">visit_discreteheading</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#asciidoctrine.docutils_backend.DocutilsRenderer.visit_discreteheading" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -224,7 +248,17 @@ tables, admonitions, and cross-references) directly to their Docutils element co
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.docutils_backend.DocutilsRenderer.visit_list">
 <span class="sig-name descname"><span class="pre">visit_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.List" title="asciidoctrine.nodes.List"><span class="pre">asciidoctrine.nodes.List</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.docutils_backend.DocutilsRenderer.visit_list" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Convert an AsciiDoc list block to Docutils nodes.</p>
+<p>Maps ordered list variant to <code class="docutils literal notranslate"><span class="pre">nodes.enumerated_list</span></code>, applying <code class="docutils literal notranslate"><span class="pre">enumtype</span></code></p>
+<p>from <code class="docutils literal notranslate"><span class="pre">numeration</span></code>, <code class="docutils literal notranslate"><span class="pre">start</span></code> offset, and <code class="docutils literal notranslate"><span class="pre">reversed</span></code> CSS class.
+Maps unordered and callout lists to <code class="docutils literal notranslate"><span class="pre">nodes.bullet_list</span></code>.
+Appends checklist CSS classes when items carry checkbox state.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">ASTList</span></code> node to convert.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.docutils_backend.DocutilsRenderer.visit_table">
@@ -244,7 +278,15 @@ tables, admonitions, and cross-references) directly to their Docutils element co
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.docutils_backend.DocutilsRenderer.visit_listitem">
 <span class="sig-name descname"><span class="pre">visit_listitem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.ListItem" title="asciidoctrine.nodes.ListItem"><span class="pre">asciidoctrine.nodes.ListItem</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.docutils_backend.DocutilsRenderer.visit_listitem" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Convert an AsciiDoc list item node to a Docutils <code class="docutils literal notranslate"><span class="pre">nodes.list_item</span></code>.</p>
+<p>Attaches task-list-item CSS classes and checkbox glyphs (<code class="docutils literal notranslate"><span class="pre">☐</span></code> / <code class="docutils literal notranslate"><span class="pre">☑</span></code>)</p>
+<p>when <code class="docutils literal notranslate"><span class="pre">node.checked</span></code> is boolean. Converts principal inline nodes and attached blocks.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">ListItem</span></code> node to convert.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.docutils_backend.DocutilsRenderer.visit_descriptionlist">
@@ -298,7 +340,7 @@ tables, admonitions, and cross-references) directly to their Docutils element co
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.docutils_backend.DocutilsRenderer._append_attribution">
-<span class="sig-name descname"><span class="pre">_append_attribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">docutils.nodes.Element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">citetitle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.docutils_backend.DocutilsRenderer._append_attribution" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_append_attribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">docutils.nodes.Element</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attribution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">citetitle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.docutils_backend.DocutilsRenderer._append_attribution" title="Link to this definition"></a></dt>
 <dd><p>Append a trailing attribution paragraph to a block_quote node.</p>
 <p>Renders as:  — Author[, <strong>citetitle</strong>]
 with a docutils <code class="docutils literal notranslate"><span class="pre">attribution</span></code> CSS class, matching the standard
@@ -399,7 +441,7 @@ Sphinx/HTML blockquote attribution convention.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="asciidoctrine.docutils_backend.asciidoc_to_docutils">
-<span class="sig-prename descclassname"><span class="pre">asciidoctrine.docutils_backend.</span></span><span class="sig-name descname"><span class="pre">asciidoc_to_docutils</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">docutils.nodes.document</span></span></span><a class="headerlink" href="#asciidoctrine.docutils_backend.asciidoc_to_docutils" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">asciidoctrine.docutils_backend.</span></span><span class="sig-name descname"><span class="pre">asciidoc_to_docutils</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safe_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">docutils.nodes.document</span></span></span><a class="headerlink" href="#asciidoctrine.docutils_backend.asciidoc_to_docutils" title="Link to this definition"></a></dt>
 <dd><p>Convert an AsciiDoc source string to a Docutils document tree.</p>
 <p><strong>Parameters:</strong></p>
 <dl class="simple">

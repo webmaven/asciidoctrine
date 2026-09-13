@@ -92,13 +92,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="id1">
+  <section class="level-0" id="id1">
 <h1>Contributor’s Guide<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>Michael R. Bernstein <a class="reference external" href="mailto:zopemaven&#37;&#52;&#48;gmail&#46;com">zopemaven<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
-<p>v0.2.0a6</p>
+<p>v0.2.0a8</p>
 <p>Welcome to the <strong>AsciiDoctrine</strong> developer community! This guide outlines the development environment setup, testing protocols, code quality standards, and package release verification checklist.</p>
 <hr class="docutils" />
-<section id="id2">
+<section class="level-1" id="id2">
 <h2>Local Development Setup<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <p>To establish a reproducible environment, setup a Python 3.10+ virtualenv and install the package in editable mode along with its test and documentation dependencies:</p>
 <div class="bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. Clone the repository</span>
@@ -115,10 +115,10 @@
 </div>
 </section>
 <hr class="docutils" />
-<section id="id3">
+<section class="level-1" id="id3">
 <h2>Testing Protocols &amp; Workflow Tiers<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
 <p>We employ a 3-tiered testing strategy to guarantee complete syntactic and semantic compatibility with the AsciiDoc specification while maintaining fast feedback loops.</p>
-<section id="id4">
+<section class="level-2" id="id4">
 <h3>Tier 1: Rapid Development Loop (Fast / Focused)<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
 <p>Use while iterating on a specific feature, bugfix, or grammar rule:</p>
 <div class="bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run a targeted test module quietly</span>
@@ -129,7 +129,7 @@
 </pre></div>
 </div>
 </section>
-<section id="id5">
+<section class="level-2" id="id5">
 <h3>Tier 2: Pre-Commit Check (Core Unit<br/> Local TCK Suite)<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
 <p>Use before committing code. Runs unit tests and the native Python local TCK harness (<code class="docutils literal notranslate"><span class="pre">tests/test_local_tck.py</span></code>):</p>
 <div class="bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run all stable tests quietly</span>
@@ -137,7 +137,7 @@
 </pre></div>
 </div>
 </section>
-<section id="id6">
+<section class="level-2" id="id6">
 <h3>Tier 3: Pre-Release Conformance Check (Full Suite<br/> Doctests<br/> Upstream TCK)<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
 <p>Use before tagging releases or pushing release branches:</p>
 <div class="bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. Full Pytest suite including all 244 real-world doctests</span>
@@ -154,7 +154,7 @@
 </pre></div>
 </div>
 </section>
-<section id="id7">
+<section class="level-2" id="id7">
 <h3>Standard and Draft TCK Paths<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Official TCK</strong>: Located inside <code class="docutils literal notranslate"><span class="pre">vendor/asciidoc-tck/tests/block/</span></code>. These are official specification-aligned tests executed via <code class="docutils literal notranslate"><span class="pre">./run-tck.sh</span></code>.</p></li>
@@ -163,10 +163,10 @@
 </section>
 </section>
 <hr class="docutils" />
-<section id="id8">
+<section class="level-1" id="id8">
 <h2>Code Quality &amp; Typing Standards<a class="headerlink" href="#id8" title="Link to this heading"></a></h2>
 <p>We strictly enforce consistent code styling and strong static types across the codebase.</p>
-<section id="id9">
+<section class="level-2" id="id9">
 <h3>1. Linting &amp; Formatting with Ruff<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
 <p>We use Ruff as our fast, all-in-one Python linter and formatter.</p>
 <div class="bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Verify code formatting</span>
@@ -183,7 +183,7 @@
 </pre></div>
 </div>
 </section>
-<section id="id10">
+<section class="level-2" id="id10">
 <h3>2. Strict Type Safety with Mypy<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
 <p>Our type checker runs in strict mode to guarantee compile-time safety and catch structural mismatches early.</p>
 <div class="bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run strict static type checking</span>
@@ -193,7 +193,7 @@
 </section>
 </section>
 <hr class="docutils" />
-<section id="id11">
+<section class="level-1" id="id11">
 <h2>Pre-Release Verification Checklist<a class="headerlink" href="#id11" title="Link to this heading"></a></h2>
 <p>Before releasing any package version to PyPI, follow this sequential checklist to prevent regressions, formatting lints, and setup failures:</p>
 <ol class="simple">

@@ -75,14 +75,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="id1">
+  <section class="level-0" id="id1">
 <h1>AsciiDoctrine Documentation<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>Michael R. Bernstein <a class="reference external" href="mailto:zopemaven&#37;&#52;&#48;gmail&#46;com">zopemaven<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
-<p>v0.2.0a6</p>
+<p>v0.2.0a8</p>
 <p>Welcome to the official documentation for <strong>AsciiDoctrine</strong>, a native Python implementation of the AsciiDoc Language Specification.</p>
 <p>AsciiDoctrine is designed to provide a structured, type-safe representation of AsciiDoc documents, perfect for building custom renderers, IDE plugins, and static site generator backends.</p>
 <hr class="docutils" />
-<section id="id2">
+<section class="level-1" id="id2">
 <h2>Key Capabilities<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p><strong>TCK Validation</strong>: Ensures standard-compliant rendering by validating its pipeline against the official AsciiDoc Technology Compatibility Kit (TCK) test suites.</p></li>
@@ -95,7 +95,7 @@
 <p>This documentation is itself authored in AsciiDoc and compiled using <code class="docutils literal notranslate"><span class="pre">sphinx-asciidoctrine</span></code>, a custom Sphinx extension built on top of AsciiDoctrine. You can view its source and integrate it into your own project via the <a class="reference external" href="https://github.com/webmaven/sphinx-asciidoctrine">sphinx-asciidoctrine repository</a>.</p>
 </section>
 <hr class="docutils" />
-<section id="id3">
+<section class="level-1" id="id3">
 <h2>Installation &amp; Setup<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
 <p>Install the stable, released package from <a class="reference external" href="https://pypi.org/project/asciidoctrine/">PyPI</a> using <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
 <div class="bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">asciidoctrine</span>
@@ -103,7 +103,7 @@
 </div>
 </section>
 <hr class="docutils" />
-<section id="id4">
+<section class="level-1" id="id4">
 <h2>Quick Start<a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
 <p>AsciiDoctrine implements a two-pass resolution pipeline. First, parse the raw source to a syntax-level AST. Then, resolve the AST to a semantic, queryable Abstract Semantic Graph (ASG):</p>
 <div class="python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_to_ast</span>
@@ -130,7 +130,7 @@
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Found section: </span><span class="si">{</span><span class="n">title_text</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id5">
+<section class="level-2" id="id5">
 <h3>Multi-File Workspace Resolution<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
 <p>To parse an entire folder directory of AsciiDoc files and resolve interdocument cross-references (`<a class="reference external" href="other.html#anchor">other.adoc#anchor</a>` or <code class="docutils literal notranslate"><span class="pre">&lt;&lt;other.adoc#anchor,label&gt;&gt;</span></code>), use <code class="docutils literal notranslate"><span class="pre">WorkspaceBuilder</span></code>:</p>
 <div class="python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine</span><span class="w"> </span><span class="kn">import</span> <span class="n">WorkspaceBuilder</span>
@@ -148,7 +148,7 @@
 </section>
 </section>
 <hr class="docutils" />
-<section id="id6">
+<section class="level-1" id="id6">
 <h2>ASG Representation<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
 <p>Calling <code class="docutils literal notranslate"><span class="pre">asg.to_dict()</span></code> yields a structured, spec-compliant representation matching the official AsciiDoc Language ASG schema:</p>
 <div class="json highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
@@ -159,13 +159,9 @@
       <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"section"</span><span class="p">,</span>
       <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"block"</span><span class="p">,</span>
       <span class="s2">"level"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-      <span class="s2">"title"</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"title"</span><span class="p">,</span>
-        <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"inline"</span><span class="p">,</span>
-        <span class="s2">"inlines"</span><span class="p">:</span> <span class="p">[</span>
-          <span class="p">{</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"text"</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"Section Title"</span> <span class="p">}</span>
-        <span class="p">]</span>
-      <span class="p">},</span>
+      <span class="s2">"title"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"text"</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"string"</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">:</span> <span class="s2">"Section Title"</span> <span class="p">}</span>
+      <span class="p">],</span>
       <span class="s2">"blocks"</span><span class="p">:</span> <span class="p">[</span>
         <span class="p">{</span>
           <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"paragraph"</span><span class="p">,</span>
@@ -204,7 +200,7 @@
 </div>
 </section>
 <hr class="docutils" />
-<section id="id7">
+<section class="level-1" id="id7">
 <h2>Project Guides<a class="headerlink" href="#id7" title="Link to this heading"></a></h2>
 <p>Explore detailed design and usage documentation for library users and developers:</p>
 <ul class="simple">
@@ -216,7 +212,7 @@
 </ul>
 </section>
 <hr class="docutils" />
-<section id="id8">
+<section class="level-1" id="id8">
 <h2>Motivation<a class="headerlink" href="#id8" title="Link to this heading"></a></h2>
 <p>The Python ecosystem has long lacked a modern, maintainable, and specification-compliant AsciiDoc parser. Historically, AsciiDoc was defined entirely by its implementations (originally the Python-based <code class="docutils literal notranslate"><span class="pre">asciidoc.py</span></code>, and later the Ruby-based <code class="docutils literal notranslate"><span class="pre">Asciidoctor</span></code>). This lack of a formal specification made developing third-party tooling—such as IDE plugins, formatters, and custom translators—extremely fragile and prone to compatibility drift.</p>
 <p>With the working group at the Eclipse Foundation actively standardizing the AsciiDoc Language and providing an authoritative Technology Compatibility Kit (TCK), building a native, robust Python implementation became both possible and necessary. </p>
@@ -228,9 +224,9 @@
 </ol>
 </section>
 <hr class="docutils" />
-<section id="id9">
+<section class="level-1" id="id9">
 <h2>Under the Hood<a class="headerlink" href="#id9" title="Link to this heading"></a></h2>
-<section id="id10">
+<section class="level-2" id="id10">
 <h3>Parser Pipeline Architecture<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
 <p>The parser operates in a multi-pass pipeline to handle the inherent complexity of AsciiDoc, while supporting complete, lossless round-trip serialization back to source:</p>
 <div class="text highlight-default notranslate"><div class="highlight"><pre><span></span>           <span class="o">+---------------------------------+</span>
@@ -269,7 +265,7 @@
 </section>
 </section>
 <hr class="docutils" />
-<section id="id11">
+<section class="level-1" id="id11">
 <h2>Roadmap to Syntax Parity<a class="headerlink" href="#id11" title="Link to this heading"></a></h2>
 <p>The path to 1:1 syntactic specification compliance is tracked through the following phases:</p>
 <table class="docutils align-default">
@@ -314,7 +310,7 @@
 </table>
 </section>
 <hr class="docutils" />
-<section id="id12">
+<section class="level-1" id="id12">
 <h2>Project Links &amp; Resources<a class="headerlink" href="#id12" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p><strong>PyPI Package</strong>: <a class="reference external" href="https://pypi.org/project/asciidoctrine/">asciidoctrine on PyPI</a></p></li>

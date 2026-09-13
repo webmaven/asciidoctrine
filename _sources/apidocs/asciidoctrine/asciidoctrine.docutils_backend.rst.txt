@@ -62,10 +62,17 @@ API
       .. autodoc2-docstring:: asciidoctrine.docutils_backend.DocutilsRenderer.visit_section
          :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: visit_floatingtitle(node: asciidoctrine.nodes.FloatingTitle) -> None
-      :canonical: asciidoctrine.docutils_backend.DocutilsRenderer.visit_floatingtitle
+   .. py:method:: visit_heading(node: asciidoctrine.nodes.DiscreteHeading) -> None
+      :canonical: asciidoctrine.docutils_backend.DocutilsRenderer.visit_heading
 
-      .. autodoc2-docstring:: asciidoctrine.docutils_backend.DocutilsRenderer.visit_floatingtitle
+      .. autodoc2-docstring:: asciidoctrine.docutils_backend.DocutilsRenderer.visit_heading
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:attribute:: visit_discreteheading
+      :canonical: asciidoctrine.docutils_backend.DocutilsRenderer.visit_discreteheading
+      :value: None
+
+      .. autodoc2-docstring:: asciidoctrine.docutils_backend.DocutilsRenderer.visit_discreteheading
          :parser: sphinx_asciidoctrine.parser
 
    .. py:method:: visit_paragraph(node: asciidoctrine.nodes.Paragraph) -> None
@@ -218,7 +225,7 @@ API
       .. autodoc2-docstring:: asciidoctrine.docutils_backend.DocutilsRenderer.visit_image
          :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: _append_attribution(bq: docutils.nodes.Element, attribution: typing.Optional[str], citetitle: typing.Optional[str]) -> None
+   .. py:method:: _append_attribution(bq: docutils.nodes.Element, attribution: str | None, citetitle: str | None) -> None
       :canonical: asciidoctrine.docutils_backend.DocutilsRenderer._append_attribution
 
       .. autodoc2-docstring:: asciidoctrine.docutils_backend.DocutilsRenderer._append_attribution
@@ -332,7 +339,7 @@ API
       .. autodoc2-docstring:: asciidoctrine.docutils_backend.DocutilsRenderer.visit_docinfo
          :parser: sphinx_asciidoctrine.parser
 
-.. py:function:: asciidoc_to_docutils(source: str, base_dir: typing.Optional[str] = None, safe_mode: int = 0) -> docutils.nodes.document
+.. py:function:: asciidoc_to_docutils(source: str, base_dir: str | None = None, safe_mode: int = 0) -> docutils.nodes.document
    :canonical: asciidoctrine.docutils_backend.asciidoc_to_docutils
 
    .. autodoc2-docstring:: asciidoctrine.docutils_backend.asciidoc_to_docutils

@@ -119,7 +119,7 @@ API
       .. autodoc2-docstring:: asciidoctrine.preprocessor.ConditionalStack.push
          :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: pop(name: str = '') -> typing.Optional[asciidoctrine.preprocessor.ConditionalFrame]
+   .. py:method:: pop(name: str = '') -> asciidoctrine.preprocessor.ConditionalFrame | None
       :canonical: asciidoctrine.preprocessor.ConditionalStack.pop
 
       .. autodoc2-docstring:: asciidoctrine.preprocessor.ConditionalStack.pop
@@ -137,7 +137,7 @@ API
       .. autodoc2-docstring:: asciidoctrine.preprocessor.ConditionalStack.__bool__
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: Preprocessor(base_dir: typing.Optional[str] = None, safe_mode: typing.Union[bool, int] = True, preprocess_directives: bool = True, attributes: typing.Optional[dict[str, str]] = None, strict: bool = True, loader: typing.Optional[asciidoctrine.loader.FileProvider] = None)
+.. py:class:: Preprocessor(base_dir: str | None = None, safe_mode: bool | int = True, preprocess_directives: bool = True, attributes: dict[str, str] | None = None, strict: bool = True, loader: asciidoctrine.loader.FileProvider | None = None)
    :canonical: asciidoctrine.preprocessor.Preprocessor
 
    .. autodoc2-docstring:: asciidoctrine.preprocessor.Preprocessor

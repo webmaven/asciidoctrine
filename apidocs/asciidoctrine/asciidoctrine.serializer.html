@@ -105,7 +105,7 @@
 <table class="autosummary longtable docutils align-left">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor" title="asciidoctrine.serializer.AsciiDocSerializerVisitor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AsciiDocSerializerVisitor</span></code></a></p></td>
-<td><p>A visitor that serializes an unresolved AsciiDoc AST back to AsciiDoc source string.</p></td>
+<td><p>Visitor that traverses an AsciiDoc AST/ASG and serializes it back to AsciiDoc source markup.</p></td>
 </tr>
 </tbody>
 </table>
@@ -126,7 +126,9 @@
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">asciidoctrine.serializer.</span></span><span class="sig-name descname"><span class="pre">AsciiDocSerializerVisitor</span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.NodeVisitor" title="asciidoctrine.nodes.NodeVisitor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asciidoctrine.nodes.NodeVisitor</span></code></a></p>
-<p>A visitor that serializes an unresolved AsciiDoc AST back to AsciiDoc source string.</p>
+<p>Visitor that traverses an AsciiDoc AST/ASG and serializes it back to AsciiDoc source markup.</p>
+<p>Supports lossless round-trip serialization for all core AsciiDoc block and inline node types,</p>
+<p>preserving structural boundaries, attributes, delimiters, and inline formatting semantics.</p>
 <p><strong>Attributes:</strong></p>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">stream</span></code></dt><dd><p>Internal <code class="docutils literal notranslate"><span class="pre">io.StringIO</span></code> buffer used to accumulate serialized markup text.</p>
@@ -134,223 +136,676 @@
 <dt><code class="docutils literal notranslate"><span class="pre">line_ending</span></code></dt><dd><p>Line ending character sequence (defaults to <code class="docutils literal notranslate"><span class="pre">\n</span></code> or matches the document’s original ending).</p>
 </dd>
 </dl>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.lark_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">parse_to_ast</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">asciidoctrine.serializer</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsciiDocSerializerVisitor</span>
+
+<span class="n">doc</span> <span class="o">=</span> <span class="n">parse_to_ast</span><span class="p">(</span><span class="s2">"== Section Title</span><span class="se">\n\n</span><span class="s2">Paragraph text."</span><span class="p">)</span>
+<span class="n">visitor</span> <span class="o">=</span> <span class="n">AsciiDocSerializerVisitor</span><span class="p">()</span>
+<span class="n">text</span> <span class="o">=</span> <span class="n">visitor</span><span class="o">.</span><span class="n">serialize</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+<span class="k">assert</span> <span class="s2">"== Section Title"</span> <span class="ow">in</span> <span class="n">text</span>
+</pre></div>
+</div>
 <p class="rubric">Initialization</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.serialize">
 <span class="sig-name descname"><span class="pre">serialize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.serialize" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Traverse the specified AST node and return its serialized AsciiDoc markup string.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The root <code class="docutils literal notranslate"><span class="pre">Node</span></code> instance to serialize.</p>
+</dd>
+</dl>
+<p><strong>Returns:</strong></p>
+<p>A string containing the serialized AsciiDoc source markup.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.write">
 <span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.write" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Write a string segment to the internal stream, translating line endings if required.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">s</span></code></dt><dd><p>String content to write.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor._format_macro_attributes">
+<span class="sig-name descname"><span class="pre">_format_macro_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_first_attr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor._format_macro_attributes" title="Link to this definition"></a></dt>
+<dd><p>Helper to format macro bracket attributes (<code class="docutils literal notranslate"><span class="pre">[attrlist]</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The macro <code class="docutils literal notranslate"><span class="pre">Node</span></code> containing attributes.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">default_first_attr</span></code></dt><dd><p>Optional attribute key (e.g. <code class="docutils literal notranslate"><span class="pre">'alt'</span></code>) placed first if positional attributes are absent.</p>
+</dd>
+</dl>
+<p><strong>Returns:</strong></p>
+<p>Comma-separated string of formatted macro attributes.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.write_block_metadata">
 <span class="sig-name descname"><span class="pre">write_block_metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.write_block_metadata" title="Link to this definition"></a></dt>
-<dd><p>Helper to write block-level metadata (anchors, roles, titles, general attributes)
-before serializing the block content.</p>
+<dd><p>Serialize block-level metadata (anchor IDs, roles, titles, and block attributes).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Node</span></code> whose metadata is being serialized.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_document">
 <span class="sig-name descname"><span class="pre">visit_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_document" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a root document AST node.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Document</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_header">
 <span class="sig-name descname"><span class="pre">visit_header</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_header" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a document header (title, authors, revision, document attributes).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Header</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_section">
 <span class="sig-name descname"><span class="pre">visit_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_section" title="Link to this definition"></a></dt>
+<dd><p>Serialize a section node with leading <code class="docutils literal notranslate"><span class="pre">=</span></code> markers matching its heading depth.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Section</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_heading">
+<span class="sig-name descname"><span class="pre">visit_heading</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_heading" title="Link to this definition"></a></dt>
+<dd><p>Serialize a discrete heading node back to AsciiDoc source markup.</p>
+<p>Emits block-level attributes (anchor id, role, named attrs) first,
+then the <code class="docutils literal notranslate"><span class="pre">[discrete]</span></code> directive merged with any extra named attributes,
+followed by the heading marker and title inlines.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">DiscreteHeading</span></code> node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_discreteheading">
+<span class="sig-name descname"><span class="pre">visit_discreteheading</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_discreteheading" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_title">
 <span class="sig-name descname"><span class="pre">visit_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_title" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a title inline node sequence.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Title</span></code> node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_paragraph">
 <span class="sig-name descname"><span class="pre">visit_paragraph</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_paragraph" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a paragraph block node.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Paragraph</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_listing">
 <span class="sig-name descname"><span class="pre">visit_listing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_listing" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a listing/source code block node (<code class="docutils literal notranslate"><span class="pre">----</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Listing</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_literal">
 <span class="sig-name descname"><span class="pre">visit_literal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_literal" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a literal block node (<code class="docutils literal notranslate"><span class="pre">....</span></code> delimited or indented).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Literal</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_comment">
 <span class="sig-name descname"><span class="pre">visit_comment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_comment" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a delimited comment block node (<code class="docutils literal notranslate"><span class="pre">////</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Comment</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_sidebar">
 <span class="sig-name descname"><span class="pre">visit_sidebar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_sidebar" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a sidebar block node (<code class="docutils literal notranslate"><span class="pre">****</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Sidebar</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_example">
 <span class="sig-name descname"><span class="pre">visit_example</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_example" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize an example block node (<code class="docutils literal notranslate"><span class="pre">====</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Example</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_quote">
 <span class="sig-name descname"><span class="pre">visit_quote</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_quote" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a quote block node.</p>
+<p>Emits block metadata (such as <code class="docutils literal notranslate"><span class="pre">[quote,</span> <span class="pre">attribution,</span> <span class="pre">citetitle]</span></code>) followed</p>
+<p>by either delimited <code class="docutils literal notranslate"><span class="pre">____</span></code> blocks or paragraph-form quote blocks.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Quote</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_verse">
+<span class="sig-name descname"><span class="pre">visit_verse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_verse" title="Link to this definition"></a></dt>
+<dd><p>Serialize a verse block node.</p>
+<p>Emits <code class="docutils literal notranslate"><span class="pre">[verse,</span> <span class="pre">attribution,</span> <span class="pre">citetitle]</span></code> metadata followed by either</p>
+<p>delimited <code class="docutils literal notranslate"><span class="pre">____</span></code> lines or paragraph-form verse lines.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Verse</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_collapsible">
+<span class="sig-name descname"><span class="pre">visit_collapsible</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_collapsible" title="Link to this definition"></a></dt>
+<dd><p>Serialize an interactive collapsible block node.</p>
+<p>Emits <code class="docutils literal notranslate"><span class="pre">.Title</span></code> caption, <code class="docutils literal notranslate"><span class="pre">[%collapsible]</span></code> option directive, and</p>
+<p><code class="docutils literal notranslate"><span class="pre">====</span></code> delimited content.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Collapsible</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_admonition">
 <span class="sig-name descname"><span class="pre">visit_admonition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_admonition" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize an admonition node (<code class="docutils literal notranslate"><span class="pre">NOTE:</span> <span class="pre">...</span></code> paragraph form or <cite>[NOTE]
+====</cite> delimited form).</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Admonition</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_open">
 <span class="sig-name descname"><span class="pre">visit_open</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_open" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize an open container block node.</p>
+<p>Emits preceding block metadata followed by the open block delimiter</p>
+<p>(<code class="docutils literal notranslate"><span class="pre">--</span></code> or <code class="docutils literal notranslate"><span class="pre">~~~~</span></code>) and child block elements.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Open</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_list">
 <span class="sig-name descname"><span class="pre">visit_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_list" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a list AST node back to AsciiDoc source markup.</p>
+<p>Emits preceding block metadata lines (such as <code class="docutils literal notranslate"><span class="pre">[loweralpha]</span></code>, <code class="docutils literal notranslate"><span class="pre">[start=N]</span></code>,</p>
+<p><code class="docutils literal notranslate"><span class="pre">[%reversed]</span></code>, anchor ID, and title), followed by each child list item.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">List</span></code> node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_listitem">
 <span class="sig-name descname"><span class="pre">visit_listitem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_listitem" title="Link to this definition"></a></dt>
+<dd><p>Serialize a single list item node back to AsciiDoc source markup.</p>
+<p>Emits the item marker string, optional checklist prefix (<code class="docutils literal notranslate"><span class="pre">[x]</span></code> or <code class="docutils literal notranslate"><span class="pre">[</span> <span class="pre">]</span></code>),</p>
+<p>principal inline nodes, and attached continuation blocks (<code class="docutils literal notranslate"><span class="pre">+</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">ListItem</span></code> node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_list_item">
+<span class="sig-name descname"><span class="pre">visit_list_item</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_list_item" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_calloutlist">
+<span class="sig-name descname"><span class="pre">visit_calloutlist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_calloutlist" title="Link to this definition"></a></dt>
+<dd><p>Serialize a callout list block containing callout list items.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">CalloutList</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_callout_list">
+<span class="sig-name descname"><span class="pre">visit_callout_list</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_callout_list" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_calloutlistitem">
+<span class="sig-name descname"><span class="pre">visit_calloutlistitem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_calloutlistitem" title="Link to this definition"></a></dt>
+<dd><p>Serialize a single callout list item node with its numerical marker.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">CalloutListItem</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_callout_list_item">
+<span class="sig-name descname"><span class="pre">visit_callout_list_item</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_callout_list_item" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_descriptionlist">
 <span class="sig-name descname"><span class="pre">visit_descriptionlist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_descriptionlist" title="Link to this definition"></a></dt>
+<dd><p>Serialize a description list block node.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">DescriptionList</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_description_list">
+<span class="sig-name descname"><span class="pre">visit_description_list</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_description_list" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_descriptionlistitem">
 <span class="sig-name descname"><span class="pre">visit_descriptionlistitem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_descriptionlistitem" title="Link to this definition"></a></dt>
+<dd><p>Serialize a description list item node (terms followed by descriptions).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">DescriptionListItem</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_description_list_item">
+<span class="sig-name descname"><span class="pre">visit_description_list_item</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_description_list_item" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_descriptionlistterm">
 <span class="sig-name descname"><span class="pre">visit_descriptionlistterm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_descriptionlistterm" title="Link to this definition"></a></dt>
+<dd><p>Serialize a description list term inline node with its trailing marker (<code class="docutils literal notranslate"><span class="pre">::</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">DescriptionListTerm</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_description_list_term">
+<span class="sig-name descname"><span class="pre">visit_description_list_term</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_description_list_term" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_table">
 <span class="sig-name descname"><span class="pre">visit_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_table" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a table block node (<code class="docutils literal notranslate"><span class="pre">|===</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Table</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_row">
 <span class="sig-name descname"><span class="pre">visit_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_row" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a table row by serializing its cells in order.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">TableRow</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_cell">
-<span class="sig-name descname"><span class="pre">visit_cell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_cell" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">visit_cell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_first</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_cell" title="Link to this definition"></a></dt>
+<dd><p>Serialize a single table cell with optional colspan, rowspan, alignment, and style specifiers.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">TableCell</span></code> AST node to serialize.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">is_first</span></code></dt><dd><p>Boolean indicating whether this cell is the first cell in its row.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_thematic_break">
 <span class="sig-name descname"><span class="pre">visit_thematic_break</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_thematic_break" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a thematic break horizontal rule (<code class="docutils literal notranslate"><span class="pre">'''</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">ThematicBreak</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_page_break">
 <span class="sig-name descname"><span class="pre">visit_page_break</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_page_break" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a page break (<code class="docutils literal notranslate"><span class="pre">&lt;&lt;&lt;</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">PageBreak</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_attribute_entry">
 <span class="sig-name descname"><span class="pre">visit_attribute_entry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_attribute_entry" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize an attribute entry declaration (<code class="docutils literal notranslate"><span class="pre">:name:</span> <span class="pre">value</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">AttributeEntry</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_attributes">
+<span class="sig-name descname"><span class="pre">visit_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_attributes" title="Link to this definition"></a></dt>
+<dd><p>Serialize an <code class="docutils literal notranslate"><span class="pre">Attributes</span></code> semantic block node back to attribute entries.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Attributes</span></code> block node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_include">
 <span class="sig-name descname"><span class="pre">visit_include</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_include" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize an include directive macro (<code class="docutils literal notranslate"><span class="pre">include::file[]</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Include</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_toc">
 <span class="sig-name descname"><span class="pre">visit_toc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_toc" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a table of contents block macro (<code class="docutils literal notranslate"><span class="pre">toc::target[attrs]</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Toc</span></code> block node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_text">
 <span class="sig-name descname"><span class="pre">visit_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_text" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a raw text inline leaf node.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Text</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_break">
 <span class="sig-name descname"><span class="pre">visit_break</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_break" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a forced line break inline node (<cite>n</cite>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Break</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_span">
 <span class="sig-name descname"><span class="pre">visit_span</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_span" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize an inline formatted text span (bold, italic, code, mark, sub, super, quotes).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Span</span></code> inline node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_ref">
 <span class="sig-name descname"><span class="pre">visit_ref</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_ref" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize an inline reference node (hyperlink, cross-reference, footnote, anchor, or bibref).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Ref</span></code> inline node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_image">
 <span class="sig-name descname"><span class="pre">visit_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_image" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize an image macro node (either block macro or inline macro).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Image</span></code> node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_audio">
 <span class="sig-name descname"><span class="pre">visit_audio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_audio" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize an audio block macro (<code class="docutils literal notranslate"><span class="pre">audio::target[attrs]</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Audio</span></code> block node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_video">
 <span class="sig-name descname"><span class="pre">visit_video</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_video" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a video block macro (<code class="docutils literal notranslate"><span class="pre">video::target[attrs]</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Video</span></code> block node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_kbd">
 <span class="sig-name descname"><span class="pre">visit_kbd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_kbd" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a keyboard macro node (<code class="docutils literal notranslate"><span class="pre">kbd:[keys]</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Kbd</span></code> inline node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_button">
 <span class="sig-name descname"><span class="pre">visit_button</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_button" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a GUI button macro node (<code class="docutils literal notranslate"><span class="pre">btn:[label]</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Button</span></code> inline node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_menu">
 <span class="sig-name descname"><span class="pre">visit_menu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_menu" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a menu macro node (<code class="docutils literal notranslate"><span class="pre">menu:Menu[Item</span> <span class="pre">&gt;</span> <span class="pre">Subitem]</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Menu</span></code> inline node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_callout">
 <span class="sig-name descname"><span class="pre">visit_callout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_callout" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize an inline callout reference node (<code class="docutils literal notranslate"><span class="pre">&lt;1&gt;</span></code>).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Callout</span></code> inline node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_stem">
 <span class="sig-name descname"><span class="pre">visit_stem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_stem" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a mathematical expression node (either inline or block stem).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Stem</span></code> or <code class="docutils literal notranslate"><span class="pre">InlineStem</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_passthrough">
 <span class="sig-name descname"><span class="pre">visit_passthrough</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_passthrough" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Serialize a passthrough node (<code class="docutils literal notranslate"><span class="pre">,</span> <span class="pre">``,</span> <span class="pre">or</span> <span class="pre">``++++</span></code> block).</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Passthrough</span></code> or <code class="docutils literal notranslate"><span class="pre">InlinePassthrough</span></code> node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_indexterm">
+<span class="sig-name descname"><span class="pre">visit_indexterm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_indexterm" title="Link to this definition"></a></dt>
+<dd><p>Serializes an <code class="docutils literal notranslate"><span class="pre">IndexTerm</span></code> AST node back to its canonical AsciiDoc source form.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">IndexTerm</span></code> AST node to serialize.</p>
+</dd>
+</dl>
+<p><strong>Syntactic Forms:</strong></p>
+<ul class="simple">
+<li><p>Flow double: visible index term with double parentheses.</p></li>
+<li><p>Flow triple: hidden index term with triple parentheses.</p></li>
+<li><p>Macro: indexterm macro syntax with comma-separated terms.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_author">
+<span class="sig-name descname"><span class="pre">visit_author</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_author" title="Link to this definition"></a></dt>
+<dd><p>Serialize an author node from its child inlines.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Author</span></code> inline node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_revision">
+<span class="sig-name descname"><span class="pre">visit_revision</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_revision" title="Link to this definition"></a></dt>
+<dd><p>Serialize a revision node from its child inlines.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Revision</span></code> node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_docinfo">
+<span class="sig-name descname"><span class="pre">visit_docinfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_docinfo" title="Link to this definition"></a></dt>
+<dd><p>No-op serializer for injected docinfo metadata.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The <code class="docutils literal notranslate"><span class="pre">Docinfo</span></code> metadata node to serialize.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="asciidoctrine.serializer.AsciiDocSerializerVisitor.generic_visit">
 <span class="sig-name descname"><span class="pre">generic_visit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="asciidoctrine.nodes.html#asciidoctrine.nodes.Node" title="asciidoctrine.nodes.Node"><span class="pre">asciidoctrine.nodes.Node</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#asciidoctrine.serializer.AsciiDocSerializerVisitor.generic_visit" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Fallback visitor traversing all child node collections of unhandled nodes.</p>
+<p><strong>Parameters:</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">node</span></code></dt><dd><p>The AST node to traverse.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">**kwargs</span></code></dt><dd><p>Additional arguments forwarded to child node visitors.</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 

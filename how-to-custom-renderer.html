@@ -84,13 +84,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="id1">
+  <section class="level-0" id="id1">
 <h1>How-to: Custom ASG Renderer Tutorial<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>Michael R. Bernstein <a class="reference external" href="mailto:zopemaven&#37;&#52;&#48;gmail&#46;com">zopemaven<span>&#64;</span>gmail<span>&#46;</span>com</a>
-v0.2.0a6</p>
+v0.2.0a8</p>
 <p>This tutorial demonstrates how to traverse and render the resolved Abstract Semantic Graph (ASG) produced by <strong>AsciiDoctrine</strong>. We will build a complete, object-oriented <strong>Markdown Renderer</strong> from scratch using Python.</p>
 <hr class="docutils" />
-<section id="id2">
+<section class="level-1" id="id2">
 <h2>Understanding the ASG Structure<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <p>Once you resolve a parsed AST using the <code class="docutils literal notranslate"><span class="pre">ASGResolver</span></code>, you can generate a standard python dictionary representation of the ASG by calling <code class="docutils literal notranslate"><span class="pre">asg.to_dict()</span></code>. </p>
 <p>The dictionary follows a highly structured, semantic schema matching the official AsciiDoc Language Specification:</p>
@@ -100,10 +100,10 @@ v0.2.0a6</p>
 </ul>
 </section>
 <hr class="docutils" />
-<section id="id3">
+<section class="level-1" id="id3">
 <h2>Step-by-Step: Writing a Markdown Renderer<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
 <p>A clean way to write a custom renderer is to use a <strong>Visitor Pattern</strong>. We will create a <code class="docutils literal notranslate"><span class="pre">MarkdownRenderer</span></code> class with a <code class="docutils literal notranslate"><span class="pre">render(node)</span></code> dispatch method that maps node names (<code class="docutils literal notranslate"><span class="pre">document</span></code>, <code class="docutils literal notranslate"><span class="pre">paragraph</span></code>, <code class="docutils literal notranslate"><span class="pre">section</span></code>, <code class="docutils literal notranslate"><span class="pre">span</span></code>, <code class="docutils literal notranslate"><span class="pre">text</span></code>) to corresponding <code class="docutils literal notranslate"><span class="pre">render_&lt;name&gt;</span></code> methods.</p>
-<section id="id4">
+<section class="level-2" id="id4">
 <h3>The Complete Renderer Implementation<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
 <p>Below is the complete, self-contained, and executable Python code for the Markdown renderer:</p>
 <div class="python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
@@ -215,7 +215,7 @@ v0.2.0a6</p>
 </section>
 </section>
 <hr class="docutils" />
-<section id="id5">
+<section class="level-1" id="id5">
 <h2>Running and Verifying<a class="headerlink" href="#id5" title="Link to this heading"></a></h2>
 <p>To verify that the renderer works, you can parse a sample AsciiDoc document, resolve it, and feed the dictionary into the <code class="docutils literal notranslate"><span class="pre">MarkdownRenderer</span></code>:</p>
 <div class="python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Define a sample AsciiDoc source string</span>

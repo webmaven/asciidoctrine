@@ -83,7 +83,7 @@
   <section id="id1">
 <h1>AsciiDoc Feature Matrix<a class="headerlink" href="#id1" title="Link to this heading"></a></h1>
 <p>This feature matrix maps the standardization, prototyping, testing, and implementation status of core AsciiDoc features. It serves as an authoritative guide for tracking spec conformance across the working group submodules and our own parser implementation.</p>
-<section id="id2">
+<section class="level-1" id="id2">
 <h2>Status Legend<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
 <p>This matrix tracks the maturity and validation status of each language feature across the following categories:</p>
 <dl class="simple">
@@ -106,7 +106,7 @@
 </dd>
 </dl>
 </section>
-<section id="id3">
+<section class="level-1" id="id3">
 <h2>Feature Matrix<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
 <table class="docutils align-default">
 <tbody>
@@ -346,9 +346,9 @@
 </tr>
 <tr class="row-even"><td><p><strong>Inline Passthroughs (`...` and `...`)</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-passthroughs-1">Outline</a></p></td>
+<td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs">Peggy Inlines</a></p></td>
 <td><p>-</p></td>
-<td><p>-</p></td>
-<td><p><span class="status-none">Not Supported</span> <a class="footnote-reference brackets" href="#fn-7" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a></p></td>
+<td><p><span class="status-full"><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/transformers/inline_transformer.py">Fully Supported</a></span></p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>Block Table of Contents (TOC) Macro (<code class="docutils literal notranslate"><span class="pre">toc::[]</span></code>)</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-table-of-contents-macro">Outline</a></p></td>
@@ -380,7 +380,7 @@
 <td><p>-</p></td>
 <td><p><span class="status-full"><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/lark_parser.py">Fully Supported</a></span></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Literal Paragraphs (Indented Lines)</strong> <a class="footnote-reference brackets" href="#fn-8" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a></p></td>
+<tr class="row-even"><td><p><strong>Literal Paragraphs (Indented Lines)</strong> <a class="footnote-reference brackets" href="#fn-7" role="doc-noteref"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></a></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-literal-paragraphs">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-block.pegjs">Peggy Blocks</a></p></td>
 <td><p>-</p></td>
@@ -416,7 +416,7 @@
 <td><p>-</p></td>
 <td><p><span class="status-full"><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/preprocessor.py">Fully Supported</a></span></p></td>
 </tr>
-<tr class="row-even"><td><p><strong>Cross-Document References &amp; Multi-File Workspace Resolution</strong> <a class="footnote-reference brackets" href="#fn-9" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a></p></td>
+<tr class="row-even"><td><p><strong>Cross-Document References &amp; Multi-File Workspace Resolution</strong> <a class="footnote-reference brackets" href="#fn-8" role="doc-noteref"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></a></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-cross-document-references">Outline</a></p></td>
 <td><p>-</p></td>
 <td><p>-</p></td>
@@ -432,25 +432,25 @@
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/text/pages/quotation-marks-and-apostrophes.adoc">Outline</a></p></td>
 <td><p>-</p></td>
 <td><p>-</p></td>
-<td><p><span class="status-none">Not Supported</span> <a class="footnote-reference brackets" href="#fn-10" role="doc-noteref"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></a></p></td>
+<td><p><span class="status-none">Not Supported</span> <a class="footnote-reference brackets" href="#fn-9" role="doc-noteref"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></a></p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>Backslash Escaping (<code class="docutils literal notranslate"><span class="pre">\*not</span> <span class="pre">bold*</span></code>)</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/subs/pages/prevent.adoc">Outline</a></p></td>
 <td><p><a class="reference external" href="https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs#L171">Peggy Inlines</a></p></td>
 <td><p>-</p></td>
-<td><p><span class="status-partial"><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/transformers/inline_transformer.py">Partially Supported</a></span> <a class="footnote-reference brackets" href="#fn-11" role="doc-noteref"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></a></p></td>
+<td><p><span class="status-full"><a class="reference external" href="https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/transformers/inline_transformer.py">Fully Supported</a></span> <a class="footnote-reference brackets" href="#fn-10" role="doc-noteref"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></a></p></td>
 </tr>
 <tr class="row-even"><td><p><strong>Table Data Formats (CSV / TSV / DSV)</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/tables/pages/data-format.adoc">Outline</a></p></td>
 <td><p>-</p></td>
 <td><p>-</p></td>
-<td><p><span class="status-none">Not Supported</span> <a class="footnote-reference brackets" href="#fn-12" role="doc-noteref"><span class="fn-bracket">[</span>12<span class="fn-bracket">]</span></a></p></td>
+<td><p><span class="status-none">Not Supported</span> <a class="footnote-reference brackets" href="#fn-11" role="doc-noteref"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></a></p></td>
 </tr>
 <tr class="row-odd"><td><p><strong>Nested Tables</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/tables/pages/nested.adoc">Outline</a></p></td>
 <td><p>-</p></td>
 <td><p>-</p></td>
-<td><p><span class="status-none">Not Supported</span> <a class="footnote-reference brackets" href="#fn-13" role="doc-noteref"><span class="fn-bracket">[</span>13<span class="fn-bracket">]</span></a></p></td>
+<td><p><span class="status-none">Not Supported</span> <a class="footnote-reference brackets" href="#fn-12" role="doc-noteref"><span class="fn-bracket">[</span>12<span class="fn-bracket">]</span></a></p></td>
 </tr>
 <tr class="row-even"><td><p><strong>List Continuation (<code class="docutils literal notranslate"><span class="pre">+</span></code> multi-block delimiter)</strong></p></td>
 <td><p><a class="reference external" href="https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/lists/pages/continuation.adoc">Outline</a></p></td>
@@ -489,30 +489,26 @@
 </aside>
 <aside class="footnote brackets" id="fn-7" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>7<span class="fn-bracket">]</span></span>
-<p>No parsing rules or AST representation exist for inline passthrough macros or delimiters.</p>
+<p>Includes automatic structural attachment to preceding list items (<code class="docutils literal notranslate"><span class="pre">ListItem.blocks</span></code>) when indented without an intervening blank line.</p>
 </aside>
 <aside class="footnote brackets" id="fn-8" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>8<span class="fn-bracket">]</span></span>
-<p>Includes automatic structural attachment to preceding list items (<code class="docutils literal notranslate"><span class="pre">ListItem.blocks</span></code>) when indented without an intervening blank line.</p>
+<p>Provides full multi-file catalog indexing, 3-tier resolution, and graceful non-fatal warning collection for unresolved targets.</p>
 </aside>
 <aside class="footnote brackets" id="fn-9" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>9<span class="fn-bracket">]</span></span>
-<p>Provides full multi-file catalog indexing, 3-tier resolution, and graceful non-fatal warning collection for unresolved targets.</p>
+<p>Quotes and apostrophes are processed as raw literal characters.</p>
 </aside>
 <aside class="footnote brackets" id="fn-10" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>10<span class="fn-bracket">]</span></span>
-<p>Quotes and apostrophes are processed as raw literal characters.</p>
+<p>Backslash escaping of inline macros (\xref, \link) and formatting delimiters (*bold*, _italic_, `code`, #mark#) is fully supported, including within monospace spans and unconstrained delimiters.</p>
 </aside>
 <aside class="footnote brackets" id="fn-11" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>11<span class="fn-bracket">]</span></span>
-<p>Backslash escaping of inline macros (\xref, \link) is fully supported, including within monospace spans. Escaping of basic formatting quotes is in progress.</p>
+<p>Delimited external format loading is not supported in the tables parser.</p>
 </aside>
 <aside class="footnote brackets" id="fn-12" role="doc-footnote">
 <span class="label"><span class="fn-bracket">[</span>12<span class="fn-bracket">]</span></span>
-<p>Delimited external format loading is not supported in the tables parser.</p>
-</aside>
-<aside class="footnote brackets" id="fn-13" role="doc-footnote">
-<span class="label"><span class="fn-bracket">[</span>13<span class="fn-bracket">]</span></span>
 <p>Tables nested within parent table cells are not parsed.</p>
 </aside>
 </aside>
