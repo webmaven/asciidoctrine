@@ -612,6 +612,15 @@ class TestResolverCurrentFileId:
         resolver = ASGResolver(doc, current_file_id="explicit.adoc")
         assert resolver.current_file_id == "explicit.adoc"
 
+    def test_empty_string_file_id_preserved(self) -> None:
+        resolver_no_doc = ASGResolver(current_file_id="")
+        assert resolver_no_doc.current_file_id == ""
+
+        doc = Document()
+        doc.id = "my-doc"
+        resolver_with_doc = ASGResolver(doc, current_file_id="")
+        assert resolver_with_doc.current_file_id == ""
+
 
 # ---------------------------------------------------------------------------
 # Integration tests relocated from test_integration.py / test_workspace_builder.py
@@ -1221,8 +1230,8 @@ class TestResolveToAst:
         text_vals = [t.value for t in p.inlines if hasattr(t, "value")]
         assert "Some resolved_value text." in "".join(text_vals)
 
-    def test_resolve_to_ast_resolves_footnotes_and_xrefs(self) -> None:
-        """resolve_to_ast correctly indexes footnotes and resolves cross-references in AST."""
+    def test_resolve_to_ast_resolves_footnotes(self) -> None:
+        """resolve_to_ast correctly indexes footnotes in AST."""
         from asciidoctrine import resolve_to_ast
         from asciidoctrine.lark_parser import parse_to_ast
 
@@ -1267,3 +1276,10 @@ class TestResolveToAst:
 
         img = next(b for b in resolved.blocks if isinstance(b, Image))
         assert img.target == "assets/images/photo.png"
+
+    def test_resolve_to_ast_identity_across_modules(self) -> None:
+        """asciidoctrine.resolve_to_ast is imported directly from asciidoctrine.resolver."""
+        import asciidoctrine
+        import asciidoctrine.resolver
+
+        assert asciidoctrine.resolve_to_ast is asciidoctrine.resolver.resolve_to_ast

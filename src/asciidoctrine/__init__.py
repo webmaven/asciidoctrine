@@ -33,25 +33,15 @@ from .nodes import (
     Section,
     Text,
 )
-from .resolver import ASGResolver, WorkspaceBuilder, WorkspaceCatalog
+from .resolver import (
+    ASGResolver,
+    WorkspaceBuilder,
+    WorkspaceCatalog,
+    resolve_to_ast,
+)
 from .serializer import serialize_to_asciidoc
 
 __version__ = "0.2.0a7"
-
-
-def resolve_to_ast(doc: Document) -> Document:
-    """Resolve semantic elements, attributes, and cross-references in-place on a Document AST.
-
-    *Parameters:*
-
-    `doc`::
-      The root `Document` AST node instance to resolve in-place.
-
-    *Returns:*
-
-    The resolved `Document` AST instance.
-    """
-    return ASGResolver().resolve_to_ast(doc)
 
 
 __all__ = [

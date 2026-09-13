@@ -125,7 +125,9 @@ class ASGResolver(NodeTransformer):
         else:
             self.attributes = {}
             self.resolved_attributes = {}
-            self.current_file_id = current_file_id or "root"
+            self.current_file_id = (
+                current_file_id if current_file_id is not None else "root"
+            )
         self.footnotes: PyList[Dict[str, Any]] = []
         self.footnote_counter: int = 0
         self.footnote_by_id: Dict[str, Dict[str, Any]] = {}
