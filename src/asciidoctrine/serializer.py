@@ -292,11 +292,16 @@ class AsciiDocSerializerVisitor(NodeVisitor):
                 attrs["options"] = ",".join(opts)
                 ignored_keys.discard("options")
 
-        if style and style.lower() not in (
-            node_name.lower(),
-            "collapsible",
-            "verse",
-            "quote",
+        if (
+            style
+            and node_name.lower() != "stem"
+            and style.lower()
+            not in (
+                node_name.lower(),
+                "collapsible",
+                "verse",
+                "quote",
+            )
         ):
             attr_parts.append(style)
             if language:
@@ -487,6 +492,7 @@ class AsciiDocSerializerVisitor(NodeVisitor):
         self.write("\n")
 
     visit_floatingtitle = visit_heading
+    visit_discreteheading = visit_heading
 
     def visit_title(self, node: Node) -> None:
         """
@@ -1279,8 +1285,8 @@ class AsciiDocSerializerVisitor(NodeVisitor):
         else:
             self.write_block_metadata(node)
             attrs = getattr(node, "attributes", {}) or {}
-            if attrs.get("style") != variant:
-                self.write(f"[{variant}]\n")
+            block_style = attrs.get("style") or "stem"
+            self.write(f"[{block_style}]\n")
             delim = getattr(node, "delimiter", "++++") or "++++"
             self.write(f"{delim}\n")
             for inline in getattr(node, "inlines", []):

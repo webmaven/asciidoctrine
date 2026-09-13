@@ -446,9 +446,15 @@ def test_visit_stem_block_form():
     node.inlines = [Text("x^2")]
     v.visit_stem(node)
     out = v.stream.getvalue()
-    assert "[latexmath]\n" in out
+    assert "[stem]\n" in out
     assert "++++\n" in out
     assert "x^2" in out
+
+    v2 = AsciiDocSerializerVisitor()
+    node.attributes = {"style": "latexmath"}
+    v2.visit_stem(node)
+    out2 = v2.stream.getvalue()
+    assert "[latexmath]\n" in out2
 
 
 def test_visit_stem_inline_form():

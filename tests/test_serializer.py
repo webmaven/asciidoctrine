@@ -590,6 +590,9 @@ It should roundtrip.
         source = "= Doc\n\n[discrete]\n== Floating Heading\n\nParagraph.\n"
         self._assert_roundtrip(source)
 
+    def test_block_stem_roundtrip(self):
+        self._assert_roundtrip("[stem]\n++++\nx+y\n++++\n")
+
     def test_block_macros_with_attributes_roundtrip(self):
         source = (
             'image::sunset.jpg[Sunset, 300, 200, title="A sunset"]\n\n'
