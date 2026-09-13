@@ -111,8 +111,6 @@ class Node:
             "resolved_anchor_target",
             "index",
             "columns",
-            "numeration",
-            "start",
         ]:
             if hasattr(self, attr):
                 val = getattr(self, attr)
