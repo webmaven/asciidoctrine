@@ -347,7 +347,7 @@ class Revision(BlockNode):
 
 
 def validate_absolute_level(
-    value: Optional[int], strict: bool = False
+    value: Optional[int], strict: bool = False, stacklevel: int = 3
 ) -> Optional[int]:
     """
     Validate and optionally clamp an absolute heading level to the range 1–6.
@@ -362,6 +362,8 @@ def validate_absolute_level(
       The proposed integer absolute level, or `None`.
     `strict`::
       Boolean flag indicating whether to enforce strict mode validation. Defaults to `False`.
+    `stacklevel`::
+      Stacklevel integer passed to `warnings.warn`. Defaults to `3` so warnings attribute caller code.
 
     *Returns:*
 
@@ -380,7 +382,7 @@ def validate_absolute_level(
         warnings.warn(
             f"Absolute heading level {value} is out of range [1, 6]; clamping to {clamped}.",
             UserWarning,
-            stacklevel=2,
+            stacklevel=stacklevel,
         )
         return clamped
     return value
@@ -432,7 +434,9 @@ class DiscreteHeading(BlockNode):
         self.title = title
         self._absolute_level: Optional[int] = None
         if absolute_level is not None:
-            self.set_absolute_level(absolute_level, strict=strict)
+            self._absolute_level = validate_absolute_level(
+                absolute_level, strict=strict, stacklevel=3
+            )
 
     @property
     def absolute_level(self) -> Optional[int]:
@@ -483,8 +487,6 @@ class DiscreteHeading(BlockNode):
         data.pop("inlines", None)
         if "title" not in data:
             data["title"] = []
-        if self._absolute_level is not None:
-            data["absolute-level"] = self._absolute_level
         return data
 
 
@@ -596,7 +598,9 @@ class Section(BlockNode):
         self.blocks: PyList[Node] = list(blocks) if blocks else []
         self._absolute_level: Optional[int] = None
         if absolute_level is not None:
-            self.set_absolute_level(absolute_level, strict=strict)
+            self._absolute_level = validate_absolute_level(
+                absolute_level, strict=strict, stacklevel=3
+            )
 
     @property
     def absolute_level(self) -> Optional[int]:
@@ -642,10 +646,7 @@ class Section(BlockNode):
 
         A dictionary containing the ASG representation of this section.
         """
-        data = super().to_dict()
-        if self._absolute_level is not None:
-            data["absolute-level"] = self._absolute_level
-        return data
+        return super().to_dict()
 
 
 class Paragraph(BlockNode):

@@ -1922,6 +1922,7 @@ def test_absolute_level_validation_default_mode():
         assert sec_low.absolute_level == 1
         user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
         assert len(user_warnings) == 1
+        assert user_warnings[0].filename.endswith("test_blocks_parsing.py")
 
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
@@ -1929,6 +1930,7 @@ def test_absolute_level_validation_default_mode():
         assert heading_high.absolute_level == 6
         user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
         assert len(user_warnings) == 1
+        assert user_warnings[0].filename.endswith("test_blocks_parsing.py")
 
     # Property assignment in default mode
     with warnings.catch_warnings(record=True) as w:
@@ -1938,6 +1940,37 @@ def test_absolute_level_validation_default_mode():
         assert sec.absolute_level == 6
         user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
         assert len(user_warnings) == 1
+        assert user_warnings[0].filename.endswith("test_blocks_parsing.py")
+
+    # Method call in default mode
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        sec_method = Section(level=1)
+        sec_method.set_absolute_level(8)
+        assert sec_method.absolute_level == 6
+        user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
+        assert len(user_warnings) == 1
+        assert user_warnings[0].filename.endswith("test_blocks_parsing.py")
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        dh_method = DiscreteHeading(level=2)
+        dh_method.set_absolute_level(0)
+        assert dh_method.absolute_level == 1
+        user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
+        assert len(user_warnings) == 1
+        assert user_warnings[0].filename.endswith("test_blocks_parsing.py")
+
+    # Direct call to validate_absolute_level with custom stacklevel
+    from asciidoctrine.nodes import validate_absolute_level
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        clamped = validate_absolute_level(7, strict=False, stacklevel=2)
+        assert clamped == 6
+        user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
+        assert len(user_warnings) == 1
+        assert user_warnings[0].filename.endswith("test_blocks_parsing.py")
 
 
 def test_resolver_preserves_absolute_level():
