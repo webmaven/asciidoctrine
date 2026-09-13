@@ -38,7 +38,7 @@ curl -L https://github.com/pyodide/pyodide/releases/download/0.27.2/pyodide-0.27
 venv/bin/python3 -m build --wheel
 
 # 3. Download dependencies for Pyodide
-venv/bin/python3 -m pip download lark -d dist/
+venv/bin/python3 -m pip download lark platformdirs -d dist/
 ```
 
 > [!IMPORTANT]

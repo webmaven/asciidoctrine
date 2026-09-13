@@ -31,12 +31,27 @@ def _get_wheel_name():
     return "asciidoctrine-0.1.0-py3-none-any.whl"
 
 
+def _get_platformdirs_wheel_name():
+    try:
+        import glob
+
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        dist_dir = os.path.join(base_dir, "dist")
+        whls = glob.glob(os.path.join(dist_dir, "platformdirs-*.whl"))
+        if whls:
+            return os.path.basename(whls[0])
+    except Exception:
+        pass
+    return "platformdirs-4.11.8-py3-none-any.whl"
+
+
 def run_if_pyodide(func):
     # Requires pytest-pyodide with Pyodide >= 314.0.2 (matches CI in .github/workflows/ci.yml)
     if HAS_PYODIDE:
         return run_in_pyodide(
             packages=[
                 "lark-1.3.1-py3-none-any.whl",
+                _get_platformdirs_wheel_name(),
                 _get_wheel_name(),
             ]
         )(func)

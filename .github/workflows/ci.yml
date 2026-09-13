@@ -144,8 +144,9 @@ jobs:
     - name: Build wheel
       run: |
         python -m build --wheel
-        # Download lark dependency into dist directory for pyodide to find it
+        # Download dependencies into dist directory for pyodide to find them
         pip download lark -d dist/
+        pip download platformdirs -d dist/
         # Download and extract pyodide distribution
         curl -L https://github.com/pyodide/pyodide/releases/download/314.0.2/pyodide-314.0.2.tar.bz2 -o pyodide.tar.bz2
         tar -xjf pyodide.tar.bz2
