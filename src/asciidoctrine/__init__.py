@@ -48,7 +48,7 @@ from .resolver import (
 )
 from .serializer import serialize_to_asciidoc
 
-__version__ = "0.2.0a7"
+__version__ = "0.2.0a8"
 
 
 def dumps(doc: Document) -> str:

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "asciidoctrine"
-version = "0.2.0a7"
+version = "0.2.0a8"
 authors = [
   { name = "Michael R. Bernstein", email = "zopemaven@gmail.com" },
 ]
