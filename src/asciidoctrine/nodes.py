@@ -756,41 +756,149 @@ class Ref(InlineNode):
 
 
 class Image(BlockNode):
-    """A block or inline node for an image directive."""
+    """
+    A block or inline node representing an image macro.
 
-    _should_serialize_attributes = False
+    Corresponds to the `image::target[attrlist]` block macro or the
+    `image:target[attrlist]` inline macro in AsciiDoc. Encapsulates the image
+    target URI or relative path, syntactic form, structural categorization
+    (`"block"` or `"inline"`), and named attributes (such as `alt`, `width`,
+    `height`, and `title`).
+
+    *Attributes:*
+
+    `target`:: Target specifier string representing the image file path or URL.
+    `form`:: Syntactic form identifier, always `"macro"`.
+    `type`:: Structural node categorization (`"block"` or `"inline"`).
+    `attributes`:: Mapping of image attributes including `alt`, `width`, `height`, and `title`.
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine.nodes import Image
+
+    img = Image(target="sunset.jpg", alt="Sunset", attributes={"width": "300"})
+    assert img.name == "image"
+    assert img.form == "macro"
+    assert img.target == "sunset.jpg"
+    assert img.attributes["alt"] == "Sunset"
+    assert img.attributes["width"] == "300"
+    ----
+    """
+
+    form: str = "macro"
 
     def __init__(
-        self, target: str, alt: str = "", form: str = "macro", type: str = "block"
+        self,
+        target: str,
+        alt: str = "",
+        form: str = "macro",
+        type: str = "block",
+        attributes: Optional[Dict[str, Any]] = None,
     ):
         super().__init__()
         self.name = "image"
         self.type = type
         self.target = target
         self.form = form
-        self.attributes = {"alt": alt}
+        self.attributes = dict(attributes) if attributes else {}
+        if alt and "alt" not in self.attributes:
+            self.attributes["alt"] = alt
 
 
 class Audio(BlockNode):
-    """A block node for an audio macro."""
+    """
+    A block node representing an audio macro.
 
-    def __init__(self, target: str, attributes: Optional[Dict[str, Any]] = None):
+    Corresponds to the `audio::target[attrlist]` block macro in AsciiDoc.
+    Encapsulates the audio media target URI or relative path, syntactic form,
+    structural categorization (`"block"`), and named playback and display
+    attributes (such as `autoplay`, `loop`, `controls`, and `title`).
+
+    *Attributes:*
+
+    `target`:: Target specifier string representing the audio file path or URL.
+    `form`:: Syntactic form identifier, always `"macro"`.
+    `type`:: Structural node categorization, always `"block"`.
+    `attributes`:: Mapping of audio configuration options (e.g. `autoplay`, `controls`, `loop`, `title`).
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine.nodes import Audio
+
+    audio = Audio(target="podcast.mp3", attributes={"autoplay": "true"})
+    assert audio.name == "audio"
+    assert audio.form == "macro"
+    assert audio.type == "block"
+    assert audio.target == "podcast.mp3"
+    assert audio.attributes["autoplay"] == "true"
+    ----
+    """
+
+    form: str = "macro"
+
+    def __init__(
+        self,
+        target: str,
+        attributes: Optional[Dict[str, Any]] = None,
+        form: str = "macro",
+    ):
         super().__init__()
         self.name = "audio"
         self.type = "block"
         self.target = target
-        self.attributes = attributes or {}
+        self.form = form
+        self.attributes = dict(attributes) if attributes else {}
 
 
 class Video(BlockNode):
-    """A block node for a video macro."""
+    """
+    A block node representing a video macro.
 
-    def __init__(self, target: str, attributes: Optional[Dict[str, Any]] = None):
+    Corresponds to the `video::target[attrlist]` block macro in AsciiDoc.
+    Encapsulates the video media target URI or relative path, syntactic form,
+    structural categorization (`"block"`), and named playback and display
+    attributes (such as `width`, `height`, `autoplay`, `controls`, `poster`, and `title`).
+
+    *Attributes:*
+
+    `target`:: Target specifier string representing the video file path or URL.
+    `form`:: Syntactic form identifier, always `"macro"`.
+    `type`:: Structural node categorization, always `"block"`.
+    `attributes`:: Mapping of video configuration options (e.g. `width`, `height`, `controls`, `title`).
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine.nodes import Video
+
+    video = Video(target="screencast.mp4", attributes={"width": "640", "height": "360"})
+    assert video.name == "video"
+    assert video.form == "macro"
+    assert video.type == "block"
+    assert video.target == "screencast.mp4"
+    assert video.attributes["width"] == "640"
+    ----
+    """
+
+    form: str = "macro"
+
+    def __init__(
+        self,
+        target: str,
+        attributes: Optional[Dict[str, Any]] = None,
+        form: str = "macro",
+    ):
         super().__init__()
         self.name = "video"
         self.type = "block"
         self.target = target
-        self.attributes = attributes or {}
+        self.form = form
+        self.attributes = dict(attributes) if attributes else {}
 
 
 class List(BlockNode):
@@ -1529,14 +1637,50 @@ class Include(BlockNode):
 
 
 class Toc(BlockNode):
-    """A node representing a table of contents macro (toc::[])."""
+    """
+    A block node representing a table of contents macro.
 
-    def __init__(self, target: str = "", attributes: Optional[Dict[str, Any]] = None):
+    Corresponds to the `toc::[attrlist]` block macro in AsciiDoc, allowing
+    explicit placement of the document table of contents within the document flow.
+    Encapsulates the optional target specifier, syntactic form, structural
+    categorization (`"block"`), and named configuration attributes (such as
+    `levels` and `title`).
+
+    *Attributes:*
+
+    `target`:: Target specifier string, typically empty (`""`) for standard document TOC placement.
+    `form`:: Syntactic form identifier, always `"macro"`.
+    `type`:: Structural node categorization, always `"block"`.
+    `attributes`:: Mapping of TOC macro configuration options (e.g. `levels`, `title`).
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine.nodes import Toc
+
+    toc = Toc(attributes={"levels": "2"})
+    assert toc.name == "toc"
+    assert toc.form == "macro"
+    assert toc.type == "block"
+    assert toc.attributes["levels"] == "2"
+    ----
+    """
+
+    form: str = "macro"
+
+    def __init__(
+        self,
+        target: str = "",
+        attributes: Optional[Dict[str, Any]] = None,
+        form: str = "macro",
+    ):
         super().__init__()
         self.name = "toc"
         self.type = "block"
         self.target = target
-        self.attributes = attributes or {}
+        self.form = form
+        self.attributes = dict(attributes) if attributes else {}
 
 
 class IndexTerm(InlineNode):

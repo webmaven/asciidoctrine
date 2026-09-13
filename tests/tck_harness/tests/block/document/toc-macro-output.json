@@ -20,6 +20,7 @@
         {
           "name": "toc",
           "type": "block",
+          "form": "macro",
           "location": [
             {
               "line": 6,

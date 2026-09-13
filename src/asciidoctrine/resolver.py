@@ -284,11 +284,19 @@ class ASGResolver(NodeTransformer):
             for k, v in node.attributes.items():
                 if k == "positional" or k.isdigit():
                     continue
-                cleaned_attrs[k] = v
+                if isinstance(v, str):
+                    cleaned_attrs[k] = substitute_attributes(
+                        v, self.resolved_attributes
+                    )
+                else:
+                    cleaned_attrs[k] = v
             if cleaned_attrs:
                 node.attributes = cleaned_attrs
             else:
                 node.attributes = {}
+
+        if hasattr(node, "target") and isinstance(getattr(node, "target", None), str):
+            node.target = substitute_attributes(node.target, self.resolved_attributes)
 
         # Process child collections
         for attr_name, collection in list(node.get_child_collections().items()):

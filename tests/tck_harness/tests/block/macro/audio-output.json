@@ -1,0 +1,16 @@
+{
+  "name": "document",
+  "type": "block",
+  "blocks": [
+    {
+      "name": "audio",
+      "type": "block",
+      "form": "macro",
+      "target": "ocean.mp3",
+      "attributes": {
+        "autoplay": "true",
+        "title": "Ocean Waves"
+      }
+    }
+  ]
+}

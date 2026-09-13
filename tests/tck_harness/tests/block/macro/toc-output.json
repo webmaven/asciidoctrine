@@ -1,0 +1,15 @@
+{
+  "name": "document",
+  "type": "block",
+  "blocks": [
+    {
+      "name": "toc",
+      "type": "block",
+      "form": "macro",
+      "target": "",
+      "attributes": {
+        "levels": "2"
+      }
+    }
+  ]
+}

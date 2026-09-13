@@ -1376,3 +1376,195 @@ def test_discrete_heading_inside_section():
     assert len(paragraphs) == 1, (
         f"Expected following paragraph to remain in section, got {len(paragraphs)} paragraphs"
     )
+
+
+def test_image_block_macro_parsing_and_asg():
+    """Verify image:: block macro emits form='macro' and preserves target/attributes in ASG."""
+    from asciidoctrine.nodes import Image
+    from asciidoctrine.resolver import ASGResolver
+
+    src = "image::sunset.jpg[Sunset, width=400, height=300]\n"
+    doc = parse_to_ast(src)
+    assert len(doc.blocks) == 1
+    node = doc.blocks[0]
+    assert isinstance(node, Image)
+    assert node.name == "image"
+    assert node.type == "block"
+    assert node.form == "macro"
+    assert node.target == "sunset.jpg"
+    assert Image.form == "macro"
+
+    # Direct to_dict() check on raw AST
+    d = node.to_dict()
+    assert d["name"] == "image"
+    assert d["type"] == "block"
+    assert d["form"] == "macro"
+    assert d["target"] == "sunset.jpg"
+    assert d["attributes"]["alt"] == "Sunset"
+    assert d["attributes"]["width"] == "400"
+    assert d["attributes"]["height"] == "300"
+
+    # Resolver round-trip check
+    resolver = ASGResolver(doc)
+    asg = resolver.resolve(doc)
+    asg_block = asg["blocks"][0]
+    assert asg_block["name"] == "image"
+    assert asg_block["type"] == "block"
+    assert asg_block["form"] == "macro"
+    assert asg_block["target"] == "sunset.jpg"
+    assert asg_block["attributes"] == {"alt": "Sunset", "width": "400", "height": "300"}
+
+
+def test_audio_block_macro_parsing_and_asg():
+    """Verify audio:: block macro emits form='macro' and preserves target/attributes in ASG."""
+    from asciidoctrine.nodes import Audio
+    from asciidoctrine.resolver import ASGResolver
+
+    src = 'audio::podcast.mp3[autoplay=true, title="Episode 1"]\n'
+    doc = parse_to_ast(src)
+    assert len(doc.blocks) == 1
+    node = doc.blocks[0]
+    assert isinstance(node, Audio)
+    assert node.name == "audio"
+    assert node.type == "block"
+    assert node.form == "macro"
+    assert node.target == "podcast.mp3"
+    assert Audio.form == "macro"
+
+    # Direct to_dict() check
+    d = node.to_dict()
+    assert d["name"] == "audio"
+    assert d["type"] == "block"
+    assert d["form"] == "macro"
+    assert d["target"] == "podcast.mp3"
+    assert d["attributes"] == {"autoplay": "true", "title": "Episode 1"}
+
+    # Resolver round-trip check
+    resolver = ASGResolver(doc)
+    asg = resolver.resolve(doc)
+    asg_block = asg["blocks"][0]
+    assert asg_block["name"] == "audio"
+    assert asg_block["type"] == "block"
+    assert asg_block["form"] == "macro"
+    assert asg_block["target"] == "podcast.mp3"
+    assert asg_block["attributes"] == {"autoplay": "true", "title": "Episode 1"}
+
+
+def test_video_block_macro_parsing_and_asg():
+    """Verify video:: block macro emits form='macro' and preserves target/attributes in ASG."""
+    from asciidoctrine.nodes import Video
+    from asciidoctrine.resolver import ASGResolver
+
+    src = "video::screencast.mp4[width=640, height=360, controls=true]\n"
+    doc = parse_to_ast(src)
+    assert len(doc.blocks) == 1
+    node = doc.blocks[0]
+    assert isinstance(node, Video)
+    assert node.name == "video"
+    assert node.type == "block"
+    assert node.form == "macro"
+    assert node.target == "screencast.mp4"
+    assert Video.form == "macro"
+
+    # Direct to_dict() check
+    d = node.to_dict()
+    assert d["name"] == "video"
+    assert d["type"] == "block"
+    assert d["form"] == "macro"
+    assert d["target"] == "screencast.mp4"
+    assert d["attributes"] == {"width": "640", "height": "360", "controls": "true"}
+
+    # Resolver round-trip check
+    resolver = ASGResolver(doc)
+    asg = resolver.resolve(doc)
+    asg_block = asg["blocks"][0]
+    assert asg_block["name"] == "video"
+    assert asg_block["type"] == "block"
+    assert asg_block["form"] == "macro"
+    assert asg_block["target"] == "screencast.mp4"
+    assert asg_block["attributes"] == {
+        "width": "640",
+        "height": "360",
+        "controls": "true",
+    }
+
+
+def test_toc_block_macro_parsing_and_asg():
+    """Verify toc:: block macro emits form='macro' and preserves target/attributes in ASG."""
+    from asciidoctrine.nodes import Toc
+    from asciidoctrine.resolver import ASGResolver
+
+    src = 'toc::[levels=3, title="Table of Contents"]\n'
+    doc = parse_to_ast(src)
+    assert len(doc.blocks) == 1
+    node = doc.blocks[0]
+    assert isinstance(node, Toc)
+    assert node.name == "toc"
+    assert node.type == "block"
+    assert node.form == "macro"
+    assert node.target == ""
+    assert Toc.form == "macro"
+
+    # Direct to_dict() check
+    d = node.to_dict()
+    assert d["name"] == "toc"
+    assert d["type"] == "block"
+    assert d["form"] == "macro"
+    assert d["target"] == ""
+    assert d["attributes"] == {"levels": "3", "title": "Table of Contents"}
+
+    # Resolver round-trip check
+    resolver = ASGResolver(doc)
+    asg = resolver.resolve(doc)
+    asg_block = asg["blocks"][0]
+    assert asg_block["name"] == "toc"
+    assert asg_block["type"] == "block"
+    assert asg_block["form"] == "macro"
+    assert asg_block["target"] == ""
+    assert asg_block["attributes"] == {"levels": "3", "title": "Table of Contents"}
+
+
+def test_block_macros_class_attributes_and_isolated_to_dict():
+    """Verify Image, Audio, Video, Toc class attributes and isolated to_dict conform to blockMacro schema."""
+    from asciidoctrine.nodes import Audio, Image, Toc, Video
+
+    assert Image.form == "macro"
+    assert Audio.form == "macro"
+    assert Video.form == "macro"
+    assert Toc.form == "macro"
+
+    img = Image(target="sun.png", alt="Sun", attributes={"width": "200"})
+    assert img.to_dict() == {
+        "name": "image",
+        "type": "block",
+        "form": "macro",
+        "target": "sun.png",
+        "attributes": {"alt": "Sun", "width": "200"},
+    }
+
+    audio = Audio(target="song.ogg", attributes={"autoplay": "true"})
+    assert audio.to_dict() == {
+        "name": "audio",
+        "type": "block",
+        "form": "macro",
+        "target": "song.ogg",
+        "attributes": {"autoplay": "true"},
+    }
+
+    video = Video(target="movie.webm", attributes={"controls": "true"})
+    assert video.to_dict() == {
+        "name": "video",
+        "type": "block",
+        "form": "macro",
+        "target": "movie.webm",
+        "attributes": {"controls": "true"},
+    }
+
+    toc = Toc(target="", attributes={"levels": "2"})
+    assert toc.to_dict() == {
+        "name": "toc",
+        "type": "block",
+        "form": "macro",
+        "target": "",
+        "attributes": {"levels": "2"},
+    }

@@ -1,0 +1,17 @@
+{
+  "name": "document",
+  "type": "block",
+  "blocks": [
+    {
+      "name": "video",
+      "type": "block",
+      "form": "macro",
+      "target": "intro.mp4",
+      "attributes": {
+        "width": "640",
+        "height": "360",
+        "controls": "true"
+      }
+    }
+  ]
+}
