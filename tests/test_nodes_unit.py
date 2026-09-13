@@ -297,7 +297,7 @@ class TestNodesUnit(unittest.TestCase):
         self.assertEqual(ref.get_child_collections(), {"inlines": ref.inlines})
 
     def test_image_audio_video(self):
-        img = Image(target="img.png", alt="alt txt", form="macro", type="block")
+        img = Image(target="img.png", alt="alt txt", type="block")
         self.assertEqual(img.name, "image")
         self.assertEqual(img.type, "block")
         self.assertEqual(img.target, "img.png")
@@ -1513,7 +1513,7 @@ class TestImageNode:
         assert img.type == "inline"
 
     def test_image_form(self) -> None:
-        img = Image(target="a.png", form="macro")
+        img = Image(target="a.png")
         assert img.form == "macro"
 
 

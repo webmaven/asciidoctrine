@@ -1568,3 +1568,76 @@ def test_block_macros_class_attributes_and_isolated_to_dict():
         "target": "",
         "attributes": {"levels": "2"},
     }
+
+
+def test_block_macros_form_invariance():
+    """Verify Image, Audio, Video, and Toc instances reject form in constructor and emit form='macro'."""
+    import pytest
+
+    from asciidoctrine.nodes import Audio, Image, Toc, Video
+
+    # Constructor rejection of mutable form parameter
+    with pytest.raises(TypeError):
+        Image(target="img.png", form="inline")  # type: ignore[call-arg]
+    with pytest.raises(TypeError):
+        Audio(target="audio.mp3", form="inline")  # type: ignore[call-arg]
+    with pytest.raises(TypeError):
+        Video(target="video.mp4", form="inline")  # type: ignore[call-arg]
+    with pytest.raises(TypeError):
+        Toc(target="", form="inline")  # type: ignore[call-arg]
+
+    # Verification of class and instance invariant form="macro"
+    for cls, inst in [
+        (Image, Image(target="img.png")),
+        (Audio, Audio(target="audio.mp3")),
+        (Video, Video(target="video.mp4")),
+        (Toc, Toc()),
+    ]:
+        assert cls.form == "macro"
+        assert inst.form == "macro"
+        assert inst.to_dict()["form"] == "macro"
+
+
+def test_macro_target_attribute_substitution():
+    """Verify target attribute substitution in generic_visit when resolving block macros via ASGResolver."""
+    from asciidoctrine.nodes import Audio, Image, Video
+    from asciidoctrine.resolver import ASGResolver
+
+    src = (
+        ":imagesdir: photos\n"
+        ":audiodir: sounds\n"
+        ":videodir: movies\n"
+        "\n"
+        "image::{imagesdir}/photo.jpg[Alt text]\n"
+        "\n"
+        "audio::{audiodir}/song.mp3[]\n"
+        "\n"
+        "video::{videodir}/movie.mp4[]\n"
+    )
+    doc = parse_to_ast(src)
+
+    # Pre-resolution checks: raw AST retains attribute reference syntax
+    macro_blocks = [b for b in doc.blocks if isinstance(b, (Image, Audio, Video))]
+    assert len(macro_blocks) == 3
+    img_node, audio_node, video_node = macro_blocks
+    assert img_node.target == "{imagesdir}/photo.jpg"
+    assert audio_node.target == "{audiodir}/song.mp3"
+    assert video_node.target == "{videodir}/movie.mp4"
+
+    # Resolve via ASGResolver
+    resolver = ASGResolver(doc)
+    asg = resolver.resolve(doc)
+
+    resolved_macros = [
+        b for b in asg["blocks"] if b.get("name") in ("image", "audio", "video")
+    ]
+    assert len(resolved_macros) == 3
+    assert resolved_macros[0]["name"] == "image"
+    assert resolved_macros[0]["target"] == "photos/photo.jpg"
+    assert resolved_macros[0]["form"] == "macro"
+    assert resolved_macros[1]["name"] == "audio"
+    assert resolved_macros[1]["target"] == "sounds/song.mp3"
+    assert resolved_macros[1]["form"] == "macro"
+    assert resolved_macros[2]["name"] == "video"
+    assert resolved_macros[2]["target"] == "movies/movie.mp4"
+    assert resolved_macros[2]["form"] == "macro"

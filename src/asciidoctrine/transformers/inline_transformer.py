@@ -546,7 +546,7 @@ class InlineTransformer(BaseTransformer):
             children[1] if len(children) > 1 and isinstance(children[1], dict) else {}
         )
         alt = attrs.get("style", "")
-        img = Image(target=target, alt=alt, form="macro", type="inline")
+        img = Image(target=target, alt=alt, type="inline")
         img.attributes.update(attrs)
         if "style" in img.attributes:
             img.attributes["alt"] = img.attributes.pop("style")
@@ -564,7 +564,7 @@ class InlineTransformer(BaseTransformer):
         attrs = (
             children[1] if len(children) > 1 and isinstance(children[1], dict) else {}
         )
-        img = Image(target=target, alt="", form="macro", type="inline")
+        img = Image(target=target, alt="", type="inline")
         img.name = "icon"
         img.attributes.update(attrs)
         raw_attr = getattr(attrs, "raw", "")

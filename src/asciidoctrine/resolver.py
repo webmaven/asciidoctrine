@@ -278,6 +278,20 @@ class ASGResolver(NodeTransformer):
         return asg
 
     def generic_visit(self, node: Node, **kwargs: Any) -> Node:
+        """Recursively visits AST nodes, resolving block attributes, target substitutions, and child collections.
+
+        *Target Attribute Substitution:*
+
+        Any node with a string `target` attribute (such as `Image`, `Audio`,
+        `Video`, or `Include` macros) receives document attribute substitution
+        via `substitute_attributes` (e.g. `image::{imagesdir}/photo.jpg[]`
+        expands `{imagesdir}` to its resolved document attribute value).
+
+        `node`:: The AST node being traversed and transformed.
+        `kwargs`:: Optional context passed during AST traversal.
+
+        Returns the visited (and potentially mutated in-place) AST node.
+        """
         # First, clean block-level attributes in-place for any node that is not a document or attributes node
         if node.name not in ("document", "attributes") and node.attributes:
             cleaned_attrs = {}

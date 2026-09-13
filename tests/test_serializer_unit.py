@@ -354,13 +354,13 @@ def test_visit_ref_footnote_with_target_no_label():
 
 
 def test_visit_image_block_form():
-    img = Image(target="diagram.png", alt="A diagram", form="macro", type="block")
+    img = Image(target="diagram.png", alt="A diagram", type="block")
     out = _ser(img)
     assert out == "image::diagram.png[A diagram]\n"
 
 
 def test_visit_image_inline_form():
-    img = Image(target="icon.png", alt="icon", form="macro", type="inline")
+    img = Image(target="icon.png", alt="icon", type="inline")
     out = _ser(img)
     assert out == "image:icon.png[icon]"
 

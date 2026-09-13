@@ -852,7 +852,7 @@ class AsciiDocTransformer(
         block: BlockNode
         if name == "image":
             alt = attrs.get("style", "")
-            block = Image(target=target, alt=alt, form="macro", type="block")
+            block = Image(target=target, alt=alt, type="block")
             block.attributes.update(attrs)
             if "style" in block.attributes:
                 block.attributes["alt"] = block.attributes.pop("style")

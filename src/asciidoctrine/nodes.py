@@ -793,7 +793,6 @@ class Image(BlockNode):
         self,
         target: str,
         alt: str = "",
-        form: str = "macro",
         type: str = "block",
         attributes: Optional[Dict[str, Any]] = None,
     ):
@@ -801,7 +800,6 @@ class Image(BlockNode):
         self.name = "image"
         self.type = type
         self.target = target
-        self.form = form
         self.attributes = dict(attributes) if attributes else {}
         if alt and "alt" not in self.attributes:
             self.attributes["alt"] = alt
@@ -844,13 +842,11 @@ class Audio(BlockNode):
         self,
         target: str,
         attributes: Optional[Dict[str, Any]] = None,
-        form: str = "macro",
     ):
         super().__init__()
         self.name = "audio"
         self.type = "block"
         self.target = target
-        self.form = form
         self.attributes = dict(attributes) if attributes else {}
 
 
@@ -891,13 +887,11 @@ class Video(BlockNode):
         self,
         target: str,
         attributes: Optional[Dict[str, Any]] = None,
-        form: str = "macro",
     ):
         super().__init__()
         self.name = "video"
         self.type = "block"
         self.target = target
-        self.form = form
         self.attributes = dict(attributes) if attributes else {}
 
 
@@ -1673,13 +1667,11 @@ class Toc(BlockNode):
         self,
         target: str = "",
         attributes: Optional[Dict[str, Any]] = None,
-        form: str = "macro",
     ):
         super().__init__()
         self.name = "toc"
         self.type = "block"
         self.target = target
-        self.form = form
         self.attributes = dict(attributes) if attributes else {}
 
 
