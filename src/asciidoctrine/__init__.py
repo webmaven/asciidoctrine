@@ -14,7 +14,11 @@ Core features include:
 * `clear_parser_cache()`: Clear compiled Lark parser instances.
 * `clear_ast_cache()`: Clear the in-process LRU cache for snippet ASTs.
 * `serialize_to_asciidoc()`: Losslessly serialize AST nodes back to AsciiDoc text.
+* `dumps()`: Convenience wrapper around `serialize_to_asciidoc()`.
+* `loads()`: Convenience wrapper around `parse_to_ast()`.
 """
+
+from typing import Any
 
 from .lark_parser import (
     AsciiDocSyntaxError,
@@ -47,8 +51,67 @@ from .serializer import serialize_to_asciidoc
 __version__ = "0.2.0a7"
 
 
+def dumps(doc: Document) -> str:
+    """
+    Serialize an AST Document node back to its AsciiDoc string representation.
+
+    Convenience wrapper around `serialize_to_asciidoc`.
+
+    *Parameters:*
+
+    `doc`:: The `Document` AST instance to serialize.
+
+    *Returns:*
+
+    A string containing the serialized AsciiDoc markup representation.
+
+    *Example:*
+
+    [source,python]
+    ----
+    import asciidoctrine
+
+    doc = asciidoctrine.loads("= Document Title\\n\\nFirst paragraph.")
+    text = asciidoctrine.dumps(doc)
+    assert "= Document Title" in text
+    ----
+    """
+    return serialize_to_asciidoc(doc)
+
+
+def loads(source: str, **kwargs: Any) -> Document:
+    """
+    Parse an AsciiDoc source string into a syntax-level AST Document.
+
+    Convenience wrapper around `parse_to_ast`.
+
+    *Parameters:*
+
+    `source`:: The raw AsciiDoc source text to parse.
+    `**kwargs`:: Optional configuration keyword arguments forwarded to `parse_to_ast` (e.g. `strict`, `line_ending`).
+
+    *Returns:*
+
+    A `Document` AST node representing the parsed structure.
+
+    *Example:*
+
+    [source,python]
+    ----
+    import asciidoctrine
+
+    doc = asciidoctrine.loads("= Document Title\\n\\nFirst paragraph.")
+    assert doc.name == "document"
+    assert len(doc.blocks) == 1
+    ----
+    """
+    return parse_to_ast(source, **kwargs)
+
+
 __all__ = [
     "__version__",
+    "dumps",
+    "loads",
     "parse_to_ast",
     "parse_inlines",
     "get_document_parser",

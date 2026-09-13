@@ -1,9 +1,10 @@
 import os
 import unittest
+import warnings
 
 import pytest
 
-from asciidoctrine import parse_to_ast, serialize_to_asciidoc
+from asciidoctrine import dumps, loads, parse_to_ast, serialize_to_asciidoc
 
 pytestmark = pytest.mark.integration
 
@@ -46,6 +47,10 @@ class TestAsciiDocSerializer(unittest.TestCase):
             self.assertEqual(
                 len(dict_serialized.get("blocks", [])),
                 len(dict_original.get("blocks", [])),
+            )
+            self.assertEqual(
+                [b["name"] for b in dict_serialized.get("blocks", [])],
+                [b["name"] for b in dict_original.get("blocks", [])],
             )
         except AssertionError as e:
             print("\n--- Assertion Failed ---")
@@ -222,8 +227,6 @@ toc::[]
         source = "This is a simple paragraph.\n"
         ast = parse_to_ast(source)
         ast.is_preprocessed = True
-
-        import warnings
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -544,3 +547,88 @@ It should roundtrip.
         self._assert_roundtrip("See ((visible entry)) here.\n")
         self._assert_roundtrip("See (((primary))) here.\n")
         self._assert_roundtrip("See (((primary, secondary, tertiary))) here.\n")
+
+    def test_dumps_and_loads_api(self):
+        source = "= My Document\n\nFirst paragraph.\n"
+        doc = loads(source)
+        self.assertEqual(doc.name, "document")
+        out = dumps(doc)
+        self.assertIn("= My Document", out)
+        self.assertIn("First paragraph.", out)
+        doc2 = loads(out)
+        self.assertEqual(doc2.name, "document")
+        self.assertEqual(len(doc2.blocks), 1)
+
+    def test_verse_roundtrip(self):
+        source_delimited = (
+            "[verse, Carl Sandburg, Fog]\n"
+            "____\n"
+            "The fog comes\n"
+            "on little cat feet.\n"
+            "____\n"
+        )
+        self._assert_roundtrip(source_delimited)
+
+        source_paragraph = (
+            "[verse, Carl Sandburg, Fog]\nThe fog comes\non little cat feet.\n"
+        )
+        self._assert_roundtrip(source_paragraph)
+
+    def test_collapsible_roundtrip(self):
+        source = ".Details\n[%collapsible]\n====\nCollapsible content.\n====\n"
+        self._assert_roundtrip(source)
+
+    def test_open_block_tilde_roundtrip(self):
+        source = "~~~~\nInside open block.\n~~~~\n"
+        self._assert_roundtrip(source)
+
+    def test_callout_list_roundtrip(self):
+        source = "[source,python]\n----\nprint('hello') <1>\n----\n<1> Prints hello\n"
+        self._assert_roundtrip(source)
+
+    def test_discrete_heading_roundtrip(self):
+        source = "= Doc\n\n[discrete]\n== Floating Heading\n\nParagraph.\n"
+        self._assert_roundtrip(source)
+
+    def test_block_macros_with_attributes_roundtrip(self):
+        source = (
+            'image::sunset.jpg[Sunset, 300, 200, title="A sunset"]\n\n'
+            "video::movie.mp4[width=640, start=60, options=autoplay]\n\n"
+            "audio::sound.mp3[options=autoplay]\n\n"
+            "toc::[levels=2]\n"
+        )
+        self._assert_roundtrip(source)
+
+    def test_inlines_extended_roundtrip(self):
+        source = (
+            "Formatted: *bold* and **unconstrained**, _italic_ and __unconstrained__,\n"
+            "`code` and ``unconstrained``, #mark# and ##unconstrained##,\n"
+            "superscript e=mc^2^ and subscript H~2~O,\n"
+            "\"`double curved`\" and '`single curved`',\n"
+            "links https://example.com[Example] and xref <<my-target, My Target>>.\n"
+        )
+        self._assert_roundtrip(source)
+
+    def test_corpus_sample_roundtrip(self):
+        corpus_path = "vendor/asciidoctor-doctest/CHANGELOG.adoc"
+        if os.path.exists(corpus_path):
+            with open(corpus_path) as f:
+                content = f.read()
+            doc = parse_to_ast(content)
+            serialized = serialize_to_asciidoc(doc)
+            doc2 = parse_to_ast(serialized)
+            self.assertEqual(doc2.name, doc.name)
+            self.assertEqual(len(doc2.blocks), len(doc.blocks))
+
+    def test_docs_sample_roundtrip(self):
+        doc_path = "docs/index.adoc"
+        if os.path.exists(doc_path):
+            with open(doc_path) as f:
+                content = f.read()
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=DeprecationWarning)
+                doc = parse_to_ast(content)
+                serialized = serialize_to_asciidoc(doc)
+                doc2 = parse_to_ast(serialized)
+            self.assertEqual(doc2.name, doc.name)
+            self.assertEqual(len(doc2.blocks), len(doc.blocks))
