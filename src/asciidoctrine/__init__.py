@@ -11,11 +11,14 @@ Core features include:
 * `resolve_to_ast()`: Resolve semantic elements and attributes in-place on an AST Document.
 * `WorkspaceCatalog`: Index symbols and target anchors across multi-document workspaces.
 * `WorkspaceBuilder`: Orchestrate multi-pass directory or in-memory parsing and cross-reference resolution.
+* `clear_parser_cache()`: Clear compiled Lark parser instances.
+* `clear_ast_cache()`: Clear the in-process LRU cache for snippet ASTs.
 * `serialize_to_asciidoc()`: Losslessly serialize AST nodes back to AsciiDoc text.
 """
 
 from .lark_parser import (
     AsciiDocSyntaxError,
+    clear_ast_cache,
     clear_parser_cache,
     get_document_parser,
     get_inline_parser,
@@ -51,6 +54,7 @@ __all__ = [
     "get_document_parser",
     "get_inline_parser",
     "clear_parser_cache",
+    "clear_ast_cache",
     "AsciiDocSyntaxError",
     "serialize_to_asciidoc",
     "FileProvider",

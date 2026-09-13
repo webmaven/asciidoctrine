@@ -1,9 +1,14 @@
+import copy
+import functools
 import os
 import re
+import tempfile
 import warnings
+from pathlib import Path
 from typing import Any, Dict, Optional, Tuple, Union, cast
 from typing import List as PyList
 
+import platformdirs
 from lark import Discard, Lark, Token, Transformer, v_args
 from lark.exceptions import UnexpectedInput
 
@@ -1450,7 +1455,7 @@ def build_uri_terminal(
     )
 
 
-def parse_to_ast(
+def _parse_to_ast_impl(
     source: str,
     grammar_file: str = DEFAULT_GRAMMAR,
     base_dir: Optional[str] = None,
@@ -1616,6 +1621,148 @@ def parse_to_ast(
     return ast_root
 
 
+@functools.lru_cache(maxsize=256)
+def _cached_parse_to_ast(
+    source: str,
+    authority_schemes: Tuple[str, ...],
+    opaque_schemes: Tuple[str, ...],
+) -> Document:
+    return _parse_to_ast_impl(
+        source=source,
+        grammar_file=DEFAULT_GRAMMAR,
+        base_dir=None,
+        safe_mode=0,
+        preprocess_directives=True,
+        strict=True,
+        extra_authority_schemes=list(authority_schemes) if authority_schemes else None,
+        extra_opaque_schemes=list(opaque_schemes) if opaque_schemes else None,
+        loader=None,
+    )
+
+
+def clear_ast_cache() -> None:
+    """
+    Clears the in-process LRU cache for snippet ASTs.
+
+    Resets the internal `@functools.lru_cache` populated by calls to
+    `parse_to_ast(..., use_cache=True)`.
+
+    *Returns:*
+
+    `None`
+    """
+    _cached_parse_to_ast.cache_clear()
+
+
+def parse_to_ast(
+    source: str,
+    grammar_file: str = DEFAULT_GRAMMAR,
+    base_dir: Optional[str] = None,
+    safe_mode: int = 0,
+    preprocess_directives: bool = True,
+    strict: bool = True,
+    extra_authority_schemes: Optional[PyList[str]] = None,
+    extra_opaque_schemes: Optional[PyList[str]] = None,
+    loader: Optional[FileProvider] = None,
+    use_cache: bool = False,
+) -> Document:
+    """
+    Parses raw AsciiDoc source text into a structured, spec-aligned AST `Document`.
+
+    *Parameters:*
+
+    `source`::
+      The complete raw AsciiDoc input string to parse.
+    `grammar_file`::
+      File path to the Lark EBNF grammar authority. Defaults to package internal `grammar.lark`.
+    `base_dir`::
+      Base directory for resolving relative `include::` paths. Defaults to current working directory.
+    `safe_mode`::
+      Security confinement mode integer (0 = unsafe, 1 = safe, 2 = server). When enabled, confines file reads to `base_dir`.
+    `preprocess_directives`::
+      If True, expands AsciiDoc preprocessing directives (`include::`, `ifdef`, `ifndef`, `ifeval`).
+    `strict`::
+      If True, raises `AsciiDocSyntaxError` upon syntax or structural anomalies; if False, degrades gracefully.
+    `extra_authority_schemes`::
+      Additional URI scheme prefixes with authority syntax (e.g. `["custom://"]`).
+    `extra_opaque_schemes`::
+      Additional URI scheme prefixes with opaque syntax (e.g. `["urn:"]`).
+    `loader`::
+      Optional `FileProvider` instance (`FsLoader` or `MemoryLoader`) for resolving and loading included resources.
+    `use_cache`::
+      If True and `len(source) < 4096`, uses an in-process LRU cache keyed by source and URI schemes. Returns a deep copy of the cached AST.
+
+    *Returns:*
+
+    A root `Document` AST node instance.
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine import parse_to_ast
+
+    doc = parse_to_ast("= Hello\\n\\nThis is a *bold* paragraph.")
+    assert len(doc.blocks) == 1
+    ----
+    """
+    if (
+        use_cache
+        and len(source) < 4096
+        and grammar_file == DEFAULT_GRAMMAR
+        and base_dir is None
+        and safe_mode == 0
+        and preprocess_directives is True
+        and strict is True
+        and loader is None
+    ):
+        authority_schemes = tuple(extra_authority_schemes or ())
+        opaque_schemes = tuple(extra_opaque_schemes or ())
+        cached_doc = _cached_parse_to_ast(
+            source=source,
+            authority_schemes=authority_schemes,
+            opaque_schemes=opaque_schemes,
+        )
+        return copy.deepcopy(cached_doc)
+
+    return _parse_to_ast_impl(
+        source=source,
+        grammar_file=grammar_file,
+        base_dir=base_dir,
+        safe_mode=safe_mode,
+        preprocess_directives=preprocess_directives,
+        strict=strict,
+        extra_authority_schemes=extra_authority_schemes,
+        extra_opaque_schemes=extra_opaque_schemes,
+        loader=loader,
+    )
+
+
+def _get_cache_dir() -> Path:
+    """
+    Resolves the cache directory for asciidoctrine grammar and artifacts.
+
+    Attempts to use `platformdirs.user_cache_dir("asciidoctrine")`. If that directory
+    cannot be created or is not writable, falls back to `tempfile.gettempdir()`.
+
+    *Returns:*
+
+    `Path` instance representing a writable cache directory.
+    """
+    try:
+        cache_dir = Path(platformdirs.user_cache_dir("asciidoctrine"))
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        probe = cache_dir / ".asciidoctrine_cache_probe"
+        try:
+            probe.touch()
+            probe.unlink()
+        except OSError:
+            return Path(tempfile.gettempdir())
+        return cache_dir
+    except (OSError, ValueError):
+        return Path(tempfile.gettempdir())
+
+
 _DOCUMENT_PARSERS: Dict[Tuple[str, float, Tuple[str, ...], Tuple[str, ...]], Lark] = {}
 _INLINE_PARSERS: Dict[Tuple[str, float], Lark] = {}
 
@@ -1626,6 +1773,11 @@ def clear_parser_cache() -> None:
     _INLINE_PARSERS.clear()
 
 
+# NOTE: Lark's built-in `cache=` option is implemented only for the LALR(1) parser
+# (raises ConfigurationError when parser="earley"). AsciiDoctrine grammar requires
+# the Earley parser due to language ambiguity, so grammar disk caching via Lark's
+# `cache=` is deferred until Lark supports Earley parser serialization.
+# In-memory parser caching across calls within the process is handled by _DOCUMENT_PARSERS.
 def get_document_parser(
     grammar_file: str = DEFAULT_GRAMMAR,
     extra_authority_schemes: Optional[Tuple[str, ...]] = None,
@@ -1665,6 +1817,11 @@ def get_document_parser(
     return parser
 
 
+# NOTE: Lark's built-in `cache=` option is implemented only for the LALR(1) parser
+# (raises ConfigurationError when parser="earley"). AsciiDoctrine grammar requires
+# the Earley parser due to language ambiguity, so grammar disk caching via Lark's
+# `cache=` is deferred until Lark supports Earley parser serialization.
+# In-memory parser caching across calls within the process is handled by _INLINE_PARSERS.
 def get_inline_parser(grammar_file: str = DEFAULT_GRAMMAR) -> Lark:
     """
     Returns a cached compiled Lark Earley parser for inline formatting parsing.
