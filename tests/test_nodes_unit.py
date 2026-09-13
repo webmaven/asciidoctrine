@@ -1641,7 +1641,7 @@ def test_document_loader_type_enforcement():
     assert doc.loader is None
 
 
-def test_document_title_type_enforcement():
+def test_document_title_type_enforcement() -> None:
     from asciidoctrine.nodes import Text, Title
 
     doc = Document()
@@ -1650,10 +1650,25 @@ def test_document_title_type_enforcement():
     assert doc.title is title_node
 
     doc.title = [Text("My Title")]
-    assert doc.title[0].value == "My Title"
+    assert isinstance(doc.title, Title)
+    assert doc.title.inlines[0].value == "My Title"
+
+    doc.title = (Text("Tuple Title"),)
+    assert isinstance(doc.title, Title)
+    assert doc.title.inlines[0].value == "Tuple Title"
 
     doc.title = None
     assert doc.title is None
+
+    with pytest.raises(
+        TypeError, match="Document title must be a Title, a sequence of Nodes, or None"
+    ):
+        doc.title = 123  # type: ignore[assignment]
+
+    with pytest.raises(
+        TypeError, match="Document title must be a Title, a sequence of Nodes, or None"
+    ):
+        doc.title = "Invalid String Title"  # type: ignore[assignment]
 
 
 def test_child_collection_runtime_protocol() -> None:

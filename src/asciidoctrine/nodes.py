@@ -226,7 +226,7 @@ class Document(BlockNode):
     `included_files`:: List of file path strings included during document preprocessing.
     `footnotes`:: List of resolved footnote dictionaries collected across the document.
     `loader`:: Optional `FileProvider` instance used to read source documents and included resources.
-    `title`:: Optional document title, represented as a `Title` node or a list of inline AST nodes.
+    `title`:: Optional document title, represented as a `Title` node or normalized from a sequence of inline AST nodes.
 
     *Example:*
 
@@ -252,6 +252,7 @@ class Document(BlockNode):
         base_dir: str | None = None,
         safe_mode: int = 0,
     ):
+        self._title: Title | None = None
         super().__init__()
         self.name = "document"
         self.type = "block"
@@ -266,7 +267,22 @@ class Document(BlockNode):
         self.safe_mode: int = safe_mode
         self.footnotes: list[dict[str, Any]] = []
         self.loader: FileProvider | None = None
-        self.title: Title | list[Node] | None = None  # type: ignore[assignment]
+
+    @property
+    def title(self) -> Title | None:
+        """Optional document title."""
+        return self._title
+
+    @title.setter
+    def title(self, value: Title | Sequence[Node] | None) -> None:
+        if value is None or isinstance(value, Title):
+            self._title = value
+        elif isinstance(value, (list, tuple)):
+            self._title = Title(inlines=list(value))
+        else:
+            raise TypeError(
+                f"Document title must be a Title, a sequence of Nodes, or None, got {type(value).__name__}"
+            )
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize document with header and resolved attributes."""
