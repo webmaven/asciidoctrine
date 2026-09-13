@@ -51,7 +51,7 @@ olist: olist_item+
 colist: colist_item+
 
 ulist_item.5: ULIST_MARKER [CHECKBOX] list_item_principal_content _NEWLINE
-olist_item.5: OLIST_MARKER list_item_principal_content _NEWLINE
+olist_item.5: OLIST_MARKER [CHECKBOX] list_item_principal_content _NEWLINE
 
 colist_item.5: "<" NUMBER ">" [WHITESPACE] list_item_principal_content _NEWLINE
 

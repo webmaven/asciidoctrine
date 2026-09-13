@@ -1,6 +1,6 @@
 = AsciiDoctrine Documentation
 Michael R. Bernstein <zopemaven@gmail.com>
-v0.2.0a6
+v0.2.0a8
 :docinfo: shared
 
 Welcome to the official documentation for *AsciiDoctrine*, a native Python implementation of the AsciiDoc Language Specification.
@@ -97,13 +97,9 @@ Calling `asg.to_dict()` yields a structured, spec-compliant representation match
       "name": "section",
       "type": "block",
       "level": 1,
-      "title": {
-        "name": "title",
-        "type": "inline",
-        "inlines": [
-          { "name": "text", "type": "string", "value": "Section Title" }
-        ]
-      },
+      "title": [
+        { "name": "text", "type": "string", "value": "Section Title" }
+      ],
       "blocks": [
         {
           "name": "paragraph",

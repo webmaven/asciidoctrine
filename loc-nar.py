@@ -25,7 +25,7 @@ def analyze_repo(path="."):
             if f.endswith(".py") and not f.endswith(".pyi"):
                 fp = os.path.join(root, f)
                 try:
-                    with open(fp, "r", encoding="utf-8", errors="ignore") as file:
+                    with open(fp, encoding="utf-8", errors="ignore") as file:
                         lengths.append(sum(1 for _ in file))
                 except Exception:
                     pass

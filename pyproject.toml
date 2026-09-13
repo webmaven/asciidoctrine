@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "asciidoctrine"
@@ -19,6 +19,7 @@ classifiers = [
 ]
 dependencies = [
     "lark==1.3.1",
+    "platformdirs",
 ]
 
 [project.urls]
@@ -31,11 +32,23 @@ dependencies = [
 "PyPI" = "https://pypi.org/project/asciidoctrine/"
 
 [project.optional-dependencies]
-test = ["pytest", "ruff", "mypy", "docutils", "types-docutils", "sphinx", "pytest-pyodide", "playwright", "pytest-cov", "pytest-xdist", "asciidoctest>=0.2.0a2", "asciidocstring>=0.1.0a6"]
+test = ["pytest", "ruff", "mypy", "docutils", "types-docutils", "sphinx", "pytest-pyodide", "playwright", "pytest-cov", "pytest-xdist", "asciidoctest>=0.2.0a2; python_version >= '3.14'", "asciidocstring>=0.1.0a6; python_version >= '3.14'"]
 docs = ["sphinx", "sphinx-rtd-theme", "sphinx-asciidoctrine>=0.1.0a2", "sphinx-autodoc2"]
 
-[tool.setuptools.package-data]
-asciidoctrine = ["grammar.lark"]
+[tool.hatch.build.targets.wheel]
+packages = ["src/asciidoctrine"]
+
+[tool.hatch.envs.default]
+installer = "uv"
+features = ["test", "docs"]
+
+[tool.hatch.envs.default.scripts]
+test = "pytest {args}"
+lint = "ruff check {args:.}"
+format = "ruff format {args:.}"
+typecheck = "mypy src/asciidoctrine {args}"
+docs-build = "sphinx-build -a -E -b html docs docs/_build/html {args}"
+docs-serve = "python -m http.server --directory docs/_build/html 8000"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -55,7 +68,7 @@ target-version = "py310"
 exclude = ["vendor", "venv", ".git"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I"]
+select = ["E", "F", "I", "UP", "B"]
 ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
@@ -72,3 +85,7 @@ mypy_path = "src"
 ignore_missing_imports = true
 
 [tool.coverage.run]
+
+[tool.coverage.report]
+fail_under = 75
+show_missing = true

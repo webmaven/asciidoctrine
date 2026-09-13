@@ -17,6 +17,10 @@ Classes
    :class: autosummary longtable
    :align: left
 
+   * - :py:obj:`ChildCollection <asciidoctrine.nodes.ChildCollection>`
+     - .. autodoc2-docstring:: asciidoctrine.nodes.ChildCollection
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
    * - :py:obj:`Node <asciidoctrine.nodes.Node>`
      - .. autodoc2-docstring:: asciidoctrine.nodes.Node
           :parser: sphinx_asciidoctrine.parser
@@ -49,8 +53,8 @@ Classes
      - .. autodoc2-docstring:: asciidoctrine.nodes.Revision
           :parser: sphinx_asciidoctrine.parser
           :summary:
-   * - :py:obj:`FloatingTitle <asciidoctrine.nodes.FloatingTitle>`
-     - .. autodoc2-docstring:: asciidoctrine.nodes.FloatingTitle
+   * - :py:obj:`DiscreteHeading <asciidoctrine.nodes.DiscreteHeading>`
+     - .. autodoc2-docstring:: asciidoctrine.nodes.DiscreteHeading
           :parser: sphinx_asciidoctrine.parser
           :summary:
    * - :py:obj:`Header <asciidoctrine.nodes.Header>`
@@ -246,6 +250,18 @@ Classes
           :parser: sphinx_asciidoctrine.parser
           :summary:
 
+Functions
+~~~~~~~~~
+
+.. list-table::
+   :class: autosummary longtable
+   :align: left
+
+   * - :py:obj:`validate_absolute_level <asciidoctrine.nodes.validate_absolute_level>`
+     - .. autodoc2-docstring:: asciidoctrine.nodes.validate_absolute_level
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
+
 Data
 ~~~~
 
@@ -265,7 +281,27 @@ Data
 API
 ~~~
 
-.. py:class:: Node(children: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
+.. py:class:: ChildCollection
+   :canonical: asciidoctrine.nodes.ChildCollection
+
+   Bases: :py:obj:`typing.Protocol`
+
+   .. autodoc2-docstring:: asciidoctrine.nodes.ChildCollection
+      :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: append(child: asciidoctrine.nodes.Node) -> None
+      :canonical: asciidoctrine.nodes.ChildCollection.append
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.ChildCollection.append
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: __len__() -> int
+      :canonical: asciidoctrine.nodes.ChildCollection.__len__
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.ChildCollection.__len__
+         :parser: sphinx_asciidoctrine.parser
+
+.. py:class:: Node(children: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None)
    :canonical: asciidoctrine.nodes.Node
 
    .. autodoc2-docstring:: asciidoctrine.nodes.Node
@@ -286,7 +322,7 @@ API
 
    .. py:attribute:: _source_text
       :canonical: asciidoctrine.nodes.Node._source_text
-      :type: typing.Optional[str]
+      :type: str | None
       :value: None
 
       .. autodoc2-docstring:: asciidoctrine.nodes.Node._source_text
@@ -298,25 +334,25 @@ API
       .. autodoc2-docstring:: asciidoctrine.nodes.Node.append
          :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Node.get_child_collections
 
       .. autodoc2-docstring:: asciidoctrine.nodes.Node.get_child_collections
          :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: to_dict() -> typing.Dict[str, typing.Any]
+   .. py:method:: to_dict() -> dict[str, typing.Any]
       :canonical: asciidoctrine.nodes.Node.to_dict
 
       .. autodoc2-docstring:: asciidoctrine.nodes.Node.to_dict
          :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: walk() -> typing.Iterator[asciidoctrine.nodes.Node]
+   .. py:method:: walk() -> collections.abc.Iterator[asciidoctrine.nodes.Node]
       :canonical: asciidoctrine.nodes.Node.walk
 
       .. autodoc2-docstring:: asciidoctrine.nodes.Node.walk
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: InlineNode(children: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
+.. py:class:: InlineNode(children: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None)
    :canonical: asciidoctrine.nodes.InlineNode
 
    Bases: :py:obj:`asciidoctrine.nodes.Node`
@@ -335,7 +371,7 @@ API
       .. autodoc2-docstring:: asciidoctrine.nodes.InlineNode.append
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: BlockNode(children: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
+.. py:class:: BlockNode(children: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None)
    :canonical: asciidoctrine.nodes.BlockNode
 
    Bases: :py:obj:`asciidoctrine.nodes.Node`
@@ -381,10 +417,10 @@ API
       .. autodoc2-docstring:: asciidoctrine.nodes.Docinfo._should_serialize_attributes
          :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: to_dict() -> typing.Dict[str, typing.Any]
+   .. py:method:: to_dict() -> dict[str, typing.Any]
       :canonical: asciidoctrine.nodes.Docinfo.to_dict
 
-.. py:class:: Document(blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, base_dir: typing.Optional[str] = None, safe_mode: int = 0)
+.. py:class:: Document(blocks: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None, base_dir: str | None = None, safe_mode: int = 0)
    :canonical: asciidoctrine.nodes.Document
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -404,16 +440,23 @@ API
       .. autodoc2-docstring:: asciidoctrine.nodes.Document._should_serialize_attributes
          :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Document.get_child_collections
 
-   .. py:method:: to_dict() -> typing.Dict[str, typing.Any]
+   .. py:property:: title
+      :canonical: asciidoctrine.nodes.Document.title
+      :type: asciidoctrine.nodes.Title | None
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.Document.title
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: to_dict() -> dict[str, typing.Any]
       :canonical: asciidoctrine.nodes.Document.to_dict
 
       .. autodoc2-docstring:: asciidoctrine.nodes.Document.to_dict
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: Title(inlines: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
+.. py:class:: Title(inlines: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None)
    :canonical: asciidoctrine.nodes.Title
 
    Bases: :py:obj:`asciidoctrine.nodes.InlineNode`
@@ -426,16 +469,16 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Title.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Title.get_child_collections
 
-   .. py:method:: to_list() -> typing.List[typing.Dict[str, typing.Any]]
+   .. py:method:: to_list() -> list[dict[str, typing.Any]]
       :canonical: asciidoctrine.nodes.Title.to_list
 
       .. autodoc2-docstring:: asciidoctrine.nodes.Title.to_list
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: Author(inlines: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
+.. py:class:: Author(inlines: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None)
    :canonical: asciidoctrine.nodes.Author
 
    Bases: :py:obj:`asciidoctrine.nodes.InlineNode`
@@ -448,10 +491,10 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Author.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Author.get_child_collections
 
-.. py:class:: Revision(inlines: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
+.. py:class:: Revision(inlines: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None)
    :canonical: asciidoctrine.nodes.Revision
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -464,7 +507,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Revision.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Revision.get_child_collections
 
    .. py:method:: append(child: asciidoctrine.nodes.Node) -> None
@@ -473,23 +516,48 @@ API
       .. autodoc2-docstring:: asciidoctrine.nodes.Revision.append
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: FloatingTitle(level: int, title: asciidoctrine.nodes.Title)
-   :canonical: asciidoctrine.nodes.FloatingTitle
+.. py:function:: validate_absolute_level(value: int | None, strict: bool = False, stacklevel: int = 3) -> int | None
+   :canonical: asciidoctrine.nodes.validate_absolute_level
+
+   .. autodoc2-docstring:: asciidoctrine.nodes.validate_absolute_level
+      :parser: sphinx_asciidoctrine.parser
+
+.. py:class:: DiscreteHeading(level: int, title: asciidoctrine.nodes.Title | None = None, absolute_level: int | None = None, strict: bool = False)
+   :canonical: asciidoctrine.nodes.DiscreteHeading
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
 
-   .. autodoc2-docstring:: asciidoctrine.nodes.FloatingTitle
+   .. autodoc2-docstring:: asciidoctrine.nodes.DiscreteHeading
       :parser: sphinx_asciidoctrine.parser
 
    .. rubric:: Initialization
 
-   .. autodoc2-docstring:: asciidoctrine.nodes.FloatingTitle.__init__
+   .. autodoc2-docstring:: asciidoctrine.nodes.DiscreteHeading.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
-      :canonical: asciidoctrine.nodes.FloatingTitle.get_child_collections
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
+      :canonical: asciidoctrine.nodes.DiscreteHeading.get_child_collections
 
-.. py:class:: Header(title: typing.Optional[asciidoctrine.nodes.Title] = None, authors: typing.Optional[typing.List[asciidoctrine.nodes.Author]] = None, revision: typing.Optional[asciidoctrine.nodes.Revision] = None, attributes: typing.Optional[typing.Dict[str, typing.Any]] = None, docinfo: typing.Optional[asciidoctrine.nodes.Docinfo] = None)
+   .. py:property:: absolute_level
+      :canonical: asciidoctrine.nodes.DiscreteHeading.absolute_level
+      :type: int | None
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.DiscreteHeading.absolute_level
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: set_absolute_level(value: int | None, strict: bool = False) -> None
+      :canonical: asciidoctrine.nodes.DiscreteHeading.set_absolute_level
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.DiscreteHeading.set_absolute_level
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: to_dict() -> dict[str, typing.Any]
+      :canonical: asciidoctrine.nodes.DiscreteHeading.to_dict
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.DiscreteHeading.to_dict
+         :parser: sphinx_asciidoctrine.parser
+
+.. py:class:: Header(title: asciidoctrine.nodes.Title | None = None, authors: list[asciidoctrine.nodes.Author] | None = None, revision: asciidoctrine.nodes.Revision | None = None, attributes: dict[str, typing.Any] | None = None, docinfo: asciidoctrine.nodes.Docinfo | None = None)
    :canonical: asciidoctrine.nodes.Header
 
    Bases: :py:obj:`asciidoctrine.nodes.Node`
@@ -509,13 +577,13 @@ API
       .. autodoc2-docstring:: asciidoctrine.nodes.Header._should_serialize_attributes
          :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: to_dict() -> typing.Dict[str, typing.Any]
+   .. py:method:: to_dict() -> dict[str, typing.Any]
       :canonical: asciidoctrine.nodes.Header.to_dict
 
       .. autodoc2-docstring:: asciidoctrine.nodes.Header.to_dict
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: Section(level: int, title: typing.Optional[asciidoctrine.nodes.Title] = None, blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
+.. py:class:: Section(level: int, title: asciidoctrine.nodes.Title | None = None, blocks: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None, absolute_level: int | None = None, strict: bool = False)
    :canonical: asciidoctrine.nodes.Section
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -528,10 +596,23 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Section.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Section.get_child_collections
 
-.. py:class:: Paragraph(inlines: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
+   .. py:property:: absolute_level
+      :canonical: asciidoctrine.nodes.Section.absolute_level
+      :type: int | None
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.Section.absolute_level
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: set_absolute_level(value: int | None, strict: bool = False) -> None
+      :canonical: asciidoctrine.nodes.Section.set_absolute_level
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.Section.set_absolute_level
+         :parser: sphinx_asciidoctrine.parser
+
+.. py:class:: Paragraph(inlines: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None)
    :canonical: asciidoctrine.nodes.Paragraph
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -544,7 +625,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Paragraph.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Paragraph.get_child_collections
 
    .. py:method:: append(child: asciidoctrine.nodes.Node) -> None
@@ -579,7 +660,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Break.__init__
       :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: InlinePassthrough(value: str, inlines: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, attributes: typing.Optional[typing.Dict[str, typing.Any]] = None)
+.. py:class:: InlinePassthrough(value: str, inlines: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None, attributes: dict[str, typing.Any] | None = None)
    :canonical: asciidoctrine.nodes.InlinePassthrough
 
    Bases: :py:obj:`asciidoctrine.nodes.InlineNode`
@@ -592,10 +673,10 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.InlinePassthrough.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.InlinePassthrough.get_child_collections
 
-.. py:class:: Kbd(keys: typing.List[str])
+.. py:class:: Kbd(keys: list[str])
    :canonical: asciidoctrine.nodes.Kbd
 
    Bases: :py:obj:`asciidoctrine.nodes.InlineNode`
@@ -621,7 +702,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Button.__init__
       :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: Menu(menu: str, items: typing.List[str])
+.. py:class:: Menu(menu: str, items: list[str])
    :canonical: asciidoctrine.nodes.Menu
 
    Bases: :py:obj:`asciidoctrine.nodes.InlineNode`
@@ -634,7 +715,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Menu.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: to_dict() -> typing.Dict[str, typing.Any]
+   .. py:method:: to_dict() -> dict[str, typing.Any]
       :canonical: asciidoctrine.nodes.Menu.to_dict
 
 .. py:class:: Callout(number: int)
@@ -663,7 +744,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.InlineStem.__init__
       :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: CalloutList(items: typing.Optional[typing.Sequence[asciidoctrine.nodes.CalloutListItem]] = None)
+.. py:class:: CalloutList(items: collections.abc.Sequence[asciidoctrine.nodes.CalloutListItem] | None = None)
    :canonical: asciidoctrine.nodes.CalloutList
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -676,7 +757,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.CalloutList.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.CalloutList.get_child_collections
 
    .. py:method:: append(child: asciidoctrine.nodes.Node) -> None
@@ -685,7 +766,7 @@ API
       .. autodoc2-docstring:: asciidoctrine.nodes.CalloutList.append
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: CalloutListItem(number: int, principal: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
+.. py:class:: CalloutListItem(number: int, principal: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None, blocks: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None)
    :canonical: asciidoctrine.nodes.CalloutListItem
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -698,10 +779,10 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.CalloutListItem.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.CalloutListItem.get_child_collections
 
-.. py:class:: Span(variant: str, inlines: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, form: str = 'constrained')
+.. py:class:: Span(variant: str, inlines: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None, form: str = 'constrained')
    :canonical: asciidoctrine.nodes.Span
 
    Bases: :py:obj:`asciidoctrine.nodes.InlineNode`
@@ -714,10 +795,10 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Span.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Span.get_child_collections
 
-.. py:class:: Ref(variant: str, target: str, inlines: typing.Optional[typing.List[asciidoctrine.nodes.Node]] = None)
+.. py:class:: Ref(variant: str, target: str, inlines: list[asciidoctrine.nodes.Node] | None = None)
    :canonical: asciidoctrine.nodes.Ref
 
    Bases: :py:obj:`asciidoctrine.nodes.InlineNode`
@@ -730,10 +811,10 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Ref.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Ref.get_child_collections
 
-.. py:class:: Image(target: str, alt: str = '', form: str = 'macro', type: str = 'block')
+.. py:class:: Image(target: str, alt: str = '', type: str = 'block', attributes: dict[str, typing.Any] | None = None)
    :canonical: asciidoctrine.nodes.Image
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -746,14 +827,15 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Image.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:attribute:: _should_serialize_attributes
-      :canonical: asciidoctrine.nodes.Image._should_serialize_attributes
-      :value: False
+   .. py:attribute:: form
+      :canonical: asciidoctrine.nodes.Image.form
+      :type: str
+      :value: 'macro'
 
-      .. autodoc2-docstring:: asciidoctrine.nodes.Image._should_serialize_attributes
+      .. autodoc2-docstring:: asciidoctrine.nodes.Image.form
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: Audio(target: str, attributes: typing.Optional[typing.Dict[str, typing.Any]] = None)
+.. py:class:: Audio(target: str, attributes: dict[str, typing.Any] | None = None)
    :canonical: asciidoctrine.nodes.Audio
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -766,7 +848,15 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Audio.__init__
       :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: Video(target: str, attributes: typing.Optional[typing.Dict[str, typing.Any]] = None)
+   .. py:attribute:: form
+      :canonical: asciidoctrine.nodes.Audio.form
+      :type: str
+      :value: 'macro'
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.Audio.form
+         :parser: sphinx_asciidoctrine.parser
+
+.. py:class:: Video(target: str, attributes: dict[str, typing.Any] | None = None)
    :canonical: asciidoctrine.nodes.Video
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -779,7 +869,15 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Video.__init__
       :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: List(variant: str, marker: str, items: typing.Optional[typing.Sequence[asciidoctrine.nodes.ListItem]] = None)
+   .. py:attribute:: form
+      :canonical: asciidoctrine.nodes.Video.form
+      :type: str
+      :value: 'macro'
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.Video.form
+         :parser: sphinx_asciidoctrine.parser
+
+.. py:class:: List(variant: str, marker: str, items: collections.abc.Sequence[asciidoctrine.nodes.ListItem] | None = None, numeration: str | None = None, start: int | None = None, reversed: bool = False)
    :canonical: asciidoctrine.nodes.List
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -792,8 +890,15 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.List.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.List.get_child_collections
+
+   .. py:property:: has_metadata
+      :canonical: asciidoctrine.nodes.List.has_metadata
+      :type: bool
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.List.has_metadata
+         :parser: sphinx_asciidoctrine.parser
 
    .. py:method:: append(child: asciidoctrine.nodes.Node) -> None
       :canonical: asciidoctrine.nodes.List.append
@@ -801,7 +906,13 @@ API
       .. autodoc2-docstring:: asciidoctrine.nodes.List.append
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: ListItem(marker: str, principal: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, checked: typing.Optional[bool] = None)
+   .. py:method:: to_dict() -> dict[str, typing.Any]
+      :canonical: asciidoctrine.nodes.List.to_dict
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.List.to_dict
+         :parser: sphinx_asciidoctrine.parser
+
+.. py:class:: ListItem(marker: str, principal: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None, blocks: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None, checked: bool | None = None)
    :canonical: asciidoctrine.nodes.ListItem
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -814,10 +925,10 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.ListItem.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.ListItem.get_child_collections
 
-.. py:class:: DescriptionList(items: typing.Optional[typing.Sequence[asciidoctrine.nodes.DescriptionListItem]] = None)
+.. py:class:: DescriptionList(items: collections.abc.Sequence[asciidoctrine.nodes.DescriptionListItem] | None = None)
    :canonical: asciidoctrine.nodes.DescriptionList
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -830,7 +941,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.DescriptionList.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.DescriptionList.get_child_collections
 
    .. py:method:: append(child: asciidoctrine.nodes.Node) -> None
@@ -839,7 +950,7 @@ API
       .. autodoc2-docstring:: asciidoctrine.nodes.DescriptionList.append
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: DescriptionListItem(terms: typing.List[asciidoctrine.nodes.DescriptionListTerm], blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
+.. py:class:: DescriptionListItem(terms: list[asciidoctrine.nodes.DescriptionListTerm], blocks: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None)
    :canonical: asciidoctrine.nodes.DescriptionListItem
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -852,10 +963,10 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.DescriptionListItem.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.DescriptionListItem.get_child_collections
 
-.. py:class:: DescriptionListTerm(inlines: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
+.. py:class:: DescriptionListTerm(inlines: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None)
    :canonical: asciidoctrine.nodes.DescriptionListTerm
 
    Bases: :py:obj:`asciidoctrine.nodes.InlineNode`
@@ -868,7 +979,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.DescriptionListTerm.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.DescriptionListTerm.get_child_collections
 
 .. py:data:: CALLOUT_RE
@@ -907,12 +1018,12 @@ API
 
    .. py:property:: callouts
       :canonical: asciidoctrine.nodes.VerbatimBlockMixin.callouts
-      :type: typing.Dict[int, typing.List[int]]
+      :type: dict[int, list[int]]
 
       .. autodoc2-docstring:: asciidoctrine.nodes.VerbatimBlockMixin.callouts
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: Listing(inlines: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, attributes: typing.Optional[typing.Dict[str, typing.Any]] = None, delimiter: str = '----')
+.. py:class:: Listing(inlines: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None, attributes: dict[str, typing.Any] | None = None, delimiter: str = '----')
    :canonical: asciidoctrine.nodes.Listing
 
    Bases: :py:obj:`asciidoctrine.nodes.VerbatimBlockMixin`, :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -925,7 +1036,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Listing.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Listing.get_child_collections
 
    .. py:method:: append(child: asciidoctrine.nodes.Node) -> None
@@ -936,33 +1047,33 @@ API
 
    .. py:property:: id
       :canonical: asciidoctrine.nodes.Listing.id
-      :type: typing.Optional[str]
+      :type: str | None
 
       .. autodoc2-docstring:: asciidoctrine.nodes.Listing.id
          :parser: sphinx_asciidoctrine.parser
 
    .. py:property:: language
       :canonical: asciidoctrine.nodes.Listing.language
-      :type: typing.Optional[str]
+      :type: str | None
 
       .. autodoc2-docstring:: asciidoctrine.nodes.Listing.language
          :parser: sphinx_asciidoctrine.parser
 
    .. py:property:: style
       :canonical: asciidoctrine.nodes.Listing.style
-      :type: typing.Optional[str]
+      :type: str | None
 
       .. autodoc2-docstring:: asciidoctrine.nodes.Listing.style
          :parser: sphinx_asciidoctrine.parser
 
    .. py:property:: listing_title
       :canonical: asciidoctrine.nodes.Listing.listing_title
-      :type: typing.Optional[str]
+      :type: str | None
 
       .. autodoc2-docstring:: asciidoctrine.nodes.Listing.listing_title
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: Literal(inlines: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, attributes: typing.Optional[typing.Dict[str, typing.Any]] = None, delimiter: typing.Optional[str] = None, form: str = 'delimited')
+.. py:class:: Literal(inlines: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None, attributes: dict[str, typing.Any] | None = None, delimiter: str | None = None, form: str = 'delimited')
    :canonical: asciidoctrine.nodes.Literal
 
    Bases: :py:obj:`asciidoctrine.nodes.VerbatimBlockMixin`, :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -975,7 +1086,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Literal.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Literal.get_child_collections
 
    .. py:method:: append(child: asciidoctrine.nodes.Node) -> None
@@ -986,26 +1097,26 @@ API
 
    .. py:property:: id
       :canonical: asciidoctrine.nodes.Literal.id
-      :type: typing.Optional[str]
+      :type: str | None
 
       .. autodoc2-docstring:: asciidoctrine.nodes.Literal.id
          :parser: sphinx_asciidoctrine.parser
 
    .. py:property:: style
       :canonical: asciidoctrine.nodes.Literal.style
-      :type: typing.Optional[str]
+      :type: str | None
 
       .. autodoc2-docstring:: asciidoctrine.nodes.Literal.style
          :parser: sphinx_asciidoctrine.parser
 
    .. py:property:: literal_title
       :canonical: asciidoctrine.nodes.Literal.literal_title
-      :type: typing.Optional[str]
+      :type: str | None
 
       .. autodoc2-docstring:: asciidoctrine.nodes.Literal.literal_title
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: Passthrough(inlines: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, attributes: typing.Optional[typing.Dict[str, typing.Any]] = None, delimiter: str = '++++')
+.. py:class:: Passthrough(inlines: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None, attributes: dict[str, typing.Any] | None = None, delimiter: str = '++++')
    :canonical: asciidoctrine.nodes.Passthrough
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -1018,10 +1129,10 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Passthrough.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Passthrough.get_child_collections
 
-.. py:class:: Comment(value: str, delimiter: str = '////', attributes: typing.Optional[typing.Dict[str, typing.Any]] = None)
+.. py:class:: Comment(value: str, delimiter: str = '////', attributes: dict[str, typing.Any] | None = None)
    :canonical: asciidoctrine.nodes.Comment
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -1034,10 +1145,10 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Comment.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Comment.get_child_collections
 
-.. py:class:: Stem(variant: str, inlines: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, attributes: typing.Optional[typing.Dict[str, typing.Any]] = None, delimiter: typing.Optional[str] = None)
+.. py:class:: Stem(variant: str, inlines: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None, attributes: dict[str, typing.Any] | None = None, delimiter: str | None = None)
    :canonical: asciidoctrine.nodes.Stem
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -1050,10 +1161,10 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Stem.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Stem.get_child_collections
 
-.. py:class:: Example(blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, delimiter: str = '====')
+.. py:class:: Example(blocks: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None, delimiter: str = '====')
    :canonical: asciidoctrine.nodes.Example
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -1066,10 +1177,10 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Example.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Example.get_child_collections
 
-.. py:class:: Collapsible(title: typing.Optional[asciidoctrine.nodes.Title] = None, blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, attributes: typing.Optional[typing.Dict[str, typing.Any]] = None)
+.. py:class:: Collapsible(title: asciidoctrine.nodes.Title | None = None, blocks: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None, attributes: dict[str, typing.Any] | None = None)
    :canonical: asciidoctrine.nodes.Collapsible
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -1082,13 +1193,10 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Collapsible.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Collapsible.get_child_collections
 
-   .. py:method:: to_dict() -> typing.Dict[str, typing.Any]
-      :canonical: asciidoctrine.nodes.Collapsible.to_dict
-
-.. py:class:: Quote(blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, delimiter: str = '____', attribution: typing.Optional[str] = None, citetitle: typing.Optional[str] = None, attributes: typing.Optional[typing.Dict[str, typing.Any]] = None)
+.. py:class:: Quote(blocks: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None, delimiter: str = '____', attribution: str | None = None, citetitle: str | None = None, attributes: dict[str, typing.Any] | None = None)
    :canonical: asciidoctrine.nodes.Quote
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -1101,10 +1209,10 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Quote.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Quote.get_child_collections
 
-.. py:class:: Admonition(variant: str, blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, delimiter: typing.Optional[str] = '====')
+.. py:class:: Admonition(variant: str, blocks: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None, delimiter: str | None = '====')
    :canonical: asciidoctrine.nodes.Admonition
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -1117,10 +1225,10 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Admonition.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Admonition.get_child_collections
 
-.. py:class:: Sidebar(blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, delimiter: str = '****')
+.. py:class:: Sidebar(blocks: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None, delimiter: str = '****')
    :canonical: asciidoctrine.nodes.Sidebar
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -1133,10 +1241,10 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Sidebar.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Sidebar.get_child_collections
 
-.. py:class:: Verse(blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, delimiter: typing.Optional[str] = None, attribution: typing.Optional[str] = None, citetitle: typing.Optional[str] = None, attributes: typing.Optional[typing.Dict[str, typing.Any]] = None)
+.. py:class:: Verse(blocks: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None, delimiter: str | None = None, attribution: str | None = None, citetitle: str | None = None, attributes: dict[str, typing.Any] | None = None)
    :canonical: asciidoctrine.nodes.Verse
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -1149,10 +1257,10 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Verse.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Verse.get_child_collections
 
-.. py:class:: Open(blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None, delimiter: str = '--')
+.. py:class:: Open(blocks: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None, delimiter: str = '--')
    :canonical: asciidoctrine.nodes.Open
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -1165,10 +1273,10 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Open.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Open.get_child_collections
 
-.. py:class:: Table(rows: typing.Optional[typing.Sequence[asciidoctrine.nodes.TableRow]] = None, columns: typing.Optional[typing.Sequence[typing.Dict[str, typing.Any]]] = None)
+.. py:class:: Table(rows: collections.abc.Sequence[asciidoctrine.nodes.TableRow] | None = None, columns: collections.abc.Sequence[dict[str, typing.Any]] | None = None)
    :canonical: asciidoctrine.nodes.Table
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -1181,7 +1289,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Table.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.Table.get_child_collections
 
    .. py:method:: append(child: asciidoctrine.nodes.Node) -> None
@@ -1190,7 +1298,7 @@ API
       .. autodoc2-docstring:: asciidoctrine.nodes.Table.append
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: TableRow(cells: typing.Optional[typing.Sequence[asciidoctrine.nodes.TableCell]] = None)
+.. py:class:: TableRow(cells: collections.abc.Sequence[asciidoctrine.nodes.TableCell] | None = None)
    :canonical: asciidoctrine.nodes.TableRow
 
    Bases: :py:obj:`asciidoctrine.nodes.Node`
@@ -1203,7 +1311,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.TableRow.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.TableRow.get_child_collections
 
    .. py:method:: append(child: asciidoctrine.nodes.Node) -> None
@@ -1212,7 +1320,7 @@ API
       .. autodoc2-docstring:: asciidoctrine.nodes.TableRow.append
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: TableCell(blocks: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
+.. py:class:: TableCell(blocks: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None)
    :canonical: asciidoctrine.nodes.TableCell
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -1225,7 +1333,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.TableCell.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.TableCell.get_child_collections
 
 .. py:class:: ThematicBreak()
@@ -1267,7 +1375,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.AttributeEntry.__init__
       :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: Attributes(attributes: typing.Dict[str, typing.Any])
+.. py:class:: Attributes(attributes: dict[str, typing.Any])
    :canonical: asciidoctrine.nodes.Attributes
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -1300,7 +1408,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Include.__init__
       :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: Toc(target: str = '', attributes: typing.Optional[typing.Dict[str, typing.Any]] = None)
+.. py:class:: Toc(target: str = '', attributes: dict[str, typing.Any] | None = None)
    :canonical: asciidoctrine.nodes.Toc
 
    Bases: :py:obj:`asciidoctrine.nodes.BlockNode`
@@ -1313,7 +1421,15 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.Toc.__init__
       :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: IndexTerm(terms: typing.Sequence[str], variant: str = 'macro', inlines: typing.Optional[typing.Sequence[asciidoctrine.nodes.Node]] = None)
+   .. py:attribute:: form
+      :canonical: asciidoctrine.nodes.Toc.form
+      :type: str
+      :value: 'macro'
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.Toc.form
+         :parser: sphinx_asciidoctrine.parser
+
+.. py:class:: IndexTerm(terms: collections.abc.Sequence[str], variant: str = 'macro', inlines: collections.abc.Sequence[asciidoctrine.nodes.Node] | None = None)
    :canonical: asciidoctrine.nodes.IndexTerm
 
    Bases: :py:obj:`asciidoctrine.nodes.InlineNode`
@@ -1326,11 +1442,45 @@ API
    .. autodoc2-docstring:: asciidoctrine.nodes.IndexTerm.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: get_child_collections() -> typing.Dict[str, typing.List[asciidoctrine.nodes.Node]]
+   .. py:property:: primary
+      :canonical: asciidoctrine.nodes.IndexTerm.primary
+      :type: str
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.IndexTerm.primary
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:property:: secondary
+      :canonical: asciidoctrine.nodes.IndexTerm.secondary
+      :type: str | None
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.IndexTerm.secondary
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:property:: tertiary
+      :canonical: asciidoctrine.nodes.IndexTerm.tertiary
+      :type: str | None
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.IndexTerm.tertiary
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:property:: visible
+      :canonical: asciidoctrine.nodes.IndexTerm.visible
+      :type: bool
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.IndexTerm.visible
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: get_child_collections() -> dict[str, list[asciidoctrine.nodes.Node]]
       :canonical: asciidoctrine.nodes.IndexTerm.get_child_collections
 
-   .. py:method:: to_dict() -> typing.Dict[str, typing.Any]
+      .. autodoc2-docstring:: asciidoctrine.nodes.IndexTerm.get_child_collections
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: to_dict() -> dict[str, typing.Any]
       :canonical: asciidoctrine.nodes.IndexTerm.to_dict
+
+      .. autodoc2-docstring:: asciidoctrine.nodes.IndexTerm.to_dict
+         :parser: sphinx_asciidoctrine.parser
 
 .. py:class:: NodeVisitor
    :canonical: asciidoctrine.nodes.NodeVisitor

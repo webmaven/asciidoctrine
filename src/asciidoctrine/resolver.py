@@ -1,9 +1,9 @@
 import os
 import posixpath
 from collections import defaultdict
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Dict, Optional, Sequence, Union, cast
-from typing import List as PyList
+from typing import Any, cast
 
 from .attributes import resolve_attribute_map, substitute_attributes
 from .columns import parse_cols
@@ -14,6 +14,7 @@ from .nodes import (
     Attributes,
     Docinfo,
     Document,
+    IndexTerm,
     Node,
     NodeTransformer,
     Ref,
@@ -44,10 +45,10 @@ class WorkspaceCatalog:
     """
 
     def __init__(self) -> None:
-        self.by_fqid: Dict[
+        self.by_fqid: dict[
             str, Node
         ] = {}  # Maps "file_id#anchor_id" -> Live Node instance
-        self.by_local_id: Dict[str, PyList[str]] = defaultdict(
+        self.by_local_id: dict[str, list[str]] = defaultdict(
             list
         )  # Maps "anchor_id" -> List of files
 
@@ -60,7 +61,7 @@ class WorkspaceCatalog:
         # Always index the document root under an empty anchor for file-level links (e.g. xref:doc.adoc[])
         self.by_fqid[f"{file_id}#"] = document
 
-        stack: PyList[Node] = [document]
+        stack: list[Node] = [document]
         header = getattr(document, "header", None)
         if header:
             stack.append(header)
@@ -100,23 +101,38 @@ class ASGResolver(NodeTransformer):
 
     def __init__(
         self,
-        document: Document,
-        catalog: Optional[WorkspaceCatalog] = None,
-        current_file_id: Optional[str] = None,
+        document: Document | None = None,
+        catalog: WorkspaceCatalog | None = None,
+        current_file_id: str | None = None,
     ) -> None:
-        self.attributes = getattr(document, "attributes", {})
-        self.resolved_attributes = resolve_attribute_map(self.attributes)
+        """Initializes the ASGResolver with an optional Document, catalog, and file ID.
+
+        *Parameters:*
+
+        `document`:: Optional root `Document` AST node instance to resolve.
+        `catalog`:: Optional `WorkspaceCatalog` containing symbol tables for multi-file workspace resolution. Defaults to a new empty catalog if omitted.
+        `current_file_id`:: The relative file ID of the document being resolved (e.g. `"chapter1/intro.adoc"`). Used for resolving relative path targets and local file resolution fallbacks.
+        """
         self.catalog = catalog or WorkspaceCatalog()
-        doc_id = getattr(document, "id", None)
-        self.current_file_id: str = (
-            current_file_id
-            if current_file_id is not None
-            else (str(doc_id) if doc_id is not None else "root")
-        )
-        self.footnotes: PyList[Dict[str, Any]] = []
+        if document is not None:
+            self.attributes = getattr(document, "attributes", {})
+            self.resolved_attributes = resolve_attribute_map(self.attributes)
+            doc_id = getattr(document, "id", None)
+            self.current_file_id: str = (
+                current_file_id
+                if current_file_id is not None
+                else (str(doc_id) if doc_id is not None else "root")
+            )
+        else:
+            self.attributes = {}
+            self.resolved_attributes = {}
+            self.current_file_id = (
+                current_file_id if current_file_id is not None else "root"
+            )
+        self.footnotes: list[dict[str, Any]] = []
         self.footnote_counter: int = 0
-        self.footnote_by_id: Dict[str, Dict[str, Any]] = {}
-        self.warnings: PyList[Dict[str, Any]] = []
+        self.footnote_by_id: dict[str, dict[str, Any]] = {}
+        self.warnings: list[dict[str, Any]] = []
 
     def _resolve_docinfo_files(self, doc: Document) -> tuple[str, str]:
         docinfo_attr = str(self.resolved_attributes.get("docinfo", "")).strip()
@@ -141,7 +157,7 @@ class ASGResolver(NodeTransformer):
         if not docname:
             docname = "docinfo"
 
-        doc_loader: Optional[FileProvider] = getattr(doc, "loader", None)
+        doc_loader: FileProvider | None = getattr(doc, "loader", None)
         base_dir_path = (
             Path(doc.base_dir).resolve() if doc.base_dir else Path.cwd().resolve()
         )
@@ -170,8 +186,8 @@ class ASGResolver(NodeTransformer):
             except ValueError:
                 return ("", "")
 
-        head_contents: PyList[str] = []
-        footer_contents: PyList[str] = []
+        head_contents: list[str] = []
+        footer_contents: list[str] = []
 
         def safe_read(rel_filename: str) -> str:
             if doc_loader is not None:
@@ -239,7 +255,7 @@ class ASGResolver(NodeTransformer):
 
         return (head_str, footer_str)
 
-    def resolve(self, node: Node) -> Dict[str, Any]:
+    def resolve(self, node: Node) -> dict[str, Any]:
         """Converts an AST node tree to a fully-resolved ASG dictionary without mutating the original input AST.
 
         Performs a pure deep copy of the input node tree before applying transformations, ensuring the
@@ -252,6 +268,12 @@ class ASGResolver(NodeTransformer):
         import copy
 
         if isinstance(node, Document):
+            if not self.attributes:
+                self.attributes = getattr(node, "attributes", {})
+                self.resolved_attributes = resolve_attribute_map(self.attributes)
+                doc_id = getattr(node, "id", None)
+                if self.current_file_id == "root" and doc_id is not None:
+                    self.current_file_id = str(doc_id)
             head_content, footer_content = self._resolve_docinfo_files(node)
             if head_content or footer_content:
                 node.docinfo = Docinfo(
@@ -277,58 +299,126 @@ class ASGResolver(NodeTransformer):
 
         return asg
 
+    def resolve_to_ast(self, doc: Document) -> Document:
+        """Resolves semantic elements, attributes, and cross-references in-place on a typed Document AST.
+
+        Performs full attribute substitution, footnote numbering, and reference indexing directly on
+        the provided `Document` tree. Standalone comment and attribute entry blocks are filtered/consumed
+        as during ASG resolution, while structural blocks remain typed AST `Node` instances.
+
+        *Parameters:*
+
+        `doc`::
+          The root `Document` AST node instance to resolve in-place.
+
+        *Returns:*
+
+        The resolved `Document` AST instance (the same object as `doc`).
+        """
+        self.attributes = getattr(doc, "attributes", {})
+        self.resolved_attributes = resolve_attribute_map(self.attributes)
+        doc_id = getattr(doc, "id", None)
+        if self.current_file_id == "root" and doc_id is not None:
+            self.current_file_id = str(doc_id)
+
+        if f"{self.current_file_id}#" not in self.catalog.by_fqid:
+            self.catalog.index_document(self.current_file_id, doc)
+
+        head_content, footer_content = self._resolve_docinfo_files(doc)
+        if head_content or footer_content:
+            doc.docinfo = Docinfo(
+                head_content=head_content, footer_content=footer_content
+            )
+
+        self.footnotes = []
+        self.footnote_counter = 0
+        self.footnote_by_id = {}
+        self.warnings = []
+
+        self.visit(doc)
+
+        doc.footnotes = self.footnotes
+        doc.attributes = cast(dict[str, Any], self.resolved_attributes)
+
+        return doc
+
     def generic_visit(self, node: Node, **kwargs: Any) -> Node:
+        """Recursively visits AST nodes, resolving block attributes, target substitutions, and child collections.
+
+        *Target Attribute Substitution:*
+
+        Any node with a string `target` attribute (such as `Image`, `Audio`,
+        `Video`, or `Include` macros) receives document attribute substitution
+        via `substitute_attributes` (e.g. `image::{imagesdir}/photo.jpg[]`
+        expands `{imagesdir}` to its resolved document attribute value).
+
+        `node`:: The AST node being traversed and transformed.
+        `kwargs`:: Optional context passed during AST traversal.
+
+        Returns the visited (and potentially mutated in-place) AST node.
+        """
         # First, clean block-level attributes in-place for any node that is not a document or attributes node
         if node.name not in ("document", "attributes") and node.attributes:
             cleaned_attrs = {}
             for k, v in node.attributes.items():
                 if k == "positional" or k.isdigit():
                     continue
-                cleaned_attrs[k] = v
+                if isinstance(v, str):
+                    cleaned_attrs[k] = substitute_attributes(
+                        v, self.resolved_attributes
+                    )
+                else:
+                    cleaned_attrs[k] = v
             if cleaned_attrs:
                 node.attributes = cleaned_attrs
             else:
                 node.attributes = {}
 
+        if hasattr(node, "target") and isinstance(getattr(node, "target", None), str):
+            node.target = substitute_attributes(node.target, self.resolved_attributes)
+
         # Process child collections
+        def flush_group(
+            curr: list[AttributeEntry],
+            dest: list[Node],
+        ) -> None:
+            if not curr:
+                return
+            group_attrs: dict[str, Any] = {}
+            first_loc = None
+            last_loc = None
+            for entry in curr:
+                name = entry.attribute_name
+                val = entry.value
+                loc = entry.location
+                if loc and len(loc) >= 2:
+                    if first_loc is None:
+                        first_loc = loc[0]
+                    last_loc = loc[1]
+                group_attrs[name] = {
+                    "value": val,
+                }
+                if loc:
+                    group_attrs[name]["location"] = loc
+
+            attributes_node = Attributes(group_attrs)
+            if first_loc and last_loc:
+                attributes_node.location = [first_loc, last_loc]
+            dest.append(attributes_node)
+            curr.clear()
+
         for attr_name, collection in list(node.get_child_collections().items()):
             # 1. Group contiguous AttributeEntry nodes into Attributes nodes
             grouped_children: list[Node] = []
             current_group: list[AttributeEntry] = []
 
-            def flush_group() -> None:
-                if not current_group:
-                    return
-                group_attrs: dict[str, Any] = {}
-                first_loc = None
-                last_loc = None
-                for entry in current_group:
-                    name = entry.attribute_name
-                    val = entry.value
-                    loc = entry.location
-                    if loc and len(loc) >= 2:
-                        if first_loc is None:
-                            first_loc = loc[0]
-                        last_loc = loc[1]
-                    group_attrs[name] = {
-                        "value": val,
-                    }
-                    if loc:
-                        group_attrs[name]["location"] = loc
-
-                attributes_node = Attributes(group_attrs)
-                if first_loc and last_loc:
-                    attributes_node.location = [first_loc, last_loc]
-                grouped_children.append(attributes_node)
-                current_group.clear()
-
             for child in collection:
                 if child.name == "attribute_entry":
                     current_group.append(cast(AttributeEntry, child))
                 else:
-                    flush_group()
+                    flush_group(current_group, grouped_children)
                     grouped_children.append(child)
-            flush_group()
+            flush_group(current_group, grouped_children)
 
             # 2. Visit each child and update the collection
             new_collection = []
@@ -350,16 +440,38 @@ class ASGResolver(NodeTransformer):
         return node
 
     def visit_attributes(self, node: Attributes, **kwargs: Any) -> Node:
-        for attr_name, attr_info in node.attributes.items():
+        for attr_info in node.attributes.values():
             if isinstance(attr_info, dict) and "value" in attr_info:
                 attr_info["value"] = substitute_attributes(
                     attr_info["value"], self.resolved_attributes
                 )
         return node
 
-    def visit_comment(self, node: Node, **kwargs: Any) -> Optional[Node]:
+    def visit_comment(self, node: Node, **kwargs: Any) -> Node | None:
         # Filter out comments from parent lists
         return None
+
+    def visit_indexterm(self, node: IndexTerm, **kwargs: Any) -> Node:
+        """
+        Visits an `IndexTerm` AST node during resolution.
+
+        Ensures the index term node is preserved across AST and ASG resolution passes,
+        applies document-level and block-level attribute substitutions to its terms,
+        and traverses any nested child inline nodes.
+
+        *Parameters:*
+
+        `node`:: The `IndexTerm` AST node to resolve.
+
+        *Returns:*
+
+        The resolved `IndexTerm` AST node.
+        """
+        self.generic_visit(node, **kwargs)
+        node.terms = [
+            substitute_attributes(t, self.resolved_attributes) for t in node.terms
+        ]
+        return node
 
     def visit_table(self, node: Table, **kwargs: Any) -> Node:
         self.generic_visit(node, **kwargs)
@@ -385,9 +497,9 @@ class ASGResolver(NodeTransformer):
         return node
 
     def _extract_inline_text(self, nodes: Sequence[Node]) -> str:
-        parts: PyList[str] = []
+        parts: list[str] = []
         for n in nodes:
-            if hasattr(n, "value") and getattr(n, "value") is not None:
+            if hasattr(n, "value") and n.value is not None:
                 parts.append(str(n.value))
             for coll in n.get_child_collections().values():
                 parts.append(self._extract_inline_text(coll))
@@ -453,7 +565,7 @@ class ASGResolver(NodeTransformer):
         target_str = str(node.target)
 
         # Robust parsing of file vs anchor links
-        target_file: Optional[str] = None
+        target_file: str | None = None
         target_anchor: str = ""
         if "#" in target_str:
             parts = target_str.split("#", 1)
@@ -564,9 +676,9 @@ class WorkspaceBuilder:
 
     def __init__(
         self,
-        workspace_root: Union[str, Path] = "/workspace",
-        lark_parser_instance: Optional[Any] = None,
-        loader: Optional[FileProvider] = None,
+        workspace_root: str | Path = "/workspace",
+        lark_parser_instance: Any | None = None,
+        loader: FileProvider | None = None,
     ) -> None:
         if loader is not None:
             self.loader: FileProvider = loader
@@ -579,11 +691,11 @@ class WorkspaceBuilder:
 
         self.parser = lark_parser_instance
         self.catalog = WorkspaceCatalog()
-        self.raw_documents: Dict[str, Document] = {}
-        self.resolved_asg_graphs: Dict[str, Dict[str, Any]] = {}
-        self.warnings: PyList[Dict[str, Any]] = []
+        self.raw_documents: dict[str, Document] = {}
+        self.resolved_asg_graphs: dict[str, dict[str, Any]] = {}
+        self.warnings: list[dict[str, Any]] = []
 
-    def _get_file_id(self, path_str: Union[str, Path]) -> str:
+    def _get_file_id(self, path_str: str | Path) -> str:
         """Generates a stable, platform-agnostic string file ID relative to the workspace root.
 
         `path_str`:: File system or virtual path to a document.
@@ -648,7 +760,7 @@ class WorkspaceBuilder:
             self.resolved_asg_graphs[file_id] = resolver.resolve(ast_tree)
             self.warnings.extend(resolver.warnings)
 
-    def build(self) -> Dict[str, Dict[str, Any]]:
+    def build(self) -> dict[str, dict[str, Any]]:
         """Runs the complete multi-pass orchestration sequence sequentially (Pass 1 -> Pass 2 -> Pass 3).
 
         Returns a dictionary mapping relative file IDs (e.g., `"doc.adoc"`) to their fully-resolved, spec-compliant ASG dictionaries.
@@ -658,3 +770,18 @@ class WorkspaceBuilder:
         self.index_workspace_symbols()
         self.resolve_workspace_semantics()
         return self.resolved_asg_graphs
+
+
+def resolve_to_ast(doc: Document) -> Document:
+    """Convenience function resolving semantic elements and attributes in-place on a Document AST.
+
+    *Parameters:*
+
+    `doc`::
+      The root `Document` AST node instance to resolve in-place.
+
+    *Returns:*
+
+    The resolved `Document` AST instance.
+    """
+    return ASGResolver().resolve_to_ast(doc)

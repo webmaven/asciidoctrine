@@ -1,27 +1,36 @@
 import os
 import unittest
+import warnings
 
 import pytest
 
-from asciidoctrine import parse_to_ast, serialize_to_asciidoc
+from asciidoctrine import dumps, loads, parse_to_ast, serialize_to_asciidoc
+from asciidoctrine.loader import FileProvider, MemoryLoader
 
 pytestmark = pytest.mark.integration
 
 
 class TestAsciiDocSerializer(unittest.TestCase):
-    def setUp(self):
-        # Create a dummy include file in the current working directory
-        with open("otherfile.adoc", "w") as f:
-            f.write("This is include content.")
+    def setUp(self) -> None:
+        self.assertFalse(
+            os.path.exists("otherfile.adoc"),
+            "Hermetic test violation: otherfile.adoc must not exist on disk.",
+        )
 
-    def tearDown(self):
-        if os.path.exists("otherfile.adoc"):
-            os.remove("otherfile.adoc")
+    def tearDown(self) -> None:
+        self.assertFalse(
+            os.path.exists("otherfile.adoc"),
+            "Hermetic test violation: otherfile.adoc must not exist on disk.",
+        )
 
-    def _assert_roundtrip(self, source: str):
+    def _assert_roundtrip(
+        self, source: str, loader: FileProvider | None = None
+    ) -> None:
         """Helper to verify that serializing the AST yields semantically identical AST."""
+        if loader is None:
+            loader = MemoryLoader({"otherfile.adoc": "This is include content."})
         # Parse original source
-        ast_original = parse_to_ast(source)
+        ast_original = parse_to_ast(source, loader=loader)
         dict_original = ast_original.to_dict()
 
         # Serialize
@@ -29,7 +38,7 @@ class TestAsciiDocSerializer(unittest.TestCase):
 
         # Re-parse serialized source
         try:
-            ast_serialized = parse_to_ast(serialized)
+            ast_serialized = parse_to_ast(serialized, loader=loader)
             dict_serialized = ast_serialized.to_dict()
         except Exception as e:
             print("\n--- Failed to re-parse serialized text ---")
@@ -44,6 +53,10 @@ class TestAsciiDocSerializer(unittest.TestCase):
             self.assertEqual(
                 len(dict_serialized.get("blocks", [])),
                 len(dict_original.get("blocks", [])),
+            )
+            self.assertEqual(
+                [b["name"] for b in dict_serialized.get("blocks", [])],
+                [b["name"] for b in dict_original.get("blocks", [])],
             )
         except AssertionError as e:
             print("\n--- Assertion Failed ---")
@@ -149,6 +162,14 @@ toc::[]
             warnings.simplefilter("ignore", UserWarning)
             self._assert_roundtrip(source)
 
+    def test_file_isolation_hermetic(self) -> None:
+        self.assertFalse(os.path.exists("otherfile.adoc"))
+        source = "include::otherfile.adoc[]\n\n"
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            self._assert_roundtrip(source)
+        self.assertFalse(os.path.exists("otherfile.adoc"))
+
     def test_trailing_newline_roundtrip(self):
         # Case 1: No trailing newline
         source1 = "Hello world! This is a simple paragraph."
@@ -220,8 +241,6 @@ toc::[]
         source = "This is a simple paragraph.\n"
         ast = parse_to_ast(source)
         ast.is_preprocessed = True
-
-        import warnings
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
@@ -339,7 +358,8 @@ print("inner")
 -----
 """
         # Parse with preprocess_directives=False
-        ast_original = parse_to_ast(source, preprocess_directives=False)
+        loader = MemoryLoader({"otherfile.adoc": "This is include content."})
+        ast_original = parse_to_ast(source, preprocess_directives=False, loader=loader)
         self.assertFalse(ast_original.is_preprocessed)
 
         # Serialize
@@ -371,3 +391,262 @@ It should roundtrip.
 ////
 """
         self._assert_roundtrip(source)
+
+    def test_ordered_list_attributes_serialization(self):
+        # Roundtrip single attributes
+        self._assert_roundtrip("[loweralpha]\n. First\n. Second\n")
+        self._assert_roundtrip("[start=5]\n. First\n. Second\n")
+        self._assert_roundtrip("[%reversed]\n. First\n. Second\n")
+        self._assert_roundtrip("[loweralpha, start=3, %reversed]\n. First\n. Second\n")
+
+        # Programmatic List AST node serialization
+        from asciidoctrine.nodes import Document, List, ListItem, Text
+        from asciidoctrine.serializer import serialize_to_asciidoc
+
+        list_node = List(
+            variant="ordered",
+            marker=".",
+            items=[
+                ListItem(marker=".", principal=[Text("Item A")]),
+                ListItem(marker=".", principal=[Text("Item B")]),
+            ],
+            numeration="upperroman",
+            start=4,
+            reversed=True,
+        )
+        doc = Document(blocks=[list_node])
+        output = serialize_to_asciidoc(doc)
+        self.assertEqual(
+            output, "[upperroman, start=4, %reversed]\n. Item A\n. Item B\n"
+        )
+
+    def test_checklist_items_serialization(self):
+        source = "* [ ] Unchecked item\n* [x] Checked item\n"
+        self._assert_roundtrip(source)
+
+    def test_indexterm_macro_serialization(self):
+        from asciidoctrine.nodes import Document, IndexTerm, Paragraph, Text
+        from asciidoctrine.serializer import serialize_to_asciidoc
+
+        # 1 term
+        doc1 = Document(
+            blocks=[
+                Paragraph(
+                    inlines=[Text("See "), IndexTerm(terms=["solo"]), Text(" here.")]
+                )
+            ]
+        )
+        self.assertEqual(serialize_to_asciidoc(doc1), "See indexterm:[solo] here.\n")
+
+        # 2 terms
+        doc2 = Document(
+            blocks=[
+                Paragraph(
+                    inlines=[
+                        Text("See "),
+                        IndexTerm(terms=["first", "second"]),
+                        Text(" here."),
+                    ]
+                )
+            ]
+        )
+        self.assertEqual(
+            serialize_to_asciidoc(doc2), "See indexterm:[first,second] here.\n"
+        )
+
+        # 3 terms
+        doc3 = Document(
+            blocks=[
+                Paragraph(
+                    inlines=[
+                        Text("See "),
+                        IndexTerm(terms=["first", "second", "third"]),
+                        Text(" here."),
+                    ]
+                )
+            ]
+        )
+        self.assertEqual(
+            serialize_to_asciidoc(doc3),
+            "See indexterm:[first,second,third] here.\n",
+        )
+
+        # Quoted comma term
+        doc_q = Document(
+            blocks=[
+                Paragraph(
+                    inlines=[
+                        Text("See "),
+                        IndexTerm(terms=["knight", "Arthur, King"]),
+                        Text(" here."),
+                    ]
+                )
+            ]
+        )
+        self.assertEqual(
+            serialize_to_asciidoc(doc_q),
+            'See indexterm:[knight,"Arthur, King"] here.\n',
+        )
+
+    def test_indexterm_flow_double_serialization(self):
+        from asciidoctrine.nodes import Document, IndexTerm, Paragraph, Text
+        from asciidoctrine.serializer import serialize_to_asciidoc
+
+        doc = Document(
+            blocks=[
+                Paragraph(
+                    inlines=[
+                        Text("See "),
+                        IndexTerm(
+                            terms=["visible entry"],
+                            variant="flow_double",
+                            inlines=[Text("visible entry")],
+                        ),
+                        Text(" here."),
+                    ]
+                )
+            ]
+        )
+        self.assertEqual(serialize_to_asciidoc(doc), "See ((visible entry)) here.\n")
+
+    def test_indexterm_flow_triple_serialization(self):
+        from asciidoctrine.nodes import Document, IndexTerm, Paragraph, Text
+        from asciidoctrine.serializer import serialize_to_asciidoc
+
+        # 1 term
+        doc1 = Document(
+            blocks=[
+                Paragraph(
+                    inlines=[
+                        Text("See "),
+                        IndexTerm(terms=["solo"], variant="flow_triple"),
+                        Text(" here."),
+                    ]
+                )
+            ]
+        )
+        self.assertEqual(serialize_to_asciidoc(doc1), "See (((solo))) here.\n")
+
+        # 2 terms
+        doc2 = Document(
+            blocks=[
+                Paragraph(
+                    inlines=[
+                        Text("See "),
+                        IndexTerm(terms=["pair", "second"], variant="flow_triple"),
+                        Text(" here."),
+                    ]
+                )
+            ]
+        )
+        self.assertEqual(serialize_to_asciidoc(doc2), "See (((pair, second))) here.\n")
+
+        # 3 terms
+        doc3 = Document(
+            blocks=[
+                Paragraph(
+                    inlines=[
+                        Text("See "),
+                        IndexTerm(terms=["t1", "t2", "t3"], variant="flow_triple"),
+                        Text(" here."),
+                    ]
+                )
+            ]
+        )
+        self.assertEqual(serialize_to_asciidoc(doc3), "See (((t1, t2, t3))) here.\n")
+
+    def test_indexterm_roundtrips(self):
+        self._assert_roundtrip("See indexterm:[primary] here.\n")
+        self._assert_roundtrip("See indexterm:[primary,secondary] here.\n")
+        self._assert_roundtrip("See indexterm:[primary,secondary,tertiary] here.\n")
+        self._assert_roundtrip("See ((visible entry)) here.\n")
+        self._assert_roundtrip("See (((primary))) here.\n")
+        self._assert_roundtrip("See (((primary, secondary, tertiary))) here.\n")
+
+    def test_dumps_and_loads_api(self):
+        source = "= My Document\n\nFirst paragraph.\n"
+        doc = loads(source)
+        self.assertEqual(doc.name, "document")
+        out = dumps(doc)
+        self.assertIn("= My Document", out)
+        self.assertIn("First paragraph.", out)
+        doc2 = loads(out)
+        self.assertEqual(doc2.name, "document")
+        self.assertEqual(len(doc2.blocks), 1)
+
+    def test_verse_roundtrip(self):
+        source_delimited = (
+            "[verse, Carl Sandburg, Fog]\n"
+            "____\n"
+            "The fog comes\n"
+            "on little cat feet.\n"
+            "____\n"
+        )
+        self._assert_roundtrip(source_delimited)
+
+        source_paragraph = (
+            "[verse, Carl Sandburg, Fog]\nThe fog comes\non little cat feet.\n"
+        )
+        self._assert_roundtrip(source_paragraph)
+
+    def test_collapsible_roundtrip(self):
+        source = ".Details\n[%collapsible]\n====\nCollapsible content.\n====\n"
+        self._assert_roundtrip(source)
+
+    def test_open_block_tilde_roundtrip(self):
+        source = "~~~~\nInside open block.\n~~~~\n"
+        self._assert_roundtrip(source)
+
+    def test_callout_list_roundtrip(self):
+        source = "[source,python]\n----\nprint('hello') <1>\n----\n<1> Prints hello\n"
+        self._assert_roundtrip(source)
+
+    def test_discrete_heading_roundtrip(self):
+        source = "= Doc\n\n[discrete]\n== Floating Heading\n\nParagraph.\n"
+        self._assert_roundtrip(source)
+
+    def test_block_stem_roundtrip(self):
+        self._assert_roundtrip("[stem]\n++++\nx+y\n++++\n")
+
+    def test_block_macros_with_attributes_roundtrip(self):
+        source = (
+            'image::sunset.jpg[Sunset, 300, 200, title="A sunset"]\n\n'
+            "video::movie.mp4[width=640, start=60, options=autoplay]\n\n"
+            "audio::sound.mp3[options=autoplay]\n\n"
+            "toc::[levels=2]\n"
+        )
+        self._assert_roundtrip(source)
+
+    def test_inlines_extended_roundtrip(self):
+        source = (
+            "Formatted: *bold* and **unconstrained**, _italic_ and __unconstrained__,\n"
+            "`code` and ``unconstrained``, #mark# and ##unconstrained##,\n"
+            "superscript e=mc^2^ and subscript H~2~O,\n"
+            "\"`double curved`\" and '`single curved`',\n"
+            "links https://example.com[Example] and xref <<my-target, My Target>>.\n"
+        )
+        self._assert_roundtrip(source)
+
+    def test_corpus_sample_roundtrip(self):
+        corpus_path = "vendor/asciidoctor-doctest/CHANGELOG.adoc"
+        if os.path.exists(corpus_path):
+            with open(corpus_path) as f:
+                content = f.read()
+            doc = parse_to_ast(content)
+            serialized = serialize_to_asciidoc(doc)
+            doc2 = parse_to_ast(serialized)
+            self.assertEqual(doc2.name, doc.name)
+            self.assertEqual(len(doc2.blocks), len(doc.blocks))
+
+    def test_docs_sample_roundtrip(self):
+        doc_path = "docs/index.adoc"
+        if os.path.exists(doc_path):
+            with open(doc_path) as f:
+                content = f.read()
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=DeprecationWarning)
+                doc = parse_to_ast(content)
+                serialized = serialize_to_asciidoc(doc)
+                doc2 = parse_to_ast(serialized)
+            self.assertEqual(doc2.name, doc.name)
+            self.assertEqual(len(doc2.blocks), len(doc.blocks))

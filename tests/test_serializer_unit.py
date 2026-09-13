@@ -354,13 +354,13 @@ def test_visit_ref_footnote_with_target_no_label():
 
 
 def test_visit_image_block_form():
-    img = Image(target="diagram.png", alt="A diagram", form="macro", type="block")
+    img = Image(target="diagram.png", alt="A diagram", type="block")
     out = _ser(img)
     assert out == "image::diagram.png[A diagram]\n"
 
 
 def test_visit_image_inline_form():
-    img = Image(target="icon.png", alt="icon", form="macro", type="inline")
+    img = Image(target="icon.png", alt="icon", type="inline")
     out = _ser(img)
     assert out == "image:icon.png[icon]"
 
@@ -446,9 +446,15 @@ def test_visit_stem_block_form():
     node.inlines = [Text("x^2")]
     v.visit_stem(node)
     out = v.stream.getvalue()
-    assert "[latexmath]\n" in out
+    assert "[stem]\n" in out
     assert "++++\n" in out
     assert "x^2" in out
+
+    v2 = AsciiDocSerializerVisitor()
+    node.attributes = {"style": "latexmath"}
+    v2.visit_stem(node)
+    out2 = v2.stream.getvalue()
+    assert "[latexmath]\n" in out2
 
 
 def test_visit_stem_inline_form():
@@ -1045,3 +1051,38 @@ class TestSerializerUnquotedAttr:
         vis.write_block_metadata(p)
         output = vis.stream.getvalue()
         assert 'caption="My Title Here"' in output
+
+
+def test_discrete_heading_serialization():
+    """Discrete heading serializes as [discrete] attribute followed by heading marker and title."""
+    from asciidoctrine.nodes import DiscreteHeading, Document, Text, Title
+    from asciidoctrine.serializer import AsciiDocSerializerVisitor
+
+    doc = Document(
+        blocks=[
+            DiscreteHeading(level=1, title=Title([Text("Discrete Title")])),
+            DiscreteHeading(level=2, title=Title([Text("Level Two")])),
+        ]
+    )
+    visitor = AsciiDocSerializerVisitor()
+    serialized = visitor.serialize(doc)
+    expected = "[discrete]\n== Discrete Title\n\n[discrete]\n=== Level Two\n"
+    assert serialized == expected
+
+
+def test_discrete_heading_with_id_roundtrip():
+    """DiscreteHeading carrying an id attribute should emit [[id]] before [discrete]."""
+    from asciidoctrine.nodes import DiscreteHeading, Document, Text, Title
+    from asciidoctrine.serializer import AsciiDocSerializerVisitor
+
+    heading = DiscreteHeading(level=2, title=Title([Text("Anchored Heading")]))
+    heading.attributes["id"] = "custom-id"
+
+    doc = Document(blocks=[heading])
+    visitor = AsciiDocSerializerVisitor()
+    serialized = visitor.serialize(doc)
+    assert "[[custom-id]]" in serialized
+    assert "[discrete]" in serialized
+    assert "=== Anchored Heading" in serialized
+    # anchor must precede [discrete]
+    assert serialized.index("[[custom-id]]") < serialized.index("[discrete]")

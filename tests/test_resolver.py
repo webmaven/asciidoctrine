@@ -3,7 +3,7 @@ import shutil
 import tempfile
 import unittest
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import pytest
 
@@ -237,9 +237,7 @@ class TestWorkspaceBuilder:
 
 
 class TestResolveDocinfoFiles:
-    def _make_doc(
-        self, attrs: dict[str, Any], base_dir: Optional[str] = None
-    ) -> Document:
+    def _make_doc(self, attrs: dict[str, Any], base_dir: str | None = None) -> Document:
         doc = Document(base_dir=base_dir)
         doc.attributes = attrs
         return doc
@@ -611,6 +609,15 @@ class TestResolverCurrentFileId:
         doc = Document()
         resolver = ASGResolver(doc, current_file_id="explicit.adoc")
         assert resolver.current_file_id == "explicit.adoc"
+
+    def test_empty_string_file_id_preserved(self) -> None:
+        resolver_no_doc = ASGResolver(current_file_id="")
+        assert resolver_no_doc.current_file_id == ""
+
+        doc = Document()
+        doc.id = "my-doc"
+        resolver_with_doc = ASGResolver(doc, current_file_id="")
+        assert resolver_with_doc.current_file_id == ""
 
 
 # ---------------------------------------------------------------------------
@@ -1125,3 +1132,234 @@ def test_resolver_escaped_xref_macro_does_not_fail_resolution():
     )
     assert "xref:nonexistent-chapter.adoc#missing[Chapter 2]" in combined_p1
     assert "\\xref" not in combined_p1
+
+
+# ---------------------------------------------------------------------------
+# ASGResolver.resolve_to_ast() & resolve_to_ast() convenience function (#101)
+# ---------------------------------------------------------------------------
+
+
+class TestResolveToAst:
+    def test_round_trip_parse_and_resolve_to_ast(self) -> None:
+        """parse_to_ast(src) -> resolve_to_ast(doc) returns Document with resolved attribute values as str."""
+        from asciidoctrine import resolve_to_ast
+        from asciidoctrine.lark_parser import parse_to_ast
+        from asciidoctrine.nodes import Document, Paragraph, Section
+
+        source = (
+            ":my-attr: world\n"
+            ":my-role: highlight\n\n"
+            "== Section Title\n\n"
+            "[.lead]\n"
+            "Hello {my-attr}!\n"
+        )
+        doc = parse_to_ast(source)
+        resolved_doc = resolve_to_ast(doc)
+
+        assert isinstance(resolved_doc, Document)
+        assert resolved_doc is doc
+        assert resolved_doc.attributes.get("my-attr") == "world"
+        assert resolved_doc.attributes.get("my-role") == "highlight"
+
+        # AST structure preserved as typed nodes
+        assert len(resolved_doc.blocks) >= 1
+        sec = next(b for b in resolved_doc.blocks if isinstance(b, Section))
+        assert sec.title is not None
+        p = next(b for b in sec.blocks if isinstance(b, Paragraph))
+        assert p.attributes.get("role") == "lead"
+        text_content = "".join(t.value for t in p.inlines if hasattr(t, "value"))
+        assert text_content == "Hello world!"
+
+    def test_resolve_to_ast_removes_comments_and_attribute_entries(self) -> None:
+        """resolve_to_ast removes comment and attribute_entry blocks while leaving paragraphs/sections as AST nodes."""
+        from asciidoctrine import resolve_to_ast
+        from asciidoctrine.lark_parser import parse_to_ast
+        from asciidoctrine.nodes import Paragraph, Section
+
+        source = (
+            ":attr1: value1\n"
+            "// A comment line\n\n"
+            "== Heading\n\n"
+            "// Another comment\n"
+            ":attr2: value2\n\n"
+            "Paragraph text.\n"
+        )
+        doc = parse_to_ast(source)
+
+        # Before resolve: attribute_entry and comment are present
+        block_names_before = [b.name for b in doc.blocks]
+        assert (
+            "attribute_entry" in block_names_before or "comment" in block_names_before
+        )
+
+        resolved_doc = resolve_to_ast(doc)
+
+        # Collect all block names across the document recursively
+        all_blocks = list(resolved_doc.blocks)
+        for b in resolved_doc.blocks:
+            for coll in b.get_child_collections().values():
+                all_blocks.extend(coll)
+
+        names = [b.name for b in all_blocks]
+        assert "comment" not in names
+        assert "attribute_entry" not in names
+        assert "paragraph" in names
+        # Structural nodes are typed AST nodes, not dicts
+        for b in all_blocks:
+            assert not isinstance(b, dict)
+        assert any(isinstance(b, Section) for b in all_blocks)
+        assert any(isinstance(b, Paragraph) for b in all_blocks)
+
+    def test_asg_resolver_resolve_to_ast_no_arg_constructor(self) -> None:
+        """ASGResolver().resolve_to_ast(doc) can be called with default constructor."""
+        from asciidoctrine.lark_parser import parse_to_ast
+        from asciidoctrine.nodes import Document, Paragraph
+
+        source = ":key: resolved_value\n\nSome {key} text.\n"
+        doc = parse_to_ast(source)
+
+        resolver = ASGResolver()
+        result = resolver.resolve_to_ast(doc)
+
+        assert isinstance(result, Document)
+        assert result is doc
+        assert result.attributes["key"] == "resolved_value"
+        p = next(b for b in result.blocks if isinstance(b, Paragraph))
+        text_vals = [t.value for t in p.inlines if hasattr(t, "value")]
+        assert "Some resolved_value text." in "".join(text_vals)
+
+    def test_resolve_to_ast_resolves_footnotes(self) -> None:
+        """resolve_to_ast correctly indexes footnotes in AST."""
+        from asciidoctrine import resolve_to_ast
+        from asciidoctrine.lark_parser import parse_to_ast
+
+        source = (
+            "First note.footnote:[First note text]\n\n"
+            "Second note.footnote:[Second note text]\n"
+        )
+        doc = parse_to_ast(source)
+        resolved = resolve_to_ast(doc)
+
+        assert len(resolved.footnotes) == 2
+        assert resolved.footnotes[0]["index"] == 1
+        assert resolved.footnotes[1]["index"] == 2
+
+    def test_resolve_to_ast_indexes_references_and_resolves_xref(self) -> None:
+        """resolve_to_ast indexes references and resolves internal cross-references in-place."""
+        from asciidoctrine import resolve_to_ast
+        from asciidoctrine.lark_parser import parse_to_ast
+        from asciidoctrine.nodes import Paragraph, Ref, Section
+
+        source = "[#intro]\n== Introduction\n\nSee <<intro>> for details.\n"
+        doc = parse_to_ast(source)
+        resolved = resolve_to_ast(doc)
+
+        sec = next(b for b in resolved.blocks if isinstance(b, Section))
+        p = next(b for b in sec.blocks if isinstance(b, Paragraph))
+        ref = next(i for i in p.inlines if isinstance(i, Ref))
+
+        assert ref.resolved_strategy == "same_file"
+        assert ref.target_node_instance is sec
+        assert ref.resolved_anchor_target == "intro"
+
+    def test_resolve_to_ast_macro_target_substitution(self) -> None:
+        """resolve_to_ast substitutes attribute references in block macro targets."""
+        from asciidoctrine import resolve_to_ast
+        from asciidoctrine.lark_parser import parse_to_ast
+        from asciidoctrine.nodes import Image
+
+        source = ":imagesdir: assets/images\n\nimage::{imagesdir}/photo.png[Alt text]\n"
+        doc = parse_to_ast(source)
+        resolved = resolve_to_ast(doc)
+
+        img = next(b for b in resolved.blocks if isinstance(b, Image))
+        assert img.target == "assets/images/photo.png"
+
+    def test_resolve_to_ast_identity_across_modules(self) -> None:
+        """asciidoctrine.resolve_to_ast is imported directly from asciidoctrine.resolver."""
+        import asciidoctrine
+        import asciidoctrine.resolver
+
+        assert asciidoctrine.resolve_to_ast is asciidoctrine.resolver.resolve_to_ast
+
+    def test_resolver_preserves_indexterms_asg(self) -> None:
+        """ASGResolver.resolve() preserves IndexTerm inline nodes in ASG dictionary output."""
+        from asciidoctrine.lark_parser import parse_to_ast
+        from asciidoctrine.resolver import ASGResolver
+
+        source = (
+            "Paragraph with indexterm:[term1, term2, term3] macro, "
+            "((visible term)) flow double, and (((tri1, tri2))) flow triple.\n"
+        )
+        doc = parse_to_ast(source)
+        resolver = ASGResolver(doc)
+        resolved = resolver.resolve(doc)
+
+        inlines = resolved["blocks"][0]["inlines"]
+        idx_nodes = [i for i in inlines if i.get("name") == "indexterm"]
+        assert len(idx_nodes) == 3
+
+        # 1. Macro form
+        assert idx_nodes[0]["variant"] == "macro"
+        assert idx_nodes[0]["primary"] == "term1"
+        assert idx_nodes[0]["secondary"] == "term2"
+        assert idx_nodes[0]["tertiary"] == "term3"
+        assert idx_nodes[0]["visible"] is False
+
+        # 2. Flow double
+        assert idx_nodes[1]["variant"] == "flow_double"
+        assert idx_nodes[1]["primary"] == "visible term"
+        assert idx_nodes[1]["visible"] is True
+
+        # 3. Flow triple
+        assert idx_nodes[2]["variant"] == "flow_triple"
+        assert idx_nodes[2]["primary"] == "tri1"
+        assert idx_nodes[2]["secondary"] == "tri2"
+        assert idx_nodes[2]["visible"] is False
+
+    def test_resolver_preserves_indexterms_ast(self) -> None:
+        """resolve_to_ast() preserves typed IndexTerm AST nodes in-place."""
+        from asciidoctrine.lark_parser import parse_to_ast
+        from asciidoctrine.nodes import IndexTerm, Paragraph
+        from asciidoctrine.resolver import resolve_to_ast
+
+        source = "Text with indexterm:[alpha, beta] and ((gamma)).\n"
+        doc = parse_to_ast(source)
+        resolved = resolve_to_ast(doc)
+
+        p = next(b for b in resolved.blocks if isinstance(b, Paragraph))
+        idx_nodes = [i for i in p.inlines if isinstance(i, IndexTerm)]
+        assert len(idx_nodes) == 2
+        assert idx_nodes[0].primary == "alpha"
+        assert idx_nodes[0].secondary == "beta"
+        assert idx_nodes[0].visible is False
+        assert idx_nodes[1].primary == "gamma"
+        assert idx_nodes[1].visible is True
+
+    def test_resolver_indexterm_attribute_substitution(self) -> None:
+        """ASGResolver and resolve_to_ast perform attribute substitution on IndexTerm terms."""
+        from asciidoctrine.lark_parser import parse_to_ast
+        from asciidoctrine.nodes import IndexTerm, Paragraph
+        from asciidoctrine.resolver import ASGResolver, resolve_to_ast
+
+        source = (
+            ":my_term: SuperFeature\n"
+            ":sub_term: DeepDive\n\n"
+            "Document with indexterm:[{my_term}, {sub_term}].\n"
+        )
+        doc = parse_to_ast(source)
+
+        # AST resolution pass
+        resolved_doc = resolve_to_ast(doc)
+        p = next(b for b in resolved_doc.blocks if isinstance(b, Paragraph))
+        idx_ast = next(i for i in p.inlines if isinstance(i, IndexTerm))
+        assert idx_ast.primary == "SuperFeature"
+        assert idx_ast.secondary == "DeepDive"
+
+        # ASG resolution pass
+        doc2 = parse_to_ast(source)
+        asg = ASGResolver(doc2).resolve(doc2)
+        p_asg = next(b for b in asg["blocks"] if b.get("name") == "paragraph")
+        idx_asg = next(i for i in p_asg["inlines"] if i.get("name") == "indexterm")
+        assert idx_asg["primary"] == "SuperFeature"
+        assert idx_asg["secondary"] == "DeepDive"

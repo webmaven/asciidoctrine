@@ -1,5 +1,4 @@
-from typing import Any, Optional
-from typing import List as PyList
+from typing import Any
 
 from lark import Token
 
@@ -7,7 +6,7 @@ from lark import Token
 class LocationDict(dict[str, Any]):
     """A dictionary subclass that can hold location coordinates."""
 
-    location: Optional[PyList[dict[str, Any]]]
+    location: list[dict[str, Any]] | None
     raw: str
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -21,7 +20,7 @@ class BaseTransformer:
     Base class for all Lark Transformers, providing shared location-tracking utilities.
     """
 
-    def _set_location_from_children(self, node: Any, children: PyList[Any]) -> Any:
+    def _set_location_from_children(self, node: Any, children: list[Any]) -> Any:
         """Sets the location of a node based on its children's locations."""
         from lark import Tree
 

@@ -1,12 +1,40 @@
 = Changelog
 :toc:
 
+== link:https://pypi.org/project/asciidoctrine/0.2.0a8/[0.2.0a8] - 2026-09-13
+
+=== Added
+* **Lossless AsciiDoc Serializer & `dumps`/`loads` API (Issues pass:[#78], pass:[#130])**:
+  - Added `serialize_to_asciidoc()`, `dumps()`, and `loads()` supporting round-trip source preservation with exact line ending detection.
+* **ASG Schema Alignment for Blocks & Inlines (Issues pass:[#105], pass:[#106], pass:[#109], pass:[#128], pass:[#129])**:
+  - Added canonical `DiscreteHeading` (`[discrete]`) mapped to the `heading` ASG node with `absolute_level` (1–6) support.
+  - Aligned block macros (`Image`, `Audio`, `Video`, `Toc`) with `form: "macro"`.
+  - Added ordered list styles (`numeration`, `start`, `%reversed`) and checklist state (`checked`) on `ListItem`.
+  - Added `IndexTerm` schema compliance (`terms`, `variant`, `visible`).
+* **Semantic In-Place Resolution (Issue pass:[#101])**:
+  - Added `ASGResolver.resolve_to_ast()` and top-level `resolve_to_ast()` convenience wrapper for in-place AST resolution.
+* **In-Process LRU Snippet AST Cache (Issue pass:[#127])**:
+  - Added opt-in caching via `use_cache=True` on `parse_to_ast()` and `clear_ast_cache()`.
+
+=== Changed & Refactored
+* **Modernized Build System & CI Matrix**:
+  - Migrated build backend from setuptools to Hatchling with `uv`, `pylock.toml`, Python 3.10–3.14 testing matrix, and modernized Ruff configuration.
+* **Simplifications & Code Pruning**:
+  - Pruned redundant `to_dict()` implementations on `Section`, `ListItem`, and `Collapsible` (aligning `Collapsible.title` to inline node lists).
+  - Pruned deprecated alpha alias `FloatingTitle` in favor of `DiscreteHeading`.
+  - Normalized `Document.title` type hygiene via a `@property` descriptor.
+  - Isolated test fixtures using `MemoryLoader` to eliminate temporary disk writes.
+
+=== Fixed
+* **Warning & Test Remediation**:
+  - Eliminated all 57 deprecation warnings across docutils fallbacks and test suites.
+
 == link:https://pypi.org/project/asciidoctrine/0.2.0a7/[0.2.0a7] - 2026-09-04
 
 === Added
-* **Backslash Escaping for Inline Formatting Delimiters (Feature #113, follow-up)**:
-  - A backslash preceding a constrained formatting delimiter (e.g. `\*bold*`, `\_italic_`, `\`code\``, `\#marked#`, `\^super^`, `\~sub~`) now suppresses span creation and emits the delimiter characters as plain text with the escape backslash consumed.
-  - Unconstrained formatting delimiters (e.g. `\**bold**`, `\__italic__`, `\``code```, `\##marked##`) are likewise escapable with a single leading backslash.
+* **Backslash Escaping for Inline Formatting Delimiters (Feature pass:[#113], follow-up)**:
+  - A backslash preceding a constrained formatting delimiter (e.g. `\*bold*`, `\_italic_`, `+\`code\`+`, pass:[`\#marked#`], `\^super^`, `\~sub~`) now suppresses span creation and emits the delimiter characters as plain text with the escape backslash consumed.
+  - Unconstrained formatting delimiters (e.g. `\**bold**`, `\__italic__`, `+\``code```+`, pass:[`\##marked##`]) are likewise escapable with a single leading backslash.
   - Asciidoctor-compatible double-backslash escaping for unconstrained delimiters (e.g. `\\__func__`) is also supported, consuming both backslashes.
   - Double-backslash before a _constrained_ delimiter (e.g. `\\*bold*`) continues to resolve to a literal `\` followed by active bold formatting.
   - Nested formatting inside an escaped span (e.g. `\*bold and _italic_*`) is preserved and processed normally.
@@ -31,7 +59,7 @@
   - Fixed `block_title` grammar rule matching `. text` with a leading space, which previously caused dot-ordered list items to be consumed as block titles attached to subsequent items. Introduced `BLOCK_TITLE_PREFIX.10` enforcing non-whitespace immediately following the dot while preserving title content.
 * **`WORD` Tokenizer URI Scheme Suffix Fragmentation (Issue #123)**:
   - Added `(?<![a-zA-Z0-9])` negative lookbehind to single-colon URI scheme alternatives (`mailto:`, `data:`, `tel:`, `sms:`) in the `WORD` lexer terminal, preventing premature token truncation on words whose suffixes match URI schemes (e.g. `Metadata:`, `Subdata:`).
-* **Backslash Inline Macro Escaping (Issue #124, Feature #113)**:
+* **Backslash Inline Macro Escaping (Issue pass:[#124], Feature pass:[#113])**:
   - Escaping inline macros with a leading backslash (e.g. `\xref:...`, `\link:...`) now suppresses active `Ref` AST node creation and emits literal text with the escaping backslash stripped.
   - Supported inside monospace spans (e.g. `\xref:...[]`) without registering active cross-references.
 * **Indented Literal Structural Attachment in List Items (Issue #125)**:

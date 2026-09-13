@@ -27,7 +27,7 @@ class TestBlocks(unittest.TestCase):
         """Recursively strip 'location' from ASG dict."""
         if isinstance(node, dict):
             node.pop("location", None)
-            for key, value in node.items():
+            for value in node.values():
                 self._strip_locations(value)
         elif isinstance(node, list):
             for item in node:
@@ -681,7 +681,8 @@ print("test")
 
         # 5. Nesting legacy inside standard and vice-versa
         mixed_nest_source = "~~~~\n--\nMixed nesting\n--\n~~~~\n"
-        mixed_nest_ast = parse_to_ast(mixed_nest_source).to_dict()
+        with self.assertWarns(DeprecationWarning):
+            mixed_nest_ast = parse_to_ast(mixed_nest_source).to_dict()
         self.assertEqual(mixed_nest_ast["blocks"][0]["name"], "open")
         self.assertEqual(mixed_nest_ast["blocks"][0]["delimiter"], "~~~~")
         self.assertEqual(mixed_nest_ast["blocks"][0]["blocks"][0]["name"], "open")
@@ -887,8 +888,8 @@ This content is collapsible.
         block = ast["blocks"][0]
         self.assertEqual(block["name"], "collapsible")
         self.assertEqual(block["type"], "block")
-        self.assertEqual(block["title"]["name"], "title")
-        self.assertEqual(block["title"]["inlines"][0]["value"], "Summary Title")
+        self.assertIsInstance(block["title"], list)
+        self.assertEqual(block["title"][0]["value"], "Summary Title")
         self.assertEqual(block["blocks"][0]["name"], "paragraph")
         self.assertEqual(
             block["blocks"][0]["inlines"][0]["value"], "This content is collapsible."
@@ -1222,7 +1223,7 @@ def test_ordered_list_with_leading_dots_not_eaten_as_titles():
     assert ast.blocks[0].variant == "ordered"
     assert len(ast.blocks[0].items) == 4
     assert ast.blocks[0].title is None
-    for i, item in enumerate(ast.blocks[0].items, 1):
+    for item in ast.blocks[0].items:
         assert item.title is None
 
 
@@ -1319,3 +1320,675 @@ def test_indented_literal_with_blank_line_not_attached_to_list_item():
     assert ast.blocks[1].name == "literal"
     assert ast.blocks[2].name == "list"
     assert len(ast.blocks[2].items) == 1
+
+
+def test_discrete_heading_parsing():
+    """Verify that a [discrete] heading produces a DiscreteHeading node with correct attributes and to_dict serialization."""
+    from asciidoctrine.nodes import DiscreteHeading, Text, Title
+
+    source = "[discrete]\n== Discrete Heading\n"
+    doc = parse_to_ast(source)
+    assert len(doc.blocks) == 1
+    heading = doc.blocks[0]
+    assert isinstance(heading, DiscreteHeading)
+    assert heading.name == "heading"
+    assert heading.level == 1
+
+    d = heading.to_dict()
+    assert d["name"] == "heading"
+    assert d["type"] == "block"
+    assert d["level"] == 1
+    assert "inlines" not in d
+    assert d["title"][0]["value"] == "Discrete Heading"
+
+    # Also verify isolated to_dict() matches ASG schema exactly
+    standalone = DiscreteHeading(level=2, title=Title([Text("Standalone")]))
+    assert standalone.to_dict() == {
+        "name": "heading",
+        "type": "block",
+        "level": 2,
+        "title": [{"name": "text", "type": "string", "value": "Standalone"}],
+    }
+
+
+def test_discrete_heading_inside_section():
+    """A [discrete] heading inside a section must not split the section or steal content."""
+    src = (
+        "== My Section\n\n[discrete]\n=== A Floating Heading\n\nFollowing paragraph.\n"
+    )
+    doc = parse_to_ast(src)
+
+    # Document should contain exactly one Section at level 1
+    sections = [b for b in doc.blocks if b.name == "section"]
+    assert len(sections) == 1, f"Expected 1 section, got {len(sections)}"
+
+    section = sections[0]
+    assert section.level == 1
+
+    # DiscreteHeading (name="heading") should be inside the section
+    headings = [b for b in section.blocks if b.name == "heading"]
+    assert len(headings) == 1, (
+        f"Expected 1 discrete heading in section, got {len(headings)}"
+    )
+    assert headings[0].level == 2
+
+    # Following paragraph should also be inside the section (not stolen)
+    paragraphs = [b for b in section.blocks if b.name == "paragraph"]
+    assert len(paragraphs) == 1, (
+        f"Expected following paragraph to remain in section, got {len(paragraphs)} paragraphs"
+    )
+
+
+def test_image_block_macro_parsing_and_asg():
+    """Verify image:: block macro emits form='macro' and preserves target/attributes in ASG."""
+    from asciidoctrine.nodes import Image
+    from asciidoctrine.resolver import ASGResolver
+
+    src = "image::sunset.jpg[Sunset, width=400, height=300]\n"
+    doc = parse_to_ast(src)
+    assert len(doc.blocks) == 1
+    node = doc.blocks[0]
+    assert isinstance(node, Image)
+    assert node.name == "image"
+    assert node.type == "block"
+    assert node.form == "macro"
+    assert node.target == "sunset.jpg"
+    assert Image.form == "macro"
+
+    # Direct to_dict() check on raw AST
+    d = node.to_dict()
+    assert d["name"] == "image"
+    assert d["type"] == "block"
+    assert d["form"] == "macro"
+    assert d["target"] == "sunset.jpg"
+    assert d["attributes"]["alt"] == "Sunset"
+    assert d["attributes"]["width"] == "400"
+    assert d["attributes"]["height"] == "300"
+
+    # Resolver round-trip check
+    resolver = ASGResolver(doc)
+    asg = resolver.resolve(doc)
+    asg_block = asg["blocks"][0]
+    assert asg_block["name"] == "image"
+    assert asg_block["type"] == "block"
+    assert asg_block["form"] == "macro"
+    assert asg_block["target"] == "sunset.jpg"
+    assert asg_block["attributes"] == {"alt": "Sunset", "width": "400", "height": "300"}
+
+
+def test_audio_block_macro_parsing_and_asg():
+    """Verify audio:: block macro emits form='macro' and preserves target/attributes in ASG."""
+    from asciidoctrine.nodes import Audio
+    from asciidoctrine.resolver import ASGResolver
+
+    src = 'audio::podcast.mp3[autoplay=true, title="Episode 1"]\n'
+    doc = parse_to_ast(src)
+    assert len(doc.blocks) == 1
+    node = doc.blocks[0]
+    assert isinstance(node, Audio)
+    assert node.name == "audio"
+    assert node.type == "block"
+    assert node.form == "macro"
+    assert node.target == "podcast.mp3"
+    assert Audio.form == "macro"
+
+    # Direct to_dict() check
+    d = node.to_dict()
+    assert d["name"] == "audio"
+    assert d["type"] == "block"
+    assert d["form"] == "macro"
+    assert d["target"] == "podcast.mp3"
+    assert d["attributes"] == {"autoplay": "true", "title": "Episode 1"}
+
+    # Resolver round-trip check
+    resolver = ASGResolver(doc)
+    asg = resolver.resolve(doc)
+    asg_block = asg["blocks"][0]
+    assert asg_block["name"] == "audio"
+    assert asg_block["type"] == "block"
+    assert asg_block["form"] == "macro"
+    assert asg_block["target"] == "podcast.mp3"
+    assert asg_block["attributes"] == {"autoplay": "true", "title": "Episode 1"}
+
+
+def test_video_block_macro_parsing_and_asg():
+    """Verify video:: block macro emits form='macro' and preserves target/attributes in ASG."""
+    from asciidoctrine.nodes import Video
+    from asciidoctrine.resolver import ASGResolver
+
+    src = "video::screencast.mp4[width=640, height=360, controls=true]\n"
+    doc = parse_to_ast(src)
+    assert len(doc.blocks) == 1
+    node = doc.blocks[0]
+    assert isinstance(node, Video)
+    assert node.name == "video"
+    assert node.type == "block"
+    assert node.form == "macro"
+    assert node.target == "screencast.mp4"
+    assert Video.form == "macro"
+
+    # Direct to_dict() check
+    d = node.to_dict()
+    assert d["name"] == "video"
+    assert d["type"] == "block"
+    assert d["form"] == "macro"
+    assert d["target"] == "screencast.mp4"
+    assert d["attributes"] == {"width": "640", "height": "360", "controls": "true"}
+
+    # Resolver round-trip check
+    resolver = ASGResolver(doc)
+    asg = resolver.resolve(doc)
+    asg_block = asg["blocks"][0]
+    assert asg_block["name"] == "video"
+    assert asg_block["type"] == "block"
+    assert asg_block["form"] == "macro"
+    assert asg_block["target"] == "screencast.mp4"
+    assert asg_block["attributes"] == {
+        "width": "640",
+        "height": "360",
+        "controls": "true",
+    }
+
+
+def test_toc_block_macro_parsing_and_asg():
+    """Verify toc:: block macro emits form='macro' and preserves target/attributes in ASG."""
+    from asciidoctrine.nodes import Toc
+    from asciidoctrine.resolver import ASGResolver
+
+    src = 'toc::[levels=3, title="Table of Contents"]\n'
+    doc = parse_to_ast(src)
+    assert len(doc.blocks) == 1
+    node = doc.blocks[0]
+    assert isinstance(node, Toc)
+    assert node.name == "toc"
+    assert node.type == "block"
+    assert node.form == "macro"
+    assert node.target == ""
+    assert Toc.form == "macro"
+
+    # Direct to_dict() check
+    d = node.to_dict()
+    assert d["name"] == "toc"
+    assert d["type"] == "block"
+    assert d["form"] == "macro"
+    assert d["target"] == ""
+    assert d["attributes"] == {"levels": "3", "title": "Table of Contents"}
+
+    # Resolver round-trip check
+    resolver = ASGResolver(doc)
+    asg = resolver.resolve(doc)
+    asg_block = asg["blocks"][0]
+    assert asg_block["name"] == "toc"
+    assert asg_block["type"] == "block"
+    assert asg_block["form"] == "macro"
+    assert asg_block["target"] == ""
+    assert asg_block["attributes"] == {"levels": "3", "title": "Table of Contents"}
+
+
+def test_block_macros_class_attributes_and_isolated_to_dict():
+    """Verify Image, Audio, Video, Toc class attributes and isolated to_dict conform to blockMacro schema."""
+    from asciidoctrine.nodes import Audio, Image, Toc, Video
+
+    assert Image.form == "macro"
+    assert Audio.form == "macro"
+    assert Video.form == "macro"
+    assert Toc.form == "macro"
+
+    img = Image(target="sun.png", alt="Sun", attributes={"width": "200"})
+    assert img.to_dict() == {
+        "name": "image",
+        "type": "block",
+        "form": "macro",
+        "target": "sun.png",
+        "attributes": {"alt": "Sun", "width": "200"},
+    }
+
+    audio = Audio(target="song.ogg", attributes={"autoplay": "true"})
+    assert audio.to_dict() == {
+        "name": "audio",
+        "type": "block",
+        "form": "macro",
+        "target": "song.ogg",
+        "attributes": {"autoplay": "true"},
+    }
+
+    video = Video(target="movie.webm", attributes={"controls": "true"})
+    assert video.to_dict() == {
+        "name": "video",
+        "type": "block",
+        "form": "macro",
+        "target": "movie.webm",
+        "attributes": {"controls": "true"},
+    }
+
+    toc = Toc(target="", attributes={"levels": "2"})
+    assert toc.to_dict() == {
+        "name": "toc",
+        "type": "block",
+        "form": "macro",
+        "target": "",
+        "attributes": {"levels": "2"},
+    }
+
+
+def test_block_macros_form_invariance():
+    """Verify Image, Audio, Video, and Toc instances reject form in constructor and emit form='macro'."""
+    import pytest
+
+    from asciidoctrine.nodes import Audio, Image, Toc, Video
+
+    # Constructor rejection of mutable form parameter
+    with pytest.raises(TypeError):
+        Image(target="img.png", form="inline")  # type: ignore[call-arg]
+    with pytest.raises(TypeError):
+        Audio(target="audio.mp3", form="inline")  # type: ignore[call-arg]
+    with pytest.raises(TypeError):
+        Video(target="video.mp4", form="inline")  # type: ignore[call-arg]
+    with pytest.raises(TypeError):
+        Toc(target="", form="inline")  # type: ignore[call-arg]
+
+    # Verification of class and instance invariant form="macro"
+    for cls, inst in [
+        (Image, Image(target="img.png")),
+        (Audio, Audio(target="audio.mp3")),
+        (Video, Video(target="video.mp4")),
+        (Toc, Toc()),
+    ]:
+        assert cls.form == "macro"
+        assert inst.form == "macro"
+        assert inst.to_dict()["form"] == "macro"
+
+
+def test_macro_target_attribute_substitution():
+    """Verify target attribute substitution in generic_visit when resolving block macros via ASGResolver."""
+    from asciidoctrine.nodes import Audio, Image, Video
+    from asciidoctrine.resolver import ASGResolver
+
+    src = (
+        ":imagesdir: photos\n"
+        ":audiodir: sounds\n"
+        ":videodir: movies\n"
+        "\n"
+        "image::{imagesdir}/photo.jpg[Alt text]\n"
+        "\n"
+        "audio::{audiodir}/song.mp3[]\n"
+        "\n"
+        "video::{videodir}/movie.mp4[]\n"
+    )
+    doc = parse_to_ast(src)
+
+    # Pre-resolution checks: raw AST retains attribute reference syntax
+    macro_blocks = [b for b in doc.blocks if isinstance(b, (Image, Audio, Video))]
+    assert len(macro_blocks) == 3
+    img_node, audio_node, video_node = macro_blocks
+    assert img_node.target == "{imagesdir}/photo.jpg"
+    assert audio_node.target == "{audiodir}/song.mp3"
+    assert video_node.target == "{videodir}/movie.mp4"
+
+    # Resolve via ASGResolver
+    resolver = ASGResolver(doc)
+    asg = resolver.resolve(doc)
+
+    resolved_macros = [
+        b for b in asg["blocks"] if b.get("name") in ("image", "audio", "video")
+    ]
+    assert len(resolved_macros) == 3
+    assert resolved_macros[0]["name"] == "image"
+    assert resolved_macros[0]["target"] == "photos/photo.jpg"
+    assert resolved_macros[0]["form"] == "macro"
+    assert resolved_macros[1]["name"] == "audio"
+    assert resolved_macros[1]["target"] == "sounds/song.mp3"
+    assert resolved_macros[1]["form"] == "macro"
+    assert resolved_macros[2]["name"] == "video"
+    assert resolved_macros[2]["target"] == "movies/movie.mp4"
+    assert resolved_macros[2]["form"] == "macro"
+
+
+def test_ordered_list_numeration_styles():
+    """Verify ordered lists parse [loweralpha], [upperalpha], [lowerroman], [upperroman], and [arabic]."""
+    for style in ("loweralpha", "upperalpha", "lowerroman", "upperroman", "arabic"):
+        src = f"[{style}]\n. First\n. Second\n"
+        doc = parse_to_ast(src)
+        olist = doc.blocks[0]
+        assert getattr(olist, "name", "") == "list"
+        assert getattr(olist, "variant", "") == "ordered"
+        assert getattr(olist, "numeration", None) == style
+        d = olist.to_dict()
+        assert d["numeration"] == style
+
+
+def test_ordered_list_start_offset():
+    """Verify ordered lists parse start=N attribute and set List.start."""
+    src = "[start=5]\n. First\n. Second\n"
+    doc = parse_to_ast(src)
+    olist = doc.blocks[0]
+    assert getattr(olist, "start", None) == 5
+    d = olist.to_dict()
+    assert d["start"] == 5
+
+
+def test_ordered_list_reversed_option():
+    """Verify ordered lists parse %reversed option and set List.reversed."""
+    for header in ("[%reversed]", "[reversed]", "[options=reversed]"):
+        src = f"{header}\n. First\n. Second\n"
+        doc = parse_to_ast(src)
+        olist = doc.blocks[0]
+        assert getattr(olist, "reversed", False) is True
+        d = olist.to_dict()
+        assert d.get("reversed") is True
+
+
+def test_ordered_list_combined_attributes():
+    """Verify combined style, start offset, and %reversed on an ordered list."""
+    src = "[loweralpha, start=3, %reversed]\n. Gamma\n. Beta\n. Alpha\n"
+    doc = parse_to_ast(src)
+    olist = doc.blocks[0]
+    assert getattr(olist, "numeration", None) == "loweralpha"
+    assert getattr(olist, "start", None) == 3
+    assert getattr(olist, "reversed", False) is True
+    d = olist.to_dict()
+    assert d["numeration"] == "loweralpha"
+    assert d["start"] == 3
+    assert d.get("reversed") is True
+
+
+def test_checklist_item_checked_attribute_in_asg():
+    """Verify checklist items carry checked boolean in ASG to_dict()."""
+    src = "* [ ] Unchecked\n* [x] Checked x\n* [*] Checked star\n* [X] Checked upper X\n* Plain item\n"
+    doc = parse_to_ast(src)
+    ulist = doc.blocks[0]
+    items = ulist.items
+    assert len(items) == 5
+
+    assert items[0].checked is False
+    assert items[0].to_dict()["checked"] is False
+
+    assert items[1].checked is True
+    assert items[1].to_dict()["checked"] is True
+
+    assert items[2].checked is True
+    assert items[2].to_dict()["checked"] is True
+
+    assert items[3].checked is True
+    assert items[3].to_dict()["checked"] is True
+
+    assert items[4].checked is None
+    assert "checked" not in items[4].to_dict()
+
+
+def test_ordered_list_with_checklist():
+    """Verify checklist syntax works on ordered list items as well."""
+    src = ". [ ] Step 1\n. [x] Step 2\n"
+    doc = parse_to_ast(src)
+    olist = doc.blocks[0]
+    assert len(olist.items) == 2
+    assert olist.items[0].checked is False
+    assert olist.items[0].to_dict()["checked"] is False
+    assert olist.items[1].checked is True
+    assert olist.items[1].to_dict()["checked"] is True
+
+
+def test_list_and_listitem_nodes_isolated_to_dict():
+    """Verify List and ListItem class attributes and isolated to_dict conform to specs."""
+    from asciidoctrine.nodes import List, ListItem, Text
+
+    item1 = ListItem(marker=".", principal=[Text("Item 1")], checked=False)
+    item2 = ListItem(marker=".", principal=[Text("Item 2")], checked=True)
+    item3 = ListItem(marker=".", principal=[Text("Plain item")])
+
+    assert item1.to_dict()["checked"] is False
+    assert item2.to_dict()["checked"] is True
+    assert "checked" not in item3.to_dict()
+
+    olist = List(
+        variant="ordered",
+        marker=".",
+        items=[item1, item2],
+        numeration="lowerroman",
+        start=4,
+        reversed=True,
+    )
+    assert olist.numeration == "lowerroman"
+    assert olist.start == 4
+    assert olist.reversed is True
+
+    d = olist.to_dict()
+    assert d["name"] == "list"
+    assert d["type"] == "block"
+    assert d["variant"] == "ordered"
+    assert d["marker"] == "."
+    assert d["numeration"] == "lowerroman"
+    assert d["start"] == 4
+    assert d["reversed"] is True
+
+
+def test_section_and_discrete_heading_absolute_level_attribute():
+    """Verify Section and DiscreteHeading accept absolute_level and serialize it to 'absolute-level' in ASG."""
+    from asciidoctrine.nodes import DiscreteHeading, Section, Text, Title
+
+    # Section with absolute_level
+    sec = Section(level=1, title=Title([Text("Section Title")]), absolute_level=3)
+    assert sec.absolute_level == 3
+    d_sec = sec.to_dict()
+    assert d_sec["absolute-level"] == 3
+    assert d_sec["level"] == 1
+
+    # DiscreteHeading with absolute_level
+    heading = DiscreteHeading(
+        level=2, title=Title([Text("Floating Title")]), absolute_level=5
+    )
+    assert heading.absolute_level == 5
+    d_heading = heading.to_dict()
+    assert d_heading["absolute-level"] == 5
+    assert d_heading["level"] == 2
+
+    # Absence of absolute_level preserves existing behaviour
+    sec_plain = Section(level=1, title=Title([Text("Plain Section")]))
+    assert sec_plain.absolute_level is None
+    assert "absolute-level" not in sec_plain.to_dict()
+
+    heading_plain = DiscreteHeading(level=2, title=Title([Text("Plain Heading")]))
+    assert heading_plain.absolute_level is None
+    assert "absolute-level" not in heading_plain.to_dict()
+
+
+def test_absolute_level_parsing_and_depth_contexts():
+    """Verify absolute-level parsing in depth-1, depth-3, and depth-5 contexts."""
+    from asciidoctrine.nodes import DiscreteHeading, Section
+
+    # Depth-1 context
+    src1 = "[absolute-level=4]\n== Depth 1 Section\n"
+    doc1 = parse_to_ast(src1)
+    sec1 = doc1.blocks[0]
+    assert isinstance(sec1, Section)
+    assert sec1.level == 1
+    assert sec1.absolute_level == 4
+    assert sec1.to_dict()["absolute-level"] == 4
+
+    # Depth-3 context (Section at level 3, absolute-level=2)
+    src3 = (
+        "== Level 1\n\n"
+        "=== Level 2\n\n"
+        "[absolute-level=2]\n"
+        "==== Depth 3 Section\n\n"
+        "Content here.\n"
+    )
+    doc3 = parse_to_ast(src3)
+    sec_lvl1 = doc3.blocks[0]
+    assert isinstance(sec_lvl1, Section)
+    sec_lvl2 = sec_lvl1.blocks[0]
+    assert isinstance(sec_lvl2, Section)
+    sec_lvl3 = sec_lvl2.blocks[0]
+    assert isinstance(sec_lvl3, Section)
+    assert sec_lvl3.level == 3
+    assert sec_lvl3.absolute_level == 2
+    assert sec_lvl3.to_dict()["absolute-level"] == 2
+
+    # Depth-5 context (Section at level 5, absolute-level=1)
+    src5 = (
+        "== Level 1\n\n"
+        "=== Level 2\n\n"
+        "==== Level 3\n\n"
+        "===== Level 4\n\n"
+        "[absolute-level=1]\n"
+        "====== Depth 5 Section\n"
+    )
+    doc5 = parse_to_ast(src5)
+    s1 = doc5.blocks[0]
+    s2 = s1.blocks[0]
+    s3 = s2.blocks[0]
+    s4 = s3.blocks[0]
+    s5 = s4.blocks[0]
+    assert isinstance(s5, Section)
+    assert s5.level == 5
+    assert s5.absolute_level == 1
+    assert s5.to_dict()["absolute-level"] == 1
+
+    # Discrete heading with absolute-level
+    src_dh = "[discrete, absolute-level=3]\n=== Floating Heading\n"
+    doc_dh = parse_to_ast(src_dh)
+    dh = doc_dh.blocks[0]
+    assert isinstance(dh, DiscreteHeading)
+    assert dh.level == 2
+    assert dh.absolute_level == 3
+    assert dh.to_dict()["absolute-level"] == 3
+
+
+def test_absolute_level_validation_strict_mode():
+    """Verify out-of-range values raise AsciiDocSyntaxError in strict mode."""
+    import pytest
+
+    from asciidoctrine.lark_parser import AsciiDocSyntaxError
+    from asciidoctrine.nodes import DiscreteHeading, Section
+
+    # Parser in strict mode (strict=True)
+    with pytest.raises(AsciiDocSyntaxError):
+        parse_to_ast("[absolute-level=0]\n== Section\n", strict=True)
+
+    with pytest.raises(AsciiDocSyntaxError):
+        parse_to_ast("[absolute-level=7]\n== Section\n", strict=True)
+
+    with pytest.raises(AsciiDocSyntaxError):
+        parse_to_ast("[discrete, absolute-level=0]\n== Heading\n", strict=True)
+
+    with pytest.raises(AsciiDocSyntaxError):
+        parse_to_ast("[discrete, absolute-level=8]\n== Heading\n", strict=True)
+
+    # Node constructors in strict mode
+    with pytest.raises(AsciiDocSyntaxError):
+        Section(level=1, absolute_level=0, strict=True)
+
+    with pytest.raises(AsciiDocSyntaxError):
+        Section(level=1, absolute_level=7, strict=True)
+
+    with pytest.raises(AsciiDocSyntaxError):
+        DiscreteHeading(level=1, absolute_level=0, strict=True)
+
+    with pytest.raises(AsciiDocSyntaxError):
+        DiscreteHeading(level=1, absolute_level=9, strict=True)
+
+    # Setter in strict mode
+    sec = Section(level=1)
+    with pytest.raises(AsciiDocSyntaxError):
+        sec.set_absolute_level(7, strict=True)
+
+
+def test_absolute_level_validation_default_mode():
+    """Verify out-of-range values clamp to [1, 6] and emit UserWarning in default mode."""
+    import warnings
+
+    from asciidoctrine.nodes import DiscreteHeading, Section
+
+    # Parse in default/permissive mode (strict=False)
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        doc_low = parse_to_ast("[absolute-level=0]\n== Low Section\n", strict=False)
+        user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
+        assert len(user_warnings) >= 1
+        assert doc_low.blocks[0].absolute_level == 1
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        doc_high = parse_to_ast(
+            "[discrete, absolute-level=10]\n== High Heading\n", strict=False
+        )
+        user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
+        assert len(user_warnings) >= 1
+        assert doc_high.blocks[0].absolute_level == 6
+
+    # Node constructors in default mode
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        sec_low = Section(level=1, absolute_level=0)
+        assert sec_low.absolute_level == 1
+        user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
+        assert len(user_warnings) == 1
+        assert user_warnings[0].filename.endswith("test_blocks_parsing.py")
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        heading_high = DiscreteHeading(level=2, absolute_level=9)
+        assert heading_high.absolute_level == 6
+        user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
+        assert len(user_warnings) == 1
+        assert user_warnings[0].filename.endswith("test_blocks_parsing.py")
+
+    # Property assignment in default mode
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        sec = Section(level=1)
+        sec.absolute_level = 8
+        assert sec.absolute_level == 6
+        user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
+        assert len(user_warnings) == 1
+        assert user_warnings[0].filename.endswith("test_blocks_parsing.py")
+
+    # Method call in default mode
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        sec_method = Section(level=1)
+        sec_method.set_absolute_level(8)
+        assert sec_method.absolute_level == 6
+        user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
+        assert len(user_warnings) == 1
+        assert user_warnings[0].filename.endswith("test_blocks_parsing.py")
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        dh_method = DiscreteHeading(level=2)
+        dh_method.set_absolute_level(0)
+        assert dh_method.absolute_level == 1
+        user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
+        assert len(user_warnings) == 1
+        assert user_warnings[0].filename.endswith("test_blocks_parsing.py")
+
+    # Direct call to validate_absolute_level with custom stacklevel
+    from asciidoctrine.nodes import validate_absolute_level
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        clamped = validate_absolute_level(7, strict=False, stacklevel=2)
+        assert clamped == 6
+        user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
+        assert len(user_warnings) == 1
+        assert user_warnings[0].filename.endswith("test_blocks_parsing.py")
+
+
+def test_resolver_preserves_absolute_level():
+    """Verify ASGResolver preserves absolute-level through resolution passes without dropping it."""
+    from asciidoctrine.nodes import DiscreteHeading, Document, Section, Text, Title
+    from asciidoctrine.resolver import ASGResolver, resolve_to_ast
+
+    sec = Section(level=1, title=Title([Text("Section 1")]), absolute_level=3)
+    dh = DiscreteHeading(level=2, title=Title([Text("Discrete 1")]), absolute_level=5)
+    doc = Document(blocks=[sec, dh])
+
+    # 1. resolve() to ASG dict
+    asg = ASGResolver().resolve(doc)
+    assert asg["blocks"][0]["absolute-level"] == 3
+    assert asg["blocks"][1]["absolute-level"] == 5
+
+    # 2. resolve_to_ast() on AST
+    resolved_doc = resolve_to_ast(doc)
+    assert resolved_doc.blocks[0].absolute_level == 3
+    assert resolved_doc.blocks[1].absolute_level == 5

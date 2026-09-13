@@ -23,3 +23,16 @@ def test_parse_inlines_top_level_execution():
     nodes = asciidoctrine.parse_inlines("*strong* and _emphasis_")
     assert len(nodes) >= 2
     assert any(getattr(n, "variant", None) == "strong" for n in nodes)
+
+
+def test_document_loader_accepts_fileprovider():
+    """Verify Document.loader can accept a FileProvider."""
+    from asciidoctrine.loader import MemoryLoader
+    from asciidoctrine.nodes import Document
+
+    doc = Document()
+    loader = MemoryLoader({"a": "b"})
+    doc.loader = loader
+    assert doc.loader is loader
+    doc.loader = None
+    assert doc.loader is None

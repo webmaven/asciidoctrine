@@ -198,7 +198,8 @@ class PreprocessorTest(unittest.TestCase):
 
         def side_effect(file, *args, **kwargs):
             file_str = str(file)
-            if "circular_b.adoc" in file_str and args and args[0] == "r":
+            mode = args[0] if args else kwargs.get("mode", "r")
+            if "circular_b.adoc" in file_str and mode == "r":
                 open_counts[file_str] = open_counts.get(file_str, 0) + 1
                 if open_counts[file_str] > 1:
                     raise OSError("Simulated read failure during static scan")

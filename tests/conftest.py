@@ -1,10 +1,9 @@
 import glob
 import os
 import re
-from typing import List, Tuple
 
 
-def get_all_doctest_examples() -> List[Tuple[str, str]]:
+def get_all_doctest_examples() -> list[tuple[str, str]]:
     """
     Discovers and parses all doctest examples from vendor/asciidoctor-doctest.
     Returns a list of (example_id, content) tuples.
@@ -18,7 +17,7 @@ def get_all_doctest_examples() -> List[Tuple[str, str]]:
     examples = []
     for adoc_file in sorted(glob.glob(os.path.join(examples_dir, "*.adoc"))):
         group_name = os.path.splitext(os.path.basename(adoc_file))[0]
-        with open(adoc_file, "r") as f:
+        with open(adoc_file) as f:
             content = f.read()
 
         # Split by // .id

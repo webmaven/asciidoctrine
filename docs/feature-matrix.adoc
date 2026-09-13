@@ -258,9 +258,9 @@ AsciiDoctrine Support::
 
 | *Inline Passthroughs (`pass:[...]` and `+++...+++`)*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-passthroughs-1[Outline]
+| link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs[Peggy Inlines]
 | -
-| -
-| [.status-none]#Not Supported# footnote:[No parsing rules or AST representation exist for inline passthrough macros or delimiters.]
+| [.status-full]#link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/transformers/inline_transformer.py[Fully Supported]#
 
 | *Block Table of Contents (TOC) Macro (`toc::[]`)*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/spec/outline.adoc#user-content-table-of-contents-macro[Outline]
@@ -351,7 +351,7 @@ AsciiDoctrine Support::
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/subs/pages/prevent.adoc[Outline]
 | link:https://github.com/opendevise/asciidoc-parsing-lab/blob/main/grammar/asciidoc-inline.pegjs#L171[Peggy Inlines]
 | -
-| [.status-partial]#link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/transformers/inline_transformer.py[Partially Supported]# footnote:[Backslash escaping of inline macros (\xref, \link) is fully supported, including within monospace spans. Escaping of basic formatting quotes is in progress.]
+| [.status-full]#link:https://github.com/webmaven/asciidoctrine/blob/main/src/asciidoctrine/transformers/inline_transformer.py[Fully Supported]# footnote:[Backslash escaping of inline macros (\xref, \link) and formatting delimiters (\*bold*, \_italic_, \`code`, \#mark#) is fully supported, including within monospace spans and unconstrained delimiters.]
 
 | *Table Data Formats (CSV / TSV / DSV)*
 | link:https://gitlab.eclipse.org/eclipse/asciidoc-lang/asciidoc-lang/-/blob/main/docs/modules/tables/pages/data-format.adoc[Outline]

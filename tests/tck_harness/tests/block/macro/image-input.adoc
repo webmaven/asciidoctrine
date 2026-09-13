@@ -1,0 +1,1 @@
+image::sunset.jpg[Sunset, width=400, height=300]

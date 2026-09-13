@@ -4,8 +4,11 @@ import re
 import pytest
 
 try:
+    import pytest_pyodide
     from pytest_pyodide import run_in_pyodide
 
+    _pyodide_ver = getattr(pytest_pyodide, "__version__", None)
+    # Minimum Pyodide runtime: 314.0.2 (see .github/workflows/ci.yml)
     HAS_PYODIDE = True
 except ImportError:
     HAS_PYODIDE = False
@@ -18,7 +21,7 @@ def _get_wheel_name():
     try:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         pyproject_path = os.path.join(base_dir, "pyproject.toml")
-        with open(pyproject_path, "r", encoding="utf-8") as f:
+        with open(pyproject_path, encoding="utf-8") as f:
             content = f.read()
             match = re.search(r'version\s*=\s*["\']([^"\']+)["\']', content)
             if match:
@@ -28,11 +31,27 @@ def _get_wheel_name():
     return "asciidoctrine-0.1.0-py3-none-any.whl"
 
 
+def _get_platformdirs_wheel_name():
+    try:
+        import glob
+
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        dist_dir = os.path.join(base_dir, "dist")
+        whls = glob.glob(os.path.join(dist_dir, "platformdirs-*.whl"))
+        if whls:
+            return os.path.basename(whls[0])
+    except Exception:
+        pass
+    return "platformdirs-4.11.8-py3-none-any.whl"
+
+
 def run_if_pyodide(func):
+    # Requires pytest-pyodide with Pyodide >= 314.0.2 (matches CI in .github/workflows/ci.yml)
     if HAS_PYODIDE:
         return run_in_pyodide(
             packages=[
                 "lark-1.3.1-py3-none-any.whl",
+                _get_platformdirs_wheel_name(),
                 _get_wheel_name(),
             ]
         )(func)

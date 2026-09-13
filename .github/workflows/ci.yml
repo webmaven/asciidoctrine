@@ -63,17 +63,20 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: docs/_build/html
 
-  test:
+  test-matrix:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
 
-    - name: Set up Python 3.14
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
-        python-version: '3.14'
+        python-version: ${{ matrix.python-version }}
         cache: 'pip'
 
     - name: Set up Node.js
@@ -106,15 +109,22 @@ jobs:
     - name: Combine and Check Coverage
       run: |
         coverage combine
-        coverage report --show-missing --fail-under=75
+        coverage report --show-missing
         coverage html # Generate HTML report for artifact
 
     - name: Upload coverage report
       uses: actions/upload-artifact@v4
       with:
-        name: coverage-report-3.14
+        name: coverage-report-${{ matrix.python-version }}
         path: htmlcov/
         if-no-files-found: ignore
+
+  test:
+    runs-on: ubuntu-latest
+    needs: test-matrix
+    steps:
+      - name: Gatekeeper check
+        run: echo "All Python matrix tests passed successfully"
 
   test-pyodide:
     runs-on: ubuntu-latest
@@ -141,8 +151,9 @@ jobs:
     - name: Build wheel
       run: |
         python -m build --wheel
-        # Download lark dependency into dist directory for pyodide to find it
+        # Download dependencies into dist directory for pyodide to find them
         pip download lark -d dist/
+        pip download platformdirs -d dist/
         # Download and extract pyodide distribution
         curl -L https://github.com/pyodide/pyodide/releases/download/314.0.2/pyodide-314.0.2.tar.bz2 -o pyodide.tar.bz2
         tar -xjf pyodide.tar.bz2

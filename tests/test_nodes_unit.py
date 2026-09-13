@@ -23,10 +23,10 @@ from asciidoctrine.nodes import (
     DescriptionList,
     DescriptionListItem,
     DescriptionListTerm,
+    DiscreteHeading,
     Docinfo,
     Document,
     Example,
-    FloatingTitle,
     Header,
     Image,
     Include,
@@ -160,15 +160,15 @@ class TestNodesUnit(unittest.TestCase):
         rev.append(Text(" extra"))
         self.assertEqual(len(rev.inlines), 2)
 
-    def test_floating_title(self):
+    def test_discrete_heading(self):
         title = Title([Text("Discrete Title")])
-        ft = FloatingTitle(level=2, title=title)
-        self.assertEqual(ft.name, "floatingTitle")
-        self.assertEqual(ft.level, 2)
-        self.assertEqual(ft.get_child_collections(), {"inlines": title.inlines})
+        dh = DiscreteHeading(level=2, title=title)
+        self.assertEqual(dh.name, "heading")
+        self.assertEqual(dh.level, 2)
+        self.assertEqual(dh.get_child_collections(), {"inlines": title.inlines})
 
-        ft_no_title = FloatingTitle(level=3, title=None)
-        self.assertEqual(ft_no_title.get_child_collections(), {})
+        dh_no_title = DiscreteHeading(level=3, title=None)
+        self.assertEqual(dh_no_title.get_child_collections(), {})
 
     def test_header_serialization(self):
         title = Title([Text("My Title")])
@@ -295,7 +295,7 @@ class TestNodesUnit(unittest.TestCase):
         self.assertEqual(ref.get_child_collections(), {"inlines": ref.inlines})
 
     def test_image_audio_video(self):
-        img = Image(target="img.png", alt="alt txt", form="macro", type="block")
+        img = Image(target="img.png", alt="alt txt", type="block")
         self.assertEqual(img.name, "image")
         self.assertEqual(img.type, "block")
         self.assertEqual(img.target, "img.png")
@@ -500,6 +500,10 @@ class TestNodesUnit(unittest.TestCase):
         self.assertEqual(d_coll["type"], "block")
         self.assertEqual(d_coll["attributes"], {"options": "collapsible"})
         self.assertIn("title", d_coll)
+        self.assertIsInstance(d_coll["title"], list)
+        self.assertEqual(
+            d_coll["title"], [{"name": "text", "type": "string", "value": "Summary"}]
+        )
         self.assertEqual(len(d_coll["blocks"]), 1)
 
         # IndexTerm Inline Node
@@ -510,7 +514,9 @@ class TestNodesUnit(unittest.TestCase):
         d_idx = idx.to_dict()
         self.assertEqual(d_idx["name"], "indexterm")
         self.assertEqual(d_idx["type"], "inline")
-        self.assertEqual(d_idx["terms"], ["primary", "secondary"])
+        self.assertEqual(d_idx["primary"], "primary")
+        self.assertEqual(d_idx["secondary"], "secondary")
+        self.assertFalse(d_idx["visible"])
         self.assertEqual(d_idx["variant"], "macro")
 
     def test_literal_properties(self):
@@ -561,12 +567,13 @@ class TestNodesUnit(unittest.TestCase):
         r.append(Text(" extra"))
         self.assertEqual(len(r.inlines), 2)
 
-        # FloatingTitle
-        ft = FloatingTitle(level=2, title=t)
-        self.assertEqual(ft.get_child_collections(), {"inlines": t.inlines})
-        d_ft = ft.to_dict()
-        self.assertEqual(d_ft["name"], "floatingTitle")
-        self.assertEqual(d_ft["level"], 2)
+        # DiscreteHeading
+        dh = DiscreteHeading(level=2, title=t)
+        self.assertEqual(dh.get_child_collections(), {"inlines": t.inlines})
+        d_dh = dh.to_dict()
+        self.assertEqual(d_dh["name"], "heading")
+        self.assertEqual(d_dh["level"], 2)
+        self.assertNotIn("inlines", d_dh)
 
         # Audio
         audio = Audio(target="music.mp3", attributes={"autoplay": "true"})
@@ -837,31 +844,36 @@ class TestDocumentToDict:
 
 
 # ---------------------------------------------------------------------------
-# FloatingTitle
+# DiscreteHeading
 # ---------------------------------------------------------------------------
 
 
-class TestFloatingTitle:
+class TestDiscreteHeading:
     def test_init(self) -> None:
-        t = Title(inlines=[Text("Floating")])
-        ft = FloatingTitle(level=2, title=t)
-        assert ft.name == "floatingTitle"
-        assert ft.level == 2
-        assert ft.title is t
+        t = Title(inlines=[Text("Discrete")])
+        dh = DiscreteHeading(level=2, title=t)
+        assert dh.name == "heading"
+        assert dh.level == 2
+        assert dh.title is t
 
     def test_get_child_collections(self) -> None:
         t = Title(inlines=[Text("Hi")])
-        ft = FloatingTitle(level=1, title=t)
-        colls = ft.get_child_collections()
+        dh = DiscreteHeading(level=1, title=t)
+        colls = dh.get_child_collections()
         assert "inlines" in colls
 
     def test_get_child_collections_no_title(self) -> None:
-        # FloatingTitle with a Title that has no inlines
+        # DiscreteHeading with a Title that has no inlines
         t = Title(inlines=[])
-        ft = FloatingTitle(level=1, title=t)
-        colls = ft.get_child_collections()
+        dh = DiscreteHeading(level=1, title=t)
+        colls = dh.get_child_collections()
         # returns inlines from title, which is empty
         assert colls.get("inlines", []) == []
+
+    def test_floating_title_not_exported(self) -> None:
+        import asciidoctrine.nodes as nodes
+
+        assert not hasattr(nodes, "FloatingTitle")
 
 
 # ---------------------------------------------------------------------------
@@ -1208,6 +1220,96 @@ class TestCollapsible:
         c = Collapsible(title=t, blocks=[Paragraph()])
         d = c.to_dict()
         assert "title" in d
+        assert isinstance(d["title"], list)
+        assert d["title"] == [
+            {"name": "text", "type": "string", "value": "Collapse Me"}
+        ]
+
+    def test_to_dict_attributes(self) -> None:
+        c1 = Collapsible()
+        assert "attributes" not in c1.to_dict()
+
+        c2 = Collapsible(attributes={"options": "collapsible"})
+        assert c2.to_dict()["attributes"] == {"options": "collapsible"}
+
+
+# ---------------------------------------------------------------------------
+# Section.to_dict
+# ---------------------------------------------------------------------------
+
+
+class TestSectionToDict:
+    def test_to_dict_basic(self) -> None:
+        sect = Section(level=1)
+        d = sect.to_dict()
+        assert d["name"] == "section"
+        assert d["type"] == "block"
+        assert d["level"] == 1
+        assert "title" not in d
+        assert "absolute-level" not in d
+        assert "attributes" not in d
+        assert d["blocks"] == []
+
+    def test_to_dict_with_title_and_blocks(self) -> None:
+        t = Title([Text("Section Title")])
+        p = Paragraph([Text("Content")])
+        sect = Section(level=2, title=t, blocks=[p])
+        d = sect.to_dict()
+        assert d["level"] == 2
+        assert d["title"] == [
+            {"name": "text", "type": "string", "value": "Section Title"}
+        ]
+        assert len(d["blocks"]) == 1
+        assert d["blocks"][0]["name"] == "paragraph"
+
+    def test_to_dict_with_absolute_level(self) -> None:
+        sect = Section(level=2, absolute_level=3)
+        d = sect.to_dict()
+        assert d["level"] == 2
+        assert d["absolute-level"] == 3
+
+    def test_to_dict_with_attributes(self) -> None:
+        sect = Section(level=1)
+        sect.attributes = {"id": "sec-1"}
+        d = sect.to_dict()
+        assert d["attributes"] == {"id": "sec-1"}
+
+
+# ---------------------------------------------------------------------------
+# ListItem.to_dict
+# ---------------------------------------------------------------------------
+
+
+class TestListItemToDict:
+    def test_to_dict_basic(self) -> None:
+        item = ListItem(marker="*", principal=[Text("Item text")])
+        d = item.to_dict()
+        assert d["name"] == "listItem"
+        assert d["type"] == "block"
+        assert d["marker"] == "*"
+        assert "checked" not in d
+        assert d["principal"] == [
+            {"name": "text", "type": "string", "value": "Item text"}
+        ]
+        assert d["blocks"] == []
+
+    def test_to_dict_checked_true(self) -> None:
+        item = ListItem(marker="*", checked=True)
+        d = item.to_dict()
+        assert d["checked"] is True
+
+    def test_to_dict_checked_false(self) -> None:
+        item = ListItem(marker="*", checked=False)
+        d = item.to_dict()
+        assert d["checked"] is False
+
+    def test_to_dict_with_blocks_and_attributes(self) -> None:
+        p = Paragraph([Text("Nested")])
+        item = ListItem(marker="*", blocks=[p])
+        item.attributes = {"role": "highlight"}
+        d = item.to_dict()
+        assert len(d["blocks"]) == 1
+        assert d["attributes"] == {"role": "highlight"}
 
 
 # ---------------------------------------------------------------------------
@@ -1341,20 +1443,33 @@ class TestMetaNodes:
 
 class TestIndexTerm:
     def test_init(self) -> None:
-        it = IndexTerm(terms=["AsciiDoc", "markup"], variant="macro")
+        it = IndexTerm(terms=["AsciiDoc", "markup", "spec"], variant="macro")
         assert it.name == "indexterm"
-        assert it.terms == ["AsciiDoc", "markup"]
+        assert it.terms == ["AsciiDoc", "markup", "spec"]
         assert it.variant == "macro"
+        assert it.primary == "AsciiDoc"
+        assert it.secondary == "markup"
+        assert it.tertiary == "spec"
+        assert it.visible is False
 
     def test_to_dict_no_inlines(self) -> None:
         it = IndexTerm(terms=["topic"])
         d = it.to_dict()
-        assert d["terms"] == ["topic"]
+        assert d["name"] == "indexterm"
+        assert d["type"] == "inline"
+        assert d["primary"] == "topic"
+        assert d["visible"] is False
+        assert "secondary" not in d
+        assert "tertiary" not in d
         assert "inlines" not in d
 
     def test_to_dict_with_inlines(self) -> None:
-        it = IndexTerm(terms=["topic"], inlines=[Text("visible")])
+        it = IndexTerm(
+            terms=["topic"], variant="flow_double", inlines=[Text("visible")]
+        )
         d = it.to_dict()
+        assert d["primary"] == "topic"
+        assert d["visible"] is True
         assert "inlines" in d
         assert d["inlines"][0]["value"] == "visible"
 
@@ -1510,5 +1625,54 @@ class TestImageNode:
         assert img.type == "inline"
 
     def test_image_form(self) -> None:
-        img = Image(target="a.png", form="macro")
+        img = Image(target="a.png")
         assert img.form == "macro"
+
+
+def test_document_loader_type_enforcement():
+    from asciidoctrine.loader import MemoryLoader
+
+    doc = Document()
+    loader = MemoryLoader({"test.adoc": "test"})
+    doc.loader = loader
+    assert doc.loader is loader
+
+    doc.loader = None
+    assert doc.loader is None
+
+
+def test_document_title_type_enforcement() -> None:
+    from asciidoctrine.nodes import Text, Title
+
+    doc = Document()
+    title_node = Title([Text("My Title")])
+    doc.title = title_node
+    assert doc.title is title_node
+
+    doc.title = [Text("My Title")]
+    assert isinstance(doc.title, Title)
+    assert doc.title.inlines[0].value == "My Title"
+
+    doc.title = (Text("Tuple Title"),)
+    assert isinstance(doc.title, Title)
+    assert doc.title.inlines[0].value == "Tuple Title"
+
+    doc.title = None
+    assert doc.title is None
+
+    with pytest.raises(
+        TypeError, match="Document title must be a Title, a sequence of Nodes, or None"
+    ):
+        doc.title = 123  # type: ignore[assignment]
+
+    with pytest.raises(
+        TypeError, match="Document title must be a Title, a sequence of Nodes, or None"
+    ):
+        doc.title = "Invalid String Title"  # type: ignore[assignment]
+
+
+def test_child_collection_runtime_protocol() -> None:
+    from asciidoctrine.nodes import ChildCollection
+
+    assert isinstance([], ChildCollection)
+    assert not isinstance("string", ChildCollection)

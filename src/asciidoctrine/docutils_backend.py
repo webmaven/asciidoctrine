@@ -2,7 +2,7 @@
 Converts the AsciiDoc AST to a Docutils document tree.
 """
 
-from typing import Any, Optional, Union
+from typing import Any
 
 from docutils import nodes
 from docutils.utils import new_document
@@ -19,9 +19,9 @@ from .nodes import (
     DescriptionList,
     DescriptionListItem,
     DescriptionListTerm,
+    DiscreteHeading,
     Docinfo,
     Document,
-    FloatingTitle,
     Image,
     IndexTerm,
     InlineStem,
@@ -132,11 +132,31 @@ class DocutilsRenderer(NodeVisitor):
             self.document += fn
 
     def visit_section(self, node: Section) -> None:
+        """
+        Render a structural section AST node into a Docutils section element.
+
+        Constructs a `docutils.nodes.section` element, attaches its title inlines
+        to a child `docutils.nodes.title`, and recursively visits child blocks.
+        If `node.absolute_level` is set, it overrides document-relative depth.
+
+        *Parameters:*
+
+        `node`:: The `Section` AST node to render.
+        """
         section = nodes.section()
         # Always ensure an ID exists for Sphinx/Docutils
         if "id" in node.attributes:
             section["ids"].append(node.attributes["id"])
         self.document.set_id(section)
+
+        depth = (
+            node.absolute_level
+            if getattr(node, "absolute_level", None) is not None
+            else getattr(node, "level", None)
+        )
+        if depth is not None:
+            section["classes"].append(f"level-{depth}")
+            section["level"] = depth
 
         title = nodes.title()
         old_parent = self.current_node
@@ -153,10 +173,28 @@ class DocutilsRenderer(NodeVisitor):
         old_parent += section
         self.current_node = old_parent
 
-    def visit_floatingtitle(self, node: FloatingTitle) -> None:
+    def visit_heading(self, node: DiscreteHeading) -> None:
+        """
+        Render a discrete heading AST node into a Docutils rubric element.
+
+        Discrete headings are mapped to `docutils.nodes.rubric` elements decorated with
+        a CSS class denoting their original heading level (e.g. `level-1`, `level-2`),
+        preserving visual hierarchy without affecting document outline structure.
+        If `node.absolute_level` is set, it overrides document-relative heading depth.
+
+        *Parameters:*
+
+        `node`:: The `DiscreteHeading` AST node to render.
+        """
         rubric = nodes.rubric()
-        if hasattr(node, "level") and node.level is not None:
-            rubric["classes"].append(f"level-{node.level}")
+        depth = (
+            node.absolute_level
+            if getattr(node, "absolute_level", None) is not None
+            else getattr(node, "level", None)
+        )
+        if depth is not None:
+            rubric["classes"].append(f"level-{depth}")
+            rubric["level"] = depth
         old_parent = self.current_node
         self.current_node = rubric
         if node.title:
@@ -165,12 +203,14 @@ class DocutilsRenderer(NodeVisitor):
         old_parent += rubric
         self.current_node = old_parent
 
+    visit_discreteheading = visit_heading
+
     def visit_paragraph(self, node: Paragraph) -> None:
         para = nodes.paragraph()
         old_parent = self.current_node
 
         style = getattr(self, "_cell_style", None)
-        wrapper: Optional[nodes.Element] = None
+        wrapper: nodes.Element | None = None
         if style in ("s", "h"):
             wrapper = nodes.strong()
         elif style == "e":
@@ -281,9 +321,46 @@ class DocutilsRenderer(NodeVisitor):
         self.current_node = old_parent
 
     def visit_list(self, node: ASTList) -> None:
-        list_node: Union[nodes.bullet_list, nodes.enumerated_list]
+        """
+        Convert an AsciiDoc list block to Docutils nodes.
+
+        Maps ordered list variant to `nodes.enumerated_list`, applying `enumtype`
+        from `numeration`, `start` offset, and `reversed` CSS class.
+        Maps unordered and callout lists to `nodes.bullet_list`.
+        Appends checklist CSS classes when items carry checkbox state.
+
+        *Parameters:*
+
+        `node`:: The `ASTList` node to convert.
+        """
+        list_node: nodes.bullet_list | nodes.enumerated_list
         if node.variant == "ordered":
             list_node = nodes.enumerated_list()
+            numeration = (
+                getattr(node, "numeration", None)
+                or getattr(node, "attributes", {}).get("numeration")
+                or getattr(node, "attributes", {}).get("style")
+            )
+            if numeration:
+                list_node["enumtype"] = numeration
+
+            start = getattr(node, "start", None)
+            if start is None and "start" in getattr(node, "attributes", {}):
+                try:
+                    start = int(node.attributes["start"])
+                except (ValueError, TypeError):
+                    pass
+            if start is not None:
+                list_node["start"] = start
+
+            is_reversed = (
+                getattr(node, "reversed", False)
+                or "reversed"
+                in str(getattr(node, "attributes", {}).get("options", "")).split(",")
+                or getattr(node, "attributes", {}).get("reversed") is not None
+            )
+            if is_reversed:
+                list_node["classes"].append("reversed")
         else:
             list_node = nodes.bullet_list()
 
@@ -359,6 +436,16 @@ class DocutilsRenderer(NodeVisitor):
         self._cell_style = old_style
 
     def visit_listitem(self, node: ListItem) -> None:
+        """
+        Convert an AsciiDoc list item node to a Docutils `nodes.list_item`.
+
+        Attaches task-list-item CSS classes and checkbox glyphs (`\u2610` / `\u2611`)
+        when `node.checked` is boolean. Converts principal inline nodes and attached blocks.
+
+        *Parameters:*
+
+        `node`:: The `ListItem` node to convert.
+        """
         item = nodes.list_item()
         old_parent = self.current_node
         self.current_node = item
@@ -586,7 +673,7 @@ class DocutilsRenderer(NodeVisitor):
         self.current_node += img
 
     def _append_attribution(
-        self, bq: nodes.Element, attribution: Optional[str], citetitle: Optional[str]
+        self, bq: nodes.Element, attribution: str | None, citetitle: str | None
     ) -> None:
         """Append a trailing attribution paragraph to a block_quote node.
 
@@ -774,7 +861,7 @@ class DocutilsRenderer(NodeVisitor):
 
 def asciidoc_to_docutils(
     source: str,
-    base_dir: Optional[str] = None,
+    base_dir: str | None = None,
     safe_mode: int = 0,
 ) -> nodes.document:
     """
@@ -820,9 +907,13 @@ def asciidoc_to_docutils(
 
         settings = get_default_settings()
     except ImportError:
+        import warnings
+
         from docutils.frontend import OptionParser
 
-        settings = OptionParser(components=()).get_default_values()
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            settings = OptionParser(components=()).get_default_values()
     document = new_document("<string>", settings=settings)
 
     renderer = DocutilsRenderer(document)

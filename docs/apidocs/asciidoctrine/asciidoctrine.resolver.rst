@@ -30,6 +30,18 @@ Classes
           :parser: sphinx_asciidoctrine.parser
           :summary:
 
+Functions
+~~~~~~~~~
+
+.. list-table::
+   :class: autosummary longtable
+   :align: left
+
+   * - :py:obj:`resolve_to_ast <asciidoctrine.resolver.resolve_to_ast>`
+     - .. autodoc2-docstring:: asciidoctrine.resolver.resolve_to_ast
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
+
 API
 ~~~
 
@@ -50,7 +62,7 @@ API
       .. autodoc2-docstring:: asciidoctrine.resolver.WorkspaceCatalog.index_document
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: ASGResolver(document: asciidoctrine.nodes.Document, catalog: typing.Optional[asciidoctrine.resolver.WorkspaceCatalog] = None, current_file_id: typing.Optional[str] = None)
+.. py:class:: ASGResolver(document: asciidoctrine.nodes.Document | None = None, catalog: asciidoctrine.resolver.WorkspaceCatalog | None = None, current_file_id: str | None = None)
    :canonical: asciidoctrine.resolver.ASGResolver
 
    Bases: :py:obj:`asciidoctrine.nodes.NodeTransformer`
@@ -69,10 +81,16 @@ API
       .. autodoc2-docstring:: asciidoctrine.resolver.ASGResolver._resolve_docinfo_files
          :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: resolve(node: asciidoctrine.nodes.Node) -> typing.Dict[str, typing.Any]
+   .. py:method:: resolve(node: asciidoctrine.nodes.Node) -> dict[str, typing.Any]
       :canonical: asciidoctrine.resolver.ASGResolver.resolve
 
       .. autodoc2-docstring:: asciidoctrine.resolver.ASGResolver.resolve
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: resolve_to_ast(doc: asciidoctrine.nodes.Document) -> asciidoctrine.nodes.Document
+      :canonical: asciidoctrine.resolver.ASGResolver.resolve_to_ast
+
+      .. autodoc2-docstring:: asciidoctrine.resolver.ASGResolver.resolve_to_ast
          :parser: sphinx_asciidoctrine.parser
 
    .. py:method:: generic_visit(node: asciidoctrine.nodes.Node, **kwargs: typing.Any) -> asciidoctrine.nodes.Node
@@ -93,10 +111,16 @@ API
       .. autodoc2-docstring:: asciidoctrine.resolver.ASGResolver.visit_attributes
          :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: visit_comment(node: asciidoctrine.nodes.Node, **kwargs: typing.Any) -> typing.Optional[asciidoctrine.nodes.Node]
+   .. py:method:: visit_comment(node: asciidoctrine.nodes.Node, **kwargs: typing.Any) -> asciidoctrine.nodes.Node | None
       :canonical: asciidoctrine.resolver.ASGResolver.visit_comment
 
       .. autodoc2-docstring:: asciidoctrine.resolver.ASGResolver.visit_comment
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: visit_indexterm(node: asciidoctrine.nodes.IndexTerm, **kwargs: typing.Any) -> asciidoctrine.nodes.Node
+      :canonical: asciidoctrine.resolver.ASGResolver.visit_indexterm
+
+      .. autodoc2-docstring:: asciidoctrine.resolver.ASGResolver.visit_indexterm
          :parser: sphinx_asciidoctrine.parser
 
    .. py:method:: visit_table(node: asciidoctrine.nodes.Table, **kwargs: typing.Any) -> asciidoctrine.nodes.Node
@@ -105,7 +129,7 @@ API
       .. autodoc2-docstring:: asciidoctrine.resolver.ASGResolver.visit_table
          :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: _extract_inline_text(nodes: typing.Sequence[asciidoctrine.nodes.Node]) -> str
+   .. py:method:: _extract_inline_text(nodes: collections.abc.Sequence[asciidoctrine.nodes.Node]) -> str
       :canonical: asciidoctrine.resolver.ASGResolver._extract_inline_text
 
       .. autodoc2-docstring:: asciidoctrine.resolver.ASGResolver._extract_inline_text
@@ -117,7 +141,7 @@ API
       .. autodoc2-docstring:: asciidoctrine.resolver.ASGResolver.visit_ref
          :parser: sphinx_asciidoctrine.parser
 
-.. py:class:: WorkspaceBuilder(workspace_root: typing.Union[str, pathlib.Path] = '/workspace', lark_parser_instance: typing.Optional[typing.Any] = None, loader: typing.Optional[asciidoctrine.loader.FileProvider] = None)
+.. py:class:: WorkspaceBuilder(workspace_root: str | pathlib.Path = '/workspace', lark_parser_instance: typing.Any | None = None, loader: asciidoctrine.loader.FileProvider | None = None)
    :canonical: asciidoctrine.resolver.WorkspaceBuilder
 
    .. autodoc2-docstring:: asciidoctrine.resolver.WorkspaceBuilder
@@ -128,7 +152,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.resolver.WorkspaceBuilder.__init__
       :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: _get_file_id(path_str: typing.Union[str, pathlib.Path]) -> str
+   .. py:method:: _get_file_id(path_str: str | pathlib.Path) -> str
       :canonical: asciidoctrine.resolver.WorkspaceBuilder._get_file_id
 
       .. autodoc2-docstring:: asciidoctrine.resolver.WorkspaceBuilder._get_file_id
@@ -152,8 +176,14 @@ API
       .. autodoc2-docstring:: asciidoctrine.resolver.WorkspaceBuilder.resolve_workspace_semantics
          :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: build() -> typing.Dict[str, typing.Dict[str, typing.Any]]
+   .. py:method:: build() -> dict[str, dict[str, typing.Any]]
       :canonical: asciidoctrine.resolver.WorkspaceBuilder.build
 
       .. autodoc2-docstring:: asciidoctrine.resolver.WorkspaceBuilder.build
          :parser: sphinx_asciidoctrine.parser
+
+.. py:function:: resolve_to_ast(doc: asciidoctrine.nodes.Document) -> asciidoctrine.nodes.Document
+   :canonical: asciidoctrine.resolver.resolve_to_ast
+
+   .. autodoc2-docstring:: asciidoctrine.resolver.resolve_to_ast
+      :parser: sphinx_asciidoctrine.parser

@@ -229,15 +229,15 @@ def test_footnote_rendering_conversion():
 
 
 def test_floating_title_and_break_conversion():
-    # Floating title
+    # Discrete heading
     from docutils.utils import new_document
 
     from asciidoctrine.docutils_backend import DocutilsRenderer
-    from asciidoctrine.nodes import FloatingTitle, Text, Title
+    from asciidoctrine.nodes import DiscreteHeading, Text, Title
 
     doc = new_document("<string>")
     renderer = DocutilsRenderer(doc)
-    node = FloatingTitle(level=2, title=Title(inlines=[Text("Floating Title Text")]))
+    node = DiscreteHeading(level=2, title=Title(inlines=[Text("Floating Title Text")]))
     renderer.visit(node)
 
     rubric = doc[0]
@@ -253,6 +253,15 @@ def test_floating_title_and_break_conversion():
     assert len(para.children) == 3  # Text, raw, Text
     assert isinstance(para.children[1], nodes.raw)
     assert para.children[1].astext() == "<br/>"
+
+
+def test_discrete_heading_docutils_conversion():
+    source = "[discrete]\n== Section Heading\n"
+    document = asciidoc_to_docutils(source)
+    rubric = document[0]
+    assert isinstance(rubric, nodes.rubric)
+    assert rubric.astext() == "Section Heading"
+    assert "level-1" in rubric["classes"]
 
 
 def test_special_inline_macros_conversion():
@@ -447,9 +456,9 @@ This is a sidebar block.
 
 def test_open_block_and_toctree_conversion():
     source_open = """
---
+~~~~
 This is an open block paragraph.
---
+~~~~
 """
     doc_open = asciidoc_to_docutils(source_open)
     container_node = doc_open[0]
@@ -459,11 +468,11 @@ This is an open block paragraph.
     # Sphinx toctree
     source_toctree = """
 [style=toctree,maxdepth=2,caption="My Table of Contents"]
---
+~~~~
 intro
 installation
 usage
---
+~~~~
 """
     doc_toctree = asciidoc_to_docutils(source_toctree)
     toctree_node = doc_toctree[0]
@@ -610,7 +619,7 @@ def test_docutils_backend_additional_coverage():
 
     sys.modules["sphinx"] = None
     try:
-        doc_no_sphinx = asciidoc_to_docutils("[style=toctree]\n--\nintro\n--")
+        doc_no_sphinx = asciidoc_to_docutils("[style=toctree]\n~~~~\nintro\n~~~~")
         assert isinstance(doc_no_sphinx[0], dnodes.container)
     finally:
         del sys.modules["sphinx"]
@@ -997,3 +1006,88 @@ def test_table_colspan_and_rowspan_combined():
     assert big_cell.get("morecols") == 1, "2-column span should give morecols=1"
     assert big_cell.get("morerows") == 1, "2-row span should give morerows=1"
     assert big_cell.astext() == "big cell"
+
+
+def test_ordered_list_enumtype_and_start_conversion():
+    """Verify ordered lists map numeration to docutils enumtype and start offset."""
+    styles = {
+        "loweralpha": "loweralpha",
+        "upperalpha": "upperalpha",
+        "lowerroman": "lowerroman",
+        "upperroman": "upperroman",
+        "arabic": "arabic",
+    }
+    for style, expected_enumtype in styles.items():
+        src = f"[{style}, start=3, %reversed]\n. First\n. Second\n"
+        doc = asciidoc_to_docutils(src)
+        elist = doc[0]
+        assert isinstance(elist, nodes.enumerated_list)
+        assert elist.get("enumtype") == expected_enumtype
+        assert elist.get("start") == 3
+        assert "reversed" in elist.get("classes", [])
+
+
+def test_docutils_absolute_level_depth_contexts():
+    """Verify DocutilsRenderer uses absolute-level as heading depth in depth-1, depth-3, and depth-5 contexts."""
+    from docutils import nodes
+
+    # Depth-1 document context
+    src1 = "[absolute-level=4]\n== Section Title\n"
+    doc1 = asciidoc_to_docutils(src1)
+    sec1 = doc1[0]
+    assert isinstance(sec1, nodes.section)
+    assert "level-4" in sec1["classes"]
+    assert sec1["level"] == 4
+
+    # Depth-3 document context
+    src3 = "== Level 1\n\n=== Level 2\n\n[absolute-level=2]\n==== Depth 3 Section\n"
+    doc3 = asciidoc_to_docutils(src3)
+    # Traverse to depth-3 section
+    sec_root = doc3[0]
+    sec_l2 = next(c for c in sec_root.children if isinstance(c, nodes.section))
+    sec_l3 = next(c for c in sec_l2.children if isinstance(c, nodes.section))
+    assert "level-2" in sec_l3["classes"]
+    assert sec_l3["level"] == 2
+
+    # Depth-5 document context
+    src5 = (
+        "== Level 1\n\n"
+        "=== Level 2\n\n"
+        "==== Level 3\n\n"
+        "===== Level 4\n\n"
+        "[absolute-level=1]\n"
+        "====== Depth 5 Section\n"
+    )
+    doc5 = asciidoc_to_docutils(src5)
+    curr = doc5[0]
+    while any(isinstance(c, nodes.section) for c in curr.children):
+        curr = next(c for c in curr.children if isinstance(c, nodes.section))
+    assert "level-1" in curr["classes"]
+    assert curr["level"] == 1
+
+    # Discrete heading with absolute-level
+    src_dh = "[discrete, absolute-level=5]\n== Floating Title\n"
+    doc_dh = asciidoc_to_docutils(src_dh)
+    rubric = doc_dh[0]
+    assert isinstance(rubric, nodes.rubric)
+    assert "level-5" in rubric["classes"]
+    assert rubric["level"] == 5
+
+
+def test_docutils_absence_of_absolute_level_preserves_behaviour():
+    """Verify absence of absolute-level preserves all existing heading-level behaviour."""
+    from docutils import nodes
+
+    # Discrete heading without absolute-level preserves level-{node.level}
+    src_dh = "[discrete]\n=== Level 2 Heading\n"
+    doc_dh = asciidoc_to_docutils(src_dh)
+    rubric = doc_dh[0]
+    assert isinstance(rubric, nodes.rubric)
+    assert "level-2" in rubric["classes"]
+
+    # Plain section without absolute-level preserves existing structure
+    src_sec = "== Hello Section\n\nParagraph.\n"
+    doc_sec = asciidoc_to_docutils(src_sec)
+    sec = doc_sec[0]
+    assert isinstance(sec, nodes.section)
+    assert sec[0].astext() == "Hello Section"

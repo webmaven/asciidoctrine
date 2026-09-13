@@ -19,7 +19,7 @@ def tck_output():
     # 1. Check if cache already exists (subsequent workers or runs)
     if os.path.exists(cache_file):
         try:
-            with open(cache_file, "r") as f:
+            with open(cache_file) as f:
                 data = json.load(f)
                 return data["stdout"], data["stderr"], data["returncode"]
         except Exception:
@@ -36,7 +36,7 @@ def tck_output():
         for _ in range(600):  # Wait up to 60 seconds
             if os.path.exists(cache_file):
                 try:
-                    with open(cache_file, "r") as f:
+                    with open(cache_file) as f:
                         data = json.load(f)
                         return data["stdout"], data["stderr"], data["returncode"]
                 except Exception:
@@ -98,7 +98,7 @@ def get_known_failures():
     failures_file = os.path.join("tests", "tck_failures.txt")
     if not os.path.exists(failures_file):
         return set()
-    with open(failures_file, "r") as f:
+    with open(failures_file) as f:
         return {line.strip() for line in f if line.strip()}
 
 

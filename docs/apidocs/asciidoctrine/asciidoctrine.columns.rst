@@ -87,7 +87,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.columns._format_percentage
       :parser: sphinx_asciidoctrine.parser
 
-.. py:function:: parse_cols(cols_str: typing.Optional[str], fallback_col_count: int = 0) -> list[dict[str, typing.Any]]
+.. py:function:: parse_cols(cols_str: str | None, fallback_col_count: int = 0) -> list[dict[str, typing.Any]]
    :canonical: asciidoctrine.columns.parse_cols
 
    .. autodoc2-docstring:: asciidoctrine.columns.parse_cols

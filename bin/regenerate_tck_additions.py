@@ -10,7 +10,7 @@ def regenerate_tests(base_dir):
 
     for input_path in adoc_files:
         print(f"Regenerating {input_path}...")
-        with open(input_path, "r") as f:
+        with open(input_path) as f:
             content = f.read()
 
         parse_type = "inline" if "inline" in input_path else "block"
