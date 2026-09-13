@@ -1125,3 +1125,145 @@ def test_resolver_escaped_xref_macro_does_not_fail_resolution():
     )
     assert "xref:nonexistent-chapter.adoc#missing[Chapter 2]" in combined_p1
     assert "\\xref" not in combined_p1
+
+
+# ---------------------------------------------------------------------------
+# ASGResolver.resolve_to_ast() & resolve_to_ast() convenience function (#101)
+# ---------------------------------------------------------------------------
+
+
+class TestResolveToAst:
+    def test_round_trip_parse_and_resolve_to_ast(self) -> None:
+        """parse_to_ast(src) -> resolve_to_ast(doc) returns Document with resolved attribute values as str."""
+        from asciidoctrine import resolve_to_ast
+        from asciidoctrine.lark_parser import parse_to_ast
+        from asciidoctrine.nodes import Document, Paragraph, Section
+
+        source = (
+            ":my-attr: world\n"
+            ":my-role: highlight\n\n"
+            "== Section Title\n\n"
+            "[.lead]\n"
+            "Hello {my-attr}!\n"
+        )
+        doc = parse_to_ast(source)
+        resolved_doc = resolve_to_ast(doc)
+
+        assert isinstance(resolved_doc, Document)
+        assert resolved_doc is doc
+        assert resolved_doc.attributes.get("my-attr") == "world"
+        assert resolved_doc.attributes.get("my-role") == "highlight"
+
+        # AST structure preserved as typed nodes
+        assert len(resolved_doc.blocks) >= 1
+        sec = next(b for b in resolved_doc.blocks if isinstance(b, Section))
+        assert sec.title is not None
+        p = next(b for b in sec.blocks if isinstance(b, Paragraph))
+        assert p.attributes.get("role") == "lead"
+        text_content = "".join(t.value for t in p.inlines if hasattr(t, "value"))
+        assert text_content == "Hello world!"
+
+    def test_resolve_to_ast_removes_comments_and_attribute_entries(self) -> None:
+        """resolve_to_ast removes comment and attribute_entry blocks while leaving paragraphs/sections as AST nodes."""
+        from asciidoctrine import resolve_to_ast
+        from asciidoctrine.lark_parser import parse_to_ast
+        from asciidoctrine.nodes import Paragraph, Section
+
+        source = (
+            ":attr1: value1\n"
+            "// A comment line\n\n"
+            "== Heading\n\n"
+            "// Another comment\n"
+            ":attr2: value2\n\n"
+            "Paragraph text.\n"
+        )
+        doc = parse_to_ast(source)
+
+        # Before resolve: attribute_entry and comment are present
+        block_names_before = [b.name for b in doc.blocks]
+        assert (
+            "attribute_entry" in block_names_before or "comment" in block_names_before
+        )
+
+        resolved_doc = resolve_to_ast(doc)
+
+        # Collect all block names across the document recursively
+        all_blocks = list(resolved_doc.blocks)
+        for b in resolved_doc.blocks:
+            for coll in b.get_child_collections().values():
+                all_blocks.extend(coll)
+
+        names = [b.name for b in all_blocks]
+        assert "comment" not in names
+        assert "attribute_entry" not in names
+        assert "paragraph" in names
+        # Structural nodes are typed AST nodes, not dicts
+        for b in all_blocks:
+            assert not isinstance(b, dict)
+        assert any(isinstance(b, Section) for b in all_blocks)
+        assert any(isinstance(b, Paragraph) for b in all_blocks)
+
+    def test_asg_resolver_resolve_to_ast_no_arg_constructor(self) -> None:
+        """ASGResolver().resolve_to_ast(doc) can be called with default constructor."""
+        from asciidoctrine.lark_parser import parse_to_ast
+        from asciidoctrine.nodes import Document, Paragraph
+
+        source = ":key: resolved_value\n\nSome {key} text.\n"
+        doc = parse_to_ast(source)
+
+        resolver = ASGResolver()
+        result = resolver.resolve_to_ast(doc)
+
+        assert isinstance(result, Document)
+        assert result is doc
+        assert result.attributes["key"] == "resolved_value"
+        p = next(b for b in result.blocks if isinstance(b, Paragraph))
+        text_vals = [t.value for t in p.inlines if hasattr(t, "value")]
+        assert "Some resolved_value text." in "".join(text_vals)
+
+    def test_resolve_to_ast_resolves_footnotes_and_xrefs(self) -> None:
+        """resolve_to_ast correctly indexes footnotes and resolves cross-references in AST."""
+        from asciidoctrine import resolve_to_ast
+        from asciidoctrine.lark_parser import parse_to_ast
+
+        source = (
+            "First note.footnote:[First note text]\n\n"
+            "Second note.footnote:[Second note text]\n"
+        )
+        doc = parse_to_ast(source)
+        resolved = resolve_to_ast(doc)
+
+        assert len(resolved.footnotes) == 2
+        assert resolved.footnotes[0]["index"] == 1
+        assert resolved.footnotes[1]["index"] == 2
+
+    def test_resolve_to_ast_indexes_references_and_resolves_xref(self) -> None:
+        """resolve_to_ast indexes references and resolves internal cross-references in-place."""
+        from asciidoctrine import resolve_to_ast
+        from asciidoctrine.lark_parser import parse_to_ast
+        from asciidoctrine.nodes import Paragraph, Ref, Section
+
+        source = "[#intro]\n== Introduction\n\nSee <<intro>> for details.\n"
+        doc = parse_to_ast(source)
+        resolved = resolve_to_ast(doc)
+
+        sec = next(b for b in resolved.blocks if isinstance(b, Section))
+        p = next(b for b in sec.blocks if isinstance(b, Paragraph))
+        ref = next(i for i in p.inlines if isinstance(i, Ref))
+
+        assert ref.resolved_strategy == "same_file"
+        assert ref.target_node_instance is sec
+        assert ref.resolved_anchor_target == "intro"
+
+    def test_resolve_to_ast_macro_target_substitution(self) -> None:
+        """resolve_to_ast substitutes attribute references in block macro targets."""
+        from asciidoctrine import resolve_to_ast
+        from asciidoctrine.lark_parser import parse_to_ast
+        from asciidoctrine.nodes import Image
+
+        source = ":imagesdir: assets/images\n\nimage::{imagesdir}/photo.png[Alt text]\n"
+        doc = parse_to_ast(source)
+        resolved = resolve_to_ast(doc)
+
+        img = next(b for b in resolved.blocks if isinstance(b, Image))
+        assert img.target == "assets/images/photo.png"

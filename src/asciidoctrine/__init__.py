@@ -8,6 +8,7 @@ Core features include:
 * `parse_inlines()`: Parse raw inline AsciiDoc source code into a syntax-level AST.
 * `FileProvider`, `FsLoader`, `MemoryLoader`: Abstract and virtual filesystem loaders for hermetic parsing.
 * `ASGResolver`: Resolve AST trees into spec-compliant Abstract Semantic Graphs (ASG).
+* `resolve_to_ast()`: Resolve semantic elements and attributes in-place on an AST Document.
 * `WorkspaceCatalog`: Index symbols and target anchors across multi-document workspaces.
 * `WorkspaceBuilder`: Orchestrate multi-pass directory or in-memory parsing and cross-reference resolution.
 * `serialize_to_asciidoc()`: Losslessly serialize AST nodes back to AsciiDoc text.
@@ -37,6 +38,22 @@ from .serializer import serialize_to_asciidoc
 
 __version__ = "0.2.0a7"
 
+
+def resolve_to_ast(doc: Document) -> Document:
+    """Resolve semantic elements, attributes, and cross-references in-place on a Document AST.
+
+    *Parameters:*
+
+    `doc`::
+      The root `Document` AST node instance to resolve in-place.
+
+    *Returns:*
+
+    The resolved `Document` AST instance.
+    """
+    return ASGResolver().resolve_to_ast(doc)
+
+
 __all__ = [
     "__version__",
     "parse_to_ast",
@@ -58,6 +75,7 @@ __all__ = [
     "NodeVisitor",
     "NodeTransformer",
     "ASGResolver",
+    "resolve_to_ast",
     "WorkspaceCatalog",
     "WorkspaceBuilder",
 ]

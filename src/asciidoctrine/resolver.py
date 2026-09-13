@@ -100,19 +100,32 @@ class ASGResolver(NodeTransformer):
 
     def __init__(
         self,
-        document: Document,
+        document: Optional[Document] = None,
         catalog: Optional[WorkspaceCatalog] = None,
         current_file_id: Optional[str] = None,
     ) -> None:
-        self.attributes = getattr(document, "attributes", {})
-        self.resolved_attributes = resolve_attribute_map(self.attributes)
+        """Initializes the ASGResolver with an optional Document, catalog, and file ID.
+
+        *Parameters:*
+
+        `document`:: Optional root `Document` AST node instance to resolve.
+        `catalog`:: Optional `WorkspaceCatalog` containing symbol tables for multi-file workspace resolution. Defaults to a new empty catalog if omitted.
+        `current_file_id`:: The relative file ID of the document being resolved (e.g. `"chapter1/intro.adoc"`). Used for resolving relative path targets and local file resolution fallbacks.
+        """
         self.catalog = catalog or WorkspaceCatalog()
-        doc_id = getattr(document, "id", None)
-        self.current_file_id: str = (
-            current_file_id
-            if current_file_id is not None
-            else (str(doc_id) if doc_id is not None else "root")
-        )
+        if document is not None:
+            self.attributes = getattr(document, "attributes", {})
+            self.resolved_attributes = resolve_attribute_map(self.attributes)
+            doc_id = getattr(document, "id", None)
+            self.current_file_id: str = (
+                current_file_id
+                if current_file_id is not None
+                else (str(doc_id) if doc_id is not None else "root")
+            )
+        else:
+            self.attributes = {}
+            self.resolved_attributes = {}
+            self.current_file_id = current_file_id or "root"
         self.footnotes: PyList[Dict[str, Any]] = []
         self.footnote_counter: int = 0
         self.footnote_by_id: Dict[str, Dict[str, Any]] = {}
@@ -252,6 +265,12 @@ class ASGResolver(NodeTransformer):
         import copy
 
         if isinstance(node, Document):
+            if not self.attributes:
+                self.attributes = getattr(node, "attributes", {})
+                self.resolved_attributes = resolve_attribute_map(self.attributes)
+                doc_id = getattr(node, "id", None)
+                if self.current_file_id == "root" and doc_id is not None:
+                    self.current_file_id = str(doc_id)
             head_content, footer_content = self._resolve_docinfo_files(node)
             if head_content or footer_content:
                 node.docinfo = Docinfo(
@@ -276,6 +295,49 @@ class ASGResolver(NodeTransformer):
             asg["attributes"] = self.resolved_attributes
 
         return asg
+
+    def resolve_to_ast(self, doc: Document) -> Document:
+        """Resolves semantic elements, attributes, and cross-references in-place on a typed Document AST.
+
+        Performs full attribute substitution, footnote numbering, and reference indexing directly on
+        the provided `Document` tree. Standalone comment and attribute entry blocks are filtered/consumed
+        as during ASG resolution, while structural blocks remain typed AST `Node` instances.
+
+        *Parameters:*
+
+        `doc`::
+          The root `Document` AST node instance to resolve in-place.
+
+        *Returns:*
+
+        The resolved `Document` AST instance (the same object as `doc`).
+        """
+        self.attributes = getattr(doc, "attributes", {})
+        self.resolved_attributes = resolve_attribute_map(self.attributes)
+        doc_id = getattr(doc, "id", None)
+        if self.current_file_id == "root" and doc_id is not None:
+            self.current_file_id = str(doc_id)
+
+        if f"{self.current_file_id}#" not in self.catalog.by_fqid:
+            self.catalog.index_document(self.current_file_id, doc)
+
+        head_content, footer_content = self._resolve_docinfo_files(doc)
+        if head_content or footer_content:
+            doc.docinfo = Docinfo(
+                head_content=head_content, footer_content=footer_content
+            )
+
+        self.footnotes = []
+        self.footnote_counter = 0
+        self.footnote_by_id = {}
+        self.warnings = []
+
+        self.visit(doc)
+
+        doc.footnotes = self.footnotes
+        doc.attributes = cast(Dict[str, Any], self.resolved_attributes)
+
+        return doc
 
     def generic_visit(self, node: Node, **kwargs: Any) -> Node:
         """Recursively visits AST nodes, resolving block attributes, target substitutions, and child collections.
@@ -680,3 +742,18 @@ class WorkspaceBuilder:
         self.index_workspace_symbols()
         self.resolve_workspace_semantics()
         return self.resolved_asg_graphs
+
+
+def resolve_to_ast(doc: Document) -> Document:
+    """Convenience function resolving semantic elements and attributes in-place on a Document AST.
+
+    *Parameters:*
+
+    `doc`::
+      The root `Document` AST node instance to resolve in-place.
+
+    *Returns:*
+
+    The resolved `Document` AST instance.
+    """
+    return ASGResolver().resolve_to_ast(doc)
