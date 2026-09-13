@@ -1,6 +1,34 @@
 = Changelog
 :toc:
 
+== link:https://pypi.org/project/asciidoctrine/0.2.0a8/[0.2.0a8] - 2026-09-13
+
+=== Added
+* **Lossless AsciiDoc Serializer & `dumps`/`loads` API (Issues #78, #130)**:
+  - Added `serialize_to_asciidoc()`, `dumps()`, and `loads()` supporting round-trip source preservation with exact line ending detection.
+* **ASG Schema Alignment for Blocks & Inlines (Issues #105, #106, #109, #128, #129)**:
+  - Added canonical `DiscreteHeading` (`[discrete]`) mapped to the `heading` ASG node with `absolute_level` (1–6) support.
+  - Aligned block macros (`Image`, `Audio`, `Video`, `Toc`) with `form: "macro"`.
+  - Added ordered list styles (`numeration`, `start`, `%reversed`) and checklist state (`checked`) on `ListItem`.
+  - Added `IndexTerm` schema compliance (`terms`, `variant`, `visible`).
+* **Semantic In-Place Resolution (Issue #101)**:
+  - Added `ASGResolver.resolve_to_ast()` and top-level `resolve_to_ast()` convenience wrapper for in-place AST resolution.
+* **In-Process LRU Snippet AST Cache (Issue #127)**:
+  - Added opt-in caching via `use_cache=True` on `parse_to_ast()` and `clear_ast_cache()`.
+
+=== Changed & Refactored
+* **Modernized Build System & CI Matrix**:
+  - Migrated build backend from setuptools to Hatchling with `uv`, `pylock.toml`, Python 3.10–3.14 testing matrix, and modernized Ruff configuration.
+* **Simplifications & Code Pruning**:
+  - Pruned redundant `to_dict()` implementations on `Section`, `ListItem`, and `Collapsible` (aligning `Collapsible.title` to inline node lists).
+  - Pruned deprecated alpha alias `FloatingTitle` in favor of `DiscreteHeading`.
+  - Normalized `Document.title` type hygiene via a `@property` descriptor.
+  - Isolated test fixtures using `MemoryLoader` to eliminate temporary disk writes.
+
+=== Fixed
+* **Warning & Test Remediation**:
+  - Eliminated all 57 deprecation warnings across docutils fallbacks and test suites.
+
 == link:https://pypi.org/project/asciidoctrine/0.2.0a7/[0.2.0a7] - 2026-09-04
 
 === Added
