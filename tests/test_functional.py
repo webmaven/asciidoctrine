@@ -4,8 +4,11 @@ import re
 import pytest
 
 try:
+    import pytest_pyodide
     from pytest_pyodide import run_in_pyodide
 
+    _pyodide_ver = getattr(pytest_pyodide, "__version__", None)
+    # Minimum Pyodide runtime: 314.0.2 (see .github/workflows/ci.yml)
     HAS_PYODIDE = True
 except ImportError:
     HAS_PYODIDE = False
@@ -29,6 +32,7 @@ def _get_wheel_name():
 
 
 def run_if_pyodide(func):
+    # Requires pytest-pyodide with Pyodide >= 314.0.2 (matches CI in .github/workflows/ci.yml)
     if HAS_PYODIDE:
         return run_in_pyodide(
             packages=[

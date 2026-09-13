@@ -1,24 +1,33 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Any, Dict, Iterator, Optional, Sequence, Union, cast
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Iterator,
+    Optional,
+    Protocol,
+    Sequence,
+    Union,
+    cast,
+    runtime_checkable,
+)
 from typing import List as PyList
 
 if TYPE_CHECKING:
-    from typing import Protocol, runtime_checkable
-
     from .loader import FileProvider
-else:
-    Protocol = object
-
-    def runtime_checkable(cls):
-        return cls
 
 
 @runtime_checkable
 class ChildCollection(Protocol):
     """
-    A protocol defining the interface for nodes that can accept child nodes.
+    Protocol defining the interface for collections that accept child nodes.
+
+    *Methods:*
+
+    `append(child)`:: Appends a child `Node` to the collection.
+    `__len__()`:: Returns the number of items in the collection.
     """
 
     def append(self, child: "Node") -> None: ...

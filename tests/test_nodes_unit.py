@@ -1542,3 +1542,10 @@ def test_document_title_type_enforcement():
 
     doc.title = None
     assert doc.title is None
+
+
+def test_child_collection_runtime_protocol() -> None:
+    from asciidoctrine.nodes import ChildCollection
+
+    assert isinstance([], ChildCollection)
+    assert not isinstance("string", ChildCollection)
