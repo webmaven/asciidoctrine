@@ -719,6 +719,73 @@ class AsciiDocSerializerVisitor(NodeVisitor):
                 self.visit(inline)
             self.write(f"\n{delim}\n")
 
+    def visit_indexterm(self, node: Node) -> None:
+        """
+        Serializes an `IndexTerm` AST node back to its canonical AsciiDoc source form.
+
+        *Parameters:*
+
+        `node`:: The `IndexTerm` AST node to serialize.
+
+        *Syntactic Forms:*
+
+        - `variant == "flow_double"`: Serialized as `((<visible_text>))`, visiting child inlines if present.
+        - `variant == "flow_triple"`: Serialized as `(((<primary>[, <secondary>[, <tertiary>]]))`.
+        - `variant == "macro"` (and default): Serialized as `indexterm:[<primary>[,<secondary>[,<tertiary>]]]`. Terms containing commas are safely double-quoted.
+        """
+        variant = getattr(node, "variant", "macro")
+        if variant == "flow_double":
+            self.write("((")
+            inlines = getattr(node, "inlines", [])
+            if inlines:
+                for inline in inlines:
+                    self.visit(inline)
+            else:
+                primary = getattr(node, "primary", "")
+                if not primary:
+                    node_terms = getattr(node, "terms", None)
+                    if node_terms:
+                        primary = str(node_terms[0])
+                self.write(primary)
+            self.write("))")
+        elif variant == "flow_triple":
+            terms = list(getattr(node, "terms", []))
+            if not terms:
+                primary = getattr(node, "primary", "")
+                if primary:
+                    terms.append(primary)
+                secondary = getattr(node, "secondary", None)
+                if secondary:
+                    terms.append(secondary)
+                tertiary = getattr(node, "tertiary", None)
+                if tertiary:
+                    terms.append(tertiary)
+            terms_str = ", ".join(terms)
+            self.write(f"((({terms_str})))")
+        else:
+            terms = list(getattr(node, "terms", []))
+            if not terms:
+                primary = getattr(node, "primary", "")
+                if primary:
+                    terms.append(primary)
+                secondary = getattr(node, "secondary", None)
+                if secondary:
+                    terms.append(secondary)
+                tertiary = getattr(node, "tertiary", None)
+                if tertiary:
+                    terms.append(tertiary)
+            formatted_terms = []
+            for t in terms:
+                if "," in t and not (
+                    (t.startswith('"') and t.endswith('"'))
+                    or (t.startswith("'") and t.endswith("'"))
+                ):
+                    formatted_terms.append(f'"{t}"')
+                else:
+                    formatted_terms.append(t)
+            args_str = ",".join(formatted_terms)
+            self.write(f"indexterm:[{args_str}]")
+
     def generic_visit(self, node: Node, **kwargs: Any) -> Any:
         # Fallback if no specific visitor matches
         for collection in node.get_child_collections().values():

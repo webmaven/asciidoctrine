@@ -512,7 +512,9 @@ class TestNodesUnit(unittest.TestCase):
         d_idx = idx.to_dict()
         self.assertEqual(d_idx["name"], "indexterm")
         self.assertEqual(d_idx["type"], "inline")
-        self.assertEqual(d_idx["terms"], ["primary", "secondary"])
+        self.assertEqual(d_idx["primary"], "primary")
+        self.assertEqual(d_idx["secondary"], "secondary")
+        self.assertFalse(d_idx["visible"])
         self.assertEqual(d_idx["variant"], "macro")
 
     def test_literal_properties(self):
@@ -1344,20 +1346,33 @@ class TestMetaNodes:
 
 class TestIndexTerm:
     def test_init(self) -> None:
-        it = IndexTerm(terms=["AsciiDoc", "markup"], variant="macro")
+        it = IndexTerm(terms=["AsciiDoc", "markup", "spec"], variant="macro")
         assert it.name == "indexterm"
-        assert it.terms == ["AsciiDoc", "markup"]
+        assert it.terms == ["AsciiDoc", "markup", "spec"]
         assert it.variant == "macro"
+        assert it.primary == "AsciiDoc"
+        assert it.secondary == "markup"
+        assert it.tertiary == "spec"
+        assert it.visible is False
 
     def test_to_dict_no_inlines(self) -> None:
         it = IndexTerm(terms=["topic"])
         d = it.to_dict()
-        assert d["terms"] == ["topic"]
+        assert d["name"] == "indexterm"
+        assert d["type"] == "inline"
+        assert d["primary"] == "topic"
+        assert d["visible"] is False
+        assert "secondary" not in d
+        assert "tertiary" not in d
         assert "inlines" not in d
 
     def test_to_dict_with_inlines(self) -> None:
-        it = IndexTerm(terms=["topic"], inlines=[Text("visible")])
+        it = IndexTerm(
+            terms=["topic"], variant="flow_double", inlines=[Text("visible")]
+        )
         d = it.to_dict()
+        assert d["primary"] == "topic"
+        assert d["visible"] is True
         assert "inlines" in d
         assert d["inlines"][0]["value"] == "visible"
 

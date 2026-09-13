@@ -1933,18 +1933,127 @@ class Toc(BlockNode):
 
 
 class IndexTerm(InlineNode):
-    """A node representing an index term entry."""
+    """
+    An inline AST node representing an index term entry.
+
+    `IndexTerm` encapsulates index term occurrences within an AsciiDoc document,
+    supporting standard macro syntax (`indexterm:[...]`), flow double-parenthesis
+    shorthand (`((visible term))`), and flow triple-parenthesis shorthand
+    (`(((primary, secondary, tertiary)))`).
+
+    *Attributes:*
+
+    `terms`:: Ordered list of index term components (`[primary, secondary, tertiary]`).
+    `variant`:: Syntactic variant identifier: `"macro"`, `"flow_double"`, or `"flow_triple"`. Note: retained in ASG dictionary output for internal tooling (non-normative).
+    `inlines`:: Optional child inline AST nodes representing the visible inline text when `variant == "flow_double"`.
+
+    *ASG Field Mapping:*
+
+    - `"name"`: `"indexterm"`
+    - `"type"`: `"inline"`
+    - `"primary"`: String mapped from `terms[0]` (required)
+    - `"secondary"`: Optional string mapped from `terms[1]` (present when `len(terms) > 1`)
+    - `"tertiary"`: Optional string mapped from `terms[2]` (present when `len(terms) > 2`)
+    - `"visible"`: Boolean flag derived from syntactic variant: `True` when `variant == "flow_double"`, otherwise `False`
+    - `"variant"`: String variant retained for internal tooling (non-normative)
+    - `"inlines"`: Child inline node representations when present (e.g. for visible flow terms)
+
+    *Example:*
+
+    [source,python]
+    ----
+    from asciidoctrine.nodes import IndexTerm, Text
+
+    # Concealed index term macro
+    macro_term = IndexTerm(terms=["AsciiDoc", "syntax"], variant="macro")
+    d = macro_term.to_dict()
+    assert d["primary"] == "AsciiDoc"
+    assert d["secondary"] == "syntax"
+    assert d["visible"] is False
+
+    # Visible flow index term
+    flow_term = IndexTerm(
+        terms=["indexing"],
+        variant="flow_double",
+        inlines=[Text("indexing")],
+    )
+    d2 = flow_term.to_dict()
+    assert d2["primary"] == "indexing"
+    assert d2["visible"] is True
+    assert len(d2["inlines"]) == 1
+    ----
+    """
+
+    @property
+    def primary(self) -> str:
+        """
+        The primary index term string.
+
+        Derived from the first element of `terms`, or an empty string if `terms` is empty.
+        """
+        return self.terms[0] if self.terms else ""
+
+    @property
+    def secondary(self) -> Optional[str]:
+        """
+        The optional secondary index term string.
+
+        Derived from the second element of `terms` if present, otherwise `None`.
+        """
+        return self.terms[1] if len(self.terms) > 1 else None
+
+    @property
+    def tertiary(self) -> Optional[str]:
+        """
+        The optional tertiary index term string.
+
+        Derived from the third element of `terms` if present, otherwise `None`.
+        """
+        return self.terms[2] if len(self.terms) > 2 else None
+
+    @property
+    def visible(self) -> bool:
+        """
+        Boolean flag indicating if this index term is visible in flow text.
+
+        Derived from `variant`: returns `True` when `variant == "flow_double"`, otherwise `False`.
+        """
+        return self.variant == "flow_double"
 
     def get_child_collections(self) -> Dict[str, PyList[Node]]:
+        """
+        Returns child node collections contained within this index term.
+
+        *Returns:*
+
+        A mapping containing `"inlines"` pointing to any child inline AST nodes.
+        """
         return {"inlines": self.inlines}
 
     def to_dict(self) -> Dict[str, Any]:
+        """
+        Converts this `IndexTerm` AST node to an ASG-compliant dictionary representation.
+
+        Maps `terms[0]` to the required `"primary"` field, `terms[1]` to the optional
+        `"secondary"` field, and `terms[2]` to the optional `"tertiary"` field.
+        Derives `"visible"` as `True` when `variant == "flow_double"`, and `False`
+        otherwise. Retains `"variant"` for internal tooling (non-normative).
+
+        *Returns:*
+
+        A dictionary matching the Eclipse AsciiDoc Language ASG schema for index terms.
+        """
         dct: Dict[str, Any] = {
             "name": self.name,
             "type": self.type,
-            "terms": self.terms,
+            "primary": self.primary,
+            "visible": self.visible,
             "variant": self.variant,
         }
+        if self.secondary is not None:
+            dct["secondary"] = self.secondary
+        if self.tertiary is not None:
+            dct["tertiary"] = self.tertiary
         if self.inlines:
             dct["inlines"] = [child.to_dict() for child in self.inlines]
         return dct
@@ -1954,7 +2063,16 @@ class IndexTerm(InlineNode):
         terms: Sequence[str],
         variant: str = "macro",
         inlines: Optional[Sequence[Node]] = None,
-    ):
+    ) -> None:
+        """
+        Initializes an `IndexTerm` node.
+
+        *Parameters:*
+
+        `terms`:: Ordered sequence of index term strings (`primary`, optional `secondary`, optional `tertiary`).
+        `variant`:: Syntactic variant identifier: `"macro"`, `"flow_double"`, or `"flow_triple"`. Defaults to `"macro"`.
+        `inlines`:: Optional sequence of child inline `Node` instances representing visible content for `flow_double`.
+        """
         super().__init__()
         self.name = "indexterm"
         self.type = "inline"

@@ -1,5 +1,6 @@
+import csv
 import re
-from typing import Any, Dict, Optional, Tuple, cast
+from typing import Any, Dict, Optional, Sequence, Tuple, cast
 from typing import List as PyList
 
 from lark import Token, v_args
@@ -826,14 +827,43 @@ class InlineTransformer(BaseTransformer):
             InlinePassthrough, self._set_location_from_children(pass_node, children)
         )
 
+    def _extract_plain_text(self, nodes: Sequence[Node]) -> str:
+        """
+        Recursively extracts concatenated text value from a sequence of inline AST nodes.
+
+        *Parameters:*
+
+        `nodes`:: Sequence of inline `Node` instances to extract text from.
+
+        *Returns:*
+
+        A string containing all concatenated text values across the nodes and their children.
+        """
+        parts: PyList[str] = []
+        for n in nodes:
+            if hasattr(n, "value") and getattr(n, "value") is not None:
+                parts.append(str(n.value))
+            for coll in n.get_child_collections().values():
+                parts.append(self._extract_plain_text(coll))
+        return "".join(parts)
+
     @v_args(meta=True)
     def inline_indexterm_macro(self, meta: Any, children: PyList[Any]) -> IndexTerm:
         content = ""
         if children and children[0] is not None:
             content = str(children[0].value)
-        terms = [
-            t.strip().strip('"').strip("'") for t in content.split(",") if t.strip()
-        ]
+        if content.strip():
+            try:
+                row = next(csv.reader([content], skipinitialspace=True))
+                terms = [t.strip().strip('"').strip("'") for t in row if t.strip()]
+            except Exception:
+                terms = [
+                    t.strip().strip('"').strip("'")
+                    for t in content.split(",")
+                    if t.strip()
+                ]
+        else:
+            terms = []
         indexterm = IndexTerm(terms=terms, variant="macro")
         indexterm._source_text = f"indexterm:[{content}]"
         return cast(IndexTerm, self._set_location_from_children(indexterm, children))
@@ -843,9 +873,7 @@ class InlineTransformer(BaseTransformer):
         self, meta: Any, children: PyList[Any]
     ) -> IndexTerm:
         nodes = children[0] if children else []
-        text_val = "".join(
-            [getattr(n, "value", "") for n in nodes if hasattr(n, "value")]
-        )
+        text_val = self._extract_plain_text(nodes)
         terms = [text_val.strip()] if text_val.strip() else []
         indexterm = IndexTerm(terms=terms, variant="flow_double", inlines=nodes)
         return cast(IndexTerm, self._set_location_from_children(indexterm, children))
@@ -855,9 +883,14 @@ class InlineTransformer(BaseTransformer):
         self, meta: Any, children: PyList[Any]
     ) -> IndexTerm:
         nodes = children[0] if children else []
-        text_val = "".join(
-            [getattr(n, "value", "") for n in nodes if hasattr(n, "value")]
-        )
-        terms = [t.strip() for t in text_val.split(",") if t.strip()]
+        text_val = self._extract_plain_text(nodes)
+        if text_val.strip():
+            try:
+                row = next(csv.reader([text_val], skipinitialspace=True))
+                terms = [t.strip().strip('"').strip("'") for t in row if t.strip()]
+            except Exception:
+                terms = [t.strip() for t in text_val.split(",") if t.strip()]
+        else:
+            terms = []
         indexterm = IndexTerm(terms=terms, variant="flow_triple", inlines=nodes)
         return cast(IndexTerm, self._set_location_from_children(indexterm, children))

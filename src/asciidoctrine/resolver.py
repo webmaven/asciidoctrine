@@ -14,6 +14,7 @@ from .nodes import (
     Attributes,
     Docinfo,
     Document,
+    IndexTerm,
     Node,
     NodeTransformer,
     Ref,
@@ -446,6 +447,28 @@ class ASGResolver(NodeTransformer):
     def visit_comment(self, node: Node, **kwargs: Any) -> Optional[Node]:
         # Filter out comments from parent lists
         return None
+
+    def visit_indexterm(self, node: IndexTerm, **kwargs: Any) -> Node:
+        """
+        Visits an `IndexTerm` AST node during resolution.
+
+        Ensures the index term node is preserved across AST and ASG resolution passes,
+        applies document-level and block-level attribute substitutions to its terms,
+        and traverses any nested child inline nodes.
+
+        *Parameters:*
+
+        `node`:: The `IndexTerm` AST node to resolve.
+
+        *Returns:*
+
+        The resolved `IndexTerm` AST node.
+        """
+        self.generic_visit(node, **kwargs)
+        node.terms = [
+            substitute_attributes(t, self.resolved_attributes) for t in node.terms
+        ]
+        return node
 
     def visit_table(self, node: Table, **kwargs: Any) -> Node:
         self.generic_visit(node, **kwargs)

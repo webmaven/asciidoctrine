@@ -1283,3 +1283,85 @@ class TestResolveToAst:
         import asciidoctrine.resolver
 
         assert asciidoctrine.resolve_to_ast is asciidoctrine.resolver.resolve_to_ast
+
+    def test_resolver_preserves_indexterms_asg(self) -> None:
+        """ASGResolver.resolve() preserves IndexTerm inline nodes in ASG dictionary output."""
+        from asciidoctrine.lark_parser import parse_to_ast
+        from asciidoctrine.resolver import ASGResolver
+
+        source = (
+            "Paragraph with indexterm:[term1, term2, term3] macro, "
+            "((visible term)) flow double, and (((tri1, tri2))) flow triple.\n"
+        )
+        doc = parse_to_ast(source)
+        resolver = ASGResolver(doc)
+        resolved = resolver.resolve(doc)
+
+        inlines = resolved["blocks"][0]["inlines"]
+        idx_nodes = [i for i in inlines if i.get("name") == "indexterm"]
+        assert len(idx_nodes) == 3
+
+        # 1. Macro form
+        assert idx_nodes[0]["variant"] == "macro"
+        assert idx_nodes[0]["primary"] == "term1"
+        assert idx_nodes[0]["secondary"] == "term2"
+        assert idx_nodes[0]["tertiary"] == "term3"
+        assert idx_nodes[0]["visible"] is False
+
+        # 2. Flow double
+        assert idx_nodes[1]["variant"] == "flow_double"
+        assert idx_nodes[1]["primary"] == "visible term"
+        assert idx_nodes[1]["visible"] is True
+
+        # 3. Flow triple
+        assert idx_nodes[2]["variant"] == "flow_triple"
+        assert idx_nodes[2]["primary"] == "tri1"
+        assert idx_nodes[2]["secondary"] == "tri2"
+        assert idx_nodes[2]["visible"] is False
+
+    def test_resolver_preserves_indexterms_ast(self) -> None:
+        """resolve_to_ast() preserves typed IndexTerm AST nodes in-place."""
+        from asciidoctrine.lark_parser import parse_to_ast
+        from asciidoctrine.nodes import IndexTerm, Paragraph
+        from asciidoctrine.resolver import resolve_to_ast
+
+        source = "Text with indexterm:[alpha, beta] and ((gamma)).\n"
+        doc = parse_to_ast(source)
+        resolved = resolve_to_ast(doc)
+
+        p = next(b for b in resolved.blocks if isinstance(b, Paragraph))
+        idx_nodes = [i for i in p.inlines if isinstance(i, IndexTerm)]
+        assert len(idx_nodes) == 2
+        assert idx_nodes[0].primary == "alpha"
+        assert idx_nodes[0].secondary == "beta"
+        assert idx_nodes[0].visible is False
+        assert idx_nodes[1].primary == "gamma"
+        assert idx_nodes[1].visible is True
+
+    def test_resolver_indexterm_attribute_substitution(self) -> None:
+        """ASGResolver and resolve_to_ast perform attribute substitution on IndexTerm terms."""
+        from asciidoctrine.lark_parser import parse_to_ast
+        from asciidoctrine.nodes import IndexTerm, Paragraph
+        from asciidoctrine.resolver import ASGResolver, resolve_to_ast
+
+        source = (
+            ":my_term: SuperFeature\n"
+            ":sub_term: DeepDive\n\n"
+            "Document with indexterm:[{my_term}, {sub_term}].\n"
+        )
+        doc = parse_to_ast(source)
+
+        # AST resolution pass
+        resolved_doc = resolve_to_ast(doc)
+        p = next(b for b in resolved_doc.blocks if isinstance(b, Paragraph))
+        idx_ast = next(i for i in p.inlines if isinstance(i, IndexTerm))
+        assert idx_ast.primary == "SuperFeature"
+        assert idx_ast.secondary == "DeepDive"
+
+        # ASG resolution pass
+        doc2 = parse_to_ast(source)
+        asg = ASGResolver(doc2).resolve(doc2)
+        p_asg = next(b for b in asg["blocks"] if b.get("name") == "paragraph")
+        idx_asg = next(i for i in p_asg["inlines"] if i.get("name") == "indexterm")
+        assert idx_asg["primary"] == "SuperFeature"
+        assert idx_asg["secondary"] == "DeepDive"

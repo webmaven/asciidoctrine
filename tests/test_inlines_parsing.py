@@ -494,7 +494,10 @@ class TestInlines(unittest.TestCase):
         self.assertEqual(it_node["name"], "indexterm")
         self.assertEqual(it_node["type"], "inline")
         self.assertEqual(it_node["variant"], "macro")
-        self.assertEqual(it_node["terms"], ["primary", "secondary", "tertiary"])
+        self.assertEqual(it_node["primary"], "primary")
+        self.assertEqual(it_node["secondary"], "secondary")
+        self.assertEqual(it_node["tertiary"], "tertiary")
+        self.assertFalse(it_node["visible"])
 
         # 2. Flow double index term: ((term))
         double_ast = self._strip_locations(
@@ -504,7 +507,10 @@ class TestInlines(unittest.TestCase):
         self.assertEqual(it_node2["name"], "indexterm")
         self.assertEqual(it_node2["type"], "inline")
         self.assertEqual(it_node2["variant"], "flow_double")
-        self.assertEqual(it_node2["terms"], ["single index entry"])
+        self.assertEqual(it_node2["primary"], "single index entry")
+        self.assertTrue(it_node2["visible"])
+        self.assertNotIn("secondary", it_node2)
+        self.assertNotIn("tertiary", it_node2)
         self.assertEqual(it_node2["inlines"][0]["value"], "single index entry")
 
         # 3. Flow triple index term: (((term1, term2)))
@@ -517,10 +523,88 @@ class TestInlines(unittest.TestCase):
         self.assertEqual(it_node3["name"], "indexterm")
         self.assertEqual(it_node3["type"], "inline")
         self.assertEqual(it_node3["variant"], "flow_triple")
-        self.assertEqual(it_node3["terms"], ["primary", "secondary", "tertiary"])
+        self.assertEqual(it_node3["primary"], "primary")
+        self.assertEqual(it_node3["secondary"], "secondary")
+        self.assertEqual(it_node3["tertiary"], "tertiary")
+        self.assertFalse(it_node3["visible"])
         self.assertEqual(
             it_node3["inlines"][0]["value"], "primary, secondary, tertiary"
         )
+
+    def test_indexterm_macro_argument_forms(self) -> None:
+        # 1-argument form
+        ast_1 = parse_to_ast("A paragraph with indexterm:[solo] term.").to_dict()
+        node_1 = ast_1["blocks"][0]["inlines"][1]
+        self.assertEqual(node_1["name"], "indexterm")
+        self.assertEqual(node_1["primary"], "solo")
+        self.assertNotIn("secondary", node_1)
+        self.assertNotIn("tertiary", node_1)
+        self.assertFalse(node_1["visible"])
+
+        # 2-argument form
+        ast_2 = parse_to_ast(
+            "A paragraph with indexterm:[first, second] term."
+        ).to_dict()
+        node_2 = ast_2["blocks"][0]["inlines"][1]
+        self.assertEqual(node_2["primary"], "first")
+        self.assertEqual(node_2["secondary"], "second")
+        self.assertNotIn("tertiary", node_2)
+        self.assertFalse(node_2["visible"])
+
+        # 3-argument form
+        ast_3 = parse_to_ast(
+            "A paragraph with indexterm:[first, second, third] term."
+        ).to_dict()
+        node_3 = ast_3["blocks"][0]["inlines"][1]
+        self.assertEqual(node_3["primary"], "first")
+        self.assertEqual(node_3["secondary"], "second")
+        self.assertEqual(node_3["tertiary"], "third")
+        self.assertFalse(node_3["visible"])
+
+        # Quoted argument with comma
+        ast_q = parse_to_ast(
+            'A paragraph with indexterm:[knight, "Arthur, King"] term.'
+        ).to_dict()
+        node_q = ast_q["blocks"][0]["inlines"][1]
+        self.assertEqual(node_q["primary"], "knight")
+        self.assertEqual(node_q["secondary"], "Arthur, King")
+        self.assertNotIn("tertiary", node_q)
+        self.assertFalse(node_q["visible"])
+
+    def test_indexterm_flow_variants_and_visible(self) -> None:
+        # Flow double is visible and carries inlines
+        ast_d = parse_to_ast("Visible ((flow term)) text.").to_dict()
+        node_d = ast_d["blocks"][0]["inlines"][1]
+        self.assertEqual(node_d["name"], "indexterm")
+        self.assertEqual(node_d["variant"], "flow_double")
+        self.assertEqual(node_d["primary"], "flow term")
+        self.assertTrue(node_d["visible"])
+        self.assertIn("inlines", node_d)
+        self.assertEqual(node_d["inlines"][0]["value"], "flow term")
+
+        # Flow triple 1-term
+        ast_t1 = parse_to_ast("Concealed (((single))) text.").to_dict()
+        node_t1 = ast_t1["blocks"][0]["inlines"][1]
+        self.assertEqual(node_t1["primary"], "single")
+        self.assertFalse(node_t1["visible"])
+        self.assertNotIn("secondary", node_t1)
+        self.assertNotIn("tertiary", node_t1)
+
+        # Flow triple 2-term
+        ast_t2 = parse_to_ast("Concealed (((t1, t2))) text.").to_dict()
+        node_t2 = ast_t2["blocks"][0]["inlines"][1]
+        self.assertEqual(node_t2["primary"], "t1")
+        self.assertEqual(node_t2["secondary"], "t2")
+        self.assertFalse(node_t2["visible"])
+        self.assertNotIn("tertiary", node_t2)
+
+        # Flow triple 3-term
+        ast_t3 = parse_to_ast("Concealed (((t1, t2, t3))) text.").to_dict()
+        node_t3 = ast_t3["blocks"][0]["inlines"][1]
+        self.assertEqual(node_t3["primary"], "t1")
+        self.assertEqual(node_t3["secondary"], "t2")
+        self.assertEqual(node_t3["tertiary"], "t3")
+        self.assertFalse(node_t3["visible"])
 
     def test_bare_url_links(self) -> None:
         # 1. Parse bare URL (with role='bare' and inlines containing URL text)

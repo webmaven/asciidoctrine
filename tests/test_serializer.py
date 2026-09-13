@@ -405,3 +405,142 @@ It should roundtrip.
     def test_checklist_items_serialization(self):
         source = "* [ ] Unchecked item\n* [x] Checked item\n"
         self._assert_roundtrip(source)
+
+    def test_indexterm_macro_serialization(self):
+        from asciidoctrine.nodes import Document, IndexTerm, Paragraph, Text
+        from asciidoctrine.serializer import serialize_to_asciidoc
+
+        # 1 term
+        doc1 = Document(
+            blocks=[
+                Paragraph(
+                    inlines=[Text("See "), IndexTerm(terms=["solo"]), Text(" here.")]
+                )
+            ]
+        )
+        self.assertEqual(serialize_to_asciidoc(doc1), "See indexterm:[solo] here.\n")
+
+        # 2 terms
+        doc2 = Document(
+            blocks=[
+                Paragraph(
+                    inlines=[
+                        Text("See "),
+                        IndexTerm(terms=["first", "second"]),
+                        Text(" here."),
+                    ]
+                )
+            ]
+        )
+        self.assertEqual(
+            serialize_to_asciidoc(doc2), "See indexterm:[first,second] here.\n"
+        )
+
+        # 3 terms
+        doc3 = Document(
+            blocks=[
+                Paragraph(
+                    inlines=[
+                        Text("See "),
+                        IndexTerm(terms=["first", "second", "third"]),
+                        Text(" here."),
+                    ]
+                )
+            ]
+        )
+        self.assertEqual(
+            serialize_to_asciidoc(doc3),
+            "See indexterm:[first,second,third] here.\n",
+        )
+
+        # Quoted comma term
+        doc_q = Document(
+            blocks=[
+                Paragraph(
+                    inlines=[
+                        Text("See "),
+                        IndexTerm(terms=["knight", "Arthur, King"]),
+                        Text(" here."),
+                    ]
+                )
+            ]
+        )
+        self.assertEqual(
+            serialize_to_asciidoc(doc_q),
+            'See indexterm:[knight,"Arthur, King"] here.\n',
+        )
+
+    def test_indexterm_flow_double_serialization(self):
+        from asciidoctrine.nodes import Document, IndexTerm, Paragraph, Text
+        from asciidoctrine.serializer import serialize_to_asciidoc
+
+        doc = Document(
+            blocks=[
+                Paragraph(
+                    inlines=[
+                        Text("See "),
+                        IndexTerm(
+                            terms=["visible entry"],
+                            variant="flow_double",
+                            inlines=[Text("visible entry")],
+                        ),
+                        Text(" here."),
+                    ]
+                )
+            ]
+        )
+        self.assertEqual(serialize_to_asciidoc(doc), "See ((visible entry)) here.\n")
+
+    def test_indexterm_flow_triple_serialization(self):
+        from asciidoctrine.nodes import Document, IndexTerm, Paragraph, Text
+        from asciidoctrine.serializer import serialize_to_asciidoc
+
+        # 1 term
+        doc1 = Document(
+            blocks=[
+                Paragraph(
+                    inlines=[
+                        Text("See "),
+                        IndexTerm(terms=["solo"], variant="flow_triple"),
+                        Text(" here."),
+                    ]
+                )
+            ]
+        )
+        self.assertEqual(serialize_to_asciidoc(doc1), "See (((solo))) here.\n")
+
+        # 2 terms
+        doc2 = Document(
+            blocks=[
+                Paragraph(
+                    inlines=[
+                        Text("See "),
+                        IndexTerm(terms=["pair", "second"], variant="flow_triple"),
+                        Text(" here."),
+                    ]
+                )
+            ]
+        )
+        self.assertEqual(serialize_to_asciidoc(doc2), "See (((pair, second))) here.\n")
+
+        # 3 terms
+        doc3 = Document(
+            blocks=[
+                Paragraph(
+                    inlines=[
+                        Text("See "),
+                        IndexTerm(terms=["t1", "t2", "t3"], variant="flow_triple"),
+                        Text(" here."),
+                    ]
+                )
+            ]
+        )
+        self.assertEqual(serialize_to_asciidoc(doc3), "See (((t1, t2, t3))) here.\n")
+
+    def test_indexterm_roundtrips(self):
+        self._assert_roundtrip("See indexterm:[primary] here.\n")
+        self._assert_roundtrip("See indexterm:[primary,secondary] here.\n")
+        self._assert_roundtrip("See indexterm:[primary,secondary,tertiary] here.\n")
+        self._assert_roundtrip("See ((visible entry)) here.\n")
+        self._assert_roundtrip("See (((primary))) here.\n")
+        self._assert_roundtrip("See (((primary, secondary, tertiary))) here.\n")
