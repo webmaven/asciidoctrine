@@ -1348,3 +1348,31 @@ def test_discrete_heading_parsing():
         "level": 2,
         "title": [{"name": "text", "type": "string", "value": "Standalone"}],
     }
+
+
+def test_discrete_heading_inside_section():
+    """A [discrete] heading inside a section must not split the section or steal content."""
+    src = (
+        "== My Section\n\n[discrete]\n=== A Floating Heading\n\nFollowing paragraph.\n"
+    )
+    doc = parse_to_ast(src)
+
+    # Document should contain exactly one Section at level 1
+    sections = [b for b in doc.blocks if b.name == "section"]
+    assert len(sections) == 1, f"Expected 1 section, got {len(sections)}"
+
+    section = sections[0]
+    assert section.level == 1
+
+    # DiscreteHeading (name="heading") should be inside the section
+    headings = [b for b in section.blocks if b.name == "heading"]
+    assert len(headings) == 1, (
+        f"Expected 1 discrete heading in section, got {len(headings)}"
+    )
+    assert headings[0].level == 2
+
+    # Following paragraph should also be inside the section (not stolen)
+    paragraphs = [b for b in section.blocks if b.name == "paragraph"]
+    assert len(paragraphs) == 1, (
+        f"Expected following paragraph to remain in section, got {len(paragraphs)} paragraphs"
+    )

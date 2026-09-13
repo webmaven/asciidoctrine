@@ -1062,3 +1062,21 @@ def test_discrete_heading_serialization():
     serialized = visitor.serialize(doc)
     expected = "[discrete]\n== Discrete Title\n\n[discrete]\n=== Level Two\n"
     assert serialized == expected
+
+
+def test_discrete_heading_with_id_roundtrip():
+    """DiscreteHeading carrying an id attribute should emit [[id]] before [discrete]."""
+    from asciidoctrine.nodes import DiscreteHeading, Document, Text, Title
+    from asciidoctrine.serializer import AsciiDocSerializerVisitor
+
+    heading = DiscreteHeading(level=2, title=Title([Text("Anchored Heading")]))
+    heading.attributes["id"] = "custom-id"
+
+    doc = Document(blocks=[heading])
+    visitor = AsciiDocSerializerVisitor()
+    serialized = visitor.serialize(doc)
+    assert "[[custom-id]]" in serialized
+    assert "[discrete]" in serialized
+    assert "=== Anchored Heading" in serialized
+    # anchor must precede [discrete]
+    assert serialized.index("[[custom-id]]") < serialized.index("[discrete]")

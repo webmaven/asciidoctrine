@@ -173,16 +173,64 @@ class AsciiDocSerializerVisitor(NodeVisitor):
         """
         Serialize a discrete heading node back to AsciiDoc source markup.
 
-        Emits the `[discrete]` attribute directive followed by the heading marker
-        at the specified depth level and the heading title inlines.
+        Emits block-level attributes (anchor id, role, named attrs) first,
+        then the `[discrete]` directive merged with any extra named attributes,
+        followed by the heading marker and title inlines.
+
+        Unlike other block visitors this method does **not** delegate to
+        `write_block_metadata`, because `DiscreteHeading.title` holds the heading
+        text rather than a separate block caption; delegating would incorrectly
+        emit `.Heading Text` as a block-title line.
 
         *Parameters:*
 
         `node`:: The `DiscreteHeading` node to serialize.
         """
+        attrs = getattr(node, "attributes", {}) or {}
+
+        # 1. Anchor / ID — emitted as a standalone anchor line before [discrete]
+        if attrs.get("id"):
+            self.write(f"[[{attrs['id']}]]\n")
+
+        # 2. Role — emitted as a standalone attribute line before [discrete]
+        if attrs.get("role"):
+            self.write(f"[.{attrs['role']}]\n")
+
+        # 3. [discrete] with any remaining extra named attributes merged in
+        _skip: set[str] = {
+            "id",
+            "role",
+            "title",
+            "form",
+            "delimiter",
+            "checked",
+            "positional",
+            "positional_attributes",
+            "style",
+            "language",
+        }
+        extra: list[str] = []
+        for k, v in attrs.items():
+            if k in _skip or (isinstance(k, str) and k.isdigit()):
+                continue
+            if isinstance(v, bool):
+                if v:
+                    extra.append(str(k))
+            else:
+                val_s = str(v)
+                extra.append(
+                    f'{k}="{val_s}"'
+                    if (" " in val_s or "," in val_s)
+                    else f"{k}={val_s}"
+                )
+
+        if extra:
+            self.write(f"[discrete,{','.join(extra)}]\n")
+        else:
+            self.write("[discrete]\n")
+
         level = getattr(node, "level", 1)
         prefix = "=" * (level + 1)
-        self.write("[discrete]\n")
         self.write(f"{prefix} ")
         title = getattr(node, "title", None)
         if title:
