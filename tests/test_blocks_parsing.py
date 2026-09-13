@@ -681,7 +681,8 @@ print("test")
 
         # 5. Nesting legacy inside standard and vice-versa
         mixed_nest_source = "~~~~\n--\nMixed nesting\n--\n~~~~\n"
-        mixed_nest_ast = parse_to_ast(mixed_nest_source).to_dict()
+        with self.assertWarns(DeprecationWarning):
+            mixed_nest_ast = parse_to_ast(mixed_nest_source).to_dict()
         self.assertEqual(mixed_nest_ast["blocks"][0]["name"], "open")
         self.assertEqual(mixed_nest_ast["blocks"][0]["delimiter"], "~~~~")
         self.assertEqual(mixed_nest_ast["blocks"][0]["blocks"][0]["name"], "open")

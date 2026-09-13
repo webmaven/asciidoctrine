@@ -908,9 +908,13 @@ def asciidoc_to_docutils(
 
         settings = get_default_settings()
     except ImportError:
+        import warnings
+
         from docutils.frontend import OptionParser
 
-        settings = OptionParser(components=()).get_default_values()
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            settings = OptionParser(components=()).get_default_values()
     document = new_document("<string>", settings=settings)
 
     renderer = DocutilsRenderer(document)

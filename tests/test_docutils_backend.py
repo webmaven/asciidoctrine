@@ -456,9 +456,9 @@ This is a sidebar block.
 
 def test_open_block_and_toctree_conversion():
     source_open = """
---
+~~~~
 This is an open block paragraph.
---
+~~~~
 """
     doc_open = asciidoc_to_docutils(source_open)
     container_node = doc_open[0]
@@ -468,11 +468,11 @@ This is an open block paragraph.
     # Sphinx toctree
     source_toctree = """
 [style=toctree,maxdepth=2,caption="My Table of Contents"]
---
+~~~~
 intro
 installation
 usage
---
+~~~~
 """
     doc_toctree = asciidoc_to_docutils(source_toctree)
     toctree_node = doc_toctree[0]
@@ -619,7 +619,7 @@ def test_docutils_backend_additional_coverage():
 
     sys.modules["sphinx"] = None
     try:
-        doc_no_sphinx = asciidoc_to_docutils("[style=toctree]\n--\nintro\n--")
+        doc_no_sphinx = asciidoc_to_docutils("[style=toctree]\n~~~~\nintro\n~~~~")
         assert isinstance(doc_no_sphinx[0], dnodes.container)
     finally:
         del sys.modules["sphinx"]

@@ -15,8 +15,10 @@ class TestAsciiDocSerializer(unittest.TestCase):
             f.write("This is include content.")
 
     def tearDown(self):
-        if os.path.exists("otherfile.adoc"):
+        try:
             os.remove("otherfile.adoc")
+        except FileNotFoundError:
+            pass
 
     def _assert_roundtrip(self, source: str):
         """Helper to verify that serializing the AST yields semantically identical AST."""
