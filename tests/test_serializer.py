@@ -5,26 +5,32 @@ import warnings
 import pytest
 
 from asciidoctrine import dumps, loads, parse_to_ast, serialize_to_asciidoc
+from asciidoctrine.loader import FileProvider, MemoryLoader
 
 pytestmark = pytest.mark.integration
 
 
 class TestAsciiDocSerializer(unittest.TestCase):
-    def setUp(self):
-        # Create a dummy include file in the current working directory
-        with open("otherfile.adoc", "w") as f:
-            f.write("This is include content.")
+    def setUp(self) -> None:
+        self.assertFalse(
+            os.path.exists("otherfile.adoc"),
+            "Hermetic test violation: otherfile.adoc must not exist on disk.",
+        )
 
-    def tearDown(self):
-        try:
-            os.remove("otherfile.adoc")
-        except FileNotFoundError:
-            pass
+    def tearDown(self) -> None:
+        self.assertFalse(
+            os.path.exists("otherfile.adoc"),
+            "Hermetic test violation: otherfile.adoc must not exist on disk.",
+        )
 
-    def _assert_roundtrip(self, source: str):
+    def _assert_roundtrip(
+        self, source: str, loader: FileProvider | None = None
+    ) -> None:
         """Helper to verify that serializing the AST yields semantically identical AST."""
+        if loader is None:
+            loader = MemoryLoader({"otherfile.adoc": "This is include content."})
         # Parse original source
-        ast_original = parse_to_ast(source)
+        ast_original = parse_to_ast(source, loader=loader)
         dict_original = ast_original.to_dict()
 
         # Serialize
@@ -32,7 +38,7 @@ class TestAsciiDocSerializer(unittest.TestCase):
 
         # Re-parse serialized source
         try:
-            ast_serialized = parse_to_ast(serialized)
+            ast_serialized = parse_to_ast(serialized, loader=loader)
             dict_serialized = ast_serialized.to_dict()
         except Exception as e:
             print("\n--- Failed to re-parse serialized text ---")
@@ -155,6 +161,14 @@ toc::[]
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", UserWarning)
             self._assert_roundtrip(source)
+
+    def test_file_isolation_hermetic(self) -> None:
+        self.assertFalse(os.path.exists("otherfile.adoc"))
+        source = "include::otherfile.adoc[]\n\n"
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            self._assert_roundtrip(source)
+        self.assertFalse(os.path.exists("otherfile.adoc"))
 
     def test_trailing_newline_roundtrip(self):
         # Case 1: No trailing newline
@@ -344,7 +358,8 @@ print("inner")
 -----
 """
         # Parse with preprocess_directives=False
-        ast_original = parse_to_ast(source, preprocess_directives=False)
+        loader = MemoryLoader({"otherfile.adoc": "This is include content."})
+        ast_original = parse_to_ast(source, preprocess_directives=False, loader=loader)
         self.assertFalse(ast_original.is_preprocessed)
 
         # Serialize
