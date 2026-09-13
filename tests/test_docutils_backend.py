@@ -1025,3 +1025,69 @@ def test_ordered_list_enumtype_and_start_conversion():
         assert elist.get("enumtype") == expected_enumtype
         assert elist.get("start") == 3
         assert "reversed" in elist.get("classes", [])
+
+
+def test_docutils_absolute_level_depth_contexts():
+    """Verify DocutilsRenderer uses absolute-level as heading depth in depth-1, depth-3, and depth-5 contexts."""
+    from docutils import nodes
+
+    # Depth-1 document context
+    src1 = "[absolute-level=4]\n== Section Title\n"
+    doc1 = asciidoc_to_docutils(src1)
+    sec1 = doc1[0]
+    assert isinstance(sec1, nodes.section)
+    assert "level-4" in sec1["classes"]
+    assert sec1["level"] == 4
+
+    # Depth-3 document context
+    src3 = "== Level 1\n\n=== Level 2\n\n[absolute-level=2]\n==== Depth 3 Section\n"
+    doc3 = asciidoc_to_docutils(src3)
+    # Traverse to depth-3 section
+    sec_root = doc3[0]
+    sec_l2 = next(c for c in sec_root.children if isinstance(c, nodes.section))
+    sec_l3 = next(c for c in sec_l2.children if isinstance(c, nodes.section))
+    assert "level-2" in sec_l3["classes"]
+    assert sec_l3["level"] == 2
+
+    # Depth-5 document context
+    src5 = (
+        "== Level 1\n\n"
+        "=== Level 2\n\n"
+        "==== Level 3\n\n"
+        "===== Level 4\n\n"
+        "[absolute-level=1]\n"
+        "====== Depth 5 Section\n"
+    )
+    doc5 = asciidoc_to_docutils(src5)
+    curr = doc5[0]
+    while any(isinstance(c, nodes.section) for c in curr.children):
+        curr = next(c for c in curr.children if isinstance(c, nodes.section))
+    assert "level-1" in curr["classes"]
+    assert curr["level"] == 1
+
+    # Discrete heading with absolute-level
+    src_dh = "[discrete, absolute-level=5]\n== Floating Title\n"
+    doc_dh = asciidoc_to_docutils(src_dh)
+    rubric = doc_dh[0]
+    assert isinstance(rubric, nodes.rubric)
+    assert "level-5" in rubric["classes"]
+    assert rubric["level"] == 5
+
+
+def test_docutils_absence_of_absolute_level_preserves_behaviour():
+    """Verify absence of absolute-level preserves all existing heading-level behaviour."""
+    from docutils import nodes
+
+    # Discrete heading without absolute-level preserves level-{node.level}
+    src_dh = "[discrete]\n=== Level 2 Heading\n"
+    doc_dh = asciidoc_to_docutils(src_dh)
+    rubric = doc_dh[0]
+    assert isinstance(rubric, nodes.rubric)
+    assert "level-2" in rubric["classes"]
+
+    # Plain section without absolute-level preserves existing structure
+    src_sec = "== Hello Section\n\nParagraph.\n"
+    doc_sec = asciidoc_to_docutils(src_sec)
+    sec = doc_sec[0]
+    assert isinstance(sec, nodes.section)
+    assert sec[0].astext() == "Hello Section"

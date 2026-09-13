@@ -1759,3 +1759,202 @@ def test_list_and_listitem_nodes_isolated_to_dict():
     assert d["numeration"] == "lowerroman"
     assert d["start"] == 4
     assert d["reversed"] is True
+
+
+def test_section_and_discrete_heading_absolute_level_attribute():
+    """Verify Section and DiscreteHeading accept absolute_level and serialize it to 'absolute-level' in ASG."""
+    from asciidoctrine.nodes import DiscreteHeading, Section, Text, Title
+
+    # Section with absolute_level
+    sec = Section(level=1, title=Title([Text("Section Title")]), absolute_level=3)
+    assert sec.absolute_level == 3
+    d_sec = sec.to_dict()
+    assert d_sec["absolute-level"] == 3
+    assert d_sec["level"] == 1
+
+    # DiscreteHeading with absolute_level
+    heading = DiscreteHeading(
+        level=2, title=Title([Text("Floating Title")]), absolute_level=5
+    )
+    assert heading.absolute_level == 5
+    d_heading = heading.to_dict()
+    assert d_heading["absolute-level"] == 5
+    assert d_heading["level"] == 2
+
+    # Absence of absolute_level preserves existing behaviour
+    sec_plain = Section(level=1, title=Title([Text("Plain Section")]))
+    assert sec_plain.absolute_level is None
+    assert "absolute-level" not in sec_plain.to_dict()
+
+    heading_plain = DiscreteHeading(level=2, title=Title([Text("Plain Heading")]))
+    assert heading_plain.absolute_level is None
+    assert "absolute-level" not in heading_plain.to_dict()
+
+
+def test_absolute_level_parsing_and_depth_contexts():
+    """Verify absolute-level parsing in depth-1, depth-3, and depth-5 contexts."""
+    from asciidoctrine.nodes import DiscreteHeading, Section
+
+    # Depth-1 context
+    src1 = "[absolute-level=4]\n== Depth 1 Section\n"
+    doc1 = parse_to_ast(src1)
+    sec1 = doc1.blocks[0]
+    assert isinstance(sec1, Section)
+    assert sec1.level == 1
+    assert sec1.absolute_level == 4
+    assert sec1.to_dict()["absolute-level"] == 4
+
+    # Depth-3 context (Section at level 3, absolute-level=2)
+    src3 = (
+        "== Level 1\n\n"
+        "=== Level 2\n\n"
+        "[absolute-level=2]\n"
+        "==== Depth 3 Section\n\n"
+        "Content here.\n"
+    )
+    doc3 = parse_to_ast(src3)
+    sec_lvl1 = doc3.blocks[0]
+    assert isinstance(sec_lvl1, Section)
+    sec_lvl2 = sec_lvl1.blocks[0]
+    assert isinstance(sec_lvl2, Section)
+    sec_lvl3 = sec_lvl2.blocks[0]
+    assert isinstance(sec_lvl3, Section)
+    assert sec_lvl3.level == 3
+    assert sec_lvl3.absolute_level == 2
+    assert sec_lvl3.to_dict()["absolute-level"] == 2
+
+    # Depth-5 context (Section at level 5, absolute-level=1)
+    src5 = (
+        "== Level 1\n\n"
+        "=== Level 2\n\n"
+        "==== Level 3\n\n"
+        "===== Level 4\n\n"
+        "[absolute-level=1]\n"
+        "====== Depth 5 Section\n"
+    )
+    doc5 = parse_to_ast(src5)
+    s1 = doc5.blocks[0]
+    s2 = s1.blocks[0]
+    s3 = s2.blocks[0]
+    s4 = s3.blocks[0]
+    s5 = s4.blocks[0]
+    assert isinstance(s5, Section)
+    assert s5.level == 5
+    assert s5.absolute_level == 1
+    assert s5.to_dict()["absolute-level"] == 1
+
+    # Discrete heading with absolute-level
+    src_dh = "[discrete, absolute-level=3]\n=== Floating Heading\n"
+    doc_dh = parse_to_ast(src_dh)
+    dh = doc_dh.blocks[0]
+    assert isinstance(dh, DiscreteHeading)
+    assert dh.level == 2
+    assert dh.absolute_level == 3
+    assert dh.to_dict()["absolute-level"] == 3
+
+
+def test_absolute_level_validation_strict_mode():
+    """Verify out-of-range values raise AsciiDocSyntaxError in strict mode."""
+    import pytest
+
+    from asciidoctrine.lark_parser import AsciiDocSyntaxError
+    from asciidoctrine.nodes import DiscreteHeading, Section
+
+    # Parser in strict mode (strict=True)
+    with pytest.raises(AsciiDocSyntaxError):
+        parse_to_ast("[absolute-level=0]\n== Section\n", strict=True)
+
+    with pytest.raises(AsciiDocSyntaxError):
+        parse_to_ast("[absolute-level=7]\n== Section\n", strict=True)
+
+    with pytest.raises(AsciiDocSyntaxError):
+        parse_to_ast("[discrete, absolute-level=0]\n== Heading\n", strict=True)
+
+    with pytest.raises(AsciiDocSyntaxError):
+        parse_to_ast("[discrete, absolute-level=8]\n== Heading\n", strict=True)
+
+    # Node constructors in strict mode
+    with pytest.raises(AsciiDocSyntaxError):
+        Section(level=1, absolute_level=0, strict=True)
+
+    with pytest.raises(AsciiDocSyntaxError):
+        Section(level=1, absolute_level=7, strict=True)
+
+    with pytest.raises(AsciiDocSyntaxError):
+        DiscreteHeading(level=1, absolute_level=0, strict=True)
+
+    with pytest.raises(AsciiDocSyntaxError):
+        DiscreteHeading(level=1, absolute_level=9, strict=True)
+
+    # Setter in strict mode
+    sec = Section(level=1)
+    with pytest.raises(AsciiDocSyntaxError):
+        sec.set_absolute_level(7, strict=True)
+
+
+def test_absolute_level_validation_default_mode():
+    """Verify out-of-range values clamp to [1, 6] and emit UserWarning in default mode."""
+    import warnings
+
+    from asciidoctrine.nodes import DiscreteHeading, Section
+
+    # Parse in default/permissive mode (strict=False)
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        doc_low = parse_to_ast("[absolute-level=0]\n== Low Section\n", strict=False)
+        user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
+        assert len(user_warnings) >= 1
+        assert doc_low.blocks[0].absolute_level == 1
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        doc_high = parse_to_ast(
+            "[discrete, absolute-level=10]\n== High Heading\n", strict=False
+        )
+        user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
+        assert len(user_warnings) >= 1
+        assert doc_high.blocks[0].absolute_level == 6
+
+    # Node constructors in default mode
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        sec_low = Section(level=1, absolute_level=0)
+        assert sec_low.absolute_level == 1
+        user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
+        assert len(user_warnings) == 1
+
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        heading_high = DiscreteHeading(level=2, absolute_level=9)
+        assert heading_high.absolute_level == 6
+        user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
+        assert len(user_warnings) == 1
+
+    # Property assignment in default mode
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        sec = Section(level=1)
+        sec.absolute_level = 8
+        assert sec.absolute_level == 6
+        user_warnings = [item for item in w if issubclass(item.category, UserWarning)]
+        assert len(user_warnings) == 1
+
+
+def test_resolver_preserves_absolute_level():
+    """Verify ASGResolver preserves absolute-level through resolution passes without dropping it."""
+    from asciidoctrine.nodes import DiscreteHeading, Document, Section, Text, Title
+    from asciidoctrine.resolver import ASGResolver, resolve_to_ast
+
+    sec = Section(level=1, title=Title([Text("Section 1")]), absolute_level=3)
+    dh = DiscreteHeading(level=2, title=Title([Text("Discrete 1")]), absolute_level=5)
+    doc = Document(blocks=[sec, dh])
+
+    # 1. resolve() to ASG dict
+    asg = ASGResolver().resolve(doc)
+    assert asg["blocks"][0]["absolute-level"] == 3
+    assert asg["blocks"][1]["absolute-level"] == 5
+
+    # 2. resolve_to_ast() on AST
+    resolved_doc = resolve_to_ast(doc)
+    assert resolved_doc.blocks[0].absolute_level == 3
+    assert resolved_doc.blocks[1].absolute_level == 5

@@ -132,11 +132,31 @@ class DocutilsRenderer(NodeVisitor):
             self.document += fn
 
     def visit_section(self, node: Section) -> None:
+        """
+        Render a structural section AST node into a Docutils section element.
+
+        Constructs a `docutils.nodes.section` element, attaches its title inlines
+        to a child `docutils.nodes.title`, and recursively visits child blocks.
+        If `node.absolute_level` is set, it overrides document-relative depth.
+
+        *Parameters:*
+
+        `node`:: The `Section` AST node to render.
+        """
         section = nodes.section()
         # Always ensure an ID exists for Sphinx/Docutils
         if "id" in node.attributes:
             section["ids"].append(node.attributes["id"])
         self.document.set_id(section)
+
+        depth = (
+            node.absolute_level
+            if getattr(node, "absolute_level", None) is not None
+            else getattr(node, "level", None)
+        )
+        if depth is not None:
+            section["classes"].append(f"level-{depth}")
+            section["level"] = depth
 
         title = nodes.title()
         old_parent = self.current_node
@@ -160,14 +180,21 @@ class DocutilsRenderer(NodeVisitor):
         Discrete headings are mapped to `docutils.nodes.rubric` elements decorated with
         a CSS class denoting their original heading level (e.g. `level-1`, `level-2`),
         preserving visual hierarchy without affecting document outline structure.
+        If `node.absolute_level` is set, it overrides document-relative heading depth.
 
         *Parameters:*
 
         `node`:: The `DiscreteHeading` AST node to render.
         """
         rubric = nodes.rubric()
-        if hasattr(node, "level") and node.level is not None:
-            rubric["classes"].append(f"level-{node.level}")
+        depth = (
+            node.absolute_level
+            if getattr(node, "absolute_level", None) is not None
+            else getattr(node, "level", None)
+        )
+        if depth is not None:
+            rubric["classes"].append(f"level-{depth}")
+            rubric["level"] = depth
         old_parent = self.current_node
         self.current_node = rubric
         if node.title:
@@ -177,6 +204,7 @@ class DocutilsRenderer(NodeVisitor):
         self.current_node = old_parent
 
     visit_floatingtitle = visit_heading
+    visit_discreteheading = visit_heading
 
     def visit_paragraph(self, node: Paragraph) -> None:
         para = nodes.paragraph()

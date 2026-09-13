@@ -10,7 +10,7 @@ from typing import List as PyList
 
 import platformdirs
 from lark import Discard, Lark, Token, Transformer, v_args
-from lark.exceptions import UnexpectedInput
+from lark.exceptions import UnexpectedInput, VisitError
 
 from .attributes import resolve_node_to_string
 from .loader import FileProvider
@@ -239,8 +239,9 @@ class AsciiDocTransformer(
     # Regex to match revision lines (e.g., "v1.0, 2023-01-01")
     REVISION_REGEX = re.compile(r"(v\d+\.\d+.*)|(\d{4}-\d{2}-\d{2})")
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    def __init__(self, strict: bool = True, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
+        self.strict = strict
         self.attributes: Dict[str, PyList[Node]] = {}
 
     def _set_location_from_meta(self, node: Node, meta: Any) -> Node:
@@ -454,9 +455,17 @@ class AsciiDocTransformer(
                                 block.attributes["style"] = v
                         elif variant in ["discrete", "float"]:
                             if isinstance(block, Section) and block.title:
+                                old_attrs = dict(block.attributes)
+                                old_loc = block.location
+                                old_abs = getattr(block, "absolute_level", None)
                                 block = DiscreteHeading(
-                                    level=block.level, title=block.title
+                                    level=block.level,
+                                    title=block.title,
+                                    absolute_level=old_abs,
+                                    strict=self.strict,
                                 )
+                                block.attributes.update(old_attrs)
+                                block.location = old_loc
                             else:
                                 block.attributes["style"] = v
 
@@ -508,6 +517,19 @@ class AsciiDocTransformer(
                         (isinstance(k, str) and k.isdigit()) or k == "positional"
                     ):
                         continue
+                    elif k in ("absolute-level", "absolute_level"):
+                        if isinstance(block, (Section, DiscreteHeading)):
+                            try:
+                                abs_val = int(str(v).strip())
+                            except ValueError as e:
+                                if self.strict:
+                                    raise AsciiDocSyntaxError(
+                                        f"Invalid absolute-level attribute: {v}"
+                                    ) from e
+                                abs_val = 1
+                            block.set_absolute_level(abs_val, strict=self.strict)
+                        else:
+                            block.attributes[k] = v
                     else:
                         block.attributes[k] = v
 
@@ -1598,7 +1620,12 @@ def _parse_to_ast_impl(
             context=context_display,
             filepath=origin_file,
         ) from e
-    ast_root = AsciiDocTransformer().transform(tree)
+    try:
+        ast_root = AsciiDocTransformer(strict=strict).transform(tree)
+    except VisitError as e:
+        if isinstance(e.orig_exc, AsciiDocSyntaxError):
+            raise e.orig_exc from e
+        raise
     if not isinstance(ast_root, Document):
         raise TypeError("Parsing did not return a Document node.")
     ast_root.blocks = resolve_list_continuations(ast_root.blocks)
@@ -1878,7 +1905,12 @@ def parse_inlines(
         raise AsciiDocSyntaxError(
             message, line=e.line, column=e.column, context=context_display
         ) from e
-    result = AsciiDocTransformer().transform(tree)
+    try:
+        result = AsciiDocTransformer().transform(tree)
+    except VisitError as e:
+        if isinstance(e.orig_exc, AsciiDocSyntaxError):
+            raise e.orig_exc from e
+        raise
     if isinstance(result, list):
         return result
     elif isinstance(result, Node):

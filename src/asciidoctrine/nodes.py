@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import warnings
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -125,6 +126,10 @@ class Node:
                 val = getattr(self, attr)
                 if val is not None:
                     data[attr] = val
+
+        abs_level = getattr(self, "absolute_level", None)
+        if abs_level is not None:
+            data["absolute-level"] = abs_level
 
         # Handle child nodes
         for key, nodes in self.get_child_collections().items():
@@ -341,6 +346,46 @@ class Revision(BlockNode):
         self.inlines.append(child)
 
 
+def validate_absolute_level(
+    value: Optional[int], strict: bool = False
+) -> Optional[int]:
+    """
+    Validate and optionally clamp an absolute heading level to the range 1–6.
+
+    In strict mode, an `AsciiDocSyntaxError` is raised if `value` is outside `[1, 6]`.
+    In default mode, values < 1 are clamped to 1 and values > 6 are clamped to 6,
+    emitting a `UserWarning`.
+
+    *Parameters:*
+
+    `value`::
+      The proposed integer absolute level, or `None`.
+    `strict`::
+      Boolean flag indicating whether to enforce strict mode validation. Defaults to `False`.
+
+    *Returns:*
+
+    The validated integer in `[1, 6]`, or `None` if `value` is `None`.
+    """
+    if value is None:
+        return None
+    if not (1 <= value <= 6):
+        if strict:
+            from .lark_parser import AsciiDocSyntaxError
+
+            raise AsciiDocSyntaxError(
+                f"Absolute heading level {value} is out of range [1, 6]."
+            )
+        clamped = max(1, min(6, value))
+        warnings.warn(
+            f"Absolute heading level {value} is out of range [1, 6]; clamping to {clamped}.",
+            UserWarning,
+            stacklevel=2,
+        )
+        return clamped
+    return value
+
+
 class DiscreteHeading(BlockNode):
     """
     Represents a discrete (floating) heading that does not start a structural section.
@@ -353,6 +398,7 @@ class DiscreteHeading(BlockNode):
 
     `level`:: 1-based integer heading level (1 = `==`, 2 = `===`, etc.).
     `title`:: A `Title` node containing the inline elements of the heading text.
+    `absolute_level`:: Optional 1-based integer (1–6) specifying an absolute HTML heading level. When set, renderers use it directly as the heading depth.
 
     *Example:*
 
@@ -361,8 +407,9 @@ class DiscreteHeading(BlockNode):
     from asciidoctrine.nodes import DiscreteHeading, Title
     from asciidoctrine.nodes import Text
 
-    heading = DiscreteHeading(level=2, title=Title([Text("My Floating Heading")]))
+    heading = DiscreteHeading(level=2, title=Title([Text("My Floating Heading")]), absolute_level=3)
     assert heading.name == "heading"
+    assert heading.absolute_level == 3
     ----
     """
 
@@ -371,19 +418,62 @@ class DiscreteHeading(BlockNode):
             return {"inlines": self.title.inlines}
         return {}
 
-    def __init__(self, level: int, title: Optional[Title] = None):
+    def __init__(
+        self,
+        level: int,
+        title: Optional[Title] = None,
+        absolute_level: Optional[int] = None,
+        strict: bool = False,
+    ):
         super().__init__()
         self.name = "heading"
         self.type = "block"
         self.level = level
         self.title = title
+        self._absolute_level: Optional[int] = None
+        if absolute_level is not None:
+            self.set_absolute_level(absolute_level, strict=strict)
+
+    @property
+    def absolute_level(self) -> Optional[int]:
+        """
+        Optional 1-based integer heading level (1–6) specifying an absolute HTML heading level.
+
+        When set, document renderers use this value directly as the heading depth, bypassing
+        document-relative section depth. Valid range is 1 to 6 inclusive. In strict mode,
+        values outside 1–6 raise an `AsciiDocSyntaxError`; in default mode, out-of-range values
+        are clamped to [1, 6] with a `UserWarning`.
+        """
+        return self._absolute_level
+
+    @absolute_level.setter
+    def absolute_level(self, value: Optional[int]) -> None:
+        self._absolute_level = validate_absolute_level(value, strict=False)
+
+    def set_absolute_level(self, value: Optional[int], strict: bool = False) -> None:
+        """
+        Set the absolute heading level with mode-dependent validation.
+
+        *Parameters:*
+
+        `value`::
+          The proposed 1-based integer heading level (1–6), or `None` to clear.
+        `strict`::
+          If `True`, raises `AsciiDocSyntaxError` when `value` is outside `[1, 6]`.
+          If `False` (default mode), clamps out-of-range values to `[1, 6]` and emits a `UserWarning`.
+
+        *Returns:*
+
+        `None`
+        """
+        self._absolute_level = validate_absolute_level(value, strict=strict)
 
     def to_dict(self) -> Dict[str, Any]:
         """
         Serialize the discrete heading to an ASG-compatible dictionary representation.
 
         Emits the standard heading ASG structure with `name`, `type`, `level`, and `title`,
-        omitting redundant `inlines` child collection keys.
+        omitting redundant `inlines` child collection keys. Emits `absolute-level` when set.
 
         *Returns:*
 
@@ -393,6 +483,8 @@ class DiscreteHeading(BlockNode):
         data.pop("inlines", None)
         if "title" not in data:
             data["title"] = []
+        if self._absolute_level is not None:
+            data["absolute-level"] = self._absolute_level
         return data
 
 
@@ -470,6 +562,7 @@ class Section(BlockNode):
     `level`:: 1-based integer section depth (1 = `==`, 2 = `===`, etc.).
     `title`:: Optional `Title` inline container representing the section title text.
     `blocks`:: List of child `BlockNode` instances comprising the section body and nested subsections.
+    `absolute_level`:: Optional 1-based integer (1–6) specifying an absolute HTML heading level. When set, renderers use it directly as the heading depth.
 
     *Example:*
 
@@ -492,6 +585,8 @@ class Section(BlockNode):
         level: int,
         title: Optional[Title] = None,
         blocks: Optional[Sequence[Node]] = None,
+        absolute_level: Optional[int] = None,
+        strict: bool = False,
     ):
         super().__init__()
         self.name = "section"
@@ -499,6 +594,58 @@ class Section(BlockNode):
         self.level = level
         self.title = title
         self.blocks: PyList[Node] = list(blocks) if blocks else []
+        self._absolute_level: Optional[int] = None
+        if absolute_level is not None:
+            self.set_absolute_level(absolute_level, strict=strict)
+
+    @property
+    def absolute_level(self) -> Optional[int]:
+        """
+        Optional 1-based integer heading level (1–6) specifying an absolute HTML heading level.
+
+        When set, document renderers use this value directly as the heading depth, bypassing
+        document-relative section depth. Valid range is 1 to 6 inclusive. In strict mode,
+        values outside 1–6 raise an `AsciiDocSyntaxError`; in default mode, out-of-range values
+        are clamped to [1, 6] with a `UserWarning`.
+        """
+        return self._absolute_level
+
+    @absolute_level.setter
+    def absolute_level(self, value: Optional[int]) -> None:
+        self._absolute_level = validate_absolute_level(value, strict=False)
+
+    def set_absolute_level(self, value: Optional[int], strict: bool = False) -> None:
+        """
+        Set the absolute heading level with mode-dependent validation.
+
+        *Parameters:*
+
+        `value`::
+          The proposed 1-based integer heading level (1–6), or `None` to clear.
+        `strict`::
+          If `True`, raises `AsciiDocSyntaxError` when `value` is outside `[1, 6]`.
+          If `False` (default mode), clamps out-of-range values to `[1, 6]` and emits a `UserWarning`.
+
+        *Returns:*
+
+        `None`
+        """
+        self._absolute_level = validate_absolute_level(value, strict=strict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Serialize the section to an ASG-compatible dictionary representation.
+
+        Emits the standard section ASG structure, including `absolute-level` when set.
+
+        *Returns:*
+
+        A dictionary containing the ASG representation of this section.
+        """
+        data = super().to_dict()
+        if self._absolute_level is not None:
+            data["absolute-level"] = self._absolute_level
+        return data
 
 
 class Paragraph(BlockNode):
