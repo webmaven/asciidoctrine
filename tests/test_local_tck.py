@@ -53,16 +53,16 @@ def test_local_tck(adoc_path: str) -> None:
 
     parse_type = "block"
     if os.path.exists(config_path):
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, encoding="utf-8") as f:
             cfg = json.load(f)
             parse_type = cfg.get("type", "block")
     elif "inline/" in adoc_path:
         parse_type = "inline"
 
-    with open(input_path, "r", encoding="utf-8") as f:
+    with open(input_path, encoding="utf-8") as f:
         source = f.read()
 
-    with open(output_path, "r", encoding="utf-8") as f:
+    with open(output_path, encoding="utf-8") as f:
         expected = clean_asg_for_tck(json.load(f))
 
     ast = parse_to_ast(source)

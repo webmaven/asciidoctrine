@@ -1,5 +1,5 @@
-from typing import Any, Dict, Optional, Sequence, Tuple, cast
-from typing import List as PyList
+from collections.abc import Sequence
+from typing import Any, cast
 
 from lark import Discard, Token, v_args
 
@@ -42,11 +42,11 @@ class BlockTransformer(BaseTransformer):
     Mixin class for block-level AsciiDoc transformations.
     """
 
-    def _merge_consecutive_lists(self, blocks: Sequence[BlockNode]) -> PyList[Node]:
+    def _merge_consecutive_lists(self, blocks: Sequence[BlockNode]) -> list[Node]:
         if not blocks:
             return []
 
-        merged_blocks: PyList[Node] = [blocks[0]]
+        merged_blocks: list[Node] = [blocks[0]]
         for current_block in blocks[1:]:
             prev_block = merged_blocks[-1]
 
@@ -102,12 +102,10 @@ class BlockTransformer(BaseTransformer):
         level += indent // 2
         return level
 
-    def _merge_indented_literals(
-        self, blocks: Sequence[BlockNode]
-    ) -> PyList[BlockNode]:
+    def _merge_indented_literals(self, blocks: Sequence[BlockNode]) -> list[BlockNode]:
         if not blocks:
             return []
-        merged: PyList[BlockNode] = []
+        merged: list[BlockNode] = []
         for block in blocks:
             if (
                 isinstance(block, Literal)
@@ -120,7 +118,7 @@ class BlockTransformer(BaseTransformer):
                 prev_lit.inlines.append(Text("\n"))
                 prev_lit.inlines.extend(block.inlines)
                 # Consolidate adjacent text nodes
-                consolidated: PyList[Node] = []
+                consolidated: list[Node] = []
                 for node in prev_lit.inlines:
                     if (
                         consolidated
@@ -146,12 +144,12 @@ class BlockTransformer(BaseTransformer):
                 merged.append(block)
         return merged
 
-    def _nest_list_items(self, items: PyList[Dict[str, Any]]) -> PyList[ListItem]:
+    def _nest_list_items(self, items: list[dict[str, Any]]) -> list[ListItem]:
         if not items:
             return []
 
-        root_lists: PyList[ASTList] = []
-        stack: PyList[Tuple[int, ASTList]] = []
+        root_lists: list[ASTList] = []
+        stack: list[tuple[int, ASTList]] = []
 
         for item_data in items:
             level = item_data["level"]
@@ -209,20 +207,20 @@ class BlockTransformer(BaseTransformer):
             elif item.location:
                 list_node.location[1] = item.location[1]
 
-        all_root_children: PyList[ListItem] = []
+        all_root_children: list[ListItem] = []
         for rl in root_lists:
             all_root_children.extend(rl.items)
         return all_root_children
 
     @v_args(meta=True)
-    def section(self, meta: Any, children: PyList[Any]) -> Section:
+    def section(self, meta: Any, children: list[Any]) -> Section:
         # Now section is flat: children[0] is (level, title)
         level, title = children[0]
         section = Section(level=level, title=title, blocks=[])
         return cast(Section, self._set_location_from_children(section, children))
 
     @v_args(meta=True)
-    def indented_literal(self, meta: Any, children: PyList[Any]) -> Literal:
+    def indented_literal(self, meta: Any, children: list[Any]) -> Literal:
         # children[0] is INDENTED_LITERAL_LEAD
         # children[1] is text_content (list of nodes)
         # Note: TCK might expect lead whitespace stripped or kept depending on
@@ -234,9 +232,7 @@ class BlockTransformer(BaseTransformer):
         return cast(Literal, self._set_location_from_children(node, children))
 
     @v_args(meta=True)
-    def list_item_principal_content(
-        self, meta: Any, children: PyList[Any]
-    ) -> PyList[Node]:
+    def list_item_principal_content(self, meta: Any, children: list[Any]) -> list[Node]:
         """Fold the first text_content line plus any contiguous indented continuation
         lines into a single flat inline list.
 
@@ -248,7 +244,7 @@ class BlockTransformer(BaseTransformer):
                                    text_content lists for each continuation line.
         We insert a Text("\\n") separator between lines and drop the lead tokens.
         """
-        all_inlines: PyList[Node] = []
+        all_inlines: list[Node] = []
         first = True
         for child in children:
             if isinstance(child, list):
@@ -260,7 +256,7 @@ class BlockTransformer(BaseTransformer):
             # Token children (INDENTED_LITERAL_LEAD) are silently dropped
 
         # Consolidate adjacent plain Text nodes
-        consolidated: PyList[Node] = []
+        consolidated: list[Node] = []
         for node in all_inlines:
             if (
                 consolidated
@@ -279,15 +275,15 @@ class BlockTransformer(BaseTransformer):
         return consolidated
 
     @v_args(meta=True)
-    def paragraph(self, meta: Any, children: PyList[Any]) -> Paragraph:
+    def paragraph(self, meta: Any, children: list[Any]) -> Paragraph:
         actual_lines = [c for c in children if isinstance(c, list)]
-        all_inlines: PyList[Node] = []
+        all_inlines: list[Node] = []
         for i, line in enumerate(actual_lines):
             if i > 0:
                 all_inlines.append(Text("\n"))
             all_inlines.extend(line)
 
-        consolidated: PyList[Node] = []
+        consolidated: list[Node] = []
         for node in all_inlines:
             if (
                 consolidated
@@ -308,30 +304,30 @@ class BlockTransformer(BaseTransformer):
         return cast(Paragraph, self._set_location_from_children(para, children))
 
     @v_args(meta=True)
-    def ulist(self, meta: Any, children: PyList[Any]) -> ASTList:
+    def ulist(self, meta: Any, children: list[Any]) -> ASTList:
         items = self._nest_list_items(children)
         marker = children[0]["marker"] if children else "*"
         list_node = ASTList(variant="unordered", marker=marker, items=items)
         return cast(ASTList, self._set_location_from_children(list_node, items))
 
     @v_args(meta=True)
-    def olist(self, meta: Any, children: PyList[Any]) -> ASTList:
+    def olist(self, meta: Any, children: list[Any]) -> ASTList:
         items = self._nest_list_items(children)
         marker = children[0]["marker"] if children else "."
         list_node = ASTList(variant="ordered", marker=marker, items=items)
         return cast(ASTList, self._set_location_from_children(list_node, items))
 
     @v_args(meta=True)
-    def dlist(self, meta: Any, children: PyList[Any]) -> DescriptionList:
+    def dlist(self, meta: Any, children: list[Any]) -> DescriptionList:
         list_node = DescriptionList(items=children)
         return cast(
             DescriptionList, self._set_location_from_children(list_node, children)
         )
 
     @v_args(meta=True)
-    def dlist_item(self, meta: Any, children: PyList[Any]) -> DescriptionListItem:
-        terms: PyList[DescriptionListTerm] = []
-        blocks: PyList[Node] = []
+    def dlist_item(self, meta: Any, children: list[Any]) -> DescriptionListItem:
+        terms: list[DescriptionListTerm] = []
+        blocks: list[Node] = []
         for child in children:
             if isinstance(child, DescriptionListTerm):
                 terms.append(child)
@@ -342,7 +338,7 @@ class BlockTransformer(BaseTransformer):
         from ..lark_parser import expand_joint_paragraphs, is_continuation_paragraph
 
         expanded_blocks = expand_joint_paragraphs(blocks)
-        resolved_blocks: PyList[Node] = []
+        resolved_blocks: list[Node] = []
         for b in expanded_blocks:
             if is_continuation_paragraph(b):
                 continue
@@ -354,7 +350,7 @@ class BlockTransformer(BaseTransformer):
         )
 
     @v_args(meta=True)
-    def dlist_term(self, meta: Any, children: PyList[Any]) -> DescriptionListTerm:
+    def dlist_term(self, meta: Any, children: list[Any]) -> DescriptionListTerm:
         # children[0] is text_content (list of inlines)
         # children[1] is DLIST_MARKER
         inlines = children[0]
@@ -374,23 +370,22 @@ class BlockTransformer(BaseTransformer):
         )
 
     @v_args(meta=True)
-    def dlist_description(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
+    def dlist_description(self, meta: Any, children: list[Any]) -> list[Node]:
         return [c for c in children if isinstance(c, BlockNode)]
 
     @v_args(meta=True)
-    def colist(self, meta: Any, children: PyList[Any]) -> CalloutList:
+    def colist(self, meta: Any, children: list[Any]) -> CalloutList:
         list_node = CalloutList(items=children)
         return cast(CalloutList, self._set_location_from_children(list_node, children))
 
     @v_args(meta=True)
-    def colist_item(self, meta: Any, children: PyList[Any]) -> CalloutListItem:
+    def colist_item(self, meta: Any, children: list[Any]) -> CalloutListItem:
         number = int(children[0].value)
         # Filter out WHITESPACE tokens to find the principal content list
         nodes = [
             c
             for c in children[1:]
-            if c is not None
-            and not (hasattr(c, "type") and getattr(c, "type") == "WHITESPACE")
+            if c is not None and not (hasattr(c, "type") and c.type == "WHITESPACE")
         ]
         # list_item_principal_content transformer returns a plain list of inline Nodes
         content = nodes[0] if nodes else []
@@ -448,7 +443,7 @@ class BlockTransformer(BaseTransformer):
                     block.reversed = True
 
     @v_args(meta=True)
-    def ulist_item(self, meta: Any, children: PyList[Any]) -> Dict[str, Any]:
+    def ulist_item(self, meta: Any, children: list[Any]) -> dict[str, Any]:
         marker_token = children[0]
         level = self._get_list_level(marker_token)
 
@@ -464,7 +459,7 @@ class BlockTransformer(BaseTransformer):
             # list_item_principal_content returns a plain list of inline Nodes
             content = children[1] if len(children) > 1 else []
 
-        item_data: Dict[str, Any] = {
+        item_data: dict[str, Any] = {
             "level": level,
             "item_type": "bullet",
             "marker": marker_token.value.strip(),
@@ -480,7 +475,7 @@ class BlockTransformer(BaseTransformer):
         return item_data
 
     @v_args(meta=True)
-    def olist_item(self, meta: Any, children: PyList[Any]) -> Dict[str, Any]:
+    def olist_item(self, meta: Any, children: list[Any]) -> dict[str, Any]:
         marker_token = children[0]
         level = self._get_list_level(marker_token)
 
@@ -496,7 +491,7 @@ class BlockTransformer(BaseTransformer):
             # list_item_principal_content returns a plain list of inline Nodes
             content = children[1] if len(children) > 1 else []
 
-        item_data: Dict[str, Any] = {
+        item_data: dict[str, Any] = {
             "level": level,
             "item_type": "enumerated",
             "marker": marker_token.value.strip(),
@@ -512,27 +507,27 @@ class BlockTransformer(BaseTransformer):
         return item_data
 
     @v_args(meta=True)
-    def basic_block(self, meta: Any, children: PyList[Any]) -> Any:
+    def basic_block(self, meta: Any, children: list[Any]) -> Any:
         return children[0] if children else Discard
 
     @v_args(meta=True)
-    def admonition_content(self, meta: Any, children: PyList[Any]) -> PyList[Any]:
+    def admonition_content(self, meta: Any, children: list[Any]) -> list[Any]:
         return [c for c in children if c is not Discard]
 
     @v_args(meta=True)
-    def sidebar_content(self, meta: Any, children: PyList[Any]) -> PyList[Any]:
+    def sidebar_content(self, meta: Any, children: list[Any]) -> list[Any]:
         return [c for c in children if c is not Discard]
 
     @v_args(meta=True)
-    def example_content(self, meta: Any, children: PyList[Any]) -> PyList[Any]:
+    def example_content(self, meta: Any, children: list[Any]) -> list[Any]:
         return [c for c in children if c is not Discard]
 
     @v_args(meta=True)
-    def example_block(self, meta: Any, children: PyList[Any]) -> Example:
+    def example_block(self, meta: Any, children: list[Any]) -> Example:
         return cast(Example, children[0])
 
     @v_args(meta=True)
-    def example_4(self, meta: Any, children: PyList[Any]) -> Example:
+    def example_4(self, meta: Any, children: list[Any]) -> Example:
         return cast(
             Example,
             self._set_location_from_children(
@@ -541,7 +536,7 @@ class BlockTransformer(BaseTransformer):
         )
 
     @v_args(meta=True)
-    def example_5(self, meta: Any, children: PyList[Any]) -> Example:
+    def example_5(self, meta: Any, children: list[Any]) -> Example:
         return cast(
             Example,
             self._set_location_from_children(
@@ -550,7 +545,7 @@ class BlockTransformer(BaseTransformer):
         )
 
     @v_args(meta=True)
-    def example_6(self, meta: Any, children: PyList[Any]) -> Example:
+    def example_6(self, meta: Any, children: list[Any]) -> Example:
         return cast(
             Example,
             self._set_location_from_children(
@@ -558,7 +553,7 @@ class BlockTransformer(BaseTransformer):
             ),
         )
 
-    def _build_example_block(self, children: PyList[Any]) -> Example:
+    def _build_example_block(self, children: list[Any]) -> Example:
         delims = [
             c
             for c in children
@@ -571,8 +566,8 @@ class BlockTransformer(BaseTransformer):
         return Example(blocks=merged_inner, delimiter=delimiter)
 
     def _build_verbatim_inlines(
-        self, content: str, content_token: Optional[Token]
-    ) -> PyList[Node]:
+        self, content: str, content_token: Token | None
+    ) -> list[Node]:
         if not content:
             text_node = Text("")
             if content_token:
@@ -600,7 +595,7 @@ class BlockTransformer(BaseTransformer):
 
         import re
 
-        inlines: PyList[Node] = []
+        inlines: list[Node] = []
         next_auto = 1
 
         for line in lines:
@@ -612,7 +607,7 @@ class BlockTransformer(BaseTransformer):
                 text, nl = line, ""
 
             m = CALLOUT_RE.search(text)
-            raw_nums: PyList[str] = []
+            raw_nums: list[str] = []
             code_part = text
             if m:
                 code_part = text[: m.start()]
@@ -640,7 +635,7 @@ class BlockTransformer(BaseTransformer):
                 inlines.append(Text(line))
 
         # Merge contiguous Text nodes
-        merged: PyList[Node] = []
+        merged: list[Node] = []
         for node in inlines:
             if isinstance(node, Text):
                 if merged and isinstance(merged[-1], Text):
@@ -653,9 +648,9 @@ class BlockTransformer(BaseTransformer):
         return merged
 
     @v_args(meta=True)
-    def listing_block(self, meta: Any, children: PyList[Any]) -> Listing:
+    def listing_block(self, meta: Any, children: list[Any]) -> Listing:
         content = ""
-        attributes: Dict[str, Any] = {}
+        attributes: dict[str, Any] = {}
         content_token = None
         delims = [
             c for c in children if isinstance(c, Token) and c.type == "LISTING_DELIM"
@@ -674,9 +669,9 @@ class BlockTransformer(BaseTransformer):
         return cast(Listing, self._set_location_from_children(listing, children))
 
     @v_args(meta=True)
-    def literal_block(self, meta: Any, children: PyList[Any]) -> Literal:
+    def literal_block(self, meta: Any, children: list[Any]) -> Literal:
         content = ""
-        attributes: Dict[str, Any] = {}
+        attributes: dict[str, Any] = {}
         content_token = None
         delims = [
             c for c in children if isinstance(c, Token) and c.type == "LITERAL_DELIM"
@@ -695,9 +690,9 @@ class BlockTransformer(BaseTransformer):
         return cast(Literal, self._set_location_from_children(literal, children))
 
     @v_args(meta=True)
-    def passthrough_block(self, meta: Any, children: PyList[Any]) -> Passthrough:
+    def passthrough_block(self, meta: Any, children: list[Any]) -> Passthrough:
         content = ""
-        attributes: Dict[str, Any] = {}
+        attributes: dict[str, Any] = {}
         content_token = None
         delims = [
             c
@@ -722,9 +717,9 @@ class BlockTransformer(BaseTransformer):
         return cast(Passthrough, self._set_location_from_children(pass_node, children))
 
     @v_args(meta=True)
-    def outer_listing_block(self, meta: Any, children: PyList[Any]) -> Listing:
+    def outer_listing_block(self, meta: Any, children: list[Any]) -> Listing:
         content = ""
-        attributes: Dict[str, Any] = {}
+        attributes: dict[str, Any] = {}
         content_token = None
         start_token = None
 
@@ -750,9 +745,9 @@ class BlockTransformer(BaseTransformer):
         return cast(Listing, self._set_location_from_children(listing, children))
 
     @v_args(meta=True)
-    def outer_literal_block(self, meta: Any, children: PyList[Any]) -> Literal:
+    def outer_literal_block(self, meta: Any, children: list[Any]) -> Literal:
         content = ""
-        attributes: Dict[str, Any] = {}
+        attributes: dict[str, Any] = {}
         content_token = None
         start_token = None
 
@@ -778,9 +773,9 @@ class BlockTransformer(BaseTransformer):
         return cast(Literal, self._set_location_from_children(literal, children))
 
     @v_args(meta=True)
-    def outer_passthrough_block(self, meta: Any, children: PyList[Any]) -> Passthrough:
+    def outer_passthrough_block(self, meta: Any, children: list[Any]) -> Passthrough:
         content = ""
-        attributes: Dict[str, Any] = {}
+        attributes: dict[str, Any] = {}
         content_token = None
         start_token = None
 
@@ -810,9 +805,9 @@ class BlockTransformer(BaseTransformer):
         return cast(Passthrough, self._set_location_from_children(pass_node, children))
 
     @v_args(meta=True)
-    def outer_comment_block(self, meta: Any, children: PyList[Any]) -> Comment:
+    def outer_comment_block(self, meta: Any, children: list[Any]) -> Comment:
         content = ""
-        attributes: Dict[str, Any] = {}
+        attributes: dict[str, Any] = {}
         start_token = None
 
         for c in children:
@@ -835,11 +830,11 @@ class BlockTransformer(BaseTransformer):
         return cast(Comment, self._set_location_from_children(comment, children))
 
     @v_args(meta=True)
-    def admonition(self, meta: Any, children: PyList[Any]) -> Admonition:
+    def admonition(self, meta: Any, children: list[Any]) -> Admonition:
         return cast(Admonition, children[0])
 
     @v_args(meta=True)
-    def admonition_4(self, meta: Any, children: PyList[Any]) -> Admonition:
+    def admonition_4(self, meta: Any, children: list[Any]) -> Admonition:
         return cast(
             Admonition,
             self._set_location_from_children(
@@ -848,7 +843,7 @@ class BlockTransformer(BaseTransformer):
         )
 
     @v_args(meta=True)
-    def admonition_5(self, meta: Any, children: PyList[Any]) -> Admonition:
+    def admonition_5(self, meta: Any, children: list[Any]) -> Admonition:
         return cast(
             Admonition,
             self._set_location_from_children(
@@ -857,7 +852,7 @@ class BlockTransformer(BaseTransformer):
         )
 
     @v_args(meta=True)
-    def admonition_6(self, meta: Any, children: PyList[Any]) -> Admonition:
+    def admonition_6(self, meta: Any, children: list[Any]) -> Admonition:
         return cast(
             Admonition,
             self._set_location_from_children(
@@ -866,7 +861,7 @@ class BlockTransformer(BaseTransformer):
         )
 
     @v_args(meta=True)
-    def shorthand_admonition(self, meta: Any, children: PyList[Any]) -> Admonition:
+    def shorthand_admonition(self, meta: Any, children: list[Any]) -> Admonition:
         variant = "note"
         content = []
         for child in children:
@@ -879,7 +874,7 @@ class BlockTransformer(BaseTransformer):
         adm = Admonition(variant=variant, blocks=[para], delimiter=None)
         return cast(Admonition, self._set_location_from_children(adm, children))
 
-    def _build_admonition(self, children: PyList[Any]) -> Admonition:
+    def _build_admonition(self, children: list[Any]) -> Admonition:
         start_token = children[0]
         variant = start_token.value.strip("[] ").lower()
         delims = [
@@ -895,36 +890,36 @@ class BlockTransformer(BaseTransformer):
         return Admonition(variant=variant, blocks=merged_inner, delimiter=delimiter)
 
     @v_args(meta=True)
-    def sidebar(self, meta: Any, children: PyList[Any]) -> Sidebar:
+    def sidebar(self, meta: Any, children: list[Any]) -> Sidebar:
         return cast(Sidebar, children[0])
 
     @v_args(meta=True)
-    def sidebar_4(self, meta: Any, children: PyList[Any]) -> Sidebar:
+    def sidebar_4(self, meta: Any, children: list[Any]) -> Sidebar:
         return cast(
             Sidebar,
             self._set_location_from_children(self._build_sidebar(children), children),
         )
 
     @v_args(meta=True)
-    def sidebar_5(self, meta: Any, children: PyList[Any]) -> Sidebar:
+    def sidebar_5(self, meta: Any, children: list[Any]) -> Sidebar:
         return cast(
             Sidebar,
             self._set_location_from_children(self._build_sidebar(children), children),
         )
 
     @v_args(meta=True)
-    def sidebar_6(self, meta: Any, children: PyList[Any]) -> Sidebar:
+    def sidebar_6(self, meta: Any, children: list[Any]) -> Sidebar:
         return cast(
             Sidebar,
             self._set_location_from_children(self._build_sidebar(children), children),
         )
 
     @v_args(meta=True)
-    def open_block(self, meta: Any, children: PyList[Any]) -> Open:
+    def open_block(self, meta: Any, children: list[Any]) -> Open:
         return cast(Open, children[0])
 
     @v_args(meta=True)
-    def open_block_legacy(self, meta: Any, children: PyList[Any]) -> Open:
+    def open_block_legacy(self, meta: Any, children: list[Any]) -> Open:
         import warnings
 
         warnings.warn(
@@ -940,7 +935,7 @@ class BlockTransformer(BaseTransformer):
         )
 
     @v_args(meta=True)
-    def open_block_4(self, meta: Any, children: PyList[Any]) -> Open:
+    def open_block_4(self, meta: Any, children: list[Any]) -> Open:
         return cast(
             Open,
             self._set_location_from_children(
@@ -949,7 +944,7 @@ class BlockTransformer(BaseTransformer):
         )
 
     @v_args(meta=True)
-    def open_block_5(self, meta: Any, children: PyList[Any]) -> Open:
+    def open_block_5(self, meta: Any, children: list[Any]) -> Open:
         return cast(
             Open,
             self._set_location_from_children(
@@ -958,7 +953,7 @@ class BlockTransformer(BaseTransformer):
         )
 
     @v_args(meta=True)
-    def open_block_6(self, meta: Any, children: PyList[Any]) -> Open:
+    def open_block_6(self, meta: Any, children: list[Any]) -> Open:
         return cast(
             Open,
             self._set_location_from_children(
@@ -967,7 +962,7 @@ class BlockTransformer(BaseTransformer):
         )
 
     @v_args(meta=True)
-    def open_block_long(self, meta: Any, children: PyList[Any]) -> Open:
+    def open_block_long(self, meta: Any, children: list[Any]) -> Open:
         return cast(
             Open,
             self._set_location_from_children(
@@ -975,7 +970,7 @@ class BlockTransformer(BaseTransformer):
             ),
         )
 
-    def _build_open_block(self, children: PyList[Any]) -> Open:
+    def _build_open_block(self, children: list[Any]) -> Open:
         delims = [
             c
             for c in children
@@ -987,7 +982,7 @@ class BlockTransformer(BaseTransformer):
         delimiter = delims[0].value if delims else "--"
         return Open(blocks=merged_inner, delimiter=delimiter)
 
-    def _build_sidebar(self, children: PyList[Any]) -> Sidebar:
+    def _build_sidebar(self, children: list[Any]) -> Sidebar:
         delims = [
             c
             for c in children
@@ -1000,11 +995,11 @@ class BlockTransformer(BaseTransformer):
         return Sidebar(blocks=merged_inner, delimiter=delimiter)
 
     @v_args(meta=True)
-    def quote_block(self, meta: Any, children: PyList[Any]) -> Quote:
+    def quote_block(self, meta: Any, children: list[Any]) -> Quote:
         return cast(Quote, children[0])
 
     @v_args(meta=True)
-    def quote_4(self, meta: Any, children: PyList[Any]) -> Quote:
+    def quote_4(self, meta: Any, children: list[Any]) -> Quote:
         return cast(
             Quote,
             self._set_location_from_children(
@@ -1013,7 +1008,7 @@ class BlockTransformer(BaseTransformer):
         )
 
     @v_args(meta=True)
-    def quote_5(self, meta: Any, children: PyList[Any]) -> Quote:
+    def quote_5(self, meta: Any, children: list[Any]) -> Quote:
         return cast(
             Quote,
             self._set_location_from_children(
@@ -1022,7 +1017,7 @@ class BlockTransformer(BaseTransformer):
         )
 
     @v_args(meta=True)
-    def quote_6(self, meta: Any, children: PyList[Any]) -> Quote:
+    def quote_6(self, meta: Any, children: list[Any]) -> Quote:
         return cast(
             Quote,
             self._set_location_from_children(
@@ -1030,7 +1025,7 @@ class BlockTransformer(BaseTransformer):
             ),
         )
 
-    def _build_quote_block(self, children: PyList[Any]) -> Quote:
+    def _build_quote_block(self, children: list[Any]) -> Quote:
         delims = [
             c
             for c in children
@@ -1043,22 +1038,22 @@ class BlockTransformer(BaseTransformer):
         return Quote(blocks=merged_inner, delimiter=delimiter)
 
     @v_args(inline=True)
-    def span_both(self, cols: Optional[Token], rows: Token) -> Dict[str, int]:
+    def span_both(self, cols: Token | None, rows: Token) -> dict[str, int]:
         c = int(cols.value) if cols else 1
         r = int(rows.value)
         return {"colspan": c, "rowspan": r}
 
     @v_args(inline=True)
-    def span_cols(self, cols: Token) -> Dict[str, int]:
+    def span_cols(self, cols: Token) -> dict[str, int]:
         c = int(cols.value)
         return {"colspan": c}
 
     @v_args(inline=True)
-    def multiplier(self, mult: Token) -> Dict[str, int]:
+    def multiplier(self, mult: Token) -> dict[str, int]:
         return {"multiplier": int(mult.value)}
 
     @v_args(inline=True)
-    def align_both(self, horiz: Token, vert: Optional[Token]) -> Dict[str, str]:
+    def align_both(self, horiz: Token, vert: Token | None) -> dict[str, str]:
         h_map = {"<": "left", ">": "right", "^": "center"}
         v_map = {".<": "top", ".>": "bottom", ".^": "middle"}
         align = h_map.get(horiz.value)
@@ -1071,7 +1066,7 @@ class BlockTransformer(BaseTransformer):
         return res
 
     @v_args(inline=True)
-    def align_vert(self, vert: Token) -> Dict[str, str]:
+    def align_vert(self, vert: Token) -> dict[str, str]:
         v_map = {".<": "top", ".>": "bottom", ".^": "middle"}
         valign = v_map.get(vert.value)
         res = {}
@@ -1079,7 +1074,7 @@ class BlockTransformer(BaseTransformer):
             res["valign"] = valign
         return res
 
-    def table_cell_spec(self, children: PyList[Any]) -> Dict[str, Any]:
+    def table_cell_spec(self, children: list[Any]) -> dict[str, Any]:
         res = {}
         for child in children:
             if isinstance(child, dict):
@@ -1089,7 +1084,7 @@ class BlockTransformer(BaseTransformer):
         return res
 
     @v_args(meta=True)
-    def table(self, meta: Any, children: PyList[Any]) -> Table:
+    def table(self, meta: Any, children: list[Any]) -> Table:
         raw_cells = [c for c in children if isinstance(c, TableCell)]
 
         # 1. Expand multipliers
@@ -1121,7 +1116,7 @@ class BlockTransformer(BaseTransformer):
 
         # 3. Perform grid grouping into TableRow objects
         table_node = Table()
-        grid: PyList[PyList[Any]] = []
+        grid: list[list[Any]] = []
         cell_idx = 0
         while cell_idx < len(cells):
             r = 0
@@ -1158,7 +1153,7 @@ class BlockTransformer(BaseTransformer):
 
         rows = []
         for r in range(len(grid)):
-            row_cells: PyList[TableCell] = [
+            row_cells: list[TableCell] = [
                 cell for cell in grid[r] if isinstance(cell, TableCell)
             ]
             if row_cells:
@@ -1168,13 +1163,13 @@ class BlockTransformer(BaseTransformer):
         return cast(Table, self._set_location_from_children(table_node, children))
 
     @v_args(meta=True)
-    def table_row(self, meta: Any, children: PyList[Any]) -> TableRow:
+    def table_row(self, meta: Any, children: list[Any]) -> TableRow:
         cells = [c for c in children if isinstance(c, TableCell)]
         row = TableRow(cells=cells)
         return cast(TableRow, self._set_location_from_children(row, children))
 
     @v_args(meta=True)
-    def table_cell(self, meta: Any, children: PyList[Any]) -> TableCell:
+    def table_cell(self, meta: Any, children: list[Any]) -> TableCell:
         spec = {}
         content_token = None
         for child in children:

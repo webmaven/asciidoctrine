@@ -1,8 +1,8 @@
 import re
-from typing import Any, Dict
+from typing import Any
 
 
-def substitute_attributes(text: str, attributes: Dict[str, str]) -> str:
+def substitute_attributes(text: str, attributes: dict[str, str]) -> str:
     """Replace {name} with attribute values in text."""
 
     def replace(match: re.Match[str]) -> str:
@@ -23,9 +23,9 @@ def resolve_node_to_string(node: Any) -> str:
     return ""
 
 
-def resolve_attribute_map(attributes: Dict[str, Any]) -> Dict[str, str]:
+def resolve_attribute_map(attributes: dict[str, Any]) -> dict[str, str]:
     """Resolve a map of rich attribute values (nodes) to simple strings."""
-    resolved: Dict[str, str] = {}
+    resolved: dict[str, str] = {}
     for k, v in attributes.items():
         if isinstance(v, list):
             resolved[k] = "".join([resolve_node_to_string(n) for n in v])

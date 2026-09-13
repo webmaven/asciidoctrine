@@ -17,7 +17,7 @@ class TestInlines(unittest.TestCase):
         """Recursively strip 'location' from ASG dict."""
         if isinstance(node, dict):
             node.pop("location", None)
-            for key, value in node.items():
+            for value in node.values():
                 self._strip_locations(value)
         elif isinstance(node, list):
             for item in node:

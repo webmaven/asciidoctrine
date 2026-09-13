@@ -13,7 +13,6 @@ import os
 import posixpath
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Dict, List, Optional, Union
 
 
 class FileProvider(ABC):
@@ -26,7 +25,7 @@ class FileProvider(ABC):
     """
 
     @abstractmethod
-    def read_text(self, path: Union[str, Path]) -> str:
+    def read_text(self, path: str | Path) -> str:
         """
         Reads and returns the complete text content of a target document.
 
@@ -39,7 +38,7 @@ class FileProvider(ABC):
         pass
 
     @abstractmethod
-    def exists(self, path: Union[str, Path]) -> bool:
+    def exists(self, path: str | Path) -> bool:
         """
         Checks whether the specified path exists in the provider.
 
@@ -49,7 +48,7 @@ class FileProvider(ABC):
         pass
 
     @abstractmethod
-    def is_file(self, path: Union[str, Path]) -> bool:
+    def is_file(self, path: str | Path) -> bool:
         """
         Checks whether the specified path points to a readable file.
 
@@ -59,9 +58,7 @@ class FileProvider(ABC):
         pass
 
     @abstractmethod
-    def resolve_path(
-        self, path: Union[str, Path], base_dir: Optional[Union[str, Path]] = None
-    ) -> str:
+    def resolve_path(self, path: str | Path, base_dir: str | Path | None = None) -> str:
         """
         Resolves a path relative to a base directory or workspace root.
 
@@ -74,8 +71,8 @@ class FileProvider(ABC):
 
     @abstractmethod
     def find_files(
-        self, pattern: str = "*.adoc", base_dir: Optional[Union[str, Path]] = None
-    ) -> List[str]:
+        self, pattern: str = "*.adoc", base_dir: str | Path | None = None
+    ) -> list[str]:
         """
         Discovers all files matching a glob pattern within the target directory.
 
@@ -106,8 +103,8 @@ class FsLoader(FileProvider):
 
     def __init__(
         self,
-        base_dir: Optional[Union[str, Path]] = None,
-        safe_mode: Union[bool, int] = True,
+        base_dir: str | Path | None = None,
+        safe_mode: bool | int = True,
     ) -> None:
         """
         Initializes the filesystem loader.
@@ -135,28 +132,26 @@ class FsLoader(FileProvider):
                 f"Security error: path '{target_abs_path}' is on a different drive or outside base directory '{self.base_dir}'."
             ) from exc
 
-    def read_text(self, path: Union[str, Path]) -> str:
+    def read_text(self, path: str | Path) -> str:
         resolved = self.resolve_path(path)
-        with open(resolved, "r", encoding="utf-8") as f:
+        with open(resolved, encoding="utf-8") as f:
             return f.read()
 
-    def exists(self, path: Union[str, Path]) -> bool:
+    def exists(self, path: str | Path) -> bool:
         try:
             resolved = self.resolve_path(path)
             return os.path.exists(resolved)
         except PermissionError:
             return False
 
-    def is_file(self, path: Union[str, Path]) -> bool:
+    def is_file(self, path: str | Path) -> bool:
         try:
             resolved = self.resolve_path(path)
             return os.path.isfile(resolved)
         except PermissionError:
             return False
 
-    def resolve_path(
-        self, path: Union[str, Path], base_dir: Optional[Union[str, Path]] = None
-    ) -> str:
+    def resolve_path(self, path: str | Path, base_dir: str | Path | None = None) -> str:
         root = os.path.abspath(str(base_dir)) if base_dir else self.base_dir
         path_str = str(path)
         if os.path.isabs(path_str):
@@ -167,12 +162,12 @@ class FsLoader(FileProvider):
         return resolved
 
     def find_files(
-        self, pattern: str = "*.adoc", base_dir: Optional[Union[str, Path]] = None
-    ) -> List[str]:
+        self, pattern: str = "*.adoc", base_dir: str | Path | None = None
+    ) -> list[str]:
         search_root = Path(self.resolve_path(base_dir or self.base_dir))
         if not search_root.is_dir():
             return []
-        matches: List[str] = []
+        matches: list[str] = []
         for p in search_root.rglob(pattern):
             if p.is_file():
                 matches.append(str(p.resolve()))
@@ -203,9 +198,9 @@ class MemoryLoader(FileProvider):
 
     def __init__(
         self,
-        files: Optional[Dict[str, str]] = None,
+        files: dict[str, str] | None = None,
         base_dir: str = "/workspace",
-        safe_mode: Union[bool, int] = True,
+        safe_mode: bool | int = True,
     ) -> None:
         """
         Initializes the in-memory loader.
@@ -219,21 +214,21 @@ class MemoryLoader(FileProvider):
         """
         self.base_dir = self._normalize_posix_path(base_dir)
         self.safe_mode = bool(safe_mode)
-        self._files: Dict[str, str] = {}
+        self._files: dict[str, str] = {}
         if files:
             for k, v in files.items():
                 norm_k = self.resolve_path(k)
                 self._files[norm_k] = v
 
     @staticmethod
-    def _normalize_posix_path(path: Union[str, Path]) -> str:
+    def _normalize_posix_path(path: str | Path) -> str:
         p = str(path).replace("\\", "/")
         norm = posixpath.normpath(p)
         if not norm.startswith("/"):
             norm = "/" + norm
         return norm
 
-    def put(self, path: Union[str, Path], content: str) -> None:
+    def put(self, path: str | Path, content: str) -> None:
         """
         Adds or updates a virtual file in the in-memory filesystem.
 
@@ -245,9 +240,7 @@ class MemoryLoader(FileProvider):
         resolved = self.resolve_path(path)
         self._files[resolved] = content
 
-    def resolve_path(
-        self, path: Union[str, Path], base_dir: Optional[Union[str, Path]] = None
-    ) -> str:
+    def resolve_path(self, path: str | Path, base_dir: str | Path | None = None) -> str:
         p_str = str(path).replace("\\", "/")
         if p_str.startswith("/"):
             resolved = posixpath.normpath(p_str)
@@ -265,7 +258,7 @@ class MemoryLoader(FileProvider):
                 )
         return resolved
 
-    def read_text(self, path: Union[str, Path]) -> str:
+    def read_text(self, path: str | Path) -> str:
         resolved = self.resolve_path(path)
         if resolved not in self._files:
             raise FileNotFoundError(
@@ -273,7 +266,7 @@ class MemoryLoader(FileProvider):
             )
         return self._files[resolved]
 
-    def exists(self, path: Union[str, Path]) -> bool:
+    def exists(self, path: str | Path) -> bool:
         try:
             resolved = self.resolve_path(path)
             if resolved in self._files:
@@ -283,7 +276,7 @@ class MemoryLoader(FileProvider):
         except PermissionError:
             return False
 
-    def is_file(self, path: Union[str, Path]) -> bool:
+    def is_file(self, path: str | Path) -> bool:
         try:
             resolved = self.resolve_path(path)
             return resolved in self._files
@@ -291,11 +284,11 @@ class MemoryLoader(FileProvider):
             return False
 
     def find_files(
-        self, pattern: str = "*.adoc", base_dir: Optional[Union[str, Path]] = None
-    ) -> List[str]:
+        self, pattern: str = "*.adoc", base_dir: str | Path | None = None
+    ) -> list[str]:
         root = self.resolve_path(base_dir or self.base_dir)
         prefix = root if root.endswith("/") else root + "/"
-        matches: List[str] = []
+        matches: list[str] = []
         for file_path in self._files:
             if file_path == root or file_path.startswith(prefix):
                 filename = posixpath.basename(file_path)

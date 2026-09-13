@@ -2,7 +2,7 @@
 Converts the AsciiDoc AST to a Docutils document tree.
 """
 
-from typing import Any, Optional, Union
+from typing import Any
 
 from docutils import nodes
 from docutils.utils import new_document
@@ -211,7 +211,7 @@ class DocutilsRenderer(NodeVisitor):
         old_parent = self.current_node
 
         style = getattr(self, "_cell_style", None)
-        wrapper: Optional[nodes.Element] = None
+        wrapper: nodes.Element | None = None
         if style in ("s", "h"):
             wrapper = nodes.strong()
         elif style == "e":
@@ -334,7 +334,7 @@ class DocutilsRenderer(NodeVisitor):
 
         `node`:: The `ASTList` node to convert.
         """
-        list_node: Union[nodes.bullet_list, nodes.enumerated_list]
+        list_node: nodes.bullet_list | nodes.enumerated_list
         if node.variant == "ordered":
             list_node = nodes.enumerated_list()
             numeration = (
@@ -674,7 +674,7 @@ class DocutilsRenderer(NodeVisitor):
         self.current_node += img
 
     def _append_attribution(
-        self, bq: nodes.Element, attribution: Optional[str], citetitle: Optional[str]
+        self, bq: nodes.Element, attribution: str | None, citetitle: str | None
     ) -> None:
         """Append a trailing attribution paragraph to a block_quote node.
 
@@ -862,7 +862,7 @@ class DocutilsRenderer(NodeVisitor):
 
 def asciidoc_to_docutils(
     source: str,
-    base_dir: Optional[str] = None,
+    base_dir: str | None = None,
     safe_mode: int = 0,
 ) -> nodes.document:
     """

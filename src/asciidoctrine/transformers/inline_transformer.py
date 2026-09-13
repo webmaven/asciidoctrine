@@ -1,7 +1,7 @@
 import csv
 import re
-from typing import Any, Dict, Optional, Sequence, Tuple, cast
-from typing import List as PyList
+from collections.abc import Sequence
+from typing import Any, cast
 
 from lark import Token, v_args
 
@@ -22,7 +22,7 @@ from ..nodes import (
 )
 from .base_transformer import BaseTransformer
 
-SPAN_DELIMITERS: Dict[Tuple[str, str], Tuple[str, str]] = {
+SPAN_DELIMITERS: dict[tuple[str, str], tuple[str, str]] = {
     ("strong", "constrained"): ("*", "*"),
     ("strong", "unconstrained"): ("**", "**"),
     ("emphasis", "constrained"): ("_", "_"),
@@ -50,7 +50,7 @@ class InlineTransformer(BaseTransformer):
     # attributes: Dict[str, PyList[Node]]  # Will be provided by main transformer
 
     @v_args(meta=True)
-    def attribute_reference(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
+    def attribute_reference(self, meta: Any, children: list[Any]) -> list[Node]:
         import copy
 
         name = ""
@@ -60,18 +60,18 @@ class InlineTransformer(BaseTransformer):
                 break
 
         # Access attributes from the instance (AsciiDocTransformer)
-        attrs = cast(Dict[str, PyList[Node]], getattr(self, "attributes"))
+        attrs = cast(dict[str, list[Node]], getattr(self, "attributes", {}))
         nodes = attrs.get(name, [Text(f"{{{name}}}")])
         # Return a deep copy to avoid modifying the original attribute nodes during
         # merging
         return [copy.deepcopy(n) for n in nodes]
 
     @v_args(meta=True)
-    def text_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
-        nodes: PyList[Node] = []
-        pending_attrs: Optional[Dict[str, str]] = None
+    def text_content(self, meta: Any, children: list[Any]) -> list[Node]:
+        nodes: list[Node] = []
+        pending_attrs: dict[str, str] | None = None
 
-        flat_children: PyList[Any] = []
+        flat_children: list[Any] = []
         for child in children:
             if isinstance(child, list) and not isinstance(child, Node):
                 flat_children.extend(child)
@@ -87,7 +87,7 @@ class InlineTransformer(BaseTransformer):
                 i += 1
                 continue
 
-            node: Optional[Node] = None
+            node: Node | None = None
             if isinstance(child, Token):
                 node = Text(str(child.value))
                 if (
@@ -370,37 +370,37 @@ class InlineTransformer(BaseTransformer):
         return nodes
 
     @v_args(meta=True)
-    def bold_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
-        return cast(PyList[Node], self.text_content(meta, children))
+    def bold_content(self, meta: Any, children: list[Any]) -> list[Node]:
+        return cast(list[Node], self.text_content(meta, children))
 
     @v_args(meta=True)
-    def italic_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
-        return cast(PyList[Node], self.text_content(meta, children))
+    def italic_content(self, meta: Any, children: list[Any]) -> list[Node]:
+        return cast(list[Node], self.text_content(meta, children))
 
     @v_args(meta=True)
-    def marked_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
-        return cast(PyList[Node], self.text_content(meta, children))
+    def marked_content(self, meta: Any, children: list[Any]) -> list[Node]:
+        return cast(list[Node], self.text_content(meta, children))
 
     @v_args(meta=True)
     def unconstrained_marked_content(
-        self, meta: Any, children: PyList[Any]
-    ) -> PyList[Node]:
-        return cast(PyList[Node], self.text_content(meta, children))
+        self, meta: Any, children: list[Any]
+    ) -> list[Node]:
+        return cast(list[Node], self.text_content(meta, children))
 
     @v_args(meta=True)
-    def superscript_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
-        return cast(PyList[Node], self.text_content(meta, children))
+    def superscript_content(self, meta: Any, children: list[Any]) -> list[Node]:
+        return cast(list[Node], self.text_content(meta, children))
 
     @v_args(meta=True)
-    def subscript_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
-        return cast(PyList[Node], self.text_content(meta, children))
+    def subscript_content(self, meta: Any, children: list[Any]) -> list[Node]:
+        return cast(list[Node], self.text_content(meta, children))
 
     @v_args(meta=True)
-    def footnote_text_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
-        return cast(PyList[Node], self.text_content(meta, children))
+    def footnote_text_content(self, meta: Any, children: list[Any]) -> list[Node]:
+        return cast(list[Node], self.text_content(meta, children))
 
     @v_args(meta=True)
-    def bold(self, meta: Any, children: PyList[Any]) -> Span:
+    def bold(self, meta: Any, children: list[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
         span = Span(
             variant="strong", form="constrained", inlines=content[0] if content else []
@@ -408,7 +408,7 @@ class InlineTransformer(BaseTransformer):
         return cast(Span, self._set_location_from_children(span, children))
 
     @v_args(meta=True)
-    def unconstrained_bold(self, meta: Any, children: PyList[Any]) -> Span:
+    def unconstrained_bold(self, meta: Any, children: list[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
         span = Span(
             variant="strong",
@@ -418,7 +418,7 @@ class InlineTransformer(BaseTransformer):
         return cast(Span, self._set_location_from_children(span, children))
 
     @v_args(meta=True)
-    def italic(self, meta: Any, children: PyList[Any]) -> Span:
+    def italic(self, meta: Any, children: list[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
         span = Span(
             variant="emphasis",
@@ -428,7 +428,7 @@ class InlineTransformer(BaseTransformer):
         return cast(Span, self._set_location_from_children(span, children))
 
     @v_args(meta=True)
-    def unconstrained_italic(self, meta: Any, children: PyList[Any]) -> Span:
+    def unconstrained_italic(self, meta: Any, children: list[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
         span = Span(
             variant="emphasis",
@@ -438,21 +438,21 @@ class InlineTransformer(BaseTransformer):
         return cast(Span, self._set_location_from_children(span, children))
 
     @v_args(meta=True)
-    def literal_content(self, meta: Any, children: PyList[Any]) -> str:
+    def literal_content(self, meta: Any, children: list[Any]) -> str:
         return str(children[0])
 
     @v_args(meta=True)
-    def monospace_content(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
+    def monospace_content(self, meta: Any, children: list[Any]) -> list[Node]:
         return self.text_content(meta, children)  # type: ignore
 
     @v_args(meta=True)
     def unconstrained_monospace_content(
-        self, meta: Any, children: PyList[Any]
-    ) -> PyList[Node]:
+        self, meta: Any, children: list[Any]
+    ) -> list[Node]:
         return self.text_content(meta, children)  # type: ignore
 
     @v_args(meta=True)
-    def monospace(self, meta: Any, children: PyList[Any]) -> Span:
+    def monospace(self, meta: Any, children: list[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
         span = Span(
             variant="code",
@@ -462,12 +462,12 @@ class InlineTransformer(BaseTransformer):
         return cast(Span, self._set_location_from_children(span, children))
 
     @v_args(meta=True)
-    def unconstrained_monospace(self, meta: Any, children: PyList[Any]) -> Span:
+    def unconstrained_monospace(self, meta: Any, children: list[Any]) -> Span:
         span = Span(variant="code", form="unconstrained", inlines=children[0])
         return cast(Span, self._set_location_from_children(span, children))
 
     @v_args(meta=True)
-    def marked(self, meta: Any, children: PyList[Any]) -> Span:
+    def marked(self, meta: Any, children: list[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
         span = Span(
             variant="mark",
@@ -477,7 +477,7 @@ class InlineTransformer(BaseTransformer):
         return cast(Span, self._set_location_from_children(span, children))
 
     @v_args(meta=True)
-    def unconstrained_marked(self, meta: Any, children: PyList[Any]) -> Span:
+    def unconstrained_marked(self, meta: Any, children: list[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
         span = Span(
             variant="mark",
@@ -487,19 +487,19 @@ class InlineTransformer(BaseTransformer):
         return cast(Span, self._set_location_from_children(span, children))
 
     @v_args(meta=True)
-    def superscript(self, meta: Any, children: PyList[Any]) -> Span:
+    def superscript(self, meta: Any, children: list[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
         span = Span(variant="superscript", inlines=content[0] if content else [])
         return cast(Span, self._set_location_from_children(span, children))
 
     @v_args(meta=True)
-    def subscript(self, meta: Any, children: PyList[Any]) -> Span:
+    def subscript(self, meta: Any, children: list[Any]) -> Span:
         content = [c for c in children if isinstance(c, list)]
         span = Span(variant="subscript", inlines=content[0] if content else [])
         return cast(Span, self._set_location_from_children(span, children))
 
     @v_args(meta=True)
-    def footnote(self, meta: Any, children: PyList[Any]) -> Ref:
+    def footnote(self, meta: Any, children: list[Any]) -> Ref:
         ref = Ref(variant="footnote", target="", inlines=children[0])
         fn_text = "".join(
             getattr(n, "value", "") for n in children[0] if hasattr(n, "value")
@@ -508,7 +508,7 @@ class InlineTransformer(BaseTransformer):
         return cast(Ref, self._set_location_from_children(ref, children))
 
     @v_args(meta=True)
-    def footnoteref(self, meta: Any, children: PyList[Any]) -> Ref:
+    def footnoteref(self, meta: Any, children: list[Any]) -> Ref:
         target = ""
         inlines = []
         for c in children:
@@ -527,17 +527,17 @@ class InlineTransformer(BaseTransformer):
         return cast(Ref, self._set_location_from_children(ref, children))
 
     @v_args(meta=True)
-    def double_quoted(self, meta: Any, children: PyList[Any]) -> Span:
+    def double_quoted(self, meta: Any, children: list[Any]) -> Span:
         span = Span(variant="double", inlines=children[0] if children else [])
         return cast(Span, self._set_location_from_children(span, children))
 
     @v_args(meta=True)
-    def single_quoted(self, meta: Any, children: PyList[Any]) -> Span:
+    def single_quoted(self, meta: Any, children: list[Any]) -> Span:
         span = Span(variant="single", inlines=children[0] if children else [])
         return cast(Span, self._set_location_from_children(span, children))
 
     @v_args(meta=True)
-    def inline_image(self, meta: Any, children: PyList[Any]) -> Image:
+    def inline_image(self, meta: Any, children: list[Any]) -> Image:
         from lark import Token
 
         if isinstance(children[0], Token) and children[0].type == "IMAGE_PREFIX":
@@ -556,7 +556,7 @@ class InlineTransformer(BaseTransformer):
         return cast(Image, self._set_location_from_children(img, children))
 
     @v_args(meta=True)
-    def icon_inline(self, meta: Any, children: PyList[Any]) -> Image:
+    def icon_inline(self, meta: Any, children: list[Any]) -> Image:
         from lark import Token
 
         if isinstance(children[0], Token) and children[0].type == "ICON_PREFIX":
@@ -573,7 +573,7 @@ class InlineTransformer(BaseTransformer):
         return cast(Image, self._set_location_from_children(img, children))
 
     @v_args(meta=True)
-    def inline_anchor(self, meta: Any, children: PyList[Any]) -> Ref:
+    def inline_anchor(self, meta: Any, children: list[Any]) -> Ref:
         from lark import Token
 
         if isinstance(children[0], Token) and children[0].type == "ANCHOR_PREFIX":
@@ -602,7 +602,7 @@ class InlineTransformer(BaseTransformer):
         return cast(Ref, self._set_location_from_children(ref, children))
 
     @v_args(meta=True)
-    def inline_xref(self, meta: Any, children: PyList[Any]) -> Ref:
+    def inline_xref(self, meta: Any, children: list[Any]) -> Ref:
         from lark import Token
 
         if isinstance(children[0], Token) and children[0].type == "XREF_PREFIX":
@@ -634,7 +634,7 @@ class InlineTransformer(BaseTransformer):
         return cast(Ref, self._set_location_from_children(ref, children))
 
     @v_args(meta=True)
-    def inline_link(self, meta: Any, children: PyList[Any]) -> Ref:
+    def inline_link(self, meta: Any, children: list[Any]) -> Ref:
         # When the LINK_PREFIX branch matches, children[0] is the
         # LINK_PREFIX token ("link:") and children[1] is the URI/TARGET.
         # When the bare URI branch matches, children[0] is the URI directly.
@@ -676,8 +676,8 @@ class InlineTransformer(BaseTransformer):
             try:
                 raw_inlines = parse_inlines(label)
 
-                def _unwrap(nodes: PyList[Node]) -> PyList[Node]:
-                    res: PyList[Node] = []
+                def _unwrap(nodes: list[Node]) -> list[Node]:
+                    res: list[Node] = []
                     for n in nodes:
                         if isinstance(n, Ref):
                             res.extend(_unwrap(n.inlines))
@@ -702,7 +702,7 @@ class InlineTransformer(BaseTransformer):
         return cast(Ref, self._set_location_from_children(ref, children))
 
     @v_args(meta=True)
-    def bare_url_link(self, meta: Any, children: PyList[Any]) -> PyList[Node]:
+    def bare_url_link(self, meta: Any, children: list[Any]) -> list[Node]:
         target = str(children[0].value)
         # Strip trailing punctuation (including '>' for angle-bracketed URLs)
         punc_chars = ".,;:!?)>]}"
@@ -718,16 +718,14 @@ class InlineTransformer(BaseTransformer):
         )
         ref.attributes["role"] = "bare"
 
-        nodes: PyList[Node] = [
-            cast(Ref, self._set_location_from_children(ref, children))
-        ]
+        nodes: list[Node] = [cast(Ref, self._set_location_from_children(ref, children))]
         if stripped_punc:
             punc_node = Text(stripped_punc)
             nodes.append(punc_node)
         return nodes
 
     @v_args(meta=True)
-    def bare_email_link(self, meta: Any, children: PyList[Any]) -> Ref:
+    def bare_email_link(self, meta: Any, children: list[Any]) -> Ref:
         email = str(children[0].value)
         ref = Ref(
             variant="link",
@@ -738,7 +736,7 @@ class InlineTransformer(BaseTransformer):
         return cast(Ref, self._set_location_from_children(ref, children))
 
     @v_args(meta=True)
-    def inline_bibref(self, meta: Any, children: PyList[Any]) -> Ref:
+    def inline_bibref(self, meta: Any, children: list[Any]) -> Ref:
         nodes = children[0]
         target = "".join(
             [getattr(n, "value", "") for n in nodes if hasattr(n, "value")]
@@ -749,11 +747,11 @@ class InlineTransformer(BaseTransformer):
         return cast(Ref, self._set_location_from_children(ref, children))
 
     @v_args(meta=True)
-    def inline_break(self, meta: Any, children: PyList[Any]) -> Break:
+    def inline_break(self, meta: Any, children: list[Any]) -> Break:
         return cast(Break, self._set_location_from_children(Break(), children))
 
     @v_args(meta=True)
-    def inline_kbd(self, meta: Any, children: PyList[Any]) -> Kbd:
+    def inline_kbd(self, meta: Any, children: list[Any]) -> Kbd:
         content = str(children[0].value)
         keys = [k.strip() for k in content.split("+")]
         kbd = Kbd(keys)
@@ -761,13 +759,13 @@ class InlineTransformer(BaseTransformer):
         return cast(Kbd, self._set_location_from_children(kbd, children))
 
     @v_args(meta=True)
-    def inline_button(self, meta: Any, children: PyList[Any]) -> Button:
+    def inline_button(self, meta: Any, children: list[Any]) -> Button:
         btn = Button(str(children[0].value))
         btn._source_text = f"btn:[{str(children[0].value)}]"
         return cast(Button, self._set_location_from_children(btn, children))
 
     @v_args(meta=True)
-    def inline_menu(self, meta: Any, children: PyList[Any]) -> Menu:
+    def inline_menu(self, meta: Any, children: list[Any]) -> Menu:
         menu_name = str(children[0].value)
         items_str = str(children[1].value) if len(children) > 1 and children[1] else ""
         items = [i.strip() for i in items_str.split(">")] if items_str else []
@@ -776,18 +774,18 @@ class InlineTransformer(BaseTransformer):
         return cast(Menu, self._set_location_from_children(menu, children))
 
     @v_args(meta=True)
-    def inline_callout(self, meta: Any, children: PyList[Any]) -> Callout:
+    def inline_callout(self, meta: Any, children: list[Any]) -> Callout:
         co = Callout(int(children[0].value))
         co._source_text = f"<{children[0].value}>"
         return cast(Callout, self._set_location_from_children(co, children))
 
     @v_args(meta=True)
-    def inline_stem(self, meta: Any, children: PyList[Any]) -> InlineStem:
+    def inline_stem(self, meta: Any, children: list[Any]) -> InlineStem:
         variant = "asciimath"
-        attrs = cast(Dict[str, PyList[Node]], getattr(self, "attributes"))
+        attrs = cast(dict[str, list[Node]], getattr(self, "attributes", {}))
         stem_attr = attrs.get("stem", [])
         if stem_attr and hasattr(stem_attr[0], "value"):
-            variant = getattr(stem_attr[0], "value")
+            variant = stem_attr[0].value
 
         content = str(children[0].value) if children and children[0] else ""
         stem = InlineStem(variant=variant, value=content)
@@ -795,21 +793,21 @@ class InlineTransformer(BaseTransformer):
         return cast(InlineStem, self._set_location_from_children(stem, children))
 
     @v_args(meta=True)
-    def inline_asciimath(self, meta: Any, children: PyList[Any]) -> InlineStem:
+    def inline_asciimath(self, meta: Any, children: list[Any]) -> InlineStem:
         content = str(children[0].value) if children and children[0] else ""
         stem = InlineStem(variant="asciimath", value=content)
         stem._source_text = f"asciimath:[{content}]"
         return cast(InlineStem, self._set_location_from_children(stem, children))
 
     @v_args(meta=True)
-    def inline_latexmath(self, meta: Any, children: PyList[Any]) -> InlineStem:
+    def inline_latexmath(self, meta: Any, children: list[Any]) -> InlineStem:
         content = str(children[0].value) if children and children[0] else ""
         stem = InlineStem(variant="latexmath", value=content)
         stem._source_text = f"latexmath:[{content}]"
         return cast(InlineStem, self._set_location_from_children(stem, children))
 
     @v_args(meta=True)
-    def inline_pass_macro(self, meta: Any, children: PyList[Any]) -> InlinePassthrough:
+    def inline_pass_macro(self, meta: Any, children: list[Any]) -> InlinePassthrough:
         content = str(children[0].value) if children and children[0] else ""
         pass_node = InlinePassthrough(value=content)
         pass_node.form = "macro"
@@ -819,7 +817,7 @@ class InlineTransformer(BaseTransformer):
         )
 
     @v_args(meta=True)
-    def inline_triple_plus(self, meta: Any, children: PyList[Any]) -> InlinePassthrough:
+    def inline_triple_plus(self, meta: Any, children: list[Any]) -> InlinePassthrough:
         content = str(children[0].value) if children and children[0] else ""
         pass_node = InlinePassthrough(value=content)
         pass_node.form = "triple_plus"
@@ -839,16 +837,16 @@ class InlineTransformer(BaseTransformer):
 
         A string containing all concatenated text values across the nodes and their children.
         """
-        parts: PyList[str] = []
+        parts: list[str] = []
         for n in nodes:
-            if hasattr(n, "value") and getattr(n, "value") is not None:
+            if hasattr(n, "value") and n.value is not None:
                 parts.append(str(n.value))
             for coll in n.get_child_collections().values():
                 parts.append(self._extract_plain_text(coll))
         return "".join(parts)
 
     @v_args(meta=True)
-    def inline_indexterm_macro(self, meta: Any, children: PyList[Any]) -> IndexTerm:
+    def inline_indexterm_macro(self, meta: Any, children: list[Any]) -> IndexTerm:
         content = ""
         if children and children[0] is not None:
             content = str(children[0].value)
@@ -869,9 +867,7 @@ class InlineTransformer(BaseTransformer):
         return cast(IndexTerm, self._set_location_from_children(indexterm, children))
 
     @v_args(meta=True)
-    def inline_indexterm_flow_double(
-        self, meta: Any, children: PyList[Any]
-    ) -> IndexTerm:
+    def inline_indexterm_flow_double(self, meta: Any, children: list[Any]) -> IndexTerm:
         nodes = children[0] if children else []
         text_val = self._extract_plain_text(nodes)
         terms = [text_val.strip()] if text_val.strip() else []
@@ -879,9 +875,7 @@ class InlineTransformer(BaseTransformer):
         return cast(IndexTerm, self._set_location_from_children(indexterm, children))
 
     @v_args(meta=True)
-    def inline_indexterm_flow_triple(
-        self, meta: Any, children: PyList[Any]
-    ) -> IndexTerm:
+    def inline_indexterm_flow_triple(self, meta: Any, children: list[Any]) -> IndexTerm:
         nodes = children[0] if children else []
         text_val = self._extract_plain_text(nodes)
         if text_val.strip():

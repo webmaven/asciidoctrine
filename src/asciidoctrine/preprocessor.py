@@ -6,7 +6,7 @@ import os
 import re
 import warnings
 from dataclasses import dataclass
-from typing import Any, Optional, Union
+from typing import Any
 
 from .loader import FileProvider, FsLoader
 
@@ -53,7 +53,7 @@ class ConditionalStack:
             ConditionalFrame(active=active, name=name, directive=directive)
         )
 
-    def pop(self, name: str = "") -> Optional[ConditionalFrame]:
+    def pop(self, name: str = "") -> ConditionalFrame | None:
         if not self.stack:
             return None
 
@@ -82,12 +82,12 @@ class Preprocessor:
 
     def __init__(
         self,
-        base_dir: Optional[str] = None,
-        safe_mode: Union[bool, int] = True,
+        base_dir: str | None = None,
+        safe_mode: bool | int = True,
         preprocess_directives: bool = True,
-        attributes: Optional[dict[str, str]] = None,
+        attributes: dict[str, str] | None = None,
         strict: bool = True,
-        loader: Optional[FileProvider] = None,
+        loader: FileProvider | None = None,
     ) -> None:
         """
         Initializes the preprocessor.
@@ -371,7 +371,9 @@ class Preprocessor:
                     else "<root>"
                 )
                 warnings.warn(
-                    f"Include file not found: {target_file_path}", PreprocessorWarning
+                    f"Include file not found: {target_file_path}",
+                    PreprocessorWarning,
+                    stacklevel=2,
                 )
                 return (
                     f"Unresolved directive in {parent_file} - include::{include_path}[]"

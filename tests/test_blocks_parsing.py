@@ -27,7 +27,7 @@ class TestBlocks(unittest.TestCase):
         """Recursively strip 'location' from ASG dict."""
         if isinstance(node, dict):
             node.pop("location", None)
-            for key, value in node.items():
+            for value in node.values():
                 self._strip_locations(value)
         elif isinstance(node, list):
             for item in node:
@@ -1223,7 +1223,7 @@ def test_ordered_list_with_leading_dots_not_eaten_as_titles():
     assert ast.blocks[0].variant == "ordered"
     assert len(ast.blocks[0].items) == 4
     assert ast.blocks[0].title is None
-    for i, item in enumerate(ast.blocks[0].items, 1):
+    for item in ast.blocks[0].items:
         assert item.title is None
 
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Optional
+from typing import Any
 
 """
 AsciiDoc column attribute DSL parser for tables.
@@ -54,7 +54,7 @@ def _format_percentage(val: float) -> str:
 
 
 def parse_cols(
-    cols_str: Optional[str], fallback_col_count: int = 0
+    cols_str: str | None, fallback_col_count: int = 0
 ) -> list[dict[str, Any]]:
     """Parse an AsciiDoc `cols` attribute string into structured column definitions.
 

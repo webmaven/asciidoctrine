@@ -22,7 +22,7 @@ def get_example_files():
 def test_example_file_parses(filepath):
     """Data-driven test that ensures every .adoc file in the examples directory
     parses without error."""
-    with open(filepath, "r") as f:
+    with open(filepath) as f:
         source = f.read()
 
     # We just want to ensure it doesn't raise an exception

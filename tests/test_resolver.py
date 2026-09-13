@@ -3,7 +3,7 @@ import shutil
 import tempfile
 import unittest
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import pytest
 
@@ -237,9 +237,7 @@ class TestWorkspaceBuilder:
 
 
 class TestResolveDocinfoFiles:
-    def _make_doc(
-        self, attrs: dict[str, Any], base_dir: Optional[str] = None
-    ) -> Document:
+    def _make_doc(self, attrs: dict[str, Any], base_dir: str | None = None) -> Document:
         doc = Document(base_dir=base_dir)
         doc.attributes = attrs
         return doc

@@ -5,8 +5,7 @@ import re
 import tempfile
 import warnings
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple, Union, cast
-from typing import List as PyList
+from typing import Any, cast
 
 import platformdirs
 from lark import Discard, Lark, Token, Transformer, v_args
@@ -63,10 +62,10 @@ class AsciiDocSyntaxError(ValueError):
     def __init__(
         self,
         message: str,
-        line: Optional[int] = None,
-        column: Optional[int] = None,
-        context: Optional[str] = None,
-        filepath: Optional[str] = None,
+        line: int | None = None,
+        column: int | None = None,
+        context: str | None = None,
+        filepath: str | None = None,
     ):
         super().__init__(message)
         self.message = message
@@ -92,7 +91,7 @@ class AsciiDocSyntaxError(ValueError):
             return self.message
 
 
-_TERMINAL_NAMES: Dict[str, str] = {
+_TERMINAL_NAMES: dict[str, str] = {
     "_NEWLINE": "newline",
     "NEWLINE": "newline",
     "WHITESPACE": "whitespace",
@@ -209,7 +208,7 @@ def _format_expected_terminals(e: UnexpectedInput) -> str:
     )
     if not raw_expected:
         return ""
-    translated: PyList[str] = []
+    translated: list[str] = []
     for tok in raw_expected:
         tok_str = str(tok)
         if tok_str in _TERMINAL_NAMES:
@@ -222,8 +221,8 @@ def _format_expected_terminals(e: UnexpectedInput) -> str:
     return f"Expected one of: {', '.join(unique_sorted)}"
 
 
-Children = PyList[Any]
-Transformed = Union[Node, Any, Dict[str, Any], PyList[Any], str]
+Children = list[Any]
+Transformed = Node | Any | dict[str, Any] | list[Any] | str
 
 
 class AsciiDocTransformer(
@@ -242,7 +241,7 @@ class AsciiDocTransformer(
     def __init__(self, strict: bool = True, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.strict = strict
-        self.attributes: Dict[str, PyList[Node]] = {}
+        self.attributes: dict[str, list[Node]] = {}
 
     def _set_location_from_meta(self, node: Node, meta: Any) -> Node:
         """Sets the location of a node from Lark meta."""
@@ -286,16 +285,16 @@ class AsciiDocTransformer(
         doc = Document(final_blocks)
         return cast(Document, self._set_location_from_children(doc, children))
 
-    def _finalize_document_blocks(self, blocks: PyList[Any]) -> PyList[Node]:
+    def _finalize_document_blocks(self, blocks: list[Any]) -> list[Node]:
         block_nodes = [b for b in blocks if isinstance(b, BlockNode)]
         # 1. Merge consecutive lists of same type
         merged = self._merge_consecutive_lists(block_nodes)
         # 2. Nest sections correctly
         return self._nest_sections(merged)
 
-    def _nest_sections(self, blocks: PyList[Node]) -> PyList[Node]:
-        root: PyList[Node] = []
-        stack: PyList[Section] = []
+    def _nest_sections(self, blocks: list[Node]) -> list[Node]:
+        root: list[Node] = []
+        stack: list[Section] = []
         for block in blocks:
             if isinstance(block, Section):
                 while stack and stack[-1].level >= block.level:
@@ -357,7 +356,7 @@ class AsciiDocTransformer(
             if self.REVISION_REGEX.fullmatch(line2_text.strip()):
                 revision = Revision(text_lines[1])
 
-        attributes: Dict[str, Any] = {}
+        attributes: dict[str, Any] = {}
         for child in children:
             if isinstance(child, AttributeEntry):
                 attributes[child.attribute_name] = self.attributes.get(
@@ -370,7 +369,7 @@ class AsciiDocTransformer(
         return cast(Header, self._set_location_from_children(header, children))
 
     @v_args(meta=True)
-    def author_rev_line(self, meta: Any, children: Children) -> PyList[Node]:
+    def author_rev_line(self, meta: Any, children: Children) -> list[Node]:
         return self.text_content(meta, children)  # type: ignore
 
     def AUTHOR_SPECIAL_CHARS(self, token: Token) -> Token:
@@ -565,7 +564,7 @@ class AsciiDocTransformer(
                             if isinstance(cell, TableCell):
                                 flat_cells.append(cell)
 
-                    grid: PyList[PyList[Any]] = []
+                    grid: list[list[Any]] = []
                     cell_idx = 0
                     while cell_idx < len(flat_cells):
                         r = 0
@@ -602,7 +601,7 @@ class AsciiDocTransformer(
 
                     new_rows = []
                     for r in range(len(grid)):
-                        row_cells: PyList[TableCell] = [
+                        row_cells: list[TableCell] = [
                             cell for cell in grid[r] if isinstance(cell, TableCell)
                         ]
                         if row_cells:
@@ -680,7 +679,7 @@ class AsciiDocTransformer(
             else str(prefix_token)[1:]
         )
 
-        inlines: PyList[Node] = []
+        inlines: list[Node] = []
         if len(children) > 1 and children[1] is not None:
             if isinstance(children[1], list):
                 inlines = list(children[1])
@@ -724,7 +723,7 @@ class AsciiDocTransformer(
         return self.attributed_block(meta, children)  # type: ignore
 
     @v_args(meta=True)
-    def section_title(self, meta: Any, children: Children) -> Tuple[int, Title]:
+    def section_title(self, meta: Any, children: Children) -> tuple[int, Title]:
         level = 1
         lead = [
             c
@@ -747,7 +746,7 @@ class AsciiDocTransformer(
         return cast(str, children[0].value)
 
     @v_args(meta=True)
-    def attribute_list(self, meta: Any, children: Children) -> Dict[str, str]:
+    def attribute_list(self, meta: Any, children: Children) -> dict[str, str]:
         attrs = LocationDict()
         if meta:
             attrs.location = [
@@ -788,7 +787,7 @@ class AsciiDocTransformer(
         parts.append("".join(current))
         parts = [p.strip() for p in parts]
 
-        for idx, part in enumerate(parts, 1):
+        for part in parts:
             if not part:
                 continue
             if "=" in part:
@@ -857,7 +856,7 @@ class AsciiDocTransformer(
     @v_args(meta=True)
     def attribute_entry(self, meta: Any, children: Children) -> AttributeEntry:
         name = ""
-        value_nodes: PyList[Node] = []
+        value_nodes: list[Node] = []
         negated = False
 
         for c in children:
@@ -945,11 +944,11 @@ class AsciiDocTransformer(
         return cast(PageBreak, self._set_location_from_children(PageBreak(), children))
 
     @v_args(meta=True)
-    def anchor(self, meta: Any, children: Children) -> Dict[str, str]:
+    def anchor(self, meta: Any, children: Children) -> dict[str, str]:
         return {"id": str(children[0].value)}
 
     @v_args(meta=True)
-    def inline_attribute_list(self, meta: Any, children: Children) -> Dict[str, str]:
+    def inline_attribute_list(self, meta: Any, children: Children) -> dict[str, str]:
         return self.attribute_list(meta, children)  # type: ignore
 
     # --- Terminals ---
@@ -978,14 +977,14 @@ class ASTSyntaxAuditor(NodeVisitor):
 
     def __init__(
         self,
-        source_lines: PyList[str],
-        line_map: Optional[Dict[int, Tuple[str, int]]] = None,
+        source_lines: list[str],
+        line_map: dict[int, tuple[str, int]] | None = None,
     ) -> None:
         super().__init__()
         self.source_lines = source_lines
         self.line_map = line_map or {}
 
-    def _get_origin(self, line_idx: int) -> Tuple[Optional[str], int]:
+    def _get_origin(self, line_idx: int) -> tuple[str | None, int]:
         return self.line_map.get(line_idx, (None, line_idx))
 
     def visit_descriptionlist(self, node: Node) -> None:
@@ -1176,8 +1175,8 @@ class PermissiveSyntaxWarningAuditor(NodeVisitor):
 
     def __init__(
         self,
-        source_lines: PyList[str],
-        line_map: Optional[Dict[int, Tuple[str, int]]] = None,
+        source_lines: list[str],
+        line_map: dict[int, tuple[str, int]] | None = None,
     ) -> None:
         super().__init__()
         self.source_lines = source_lines
@@ -1210,7 +1209,7 @@ def is_continuation_paragraph(node: Node) -> bool:
 
 def find_deepest_active_list_item(
     node: Node,
-) -> Optional[Union[ListItem, DescriptionListItem]]:
+) -> ListItem | DescriptionListItem | None:
     if isinstance(node, ListItem):
         if node.blocks:
             nested = find_deepest_active_list_item(node.blocks[-1])
@@ -1249,9 +1248,9 @@ def resolve_block_internals(block: Node) -> Node:
 
 
 def split_continuation_paragraphs(
-    blocks: PyList[Node],
-) -> PyList[Node]:
-    expanded: PyList[Node] = []
+    blocks: list[Node],
+) -> list[Node]:
+    expanded: list[Node] = []
     for block in blocks:
         if (
             isinstance(block, Paragraph)
@@ -1277,14 +1276,14 @@ def split_continuation_paragraphs(
     return expanded
 
 
-def expand_joint_paragraphs(blocks: PyList[Node]) -> PyList[Node]:
+def expand_joint_paragraphs(blocks: list[Node]) -> list[Node]:
     return split_continuation_paragraphs(blocks)
 
 
-def resolve_list_continuations(blocks: PyList[Node]) -> PyList[Node]:
+def resolve_list_continuations(blocks: list[Node]) -> list[Node]:
     blocks = expand_joint_paragraphs(blocks)
-    resolved: PyList[Node] = []
-    last_active_item: Optional[Union[ListItem, DescriptionListItem]] = None
+    resolved: list[Node] = []
+    last_active_item: ListItem | DescriptionListItem | None = None
 
     i = 0
     while i < len(blocks):
@@ -1455,8 +1454,8 @@ def validate_custom_scheme(scheme: str) -> str:
 
 
 def build_uri_terminal(
-    extra_authority_schemes: Optional[PyList[str]] = None,
-    extra_opaque_schemes: Optional[PyList[str]] = None,
+    extra_authority_schemes: list[str] | None = None,
+    extra_opaque_schemes: list[str] | None = None,
 ) -> str:
     """Builds the URI.3 Lark grammar terminal rule string with optional custom schemes."""
     auth = list(DEFAULT_AUTHORITY_SCHEMES)
@@ -1480,13 +1479,13 @@ def build_uri_terminal(
 def _parse_to_ast_impl(
     source: str,
     grammar_file: str = DEFAULT_GRAMMAR,
-    base_dir: Optional[str] = None,
+    base_dir: str | None = None,
     safe_mode: int = 0,
     preprocess_directives: bool = True,
     strict: bool = True,
-    extra_authority_schemes: Optional[PyList[str]] = None,
-    extra_opaque_schemes: Optional[PyList[str]] = None,
-    loader: Optional[FileProvider] = None,
+    extra_authority_schemes: list[str] | None = None,
+    extra_opaque_schemes: list[str] | None = None,
+    loader: FileProvider | None = None,
 ) -> Document:
     """
     Parses raw AsciiDoc source text into a structured, spec-aligned AST `Document`.
@@ -1651,8 +1650,8 @@ def _parse_to_ast_impl(
 @functools.lru_cache(maxsize=256)
 def _cached_parse_to_ast(
     source: str,
-    authority_schemes: Tuple[str, ...],
-    opaque_schemes: Tuple[str, ...],
+    authority_schemes: tuple[str, ...],
+    opaque_schemes: tuple[str, ...],
 ) -> Document:
     return _parse_to_ast_impl(
         source=source,
@@ -1684,13 +1683,13 @@ def clear_ast_cache() -> None:
 def parse_to_ast(
     source: str,
     grammar_file: str = DEFAULT_GRAMMAR,
-    base_dir: Optional[str] = None,
+    base_dir: str | None = None,
     safe_mode: int = 0,
     preprocess_directives: bool = True,
     strict: bool = True,
-    extra_authority_schemes: Optional[PyList[str]] = None,
-    extra_opaque_schemes: Optional[PyList[str]] = None,
-    loader: Optional[FileProvider] = None,
+    extra_authority_schemes: list[str] | None = None,
+    extra_opaque_schemes: list[str] | None = None,
+    loader: FileProvider | None = None,
     use_cache: bool = False,
 ) -> Document:
     """
@@ -1790,8 +1789,8 @@ def _get_cache_dir() -> Path:
         return Path(tempfile.gettempdir())
 
 
-_DOCUMENT_PARSERS: Dict[Tuple[str, float, Tuple[str, ...], Tuple[str, ...]], Lark] = {}
-_INLINE_PARSERS: Dict[Tuple[str, float], Lark] = {}
+_DOCUMENT_PARSERS: dict[tuple[str, float, tuple[str, ...], tuple[str, ...]], Lark] = {}
+_INLINE_PARSERS: dict[tuple[str, float], Lark] = {}
 
 
 def clear_parser_cache() -> None:
@@ -1807,8 +1806,8 @@ def clear_parser_cache() -> None:
 # In-memory parser caching across calls within the process is handled by _DOCUMENT_PARSERS.
 def get_document_parser(
     grammar_file: str = DEFAULT_GRAMMAR,
-    extra_authority_schemes: Optional[Tuple[str, ...]] = None,
-    extra_opaque_schemes: Optional[Tuple[str, ...]] = None,
+    extra_authority_schemes: tuple[str, ...] | None = None,
+    extra_opaque_schemes: tuple[str, ...] | None = None,
 ) -> Lark:
     """
     Returns a cached compiled Lark Earley parser for document parsing.
@@ -1822,7 +1821,7 @@ def get_document_parser(
     if cache_key in _DOCUMENT_PARSERS:
         return _DOCUMENT_PARSERS[cache_key]
 
-    with open(grammar_file, "r", encoding="utf-8") as f:
+    with open(grammar_file, encoding="utf-8") as f:
         grammar = f.read()
 
     if authority_schemes or opaque_schemes:
@@ -1860,7 +1859,7 @@ def get_inline_parser(grammar_file: str = DEFAULT_GRAMMAR) -> Lark:
     if cache_key in _INLINE_PARSERS:
         return _INLINE_PARSERS[cache_key]
 
-    with open(grammar_file, "r", encoding="utf-8") as f:
+    with open(grammar_file, encoding="utf-8") as f:
         grammar = f.read()
 
     parser = Lark(
@@ -1877,7 +1876,7 @@ def get_inline_parser(grammar_file: str = DEFAULT_GRAMMAR) -> Lark:
 def parse_inlines(
     source: str,
     grammar_file: str = DEFAULT_GRAMMAR,
-) -> PyList[Node]:
+) -> list[Node]:
     """
     Parses a string containing only inline formatting directly into a list of AST inline nodes.
 

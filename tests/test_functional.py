@@ -21,7 +21,7 @@ def _get_wheel_name():
     try:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         pyproject_path = os.path.join(base_dir, "pyproject.toml")
-        with open(pyproject_path, "r", encoding="utf-8") as f:
+        with open(pyproject_path, encoding="utf-8") as f:
             content = f.read()
             match = re.search(r'version\s*=\s*["\']([^"\']+)["\']', content)
             if match:

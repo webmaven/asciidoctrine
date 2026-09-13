@@ -10,7 +10,6 @@ import argparse
 import os
 import sys
 from collections import defaultdict
-from typing import Dict, List, Set, Tuple
 
 
 def main() -> None:
@@ -62,11 +61,11 @@ def main() -> None:
 
     # 2. Extract mappings
     # Mapping of test_context -> set of (filepath, lineno)
-    test_to_lines: Dict[str, Set[Tuple[str, int]]] = defaultdict(set)
+    test_to_lines: dict[str, set[tuple[str, int]]] = defaultdict(set)
     # Mapping of (filepath, lineno) -> list of test_contexts
-    line_to_tests: Dict[Tuple[str, int], List[str]] = defaultdict(list)
+    line_to_tests: dict[tuple[str, int], list[str]] = defaultdict(list)
     # List of all measured lines in src/
-    total_measured_lines: Set[Tuple[str, int]] = set()
+    total_measured_lines: set[tuple[str, int]] = set()
 
     for filepath in data.measured_files():
         # Only analyze package source files under src/asciidoctrine
@@ -143,7 +142,7 @@ def main() -> None:
     )
 
     # Cache file contents to display line snippets
-    file_contents: Dict[str, List[str]] = {}
+    file_contents: dict[str, list[str]] = {}
 
     for idx, (loc, tests) in enumerate(sorted_lines[:20], 1):
         filepath, lineno = loc
@@ -153,7 +152,7 @@ def main() -> None:
         snippet = ""
         if filepath not in file_contents:
             try:
-                with open(filepath, "r", encoding="utf-8") as f:
+                with open(filepath, encoding="utf-8") as f:
                     file_contents[filepath] = f.readlines()
             except Exception:
                 file_contents[filepath] = []
