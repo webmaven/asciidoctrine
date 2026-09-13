@@ -33,7 +33,7 @@ Functions
 API
 ~~~
 
-.. py:function:: substitute_attributes(text: str, attributes: typing.Dict[str, str]) -> str
+.. py:function:: substitute_attributes(text: str, attributes: dict[str, str]) -> str
    :canonical: asciidoctrine.attributes.substitute_attributes
 
    .. autodoc2-docstring:: asciidoctrine.attributes.substitute_attributes
@@ -45,7 +45,7 @@ API
    .. autodoc2-docstring:: asciidoctrine.attributes.resolve_node_to_string
       :parser: sphinx_asciidoctrine.parser
 
-.. py:function:: resolve_attribute_map(attributes: typing.Dict[str, typing.Any]) -> typing.Dict[str, str]
+.. py:function:: resolve_attribute_map(attributes: dict[str, typing.Any]) -> dict[str, str]
    :canonical: asciidoctrine.attributes.resolve_attribute_map
 
    .. autodoc2-docstring:: asciidoctrine.attributes.resolve_attribute_map

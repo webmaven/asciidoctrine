@@ -27,6 +27,22 @@ Submodules
 Package Contents
 ----------------
 
+Functions
+~~~~~~~~~
+
+.. list-table::
+   :class: autosummary longtable
+   :align: left
+
+   * - :py:obj:`dumps <asciidoctrine.dumps>`
+     - .. autodoc2-docstring:: asciidoctrine.dumps
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
+   * - :py:obj:`loads <asciidoctrine.loads>`
+     - .. autodoc2-docstring:: asciidoctrine.loads
+          :parser: sphinx_asciidoctrine.parser
+          :summary:
+
 Data
 ~~~~
 
@@ -48,14 +64,26 @@ API
 
 .. py:data:: __version__
    :canonical: asciidoctrine.__version__
-   :value: '0.2.0a6'
+   :value: '0.2.0a7'
 
    .. autodoc2-docstring:: asciidoctrine.__version__
       :parser: sphinx_asciidoctrine.parser
 
+.. py:function:: dumps(doc: asciidoctrine.nodes.Document) -> str
+   :canonical: asciidoctrine.dumps
+
+   .. autodoc2-docstring:: asciidoctrine.dumps
+      :parser: sphinx_asciidoctrine.parser
+
+.. py:function:: loads(source: str, **kwargs: typing.Any) -> asciidoctrine.nodes.Document
+   :canonical: asciidoctrine.loads
+
+   .. autodoc2-docstring:: asciidoctrine.loads
+      :parser: sphinx_asciidoctrine.parser
+
 .. py:data:: __all__
    :canonical: asciidoctrine.__all__
-   :value: ['__version__', 'parse_to_ast', 'parse_inlines', 'get_document_parser', 'get_inline_parser', 'clear_...
+   :value: ['__version__', 'dumps', 'loads', 'parse_to_ast', 'parse_inlines', 'get_document_parser', 'get_inlin...
 
    .. autodoc2-docstring:: asciidoctrine.__all__
       :parser: sphinx_asciidoctrine.parser

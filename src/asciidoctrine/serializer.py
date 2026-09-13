@@ -491,7 +491,6 @@ class AsciiDocSerializerVisitor(NodeVisitor):
                 self.visit(title)
         self.write("\n")
 
-    visit_floatingtitle = visit_heading
     visit_discreteheading = visit_heading
 
     def visit_title(self, node: Node) -> None:

@@ -23,10 +23,10 @@ from asciidoctrine.nodes import (
     DescriptionList,
     DescriptionListItem,
     DescriptionListTerm,
+    DiscreteHeading,
     Docinfo,
     Document,
     Example,
-    FloatingTitle,
     Header,
     Image,
     Include,
@@ -160,17 +160,15 @@ class TestNodesUnit(unittest.TestCase):
         rev.append(Text(" extra"))
         self.assertEqual(len(rev.inlines), 2)
 
-    def test_floating_title(self):
+    def test_discrete_heading(self):
         title = Title([Text("Discrete Title")])
-        ft = FloatingTitle(level=2, title=title)
-        self.assertEqual(
-            ft.name, "heading"
-        )  # FloatingTitle is now an alias for DiscreteHeading
-        self.assertEqual(ft.level, 2)
-        self.assertEqual(ft.get_child_collections(), {"inlines": title.inlines})
+        dh = DiscreteHeading(level=2, title=title)
+        self.assertEqual(dh.name, "heading")
+        self.assertEqual(dh.level, 2)
+        self.assertEqual(dh.get_child_collections(), {"inlines": title.inlines})
 
-        ft_no_title = FloatingTitle(level=3, title=None)
-        self.assertEqual(ft_no_title.get_child_collections(), {})
+        dh_no_title = DiscreteHeading(level=3, title=None)
+        self.assertEqual(dh_no_title.get_child_collections(), {})
 
     def test_header_serialization(self):
         title = Title([Text("My Title")])
@@ -569,13 +567,13 @@ class TestNodesUnit(unittest.TestCase):
         r.append(Text(" extra"))
         self.assertEqual(len(r.inlines), 2)
 
-        # FloatingTitle
-        ft = FloatingTitle(level=2, title=t)
-        self.assertEqual(ft.get_child_collections(), {"inlines": t.inlines})
-        d_ft = ft.to_dict()
-        self.assertEqual(d_ft["name"], "heading")
-        self.assertEqual(d_ft["level"], 2)
-        self.assertNotIn("inlines", d_ft)
+        # DiscreteHeading
+        dh = DiscreteHeading(level=2, title=t)
+        self.assertEqual(dh.get_child_collections(), {"inlines": t.inlines})
+        d_dh = dh.to_dict()
+        self.assertEqual(d_dh["name"], "heading")
+        self.assertEqual(d_dh["level"], 2)
+        self.assertNotIn("inlines", d_dh)
 
         # Audio
         audio = Audio(target="music.mp3", attributes={"autoplay": "true"})
@@ -846,31 +844,36 @@ class TestDocumentToDict:
 
 
 # ---------------------------------------------------------------------------
-# FloatingTitle
+# DiscreteHeading
 # ---------------------------------------------------------------------------
 
 
-class TestFloatingTitle:
+class TestDiscreteHeading:
     def test_init(self) -> None:
-        t = Title(inlines=[Text("Floating")])
-        ft = FloatingTitle(level=2, title=t)
-        assert ft.name == "heading"
-        assert ft.level == 2
-        assert ft.title is t
+        t = Title(inlines=[Text("Discrete")])
+        dh = DiscreteHeading(level=2, title=t)
+        assert dh.name == "heading"
+        assert dh.level == 2
+        assert dh.title is t
 
     def test_get_child_collections(self) -> None:
         t = Title(inlines=[Text("Hi")])
-        ft = FloatingTitle(level=1, title=t)
-        colls = ft.get_child_collections()
+        dh = DiscreteHeading(level=1, title=t)
+        colls = dh.get_child_collections()
         assert "inlines" in colls
 
     def test_get_child_collections_no_title(self) -> None:
-        # FloatingTitle with a Title that has no inlines
+        # DiscreteHeading with a Title that has no inlines
         t = Title(inlines=[])
-        ft = FloatingTitle(level=1, title=t)
-        colls = ft.get_child_collections()
+        dh = DiscreteHeading(level=1, title=t)
+        colls = dh.get_child_collections()
         # returns inlines from title, which is empty
         assert colls.get("inlines", []) == []
+
+    def test_floating_title_not_exported(self) -> None:
+        import asciidoctrine.nodes as nodes
+
+        assert not hasattr(nodes, "FloatingTitle")
 
 
 # ---------------------------------------------------------------------------

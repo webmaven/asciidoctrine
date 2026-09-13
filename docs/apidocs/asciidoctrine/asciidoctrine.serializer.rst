@@ -62,6 +62,12 @@ API
       .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.write
          :parser: sphinx_asciidoctrine.parser
 
+   .. py:method:: _format_macro_attributes(node: asciidoctrine.nodes.Node, default_first_attr: str = '') -> str
+      :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor._format_macro_attributes
+
+      .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor._format_macro_attributes
+         :parser: sphinx_asciidoctrine.parser
+
    .. py:method:: write_block_metadata(node: asciidoctrine.nodes.Node) -> None
       :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.write_block_metadata
 
@@ -84,6 +90,19 @@ API
       :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_section
 
       .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_section
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: visit_heading(node: asciidoctrine.nodes.Node) -> None
+      :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_heading
+
+      .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_heading
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:attribute:: visit_discreteheading
+      :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_discreteheading
+      :value: None
+
+      .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_discreteheading
          :parser: sphinx_asciidoctrine.parser
 
    .. py:method:: visit_title(node: asciidoctrine.nodes.Node) -> None
@@ -134,6 +153,18 @@ API
       .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_quote
          :parser: sphinx_asciidoctrine.parser
 
+   .. py:method:: visit_verse(node: asciidoctrine.nodes.Node) -> None
+      :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_verse
+
+      .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_verse
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: visit_collapsible(node: asciidoctrine.nodes.Node) -> None
+      :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_collapsible
+
+      .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_collapsible
+         :parser: sphinx_asciidoctrine.parser
+
    .. py:method:: visit_admonition(node: asciidoctrine.nodes.Node) -> None
       :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_admonition
 
@@ -158,10 +189,50 @@ API
       .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_listitem
          :parser: sphinx_asciidoctrine.parser
 
+   .. py:attribute:: visit_list_item
+      :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_list_item
+      :value: None
+
+      .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_list_item
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: visit_calloutlist(node: asciidoctrine.nodes.Node) -> None
+      :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_calloutlist
+
+      .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_calloutlist
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:attribute:: visit_callout_list
+      :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_callout_list
+      :value: None
+
+      .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_callout_list
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: visit_calloutlistitem(node: asciidoctrine.nodes.Node) -> None
+      :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_calloutlistitem
+
+      .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_calloutlistitem
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:attribute:: visit_callout_list_item
+      :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_callout_list_item
+      :value: None
+
+      .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_callout_list_item
+         :parser: sphinx_asciidoctrine.parser
+
    .. py:method:: visit_descriptionlist(node: asciidoctrine.nodes.Node) -> None
       :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_descriptionlist
 
       .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_descriptionlist
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:attribute:: visit_description_list
+      :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_description_list
+      :value: None
+
+      .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_description_list
          :parser: sphinx_asciidoctrine.parser
 
    .. py:method:: visit_descriptionlistitem(node: asciidoctrine.nodes.Node) -> None
@@ -170,10 +241,24 @@ API
       .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_descriptionlistitem
          :parser: sphinx_asciidoctrine.parser
 
+   .. py:attribute:: visit_description_list_item
+      :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_description_list_item
+      :value: None
+
+      .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_description_list_item
+         :parser: sphinx_asciidoctrine.parser
+
    .. py:method:: visit_descriptionlistterm(node: asciidoctrine.nodes.Node) -> None
       :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_descriptionlistterm
 
       .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_descriptionlistterm
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:attribute:: visit_description_list_term
+      :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_description_list_term
+      :value: None
+
+      .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_description_list_term
          :parser: sphinx_asciidoctrine.parser
 
    .. py:method:: visit_table(node: asciidoctrine.nodes.Node) -> None
@@ -188,7 +273,7 @@ API
       .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_row
          :parser: sphinx_asciidoctrine.parser
 
-   .. py:method:: visit_cell(node: asciidoctrine.nodes.Node) -> None
+   .. py:method:: visit_cell(node: asciidoctrine.nodes.Node, is_first: bool = False) -> None
       :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_cell
 
       .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_cell
@@ -210,6 +295,12 @@ API
       :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_attribute_entry
 
       .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_attribute_entry
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: visit_attributes(node: asciidoctrine.nodes.Node) -> None
+      :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_attributes
+
+      .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_attributes
          :parser: sphinx_asciidoctrine.parser
 
    .. py:method:: visit_include(node: asciidoctrine.nodes.Node) -> None
@@ -300,6 +391,30 @@ API
       :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_passthrough
 
       .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_passthrough
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: visit_indexterm(node: asciidoctrine.nodes.Node) -> None
+      :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_indexterm
+
+      .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_indexterm
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: visit_author(node: asciidoctrine.nodes.Node) -> None
+      :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_author
+
+      .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_author
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: visit_revision(node: asciidoctrine.nodes.Node) -> None
+      :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_revision
+
+      .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_revision
+         :parser: sphinx_asciidoctrine.parser
+
+   .. py:method:: visit_docinfo(node: asciidoctrine.nodes.Node) -> None
+      :canonical: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_docinfo
+
+      .. autodoc2-docstring:: asciidoctrine.serializer.AsciiDocSerializerVisitor.visit_docinfo
          :parser: sphinx_asciidoctrine.parser
 
    .. py:method:: generic_visit(node: asciidoctrine.nodes.Node, **kwargs: typing.Any) -> typing.Any

@@ -203,7 +203,6 @@ class DocutilsRenderer(NodeVisitor):
         old_parent += rubric
         self.current_node = old_parent
 
-    visit_floatingtitle = visit_heading
     visit_discreteheading = visit_heading
 
     def visit_paragraph(self, node: Paragraph) -> None:

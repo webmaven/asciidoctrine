@@ -485,10 +485,6 @@ class DiscreteHeading(BlockNode):
         return data
 
 
-# Keep FloatingTitle as a one-release deprecated alias
-FloatingTitle = DiscreteHeading
-
-
 class Header(Node):
     """A container for the document's header metadata."""
 

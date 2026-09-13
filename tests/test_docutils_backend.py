@@ -229,15 +229,15 @@ def test_footnote_rendering_conversion():
 
 
 def test_floating_title_and_break_conversion():
-    # Floating title
+    # Discrete heading
     from docutils.utils import new_document
 
     from asciidoctrine.docutils_backend import DocutilsRenderer
-    from asciidoctrine.nodes import FloatingTitle, Text, Title
+    from asciidoctrine.nodes import DiscreteHeading, Text, Title
 
     doc = new_document("<string>")
     renderer = DocutilsRenderer(doc)
-    node = FloatingTitle(level=2, title=Title(inlines=[Text("Floating Title Text")]))
+    node = DiscreteHeading(level=2, title=Title(inlines=[Text("Floating Title Text")]))
     renderer.visit(node)
 
     rubric = doc[0]
