@@ -888,8 +888,8 @@ This content is collapsible.
         block = ast["blocks"][0]
         self.assertEqual(block["name"], "collapsible")
         self.assertEqual(block["type"], "block")
-        self.assertEqual(block["title"]["name"], "title")
-        self.assertEqual(block["title"]["inlines"][0]["value"], "Summary Title")
+        self.assertIsInstance(block["title"], list)
+        self.assertEqual(block["title"][0]["value"], "Summary Title")
         self.assertEqual(block["blocks"][0]["name"], "paragraph")
         self.assertEqual(
             block["blocks"][0]["inlines"][0]["value"], "This content is collapsible."

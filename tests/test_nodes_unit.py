@@ -502,6 +502,10 @@ class TestNodesUnit(unittest.TestCase):
         self.assertEqual(d_coll["type"], "block")
         self.assertEqual(d_coll["attributes"], {"options": "collapsible"})
         self.assertIn("title", d_coll)
+        self.assertIsInstance(d_coll["title"], list)
+        self.assertEqual(
+            d_coll["title"], [{"name": "text", "type": "string", "value": "Summary"}]
+        )
         self.assertEqual(len(d_coll["blocks"]), 1)
 
         # IndexTerm Inline Node
@@ -1213,6 +1217,96 @@ class TestCollapsible:
         c = Collapsible(title=t, blocks=[Paragraph()])
         d = c.to_dict()
         assert "title" in d
+        assert isinstance(d["title"], list)
+        assert d["title"] == [
+            {"name": "text", "type": "string", "value": "Collapse Me"}
+        ]
+
+    def test_to_dict_attributes(self) -> None:
+        c1 = Collapsible()
+        assert "attributes" not in c1.to_dict()
+
+        c2 = Collapsible(attributes={"options": "collapsible"})
+        assert c2.to_dict()["attributes"] == {"options": "collapsible"}
+
+
+# ---------------------------------------------------------------------------
+# Section.to_dict
+# ---------------------------------------------------------------------------
+
+
+class TestSectionToDict:
+    def test_to_dict_basic(self) -> None:
+        sect = Section(level=1)
+        d = sect.to_dict()
+        assert d["name"] == "section"
+        assert d["type"] == "block"
+        assert d["level"] == 1
+        assert "title" not in d
+        assert "absolute-level" not in d
+        assert "attributes" not in d
+        assert d["blocks"] == []
+
+    def test_to_dict_with_title_and_blocks(self) -> None:
+        t = Title([Text("Section Title")])
+        p = Paragraph([Text("Content")])
+        sect = Section(level=2, title=t, blocks=[p])
+        d = sect.to_dict()
+        assert d["level"] == 2
+        assert d["title"] == [
+            {"name": "text", "type": "string", "value": "Section Title"}
+        ]
+        assert len(d["blocks"]) == 1
+        assert d["blocks"][0]["name"] == "paragraph"
+
+    def test_to_dict_with_absolute_level(self) -> None:
+        sect = Section(level=2, absolute_level=3)
+        d = sect.to_dict()
+        assert d["level"] == 2
+        assert d["absolute-level"] == 3
+
+    def test_to_dict_with_attributes(self) -> None:
+        sect = Section(level=1)
+        sect.attributes = {"id": "sec-1"}
+        d = sect.to_dict()
+        assert d["attributes"] == {"id": "sec-1"}
+
+
+# ---------------------------------------------------------------------------
+# ListItem.to_dict
+# ---------------------------------------------------------------------------
+
+
+class TestListItemToDict:
+    def test_to_dict_basic(self) -> None:
+        item = ListItem(marker="*", principal=[Text("Item text")])
+        d = item.to_dict()
+        assert d["name"] == "listItem"
+        assert d["type"] == "block"
+        assert d["marker"] == "*"
+        assert "checked" not in d
+        assert d["principal"] == [
+            {"name": "text", "type": "string", "value": "Item text"}
+        ]
+        assert d["blocks"] == []
+
+    def test_to_dict_checked_true(self) -> None:
+        item = ListItem(marker="*", checked=True)
+        d = item.to_dict()
+        assert d["checked"] is True
+
+    def test_to_dict_checked_false(self) -> None:
+        item = ListItem(marker="*", checked=False)
+        d = item.to_dict()
+        assert d["checked"] is False
+
+    def test_to_dict_with_blocks_and_attributes(self) -> None:
+        p = Paragraph([Text("Nested")])
+        item = ListItem(marker="*", blocks=[p])
+        item.attributes = {"role": "highlight"}
+        d = item.to_dict()
+        assert len(d["blocks"]) == 1
+        assert d["attributes"] == {"role": "highlight"}
 
 
 # ---------------------------------------------------------------------------

@@ -631,18 +631,6 @@ class Section(BlockNode):
         """
         self._absolute_level = validate_absolute_level(value, strict=strict)
 
-    def to_dict(self) -> dict[str, Any]:
-        """
-        Serialize the section to an ASG-compatible dictionary representation.
-
-        Emits the standard section ASG structure, including `absolute-level` when set.
-
-        *Returns:*
-
-        A dictionary containing the ASG representation of this section.
-        """
-        return super().to_dict()
-
 
 class Paragraph(BlockNode):
     """
@@ -1185,13 +1173,6 @@ class ListItem(BlockNode):
         self.blocks: list[Node] = list(blocks) if blocks else []
         self.checked = checked
 
-    def to_dict(self) -> dict[str, Any]:
-        """Serialize list item to ASG-compatible dictionary."""
-        data = super().to_dict()
-        if self.checked is not None:
-            data["checked"] = self.checked
-        return data
-
 
 class DescriptionList(BlockNode):
     """A block node representing a description list (term-definition pairs)."""
@@ -1610,17 +1591,6 @@ class Collapsible(BlockNode):
 
     def get_child_collections(self) -> dict[str, list[Node]]:
         return {"blocks": self.blocks}
-
-    def to_dict(self) -> dict[str, Any]:
-        dct = {
-            "name": self.name,
-            "type": self.type,
-            "blocks": [child.to_dict() for child in self.blocks],
-            "attributes": self.attributes,
-        }
-        if self.title:
-            dct["title"] = self.title.to_dict()
-        return dct
 
     def __init__(
         self,
