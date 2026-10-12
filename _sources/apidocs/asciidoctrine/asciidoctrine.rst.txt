@@ -14,15 +14,15 @@ Submodules
    :titlesonly:
    :maxdepth: 1
 
-   asciidoctrine.resolver
-   asciidoctrine.preprocessor
-   asciidoctrine.serializer
-   asciidoctrine.loader
    asciidoctrine.columns
+   asciidoctrine.preprocessor
    asciidoctrine.nodes
-   asciidoctrine.docutils_backend
    asciidoctrine.attributes
    asciidoctrine.lark_parser
+   asciidoctrine.serializer
+   asciidoctrine.docutils_backend
+   asciidoctrine.resolver
+   asciidoctrine.loader
 
 Package Contents
 ----------------
