@@ -12,6 +12,7 @@ Usage::
     python bin/dev.py setup          # create venv and install .[test]
     python bin/dev.py verify         # core tests + ruff + mypy
     python bin/dev.py all            # verify + doctest corpus
+    python bin/dev.py functional     # Pyodide functional tests (needs dist/)
     python bin/dev.py tck            # run the upstream TCK suite
     python bin/dev.py tck-coverage   # run the TCK and print a coverage summary
     python bin/dev.py fmt            # auto-format with ruff
@@ -40,6 +41,7 @@ Commands:
   setup          Create venv/ and install the test extras
   verify         Core tests + ruff format/lint + mypy  (Tier 2 pre-commit)
   all            verify + the real-world doctest corpus
+  functional     Run the Pyodide functional tests (requires dist/ to be built)
   tck            Run the upstream Node.js TCK suite
   tck-coverage   Run the TCK and print a coverage summary
   fmt            Auto-format and lint-fix with ruff
@@ -143,6 +145,96 @@ def _shell_script(name: str, *extra: str) -> int:
     return run([bash, name, *extra])
 
 
+def _pyodide_runtime() -> str:
+    """Pick the pytest-pyodide runtime for this platform.
+
+    CI uses ``--runtime node`` on Linux, but that runtime shells out through
+    ``/bin/bash`` and ``pexpect.spawn``, neither of which works on Windows.
+    The browser runtimes are driven over Selenium instead, so on Windows we
+    fall back to the browser that is actually available.
+
+    Note the runtime name is a pytest-pyodide identifier, not a browser name:
+    the supported set is ``chrome``, ``firefox``, ``safari``, ``node``. There
+    is deliberately no ``edge`` -- Edge is not one of the harness runtimes, and
+    passing it fails configuration with "Invalid runtime: edge".
+    """
+    override = os.environ.get("ASCIIDOCTRINE_PYODIDE_RUNTIME")
+    if override:
+        return override
+    if os.name != "nt":
+        return "node"
+    # Windows: prefer Chrome, then Firefox. Safari is macOS-only.
+    for browser in ("chrome", "firefox"):
+        paths = {
+            "chrome": [
+                r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+            ],
+            "firefox": [
+                r"C:\Program Files\Mozilla Firefox\firefox.exe",
+                r"C:\Program Files (x86)\Mozilla Firefox\firefox.exe",
+            ],
+        }[browser]
+        if any(Path(p).exists() for p in paths):
+            return browser
+    return "chrome"
+
+
+def _pyodide_dist_ready() -> bool:
+    """The functional tests need a built wheel plus the Pyodide distribution."""
+    dist = ROOT / "dist"
+    if not dist.is_dir():
+        return False
+    if not list(dist.glob("asciidoctrine-*.whl")):
+        return False
+    # pyodide.js (legacy) or pyodide.mjs (current) marks an extracted distribution.
+    return (dist / "pyodide.js").exists() or (dist / "pyodide.mjs").exists()
+
+
+def cmd_functional() -> int:
+    """Run the Pyodide functional tests against the locally built dist/."""
+    if not _pyodide_dist_ready():
+        raise SystemExit(
+            die(
+                "dist/ is not ready. Build it first:\n"
+                "    python -m build --wheel\n"
+                "    pip download lark platformdirs -d dist/\n"
+                "    curl -L <pyodide tarball> -o pyodide.tar.bz2\n"
+                "    tar -xjf pyodide.tar.bz2 && cp -r pyodide/* dist/\n"
+                "See the test-pyodide job in .github/workflows/ci.yml."
+            )
+        )
+
+    runtime = _pyodide_runtime()
+
+    # On Windows the ES-module MIME shim must reach the server subprocess that
+    # pytest-pyodide spawns. sitecustomize on PYTHONPATH is inherited across
+    # multiprocessing spawn, which is why this works where a conftest would not.
+    env_extra: dict[str, str] = {}
+    if os.name == "nt":
+        shim_dir = ROOT / "tools" / "windows-shims"
+        existing = os.environ.get("PYTHONPATH", "")
+        env_extra["PYTHONPATH"] = (
+            f"{shim_dir}{os.pathsep}{existing}" if existing else str(shim_dir)
+        )
+
+    # `-o addopts=` clears the project's `-n auto`, which xdist cannot use with
+    # the Pyodide runtime.
+    return run(
+        [
+            tool("pytest"),
+            "-o",
+            "addopts=",
+            "--runtime",
+            runtime,
+            "--dist-dir",
+            "dist",
+            "tests/test_functional.py",
+        ],
+        env_extra=env_extra,
+    )
+
+
 def main(argv: list[str]) -> int:
     if not argv or argv[0] in ("-h", "--help", "help"):
         print(USAGE)
@@ -156,6 +248,8 @@ def main(argv: list[str]) -> int:
         return cmd_verify()
     if command == "all":
         return cmd_all()
+    if command == "functional":
+        return cmd_functional()
     if command == "fmt":
         return run([tool("ruff"), "format", "."])
     if command == "tck":
