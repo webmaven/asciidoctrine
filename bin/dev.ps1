@@ -18,15 +18,17 @@
     lint     - ruff format --check + ruff check + mypy
     setup    - create the venv and install .[test]
     all      - verify + doctest
+    functional - Tier 3: Pyodide functional tests (requires a built dist/)
 
 .EXAMPLE
     .\bin\dev.ps1 setup
     .\bin\dev.ps1 verify
+    .\bin\dev.ps1 functional
 #>
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('verify', 'test', 'doctest', 'tck', 'lint', 'setup', 'all')]
+    [ValidateSet('verify', 'test', 'doctest', 'tck', 'lint', 'setup', 'all', 'functional')]
     [string]$Task = 'verify'
 )
 
@@ -65,7 +67,12 @@ try {
             if ($LASTEXITCODE -ne 0) { throw "Command failed ($LASTEXITCODE): $Python $($Arguments -join ' ')" }
         } finally {
             foreach ($k in $Environment.Keys) {
-                Set-Item -Path "Env:$k" -Value $prev[$k]
+                if ($null -eq $prev[$k]) {
+                    # Was not set before this call; remove rather than assigning null.
+                    Remove-Item -Path "Env:$k" -ErrorAction SilentlyContinue
+                } else {
+                    Set-Item -Path "Env:$k" -Value $prev[$k]
+                }
             }
         }
     }
@@ -101,6 +108,63 @@ try {
             } else {
                 throw "TCK requires bash (Git for Windows). Run: npm ci && ./run-tck.sh from Git Bash."
             }
+        }
+        'functional' {
+            # The functional tests drive Pyodide against a locally built dist/.
+            $dist = Join-Path $RepoRoot 'dist'
+            if (-not (Test-Path $dist)) {
+                $msg = @'
+dist/ does not exist. Build it first (see the test-pyodide job in .github/workflows/ci.yml):
+  python -m build --wheel
+  pip download lark platformdirs -d dist/
+'@
+                throw $msg
+            }
+            $hasWheel = @(Get-ChildItem -Path $dist -Filter 'asciidoctrine-*.whl' -File -ErrorAction SilentlyContinue).Count -gt 0
+            $hasPyodide = (Test-Path (Join-Path $dist 'pyodide.mjs')) -or (Test-Path (Join-Path $dist 'pyodide.js'))
+            if (-not $hasWheel -or -not $hasPyodide) {
+                throw "dist/ is incomplete (wheel: $hasWheel, pyodide runtime: $hasPyodide). Rebuild it first."
+            }
+
+            # CI uses --runtime node, which shells out through /bin/bash and
+            # pexpect.spawn. Neither works on Windows, so use a browser runtime
+            # (driven over Selenium). The name is a pytest-pyodide identifier,
+            # not a browser name: only chrome/firefox/safari/node are valid --
+            # there is no `edge` runtime.
+            $runtime = $env:ASCIIDOCTRINE_PYODIDE_RUNTIME
+            if (-not $runtime) {
+                if (-not $IsWindowsEnv) {
+                    $runtime = 'node'
+                }
+                else {
+                    $runtime = 'chrome'
+                    $firefox = @(
+                        "$env:ProgramFiles\Mozilla Firefox\firefox.exe",
+                        "${env:ProgramFiles(x86)}\Mozilla Firefox\firefox.exe"
+                    )
+                    if (-not @(@(
+                            "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
+                            "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe"
+                        ) | Where-Object { Test-Path $_ }).Count -gt 0 -and
+                        @($firefox | Where-Object { Test-Path $_ }).Count -gt 0) {
+                        $runtime = 'firefox'
+                    }
+                }
+            }
+
+            # On Windows, .mjs resolves to text/plain, so browsers refuse to
+            # execute pyodide.mjs as an ES module and loadPyodide is never
+            # defined. pytest-pyodide serves dist/ from a spawned process, so
+            # the shim must arrive via sitecustomize on PYTHONPATH.
+            $envOverrides = @{}
+            if ($IsWindowsEnv) {
+                $shimDir = Join-Path $RepoRoot 'tools\windows-shims'
+                $envOverrides['PYTHONPATH'] = if ($env:PYTHONPATH) { "$shimDir;$env:PYTHONPATH" } else { $shimDir }
+            }
+
+            # `-o addopts=` clears the project's `-n auto`; xdist cannot be used
+            # with the Pyodide runtime.
+            Invoke-Tool @('-m', 'pytest', '-o', 'addopts=', '--runtime', $runtime, '--dist-dir', 'dist', 'tests/test_functional.py') -Environment $envOverrides
         }
         'verify' {
             Invoke-Tool @('-m', 'pytest', '-k', 'not functional', '-q', '--tb=short')
