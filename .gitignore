@@ -50,6 +50,11 @@ coverage.xml
 .pytest_cache/
 pytestdebug.log
 
+# Local scratch artifacts from ad-hoc test/tooling runs (*.log is covered above)
+*.pid
+.tck_cache.json
+.tck_cache.lock
+
 # Environments
 .env
 .venv

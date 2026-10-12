@@ -630,7 +630,7 @@ It should roundtrip.
     def test_corpus_sample_roundtrip(self):
         corpus_path = "vendor/asciidoctor-doctest/CHANGELOG.adoc"
         if os.path.exists(corpus_path):
-            with open(corpus_path) as f:
+            with open(corpus_path, encoding="utf-8") as f:
                 content = f.read()
             doc = parse_to_ast(content)
             serialized = serialize_to_asciidoc(doc)
@@ -641,7 +641,7 @@ It should roundtrip.
     def test_docs_sample_roundtrip(self):
         doc_path = "docs/index.adoc"
         if os.path.exists(doc_path):
-            with open(doc_path) as f:
+            with open(doc_path, encoding="utf-8") as f:
                 content = f.read()
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=DeprecationWarning)

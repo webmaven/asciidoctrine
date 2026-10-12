@@ -10,7 +10,7 @@ def regenerate_tests(base_dir):
 
     for input_path in adoc_files:
         print(f"Regenerating {input_path}...")
-        with open(input_path) as f:
+        with open(input_path, encoding="utf-8") as f:
             content = f.read()
 
         parse_type = "inline" if "inline" in input_path else "block"
@@ -31,7 +31,7 @@ def regenerate_tests(base_dir):
         if result.returncode == 0:
             output_path = input_path.replace("-input.adoc", "-output.json")
             asg = json.loads(result.stdout)
-            with open(output_path, "w") as f:
+            with open(output_path, "w", encoding="utf-8", newline="\n") as f:
                 json.dump(asg, f, indent=2)
                 f.write("\n")
         else:

@@ -19,7 +19,7 @@ def tck_output():
     # 1. Check if cache already exists (subsequent workers or runs)
     if os.path.exists(cache_file):
         try:
-            with open(cache_file) as f:
+            with open(cache_file, encoding="utf-8") as f:
                 data = json.load(f)
                 return data["stdout"], data["stderr"], data["returncode"]
         except Exception:
@@ -28,7 +28,7 @@ def tck_output():
     # 2. Try to acquire the exclusive creation lock
     acquired_lock = False
     try:
-        with open(lock_file, "x") as f:
+        with open(lock_file, "x", encoding="utf-8") as f:
             f.write(str(os.getpid()))
         acquired_lock = True
     except FileExistsError:
@@ -36,7 +36,7 @@ def tck_output():
         for _ in range(600):  # Wait up to 60 seconds
             if os.path.exists(cache_file):
                 try:
-                    with open(cache_file) as f:
+                    with open(cache_file, encoding="utf-8") as f:
                         data = json.load(f)
                         return data["stdout"], data["stderr"], data["returncode"]
                 except Exception:
@@ -65,7 +65,7 @@ def tck_output():
 
         # Save cache atomically
         temp_cache_file = cache_file + f".tmp.{os.getpid()}"
-        with open(temp_cache_file, "w") as f:
+        with open(temp_cache_file, "w", encoding="utf-8", newline="\n") as f:
             json.dump(
                 {
                     "stdout": result.stdout,
@@ -98,7 +98,7 @@ def get_known_failures():
     failures_file = os.path.join("tests", "tck_failures.txt")
     if not os.path.exists(failures_file):
         return set()
-    with open(failures_file) as f:
+    with open(failures_file, encoding="utf-8") as f:
         return {line.strip() for line in f if line.strip()}
 
 

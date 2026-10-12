@@ -38,6 +38,65 @@ jobs:
     - name: Type check (mypy)
       run: mypy src/asciidoctrine
 
+  test-windows:
+    # Guards the Windows contributor path. Development has historically been
+    # Linux/macOS-only, so this job catches the platform-specific failure modes
+    # that `ubuntu-latest` cannot see:
+    #   * locale-dependent text I/O (cp1252 vs UTF-8) mangling non-ASCII source
+    #   * text-mode newline translation breaking round-trip fidelity
+    #   * POSIX-only path assumptions (venv/bin, shell scripts)
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Verify LF normalization survived checkout
+      # .gitattributes pins `eol=lf`. If that ever regresses, the working tree
+      # fills with CRLF and round-trip parity tests fail -- verify it explicitly
+      # so the root cause is obvious rather than showing up as a test failure.
+      run: git ls-files --eol src/asciidoctrine/grammar.lark
+
+    - name: Fail if any text file checked out with CRLF
+      shell: pwsh
+      run: |
+        $bad = git ls-files --eol | Where-Object { $_ -match 'w/crlf' }
+        if ($bad) {
+          Write-Error "CRLF found in working tree; .gitattributes normalization is not applied:`n$($bad -join "`n")"
+          exit 1
+        }
+        Write-Output "All tracked text files checked out with LF."
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.14'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        pip install -e '.[test]'
+
+    - name: Check formatting (ruff)
+      run: ruff format --check .
+
+    - name: Lint (ruff)
+      run: ruff check .
+
+    - name: Type check (mypy)
+      run: mypy src/asciidoctrine
+
+    - name: Run core tests
+      # Round-trip and encoding-sensitive tests are the ones at risk on Windows.
+      run: pytest -n0 --ignore=tests/test_tck.py --ignore=tests/test_functional.py -q --tb=short
+
+    - name: Run round-trip and encoding tests
+      run: >-
+        pytest -n0 tests/test_serializer.py tests/test_serializer_unit.py
+        tests/test_doctest_parsing.py -q --tb=short
+      env:
+        RUN_DOCTESTS: "1"
+
   build-docs:
     runs-on: ubuntu-latest
     permissions:
