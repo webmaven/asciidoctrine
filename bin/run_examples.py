@@ -14,7 +14,7 @@ def run_examples():
         if filename.endswith(".adoc"):
             filepath = os.path.join(examples_dir, filename)
             print(f"--- Parsing {filename} ---")
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 source = f.read()
 
             try:

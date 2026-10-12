@@ -13,9 +13,9 @@ def test_docinfo_shared_files():
     with tempfile.TemporaryDirectory() as tmpdir:
         head_path = os.path.join(tmpdir, "docinfo.html")
         footer_path = os.path.join(tmpdir, "docinfo-footer.html")
-        with open(head_path, "w") as f:
+        with open(head_path, "w", encoding="utf-8", newline="\n") as f:
             f.write('<meta name="keywords" content="AsciiDoc">\n')
-        with open(footer_path, "w") as f:
+        with open(footer_path, "w", encoding="utf-8", newline="\n") as f:
             f.write("<script>console.log('footer');</script>\n")
 
         doc_source = ":docinfo: shared\n\nHello World\n"
@@ -37,7 +37,7 @@ def test_docinfo_shared_files():
 def test_docinfo_private_files():
     with tempfile.TemporaryDirectory() as tmpdir:
         head_path = os.path.join(tmpdir, "testdoc-docinfo.html")
-        with open(head_path, "w") as f:
+        with open(head_path, "w", encoding="utf-8", newline="\n") as f:
             f.write("<style>body { color: red; }</style>\n")
 
         doc_source = ":docname: testdoc\n:docinfo: private\n\nHello World\n"
@@ -51,7 +51,7 @@ def test_docinfo_private_files():
 def test_docinfo_attribute_substitution():
     with tempfile.TemporaryDirectory() as tmpdir:
         head_path = os.path.join(tmpdir, "docinfo.html")
-        with open(head_path, "w") as f:
+        with open(head_path, "w", encoding="utf-8", newline="\n") as f:
             f.write('<meta name="author" content="{author}">\n')
 
         doc_source = ":docinfo: shared\n:author: Jane Doe\n\nHello World\n"
@@ -69,7 +69,7 @@ def test_docinfo_safe_mode_traversal_prevention():
         sub_dir = os.path.join(tmpdir, "sub")
         os.makedirs(sub_dir)
         secret_path = os.path.join(tmpdir, "docinfo.html")
-        with open(secret_path, "w") as f:
+        with open(secret_path, "w", encoding="utf-8", newline="\n") as f:
             f.write('<meta name="secret" content="leaked">\n')
 
         doc_source = ":docinfo: shared\n:docinfodir: ..\n\nHello World\n"
@@ -86,9 +86,9 @@ def test_docinfo_docutils_rendering():
     with tempfile.TemporaryDirectory() as tmpdir:
         head_path = os.path.join(tmpdir, "docinfo.html")
         footer_path = os.path.join(tmpdir, "docinfo-footer.html")
-        with open(head_path, "w") as f:
+        with open(head_path, "w", encoding="utf-8", newline="\n") as f:
             f.write('<meta name="custom-docinfo" content="active">\n')
-        with open(footer_path, "w") as f:
+        with open(footer_path, "w", encoding="utf-8", newline="\n") as f:
             f.write("<script>console.log('footer-rendered');</script>\n")
 
         doc_source = ":docinfo: shared\n\nHello World\n"

@@ -17,7 +17,10 @@ def get_all_doctest_examples() -> list[tuple[str, str]]:
     examples = []
     for adoc_file in sorted(glob.glob(os.path.join(examples_dir, "*.adoc"))):
         group_name = os.path.splitext(os.path.basename(adoc_file))[0]
-        with open(adoc_file) as f:
+        # Always decode the corpus as UTF-8. Without an explicit encoding this
+        # uses the platform locale (cp1252 on Windows), which silently mangles
+        # non-ASCII source text instead of failing.
+        with open(adoc_file, encoding="utf-8") as f:
             content = f.read()
 
         # Split by // .id

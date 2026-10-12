@@ -17,8 +17,92 @@ We welcome contributions! Whether you are fixing a bug, adding a feature, or imp
 ----
 git clone https://github.com/webmaven/asciidoctrine.git
 cd asciidoctrine
-pip install -e .
+pip install -e ".[test]"
 ----
+
+=== Windows
+
+Development has historically happened on Linux and macOS, so most documented
+commands assume POSIX shell. Windows is supported; the following covers what
+differs.
+
+==== One-time setup
+
+[source,powershell]
+----
+git clone https://github.com/webmaven/asciidoctrine.git
+cd asciidoctrine
+python -m venv venv
+venv\Scripts\python.exe -m pip install --upgrade pip
+venv\Scripts\python.exe -m pip install -e ".[test]"
+----
+
+Or, to get the same result in one step:
+
+[source,powershell]
+----
+.\bin\dev.ps1 setup
+----
+
+NOTE: `venv\bin\python3` -- the path used throughout the AGENTS.md quick
+reference -- does not exist on Windows. The interpreter lives at
+`venv\Scripts\python.exe`.
+
+==== Line endings
+
+The repo pins every text file to LF via `.gitattributes`. This is a correctness
+requirement, not a style preference: `asciidoctrine` guarantees character-for-
+character round-trip fidelity, and the parser detects a document's original
+line ending to reproduce it on serialize. If your working tree holds CRLF, you
+will get different parse results than a contributor on Linux.
+
+If you have `core.autocrlf=true` set globally, `eol=lf` in `.gitattributes`
+overrides it automatically. If you cloned before that file existed, renormalize
+your working tree:
+
+[source,powershell]
+----
+git add --renormalize .
+git checkout-index -f -a
+git ls-files --eol   # the "w/" column should read "lf", never "crlf"
+----
+
+==== Daily commands
+
+[source,powershell]
+----
+.\bin\dev.ps1 verify    # core tests + ruff + mypy (pre-commit check)
+.\bin\dev.ps1 test      # core tests only
+.\bin\dev.ps1 doctest   # real-world doctest corpus
+.\bin\dev.ps1 lint      # ruff + mypy
+----
+
+Invoking the tools directly is equivalent:
+
+[source,powershell]
+----
+venv\Scripts\python.exe -m pytest -k "not functional" -q --tb=short
+venv\Scripts\python.exe -m ruff check .
+venv\Scripts\python.exe -m mypy src/asciidoctrine
+----
+
+==== Upstream TCK
+
+The TCK runner (`run-tck.sh`, `run-tck-coverage.sh`) is bash and additionally
+needs Node.js >= 20. Run it from Git Bash:
+
+[source,bash]
+----
+./run-tck.sh
+----
+
+`.\bin\dev.ps1 tck` will launch it through `bash` when Git for Windows is on
+`PATH`.
+
+==== Known platform gaps
+
+* `tests/test_functional.py` requires a `dist/` Pyodide tree plus built wheels,
+  and expects the `314.0.2` runtime. These six tests skip without it.
 
 == Code Style
 

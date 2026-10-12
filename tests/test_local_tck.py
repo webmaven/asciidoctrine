@@ -56,8 +56,13 @@ def test_local_tck(adoc_path: str) -> None:
         with open(config_path, encoding="utf-8") as f:
             cfg = json.load(f)
             parse_type = cfg.get("type", "block")
-    elif "inline/" in adoc_path:
-        parse_type = "inline"
+    else:
+        # Normalize to forward slashes before matching: os.path.relpath emits
+        # backslash separators on Windows, so a literal "inline/" check would
+        # never match and inline tests would silently run in block mode.
+        normalized = adoc_path.replace(os.sep, "/")
+        if "inline/" in normalized:
+            parse_type = "inline"
 
     with open(input_path, encoding="utf-8") as f:
         source = f.read()

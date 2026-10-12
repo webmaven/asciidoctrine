@@ -26,6 +26,29 @@ The project uses a standard Python 3.10+ virtual environment.
 *   **Pip Path**: `venv/bin/pip`
 *   **Pytest Path**: `venv/bin/pytest`
 
+> [!NOTE]
+> **Windows contributors**: the paths above are POSIX. On Windows the venv
+> interpreter is `venv\Scripts\python.exe`, and `run-tck.sh` /
+> `run-tck-coverage.sh` require Git Bash plus Node.js >= 20.
+>
+> Use the cross-platform wrapper instead of translating by hand:
+> ```powershell
+> .\bin\dev.ps1 setup    # create venv + install .[test]
+> .\bin\dev.ps1 verify   # core tests + ruff + mypy
+> .\bin\dev.ps1 all      # verify + doctest corpus
+> ```
+> It resolves the correct interpreter on both platforms. See the **Windows**
+> section of `CONTRIBUTING.adoc` for the full workflow.
+
+> [!IMPORTANT]
+> **Line endings are a correctness constraint, not cosmetics.**
+> `.gitattributes` pins all text files to LF because the parser detects a
+> document's original line ending and reproduces it on serialize (see *Unified
+> LF Normalization* below). A CRLF working tree yields different parse results
+> than LF. `eol=lf` overrides a global `core.autocrlf=true` automatically; if
+> you cloned before `.gitattributes` existed, renormalize with
+> `git add --renormalize . && git checkout-index -f -a`.
+
 ### Pyodide Setup (for Functional Tests)
 To run functional tests, you need a local Pyodide environment and built wheels in the `dist/` directory.
 
