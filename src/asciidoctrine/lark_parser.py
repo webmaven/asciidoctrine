@@ -463,7 +463,14 @@ class AsciiDocTransformer(
                                     absolute_level=old_abs,
                                     strict=self.strict,
                                 )
-                                block.attributes.update(old_attrs)
+                                # Carry over only named attributes; positional/digit
+                                # keys are resolved away by the resolver, and the
+                                # discrete style itself is recorded as a named flag.
+                                for ak, av in old_attrs.items():
+                                    if (isinstance(ak, str) and ak.isdigit()) or ak == "positional":
+                                        continue
+                                    block.attributes[ak] = av
+                                block.attributes["discrete"] = True
                                 block.location = old_loc
                             else:
                                 block.attributes["style"] = v
